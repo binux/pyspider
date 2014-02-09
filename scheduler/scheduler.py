@@ -6,12 +6,15 @@
 # Created on 2014-02-07 17:05:11
 
 
+import time
 import Queue
 import logging
 from task_queue import TaskQueue
 
 
 class Scheduler(object):
+    _update_project_interval = 5*60
+    
     def __init__(self, taskdb, projectdb, request_fifo, status_fifo, out_fifo):
         self.taskdb = taskdb
         self.projectdb = projectdb
@@ -20,25 +23,50 @@ class Scheduler(object):
         self.out_fifo = out_fifo
 
         self._quit = False
+        self.projects = dict()
+        self._last_update_project = 0
         self.task_queue = dict()
 
     def _load_projects(self):
-        pass
-
-    def _load_tasks(self, project):
-        pass
-
-    def _load_task_body(self, taskid):
-        pass
-
-    def _save_task(self, task):
-        pass
-
-    def _save_task_status(self, task):
-        pass
+        self.projects = dict()
+        for project in self.projectdb.get_all():
+            self.projects[project['name']] = project
+        self._last_update_project = time.time()
 
     def _update_projects(self):
-        pass
+        now = time.time()
+        if self._last_update_project + self._update_project_interval > now:
+            return
+        for project in self.projectdb.check_update(now):
+            self.projects[project['name']] = project
+            if project['name'] not in self.task_queue:
+                self._load_tasks(project['name'])
+            self.task_queue[project['name']].rate = project['rate']
+            self.task_queue[project['name']].burst = project['burst']
+
+    scheduler_task_fields = ['taskid', 'project', 'schedule', ]
+    def _load_tasks(self, project):
+        self.task_queue[project] = TaskQueue(rate=0, burst=0)
+        for task in self.taskdb.load_tasks('ACTIVE', project,
+                self.scheduler_task_fields):
+            taskid = task['taskid']
+            if 'schedule' in task:
+                priority = task['schedule'].get('priority', 0)
+                exetime = task['schedule'].get('exetime', 0)
+            else:
+                priority = 0
+                exetime = 0
+            self.task_queue.put(taskid, priority, exetime)
+
+    request_task_fields = ['taskid', 'project', 'fetch', 'process']
+    def _load_task_body(self, taskid):
+        return self.taskdb.get_task(taskid, fields=self.request_task_fields)
+
+    def _insert_task(self, task):
+        return self.taskdb.insert(task['project'], task['taskid'], task)
+
+    def _update_task(self, task):
+        return self.taskdb.insert(task['project'], task['taskid'], task)
 
     def _check_task_done(self):
         cnt = 0
@@ -48,15 +76,19 @@ class Scheduler(object):
                 if 'taskid' not in task:
                     logging.error("taskid not in task: %s", task)
                     continue
+                if 'project' not in task:
+                    logging.error("project not in task: %s", task)
+                    continue
                 task = self.on_task_status(task)
                 if task:
-                    self._save_task_status(task)
-                    self.task_queue.done(task['taskid'])
+                    self._update_task(task)
+                    self.task_queue[task['project']].done(task['taskid'])
                 cnt += 1
         except Queue.Empty:
             pass
         return cnt
 
+    merge_task_fields = ['taskid', 'project', 'fetch', 'process']
     def _check_request(self):
         cnt = 0
         try:
@@ -65,10 +97,19 @@ class Scheduler(object):
                 if 'taskid' not in task:
                     logging.error("taskid not in task: %s", task)
                     continue
-                task = self.on_request(task)
+                if 'project' not in task:
+                    logging.error("project not in task: %s", task)
+                    continue
+                oldtask = self.taskdb.get_task(task['project'], task['taskid'],
+                        self.merge_task_fields)
+                if oldtask:
+                    task = self.on_old_request(task, oldtask)
+                    self._update_task(task)
+                else:
+                    task = self.on_new_request(task)
+                    self._insert_task(task)
                 if task:
-                    self._save_task(task)
-                    self.task_queue.put(task['taskid'],
+                    self.task_queue[task['project']].put(task['taskid'],
                             priority=task.get('priority', 0),
                             exetime=task.get('exetime', 0))
                 cnt += 1
@@ -100,8 +141,12 @@ class Scheduler(object):
     def run(self):
         logging.info("loading projects")
         self._load_projects()
-        logging.info("loading tasks")
-        self._load_tasks()
+        for i, project in enumerate(self.projects.keys()):
+            logging.info("loading tasks from %s -- %d/%d" % (
+                project, i+1, len(self.projects)))
+            self._load_tasks(project)
+            self.task_queue[project].rate = self.projects[project]['rate']
+            self.task_queue[project].burst = self.projects[project]['burst']
         while not self._quit:
             self._update_projects()
             self._check_task_done()
@@ -109,19 +154,10 @@ class Scheduler(object):
             self._check_select()
             time.sleep(0.1)
 
-    def on_request(self, task):
-        return task
-
     def on_new_request(self, task):
-        '''
-        called by on_request
-        '''
         pass
 
     def on_old_request(self, task, old_task):
-        '''
-        called by on_request
-        '''
         pass
 
     def on_task_status(self, task):
