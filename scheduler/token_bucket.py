@@ -30,6 +30,7 @@ class Bucket(object):
     def get(self):
         now = time.time()
         if self.bucket >= self.burst:
+            self.last_update = now
             return self.bucket
         bucket = self.rate * (now - self.last_update)
         self.mutex.acquire()

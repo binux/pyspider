@@ -123,5 +123,64 @@ class TestTaskDB(unittest.TestCase):
         self.assertNotIn('taskid', task)
 
 
+from database.sqlite.projectdb import ProjectDB
+class TestProjectDB(unittest.TestCase):
+    sample_project = {
+            'name': 'name',
+            'group': 'group',
+            'status': 'TODO',
+            'script': 'import time\nprint time.time()',
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+            'updatetime': time.time(),
+            }
+
+    def test_all(self):
+        projectdb = ProjectDB(':memory:')
+
+        # insert
+        projectdb.insert('abc', self.sample_project)
+        projectdb.insert('name', self.sample_project)
+
+        # get all
+        projects = list(projectdb.get_all())
+        self.assertEqual(len(projects), 2)
+        project = projects[0]
+        self.assertEqual(project['script'], self.sample_project['script'])
+        self.assertEqual(project['rate'], self.sample_project['rate'])
+        self.assertEqual(project['burst'], self.sample_project['burst'])
+
+        projects = list(projectdb.get_all(fields=['name', 'script']))
+        self.assertEqual(len(projects), 2)
+        project = projects[1]
+        self.assertIn('name', project)
+        self.assertNotIn('gourp', project)
+
+        # update
+        time.sleep(0.1)
+        now = time.time()
+        projectdb.update('not found', status='RUNNING')
+        projectdb.update('abc', status='RUNNING')
+
+        # check update
+        projects = list(projectdb.check_update(now, fields=['name', 'status', 'group']))
+        self.assertEqual(len(projects), 1)
+        project = projects[0]
+        self.assertEqual(project['name'], 'abc')
+        self.assertEqual(project['status'], 'RUNNING')
+
+        # get
+        project = projectdb.get('not found')
+        self.assertIsNone(project)
+
+        project = projectdb.get('abc')
+        self.assertEqual(project['name'], 'abc')
+        self.assertEqual(project['status'], 'RUNNING')
+
+        project = projectdb.get('name', ['group', 'status', 'name'])
+        self.assertIn('status', project)
+        self.assertNotIn('gourp', project)
+
 if __name__ == '__main__':
     unittest.main()
