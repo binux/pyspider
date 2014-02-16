@@ -8,6 +8,7 @@
 import time
 import Queue
 import logging
+import threading
 import cookie_utils
 import tornado.ioloop
 import tornado.httputil
@@ -51,7 +52,7 @@ class Fetcher(object):
         self.outqueue = outqueue
 
         self.poolsize = poolsize
-        self._pause = False
+        self._running = False
         self._quit = False
         self.proxy = proxy
         self.async = async
@@ -71,6 +72,25 @@ class Fetcher(object):
             return self.data_fetch(url, task, callback)
         else:
             return self.http_fetch(url, task, callback)
+
+    def sync_fetch(self, task):
+        wait_result = threading.Condition()
+        _result = {}
+        def callback(type, task, result):
+            wait_result.acquire()
+            _result['type'] = type
+            _result['task'] = task
+            _result['result'] = result
+            wait_result.notify()
+            wait_result.release()
+        self.fetch(task, callback=callback)
+
+        wait_result.acquire()
+        while 'result' not in _result:
+            wait_result.wait()
+        wait_result.release()
+        return _result['result']
+
 
     def data_fetch(self, url, task, callback):
         self.on_fetch('data', task)
@@ -194,27 +214,34 @@ class Fetcher(object):
             return task, result
 
     def run(self):
-        while not self._quit:
-            try:
-                if self.outqueue.full():
-                    time.sleep(1)
-                    continue
+        def queue_loop():
+            if not self.outqueue or not self.inqueue:
+                return
+            while not self._quit:
+                try:
+                    if self.outqueue.full():
+                        break
+                    if self.http_client.free_size() <= 0:
+                        break
+                    task = self.inqueue.get()
+                    self.fetch(task)
+                except Queue.Empty:
+                    break
+                except Exception, e:
+                    logging.exception(e)
+                    break
 
-                task = self.inqueue.get()
-                self.fetch(task)
-            except Queue.Empty:
-                time.sleep(1)
-                continue
-            except Exception, e:
-                logging.exception(e)
-                time.sleep(30)
-                continue
+        tornado.ioloop.PeriodicCallback(queue_loop, 500).start()
+        tornado.ioloop.IOLoop.instance().start()
+        self._running = True
 
     def size(self):
         return self.http_client.size()
 
     def quit(self):
+        self._running = False
         self._quit = True
+        tornado.ioloop.IOLoop.instance().stop()
 
     def xmlrpc_run(self, port, bind='127.0.0.1'):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
@@ -223,6 +250,7 @@ class Fetcher(object):
         server.register_introspection_functions()
         server.register_multicall_functions()
 
+        server.register_function(self.sync_fetch, 'fetch')
         server.register_function(self.size)
         server.register_function(self.unpause)
         server.register_function(self.quit, '_quit')

@@ -6,9 +6,11 @@
 # Created on 2014-02-15 22:10:35
 
 import time
+import threading
 import unittest
 
 
+import json
 from fetcher.tornado_fetcher import Fetcher
 class TestTaskDB(unittest.TestCase):
     sample_task_http = {
@@ -29,11 +31,23 @@ class TestTaskDB(unittest.TestCase):
                 'save': [1, 2, 3],
                 },
             }
+    def setUp(self):
+        self.fetcher = Fetcher(None, None)
+        self.thread = threading.Thread(target=self.fetcher.run)
+        self.thread.daemon = True
+        self.thread.start()
+
+    def tearDown(self):
+        self.fetcher.quit()
+        self.thread.join()
+
     def test_http_get(self):
-        fetcher = Fetcher(None, None, async=False)
-        def callback(type, task, result):
-            self.assertEqual(task, self.sample_task_http)
-            self.assertEqual(result['status_code'], 200)
-            self.assertEqual(result['orig_url'], self.sample_task_http["url"])
-            self.assertIn("a=b", result['content'])
-        fetcher.fetch(self.sample_task_http, callback=callback)
+        result = self.fetcher.sync_fetch(self.sample_task_http)
+        self.assertEqual(result['status_code'], 200)
+        self.assertEqual(result['orig_url'], self.sample_task_http['url'])
+        self.assertIn('content', result)
+        content = json.loads(result['content'])
+        self.assertIn('headers', content)
+        self.assertIn('A', content['headers'])
+        self.assertIn('Cookie', content['headers'])
+        self.assertEqual(content['headers']['Cookie'], 'a=b')
