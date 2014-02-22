@@ -107,7 +107,7 @@ class TestProjectModule(unittest.TestCase):
         self.assertIn('warning', logstr)
         self.assertIn('error', logstr)
 
-        # echo
+        # add_task
         self.base_task['process']['callback'] = 'add_task'
         ret = instance.run(module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)

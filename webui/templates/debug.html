@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>debugger - pyspider</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="pyspider">
+    <meta name="author" content="binux">
+    <link href="{{ url_for('static', filename='debug.css') }}" rel="stylesheet" type="text/css">
+  </head>
+
+  <body>
+    <section id="control">
+      control
+    </section>
+    <section id="editarea">
+      <div class="panel" style="right: 50%">panel1</div>
+      <div class="panel" style="left: 50%">panel2</div>
+    </section>
+
+    <script src="http://cdn.staticfile.org/jquery/1.11.0/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='splitter.js') }}"></script>
+    <script>
+      $(".panel:not(:first)").splitter().data('splitter').trigger('init');
+    </script>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
+
