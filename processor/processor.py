@@ -7,8 +7,10 @@
 
 import sys
 import time
+import Queue
 import logging
 import project_module
+from libs.response import rebuild_response
 logger = logging.getLogger("processor")
 
 
@@ -21,6 +23,7 @@ class Processor(object):
         self.newtask_queue = newtask_queue
         self.projectdb = projectdb
 
+        self._quit = False
         self.projects = {}
         self.last_check_projects = 0
 
@@ -67,11 +70,65 @@ class Processor(object):
                 }
 
     def on_task(self, task, response):
+        start_time = time.time()
         try:
+            response = rebuild_response(response)
+            assert 'taskid' in task, 'need taskid in task'
             project = task['project']
             if project not in self.projects:
                 raise LookupError("not such project: %s" % project)
             project_data = self.projects[project]
             ret = project_data['instance'].run(project_data['module'], task, response)
         except Exception, e:
-            pass
+            logger.exception(e)
+            return False
+        process_time = time.time() - start_time
+
+        if not ret.extinfo.get('not_send_status', False):
+            status_pack = {
+                    'taskid': task['taskid'],
+                    'project': task['project'],
+                    'url': task.get('url'),
+                    'track': {
+                        'fetch': {
+                            'ok': not response.error,
+                            'time': response.time,
+                            'status_code': response.status_code,
+                            'headers': response.headers,
+                            'encoding': response.encoding,
+                            #'content': response.content,
+                            },
+                        'process': {
+                            'ok': not ret.exception,
+                            'time': process_time,
+                            'follows': len(ret.follows),
+                            'result': unicode(ret.result)[:100],
+                            'logs': ret.logs,
+                            'exception': unicode(ret.exception),
+                            }
+                        }
+                    }
+            self.status_queue.put(status_pack)
+
+        for task in ret.follows:
+            self.newtask_queue.put(task)
+
+        #TODO: do with messages
+        return True
+
+    def run(self):
+        while not self._quit:
+            try:
+                self._update_project()
+            except Exception, e:
+                logger.exception(e)
+
+            try:
+                task, response = self.inqueue.get()
+                self.on_task(task, response)
+            except Queue.Empty, e:
+                time.sleep(1)
+                continue
+            except Exception, e:
+                logger.exception(e)
+                continue

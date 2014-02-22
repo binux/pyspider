@@ -7,26 +7,66 @@
 
 import time
 import inspect
+import functools
+import traceback
+from libs.url import quote_chinese, _build_url
+from libs.utils import md5string
 from libs.response import rebuild_response
 from collections import namedtuple
 
 
-ProcessorResult = namedtuple('ProcessorResult', 'result, follows, messages, logs, exception, extinfo')
+class ProcessorResult(object):
+    def __init__(self, result, follows, messages, logs, exception, extinfo):
+        self.result = result
+        self.follows = follows
+        self.messages = messages
+        self.logs = logs
+        self.exception = exception
+        self.extinfo = extinfo
+
+    def rethrow(self):
+        if self.exception:
+            raise self.exception
+
+    def logstr(self):
+        result = []
+        for record in self.logs:
+            message = unicode(record.msg)
+            if record.exc_info and not record.exc_text:
+                message += '\n'+''.join(traceback.format_exception(*record.exc_info))
+            elif record.exc_text:
+                message += '\n'+record.exc_text
+            result.append(message)
+        return '\n'.join(result)
+
+def catch_status_code_error(func):
+    func._catch_status_code_error = True
+    return func
+
+
+def not_send_status(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self._extinfo['not_send_status'] = True
+    return wrapper
 
 
 class BaseHandlerMeta(type):
     def __new__(cls, name, bases, attrs):
+        if 'on_message' in attrs:
+            attrs['on_message'] = not_send_status(attrs['on_message'])
+        if 'on_cronjob' in attrs:
+            attrs['on_cronjob'] = not_send_status(attrs['on_cronjob'])
         return type.__new__(cls, name, bases, attrs)
 
 
 class BaseHandler(object):
-    __metaclass__ = Meta
+    __metaclass__ = BaseHandlerMeta
 
     def _init(self, project):
         self._name = project['name']
         self._project = project
-
-        self._reset()
+        return self
 
     def _reset(self):
         self._extinfo = {}
@@ -34,13 +74,18 @@ class BaseHandler(object):
         self._follows = []
 
     def _run(self, task, response):
-        response = rebuild_response(response)
+        self._reset()
+        if isinstance(response, dict):
+            response = rebuild_response(response)
         process = task.get('process', {})
         callback = process.get('callback', '__call__')
         if not hasattr(self, callback):
             raise NotImplementedError("self.%s() not implemented!" % callback)
 
         function = getattr(self, callback)
+        if not getattr(function, '_catch_status_code_error', False):
+            response.raise_for_status()
+
         args, varargs, keywords, defaults = inspect.getargspec(function)
         if len(args) == 1: # foo(self)
             return function()
@@ -60,16 +105,16 @@ class BaseHandler(object):
 
         try:
             result = self._run(task, response)
+            self.on_result(result)
         except Exception, e:
             logger.exception(e)
             exception = e
         finally:
             follows = self._follows
             messages = self._messages
-            logs = list(module.logs)
+            logs = module.logs
             extinfo = self._extinfo
 
-            self._reset()
         return ProcessorResult(result, follows, messages, logs, exception, extinfo)
 
     def _crawl(self, url, **kwargs):
@@ -172,5 +217,13 @@ class BaseHandler(object):
     def send_message(self, project, msg):
         self._messages.append((project, msg))
 
+    @not_send_status
     def on_message(self, response, msg):
+        pass
+
+    @not_send_status
+    def on_cronjob(self):
+        pass
+
+    def on_result(self, result):
         pass

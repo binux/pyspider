@@ -26,19 +26,19 @@ class ProjectModule(object):
         self.exc_info = None
 
         self._log_buffer = []
-        self._logger = logging.Logger()
+        self._logger = logging.Logger(self.name_fixed)
         self._logger.addHandler(SaveLogHandler(self._log_buffer))
 
         self._build_module()
 
     def _build_module(self):
-        self._module = object()
+        self._module = ObjectDict()
         self._module.__dict__ = {
                 'logging': self._logger,
                 'logger': self._logger,
                 '__env__': self.env,
                 '__name__': self.name_fixed,
-                '__loader__': ObjectDict(get_source=lambda name: self.script.encode('utf8')),
+                '__loader__': ObjectDict(get_source=lambda name: self.script),
                 }
         try:
             exec compile(self.script, self.name_fixed+'.py', 'exec') in self._module.__dict__
