@@ -217,9 +217,8 @@ $.fn.splitter = function () {
         } else {
           $el.css('border-' + props[type].cssProp, '0');
         }
-        moveSplitter(x !== undefined ? x : $el.offset()[props[type].cssProp]);
+        moveSplitter(x !== undefined ? x : settings.x || $el.offset()[props[type].cssProp]);
       }
-      console.log("abc");
     }); //.trigger('init', settings.x || $el.offset().left);
 
     $handle.bind('change', function (event, toType, value) {

@@ -3,6 +3,20 @@
 /*         http://binux.me */
 /* Created on 2014-02-23 00:28:30 */
 
+
+// colors
+@gray-darker:            lighten(#000, 13.5%); // #222
+@gray-dark:              lighten(#000, 20%);   // #333
+@gray:                   lighten(#000, 33.5%); // #555
+@gray-light:             lighten(#000, 60%);   // #999
+@gray-lighter:           lighten(#000, 93.5%); // #eee
+
+@blue:         #428bca;
+@green:         #5cb85c;
+@blue-light:            #5bc0de;
+@orange:         #f0ad4e;
+@red:          #d9534f;
+
 body {
   margin: 0;
   padding: 0;
@@ -19,36 +33,141 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  border-bottom: solid 1px lighten(black, 50%);
-  //debug
-  background-color: lighten(red, 30%);
+  background-color: @gray-lighter;
+  box-shadow: 0px 1px 2px @gray-light;
 }
 
 #editarea {
   width: 100%;
   position: absolute;
-  top: @control-height + 1px;
+  top: @control-height + 2px;
   left: 0;
   right: 0;
   bottom: 0;
   //debug
-  background-color: lighten(yellow, 30%);
 }
 
-.panel {
+.debug-panel {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  //debug
-  background-color: lighten(blue, 30%);
 }
 
 .resize {
-  background-color: lighten(black, 30%);
+  background-color: @gray;
   cursor: ew-resize;
-  &:hover + .panel {
-    border-left: dashed 1px lighten(black, 30%) !important;
+  &:hover + .debug-panel {
+    border-left: dashed 1px @gray !important;
  }
+}
+
+.focus .CodeMirror-activeline-background {
+  background: #e8f2ff !important;
+}
+.CodeMirror-activeline-background {
+  background: transparent !important;
+}
+
+#task-panel {
+  height: 100%;
+  overflow-x: auto;
+}
+
+#run-task-btn {
+  z-index: 99;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: @green;
+  border-radius: 0 0 0 5px;
+  color: white;
+  margin: 0;
+  padding: 1px 7px 3px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 15px;
+}
+
+#task-editor {
+  .CodeMirror {
+    height: auto;
+    background: lighten(@green, 30%);
+  }
+  .CodeMirror-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  &.focus .CodeMirror-activeline-background {
+    background: lighten(@green, 40%) !important;
+  }
+}
+
+#tab-control {
+  list-style-type: none;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: 8px 20px;
+  padding: 0;
+
+  li {
+    position: relative;
+    float: right;
+    padding: 1px 7px 0 7px;
+    margin-left: 10px;
+    border-radius: 5px;
+    border: solid 1px @blue;
+    background: white;
+    color: @blue;
+    cursor: pointer;
+
+    &:hover {
+      background: lighten(@blue, 10%);
+      color: white;
+    }
+    &.active {
+      background: @blue;
+      color: white;
+    }
+
+    span {
+      position: absolute;
+      top: -5px;
+      right: -10px;
+      background: @red;
+      color: white;
+      font-size: 50%;
+      font-weight: bold;
+      padding: 2px 5px 0 5px;
+      border-radius: 10px;
+    }
+  }
+}
+
+#debug-tabs {
+  position: relative;
+  margin-bottom: 45px;
+  .tab {
+    background: lighten(@orange, 30%);
+  }
+}
+
+#python-editor {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  bottom: 0;
+
+  .CodeMirror {
+    height: 100%;
+    // padding-bottom: 50px; same as python-log's height
+  }
+}
+
+#python-log {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 }

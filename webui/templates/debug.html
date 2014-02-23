@@ -9,23 +9,53 @@
 
     <meta name="description" content="pyspider">
     <meta name="author" content="binux">
-    <link href="{{ url_for('static', filename='debug.css') }}" rel="stylesheet" type="text/css">
+
+    <link href="http://cdn.staticfile.org/codemirror/3.22.0/codemirror.min.css" rel="stylesheet">
+    <link href="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='debug.css') }}" rel="stylesheet">
   </head>
 
   <body>
     <section id="control">
-      control
+      <div class="title">Debugger - pyspider</div>
     </section>
     <section id="editarea">
-      <div class="panel" style="right: 50%">panel1</div>
-      <div class="panel" style="left: 50%">panel2</div>
+      <div class="debug-panel" style="right: 50%">
+        <div id="task-panel">
+          <div id="task-editor" class="editor"></div>
+          <div id="run-task-btn">run</div>
+          <div id="debug-tabs">
+            <div id="tab-web" class="tab">web</div>
+            <div id="tab-html" class="tab" style="display: none;">html</div>
+            <div id="tab-follows" class="tab" style="display: none;">follows</div>
+            <div id="tab-messages" class="tab" style="display: none;">messages</div>
+          </div>
+        </div>
+        <ul id="tab-control">
+          <li data-id="tab-messages">messages<span style="display: none;"></span></li>
+          <li data-id="tab-follows">follows<span>1</span></li>
+          <li data-id="tab-html">html</li>
+          <li data-id="tab-web" class="active">web</li>
+        </ul>
+      </div>
+
+      <div class="debug-panel" style="left: 50%">
+        <div id="python-editor" class="editor focus"></div>
+        <div id="python-log"></div>
+      </div>
     </section>
 
     <script src="http://cdn.staticfile.org/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/codemirror.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/javascript/javascript.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/python/python.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/search.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/searchcursor.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/selection/active-line.min.js"></script>
     <script src="{{ url_for('static', filename='splitter.js') }}"></script>
-    <script>
-      $(".panel:not(:first)").splitter().data('splitter').trigger('init');
-    </script>
+    <script src="{{ url_for('static', filename='debug.js') }}"></script>
   </body>
 </html>
 <!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
