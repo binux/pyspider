@@ -65,8 +65,15 @@ body {
   font-weight: bold;
   line-height: 15px;
 }
+#run-task-btn:hover {
+  background: #449d44;
+}
+#task-editor {
+  position: relative;
+}
 #task-editor .CodeMirror {
   height: auto;
+  padding-bottom: 3px;
   background: #c7e6c7;
 }
 #task-editor .CodeMirror-scroll {
@@ -118,8 +125,9 @@ body {
   position: relative;
   margin-bottom: 45px;
 }
-#debug-tabs .tab {
-  background: #fceedb;
+#tab-web iframe {
+  border-width: 0;
+  width: 100%;
 }
 #python-editor {
   position: absolute;

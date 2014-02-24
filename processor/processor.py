@@ -13,6 +13,32 @@ import project_module
 from libs.response import rebuild_response
 logger = logging.getLogger("processor")
 
+def build_module(project, env={}):
+    assert 'name' in project, 'need name of project'
+    assert 'script' in project, 'need script of project'
+
+    env = dict(env)
+    env.update({
+        'project': project,
+        'debug': project.get('status', 'DEBUG') == 'DEBUG',
+        })
+
+    script = project['script']
+    if isinstance(script, unicode):
+        script = script.encode('utf8')
+
+    module = project_module.ProjectModule(project['name'], script, env)
+    module.rethrow()
+    _class = module.get('__class__')
+    assert _class is not None, "need BaseHandler in project module"
+    instance = _class()._init(project)
+
+    return {
+        'module': module,
+        'class': _class,
+        'instance': instance,
+        'info': project
+        }
 
 class Processor(object):
     CHECK_PROJECTS_INTERVAL = 5*60
@@ -48,26 +74,7 @@ class Processor(object):
         self.last_check_projects = time.time()
 
     def _update_project(self, project):
-        assert 'name' in project, 'need name of project'
-        assert 'script' in project, 'need script of project'
-
-        env = {
-            'project': project,
-            'debug': project.get('status', 'DEBUG') == 'DEBUG',
-            }
-
-        module = project_module.ProjectModule(project['name'], project['script'], env)
-        module.rethrow()
-        _class = module.get('__class__')
-        assert _class is not None, "need BaseHandler in project module"
-        instance = _class()._init(project)
-
-        self.projects[project['name']] = {
-                'module': module,
-                'class': _class,
-                'instance': instance,
-                'info': project
-                }
+        self.projects[project['name']] = build_module(project)
 
     def on_task(self, task, response):
         start_time = time.time()

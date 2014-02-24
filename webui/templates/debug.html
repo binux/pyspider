@@ -22,18 +22,19 @@
     <section id="editarea">
       <div class="debug-panel" style="right: 50%">
         <div id="task-panel">
-          <div id="task-editor" class="editor"></div>
-          <div id="run-task-btn">run</div>
+          <div id="task-editor" class="editor">
+            <div id="run-task-btn">run</div>
+          </div>
           <div id="debug-tabs">
-            <div id="tab-web" class="tab">web</div>
-            <div id="tab-html" class="tab" style="display: none;">html</div>
-            <div id="tab-follows" class="tab" style="display: none;">follows</div>
-            <div id="tab-messages" class="tab" style="display: none;">messages</div>
+            <div id="tab-web" class="tab"></div>
+            <div id="tab-html" class="tab" style="display: none;"><pre class="cm-s-default"></pre></div>
+            <div id="tab-follows" class="tab" style="display: none;"></div>
+            <div id="tab-messages" class="tab" style="display: none;"></div>
           </div>
         </div>
         <ul id="tab-control">
-          <li data-id="tab-messages">messages<span style="display: none;"></span></li>
-          <li data-id="tab-follows">follows<span>1</span></li>
+          <!--<li data-id="tab-messages">messages<span style="display: none;"></span></li>-->
+          <li data-id="tab-follows">follows<span class="num" style="display: none;"></span></li>
           <li data-id="tab-html">html</li>
           <li data-id="tab-web" class="active">web</li>
         </ul>
@@ -45,15 +46,23 @@
       </div>
     </section>
 
+    <script>
+      var task_content = {{ task | tojson | tojson | safe }};
+      var script_content = {{ script | tojson | safe }};
+    </script>
     <script src="http://cdn.staticfile.org/jquery/1.11.0/jquery.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/codemirror.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/xml/xml.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/css/css.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/javascript/javascript.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/python/python.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/search.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/searchcursor.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.js"></script>
     <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/selection/active-line.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/runmode/runmode.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/2.36.0/formatting.min.js"></script>
     <script src="{{ url_for('static', filename='splitter.js') }}"></script>
     <script src="{{ url_for('static', filename='debug.js') }}"></script>
   </body>

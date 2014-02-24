@@ -88,11 +88,18 @@ body {
   cursor: pointer;
   font-weight: bold;
   line-height: 15px;
+
+  &:hover {
+    background: darken(@green, 10%);
+  }
 }
 
 #task-editor {
+  position: relative;
+
   .CodeMirror {
     height: auto;
+    padding-bottom: 3px;
     background: lighten(@green, 30%);
   }
   .CodeMirror-scroll {
@@ -149,8 +156,12 @@ body {
 #debug-tabs {
   position: relative;
   margin-bottom: 45px;
-  .tab {
-    background: lighten(@orange, 30%);
+}
+
+#tab-web {
+  iframe {
+    border-width: 0;
+    width: 100%;
   }
 }
 
