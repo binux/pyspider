@@ -40,6 +40,16 @@ var Debugger = {
     cm.setCursor(pos);
   },
 
+  format_string: function(value, mode) {
+    var div = document.createElement('div');
+    var cm = CodeMirror(div, {
+      value: value,
+      mode: mode
+    });
+    this.auto_format(cm);
+    return cm.getDoc().getValue();
+  },
+
   init_task_editor: function($el) {
     var cm = this.task_editor = CodeMirror($el[0], {
       value: task_content,
@@ -73,6 +83,26 @@ var Debugger = {
     });
   },
 
+  bind_follows: function() {
+    var _this = this;
+    $('.newtask').on('click', function() {
+      if ($(this).next().hasClass("task-show")) {
+        $(this).next().remove();
+        return;
+      }
+      var task = $(this).after('<div class="task-show"><pre class="cm-s-default"></pre></div>').data("task");
+      CodeMirror.runMode(_this.format_string(task, 'application/json'), 'application/json', $(this).next().find('pre')[0]);
+    });
+    
+    $('.newtask .task-run').on('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      _this.task_editor.setValue($(this).parents('.newtask').data("task"));
+      _this.auto_format(_this.task_editor);
+      _this.run();
+    });
+  },
+
   run: function() {
     var script = this.python_editor.getDoc().getValue();
     var task = this.task_editor.getDoc().getValue();
@@ -94,7 +124,7 @@ var Debugger = {
         var doc = elem[0].contentWindow.document;
         doc.open();
         doc.write(data.fetch_result.content);
-        var dotime = 0, cnt=10;
+        var dotime = 0, cnt=1;
         elem[0].contentWindow.addEventListener('resize', function() {
           setTimeout(function() {
             var now = (new Date()).getTime();
@@ -102,29 +132,38 @@ var Debugger = {
               $("#tab-web iframe").height(doc.body.scrollHeight+20);
               cnt--;
             }
-          }, 100);
-          dotime = (new Date()).getTime() + 100;
+          }, 500);
+          dotime = (new Date()).getTime() + 500;
+        });
+        elem[0].contentWindow.addEventListener('load', function() {
+          $("#tab-web iframe").height(doc.body.scrollHeight+20);
         });
         window.doc = doc;
         doc.close();
         $("#tab-control li[data-id=tab-web]").click();
 
         //html
-        var div = document.createElement('div');
-        var cm = CodeMirror(div, {
-          value: data.fetch_result.content,
-          mode: "text/html"
-        });
-        _this.auto_format(cm);
-        var formated_content = cm.getDoc().getValue();
-        CodeMirror.runMode(formated_content, 'text/html', $("#tab-html pre")[0]);
+        CodeMirror.runMode(_this.format_string(data.fetch_result.content, 'text/html'), 'text/html', $("#tab-html pre")[0]);
 
         //follows
+        $('#tab-follows').html('');
         elem = $("#tab-control li[data-id=tab-follows] .num");
-        if (data.follows.length > 0)
+
+        var newtask_template = '<div class="newtask"><span class="task-callback">__callback__</span> &gt; <span class="task-url">__url__</span><div class="task-run"><i class="fa fa-play"></i></div><div class="task-more"> <i class="fa fa-ellipsis-h"></i> </div></div>';
+        if (data.follows.length > 0) {
           elem.text(data.follows.length).show();
-        else
+          var all_content = "";
+          $.each(data.follows, function(i, task) {
+            var callback = task.process;
+            callback = callback && callback.callback || '__call__';
+            var content = newtask_template.replace('__callback__', callback);
+            content = content.replace('__url__', task.url || '<span class="error">no_url!</span>');
+            $('#tab-follows').append($(content).data('task', JSON.stringify(task)));
+          });
+          _this.bind_follows();
+        } else {
           elem.hide();
+        }
       },
       error: function(xhr, textStatus, errorThrown) {
         console.log(xhr, textStatus, errorThrown);

@@ -8,6 +8,12 @@ body {
   height: 100%;
   overflow: hidden;
 }
+.warning {
+  color: #f0ad4e;
+}
+.error {
+  color: #d9534f;
+}
 #control {
   z-index: 9999;
   min-width: 760px;
@@ -60,10 +66,11 @@ body {
   border-radius: 0 0 0 5px;
   color: white;
   margin: 0;
-  padding: 1px 7px 3px 10px;
+  padding: 3px 7px 5px 10px;
   cursor: pointer;
   font-weight: bold;
   line-height: 15px;
+  box-shadow: 0px 0px 30px #5cb85c;
 }
 #run-task-btn:hover {
   background: #449d44;
@@ -128,6 +135,54 @@ body {
 #tab-web iframe {
   border-width: 0;
   width: 100%;
+}
+#tab-follows .newtask {
+  position: relative;
+  height: 30px;
+  line-height: 30px;
+  background: #fceedb;
+  border-bottom: solid 1px #f0ad4e;
+  border-top: solid 1px #f0ad4e;
+  margin-top: -1px;
+  padding-left: 5px;
+  padding-right: 70px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+#tab-follows .newtask .task-callback {
+  color: #ec971f;
+}
+#tab-follows .newtask .task-url {
+  font-size: 95%;
+  text-decoration: underline;
+  font-weight: lighter;
+  color: #428bca;
+}
+#tab-follows .newtask .task-more {
+  position: absolute;
+  right: 33px;
+  top: 0px;
+  float: right;
+  color: #f0ad4e;
+  padding: 0 10px;
+  background: #fceedb;
+  border-radius: 10px;
+}
+#tab-follows .newtask .task-run {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  font-size: 80%;
+  padding: 0 10px 0 30px;
+  float: right;
+  border-bottom: solid 1px #a3d7a3;
+  border-top: solid 1px #a3d7a3;
+  background: #80c780;
+  color: white;
+  text-shadow: 0 0 10px white;
+  font-weight: bold;
 }
 #python-editor {
   position: absolute;

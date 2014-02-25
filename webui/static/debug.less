@@ -24,6 +24,13 @@ body {
   overflow: hidden;
 }
 
+.warning {
+  color: @orange;
+}
+.error {
+  color: @red;
+}
+
 @control-height: 35px;
 #control {
   z-index: 9999;
@@ -84,10 +91,11 @@ body {
   border-radius: 0 0 0 5px;
   color: white;
   margin: 0;
-  padding: 1px 7px 3px 10px;
+  padding: 3px 7px 5px 10px;
   cursor: pointer;
   font-weight: bold;
   line-height: 15px;
+  box-shadow: 0px 0px 30px @green;
 
   &:hover {
     background: darken(@green, 10%);
@@ -162,6 +170,58 @@ body {
   iframe {
     border-width: 0;
     width: 100%;
+  }
+}
+
+#tab-follows {
+  .newtask {
+    position: relative;
+    height: 30px;
+    line-height: 30px;
+    background: lighten(@orange, 30%);
+    border-bottom: solid 1px @orange;
+    border-top: solid 1px @orange;
+    margin-top: -1px;
+    padding-left: 5px;
+    padding-right: 70px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    
+    .task-callback {
+      color: darken(@orange, 10%);
+    }
+    .task-url {
+      font-size: 95%;
+      text-decoration: underline;
+      font-weight: lighter;
+      color: @blue;
+    }
+    .task-more {
+      position: absolute;
+      right: 33px;
+      top: 0px;
+      float: right;
+      color: @orange;
+      padding: 0 10px;
+      background: lighten(@orange, 30%);
+      border-radius: 10px;
+    }
+    .task-run {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      font-size: 80%;
+      padding: 0 10px 0 30px;
+      float: right;
+      border-bottom: solid 1px lighten(@green, 20%);
+      border-top: solid 1px lighten(@green, 20%);
+      background: lighten(@green, 10%);
+      color: white;
+      text-shadow: 0 0 10px white;
+      font-weight: bold;
+    }
   }
 }
 

@@ -11,6 +11,7 @@
     <meta name="author" content="binux">
 
     <link href="http://cdn.staticfile.org/codemirror/3.22.0/codemirror.min.css" rel="stylesheet">
+    <link href="http://cdn.staticfile.org/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet">
     <link href="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='debug.css') }}" rel="stylesheet">
   </head>
@@ -26,9 +27,15 @@
             <div id="run-task-btn">run</div>
           </div>
           <div id="debug-tabs">
-            <div id="tab-web" class="tab"></div>
+            <div id="tab-web" class="tab" style="display: none;"></div>
             <div id="tab-html" class="tab" style="display: none;"><pre class="cm-s-default"></pre></div>
-            <div id="tab-follows" class="tab" style="display: none;"></div>
+            <div id="tab-follows" class="tab">
+              {# <div class="newtask">
+                <span class="task-callback">__callback__</span> &gt; <span class="task-url">__url__</span>
+                <div class="task-run"><i class="fa fa-play"></i></div>
+                <div class="task-more"> <i class="fa fa-ellipsis-h"></i> </div>
+              </div> #}
+            </div>
             <div id="tab-messages" class="tab" style="display: none;"></div>
           </div>
         </div>
