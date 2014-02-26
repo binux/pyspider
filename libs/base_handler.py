@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-16 23:12:48
 
+import os
 import time
 import inspect
 import functools
@@ -13,7 +14,6 @@ from libs.url import quote_chinese, _build_url
 from libs.utils import md5string
 from libs.response import rebuild_response
 from collections import namedtuple
-
 
 class ProcessorResult(object):
     def __init__(self, result, follows, messages, logs, exception, extinfo):
@@ -33,7 +33,19 @@ class ProcessorResult(object):
         for record in self.logs:
             message = unicode(record.msg)
             if record.exc_info and not record.exc_text:
-                message += '\n'+''.join(traceback.format_exception(*record.exc_info))
+                type, value, tb = record.exc_info
+                base_tb = tb
+                try:
+                    while tb and tb.tb_frame.f_globals is not globals():
+                        tb = tb.tb_next
+                    while tb and tb.tb_frame.f_globals is globals():
+                        tb = tb.tb_next
+                except Exception, e:
+                    logging.exception(e)
+                    tb = base_tb
+                if not tb:
+                    tb = base_tb
+                message += '\n'+''.join(traceback.format_exception(type, value, tb))
             elif record.exc_text:
                 message += '\n'+record.exc_text
             result.append(message)

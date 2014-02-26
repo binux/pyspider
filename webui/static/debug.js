@@ -14,6 +14,7 @@ var Debugger = {
     this.init_task_editor($("#task-editor"));
     this.bind_debug_tabs();
     this.bind_run();
+    this.bind_others();
   },
 
   init_python_editor: function($el) {
@@ -97,9 +98,20 @@ var Debugger = {
     $('.newtask .task-run').on('click', function(event) {
       event.preventDefault();
       event.stopPropagation();
-      _this.task_editor.setValue($(this).parents('.newtask').data("task"));
-      _this.auto_format(_this.task_editor);
+      _this.task_editor.setValue(_this.format_string($(this).parents('.newtask').data("task"), 'application/json'));
       _this.run();
+    });
+  },
+
+  bind_others: function() {
+    $('#python-log-show').on('click', function() {
+      if ($('#python-log pre').is(":visible")) {
+        $('#python-log pre').hide();
+        $(this).height(8);
+      } else {
+        $('#python-log pre').show();
+        $(this).height(0);
+      }
     });
   },
 
@@ -163,6 +175,15 @@ var Debugger = {
           _this.bind_follows();
         } else {
           elem.hide();
+        }
+
+        // logs
+        if (data.logs) {
+          $('#python-log pre').html(data.logs);
+          $('#python-log pre, #python-log').show();
+          $('#python-log-show').height(0);
+        } else {
+          $('#python-log pre, #python-log').hide();
         }
       },
       error: function(xhr, textStatus, errorThrown) {

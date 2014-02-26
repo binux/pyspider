@@ -192,9 +192,27 @@ body {
 }
 #python-editor .CodeMirror {
   height: 100%;
+  padding-bottom: 20px;
 }
 #python-log {
+  z-index: 88;
   position: absolute;
   bottom: 0;
   width: 100%;
+  min-height: 10px;
+  max-height: 40%;
+  overflow: auto;
+}
+#python-log #python-log-show {
+  z-index: 89;
+  padding-top: 5px;
+  background: #d9534f;
+  box-shadow: 0px 2px 20px #d9534f;
+  cursor: pointer;
+}
+#python-log pre {
+  margin: 0;
+  padding: 10px 10px;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
 }

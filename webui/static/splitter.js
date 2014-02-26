@@ -4,7 +4,7 @@
 // Created on 2014-02-23 01:35:35
 // from: https://github.com/jsbin/jsbin
 
-$.fn.splitter = function () {
+$.fn.splitter = function (_type) {
   var $document = $(document),
   $blocker = $('<div class="block"></div>'),
   $body = $('body');
@@ -12,11 +12,12 @@ $.fn.splitter = function () {
 
   var splitterSettings = JSON.parse(localStorage.getItem('splitterSettings') || '[]');
   return this.each(function () {
+    console.log(_type);
     var $el = $(this),
     $originalContainer = $(this),
     guid = $.fn.splitter.guid++,
     $parent = $el.parent(),
-    type = 'x',
+    type = _type || 'x',
     $prev = type === 'x' ? $el.prevAll(':visible:first') : $el.nextAll(':visible:first'),
     $handle = $('<div class="resize"></div>'),
     dragging = false,
@@ -217,7 +218,7 @@ $.fn.splitter = function () {
         } else {
           $el.css('border-' + props[type].cssProp, '0');
         }
-        moveSplitter(x !== undefined ? x : settings.x || $el.offset()[props[type].cssProp]);
+        moveSplitter(x !== undefined ? x : settings[type] || $el.offset()[props[type].cssProp]);
       }
     }); //.trigger('init', settings.x || $el.offset().left);
 

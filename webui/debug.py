@@ -6,6 +6,7 @@
 # Created on 2014-02-23 00:19:06
 
 
+import sys
 import datetime
 from app import app
 from flask import abort, render_template, request, json
@@ -48,7 +49,18 @@ def run(project):
         module = build_module(project_info, {'debugger': True})
         ret = module['instance'].run(module['module'], task, response)
     except Exception, e:
-        logs = traceback.format_exc()
+        type, value, tb = sys.exc_info()
+        base_tb = tb
+        try:
+            while tb and tb.tb_frame.f_globals is not globals():
+                tb = tb.tb_next
+            while tb and tb.tb_frame.f_globals is globals():
+                tb = tb.tb_next
+        except:
+            tb = base_tb
+        if not tb:
+            tb = base_tb
+        logs = ''.join(traceback.format_exception(type, value, tb))
         result = {
                 'fetch_result': fetch_result,
                 'logs': logs,
