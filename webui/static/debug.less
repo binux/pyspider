@@ -70,6 +70,16 @@ body {
  }
 }
 
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 40%);
+}
+
 .focus .CodeMirror-activeline-background {
   background: #e8f2ff !important;
 }
@@ -173,6 +183,16 @@ body {
   }
 }
 
+#tab-html {
+  margin: 0;
+  padding: 7px 5px;
+
+  pre {
+    margin: 0;
+    padding: 0;
+  }
+}
+
 #tab-follows {
   .newtask {
     position: relative;
@@ -188,7 +208,13 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
     cursor: pointer;
-    
+
+    &:hover {
+      background: lighten(@orange, 20%);
+      .task-more {
+        background: lighten(@orange, 20%);
+      }
+    }
     .task-callback {
       color: darken(@orange, 10%);
     }
@@ -221,6 +247,15 @@ body {
       color: white;
       text-shadow: 0 0 10px white;
       font-weight: bold;
+
+      &:hover {
+        background: @green;
+      }
+    }
+  }
+  .task-show {
+    pre {
+      margin: 5px 5px 10px 5px;
     }
   }
 }
@@ -244,10 +279,12 @@ body {
   width: 100%;
   min-height: 10px;
   max-height: 40%;
+  background: rgba(0, 0, 0, 60%);
   overflow: auto;
 
   #python-log-show {
     z-index: 89;
+    width: auto;
     padding-top: 5px;
     background: @red;
     box-shadow: 0px 2px 20px @red;
@@ -257,6 +294,5 @@ body {
     margin: 0;
     padding: 10px 10px;
     color: white;
-    background: rgba(0, 0, 0, 60%);
   }
 }

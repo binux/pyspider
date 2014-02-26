@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2012-11-06 11:50:13
 
+import logging
 import hashlib
 
 md5string = lambda x: hashlib.md5(x).hexdigest()
@@ -18,3 +19,17 @@ def getitem(obj, key=0, default=None):
         return obj[key]
     except:
         return default
+
+def hide_me(tb, g=globals()):
+    base_tb = tb
+    try:
+        while tb and tb.tb_frame.f_globals is not g:
+            tb = tb.tb_next
+        while tb and tb.tb_frame.f_globals is g:
+            tb = tb.tb_next
+    except Exception, e:
+        logging.exception(e)
+        tb = base_tb
+    if not tb:
+        tb = base_tb
+    return tb

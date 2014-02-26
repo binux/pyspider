@@ -12,6 +12,7 @@ import inspect
 import linecache
 from libs import base_handler
 from libs.log import SaveLogHandler
+from libs.utils import hide_me
 
 class ObjectDict(dict):
     def __getattr__(self, name):
@@ -47,11 +48,12 @@ class ProjectModule(object):
         except Exception, e:
             self.exc_info = sys.exc_info()
             self.error = e
-            logging.exception(e)
+            #logging.exception(e)
 
     def rethrow(self):
         if self.exc_info:
-            raise self.exc_info[0], self.exc_info[1], self.exc_info[2]
+            type, value, tb = self.exc_info
+            raise type, value, tb
 
     def get(self, key='__class__', default=None):
         if key is '__class__' and '__class__' not in self._module.__dict__:

@@ -30,6 +30,7 @@ def debug(project):
 
 import time
 import traceback
+from libs.utils import hide_me
 from libs.response import rebuild_response
 from processor.processor import build_module
 
@@ -50,16 +51,7 @@ def run(project):
         ret = module['instance'].run(module['module'], task, response)
     except Exception, e:
         type, value, tb = sys.exc_info()
-        base_tb = tb
-        try:
-            while tb and tb.tb_frame.f_globals is not globals():
-                tb = tb.tb_next
-            while tb and tb.tb_frame.f_globals is globals():
-                tb = tb.tb_next
-        except:
-            tb = base_tb
-        if not tb:
-            tb = base_tb
+        tb = hide_me(tb, globals())
         logs = ''.join(traceback.format_exception(type, value, tb))
         result = {
                 'fetch_result': fetch_result,

@@ -6,12 +6,15 @@
 # Created on 2014-02-16 23:12:48
 
 import os
+import sys
 import time
 import inspect
 import functools
 import traceback
+from libs.log import LogFormatter
 from libs.url import quote_chinese, _build_url
-from libs.utils import md5string
+from libs.utils import md5string, hide_me
+from libs.ListIO import ListO
 from libs.response import rebuild_response
 from collections import namedtuple
 
@@ -30,26 +33,19 @@ class ProcessorResult(object):
 
     def logstr(self):
         result = []
+        formater = LogFormatter(color=False)
         for record in self.logs:
-            message = unicode(record.msg)
-            if record.exc_info and not record.exc_text:
-                type, value, tb = record.exc_info
-                base_tb = tb
-                try:
-                    while tb and tb.tb_frame.f_globals is not globals():
-                        tb = tb.tb_next
-                    while tb and tb.tb_frame.f_globals is globals():
-                        tb = tb.tb_next
-                except Exception, e:
-                    logging.exception(e)
-                    tb = base_tb
-                if not tb:
-                    tb = base_tb
-                message += '\n'+''.join(traceback.format_exception(type, value, tb))
-            elif record.exc_text:
-                message += '\n'+record.exc_text
-            result.append(message)
-        return '\n'.join(result)
+            if isinstance(record, basestring):
+                result.append(record)
+                continue
+            else:
+                if record.exc_info:
+                    a, b, tb = record.exc_info
+                    tb = hide_me(tb, globals())
+                    record.exc_info = a, b, tb
+                result.append(formater.format(record))
+                result.append('\n')
+        return ''.join(result)
 
 def catch_status_code_error(func):
     func._catch_status_code_error = True
@@ -114,14 +110,17 @@ class BaseHandler(object):
         logger = module.get('logger')
         result = None
         exception = None
+        stdout = sys.stdout
 
         try:
+            sys.stdout = ListO(module.logs)
             result = self._run(task, response)
             self.on_result(result)
         except Exception, e:
             logger.exception(e)
             exception = e
         finally:
+            sys.stdout = stdout
             follows = self._follows
             messages = self._messages
             logs = module.logs
