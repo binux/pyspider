@@ -84,6 +84,24 @@ body {
 #run-task-btn:hover {
   background: #449d44;
 }
+#save-task-btn {
+  z-index: 99;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #428bca;
+  border-radius: 0 0 0 5px;
+  color: white;
+  margin: 0;
+  padding: 3px 7px 5px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 15px;
+  box-shadow: 0px 0px 30px #428bca;
+}
+#save-task-btn:hover {
+  background: #3071a9;
+}
 #task-editor {
   position: relative;
 }
@@ -110,7 +128,7 @@ body {
 #tab-control li {
   position: relative;
   float: right;
-  padding: 1px 7px 0 7px;
+  padding: 4px 7px 3px 7px;
   margin-left: 10px;
   border-radius: 5px;
   border: solid 1px #428bca;
@@ -132,7 +150,7 @@ body {
   right: -10px;
   background: #d9534f;
   color: white;
-  font-size: 50%;
+  font-size: 80%;
   font-weight: bold;
   padding: 2px 5px 0 5px;
   border-radius: 10px;

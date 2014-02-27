@@ -6,11 +6,18 @@
 # Created on 2014-02-22 23:19:11
 
 from webui.app import app
-
 from fetcher import tornado_fetcher
-fetcher = tornado_fetcher.Fetcher(None, None, async=False)
+from database.sqlite.projectdb import ProjectDB
+
+def fetch(task):
+    return tornado_fetcher.Fetcher(None, None, async=False).fetch(task)
+
+def projectdb():
+    return ProjectDB('data/project.db')
+
 config = {
-        'fetch': fetcher.fetch,
+        'fetch': fetch,
+        'projectdb': projectdb,
         }
 
 if __name__ == '__main__':

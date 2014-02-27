@@ -7,6 +7,7 @@
 
 import json
 import chardet
+from pyquery import PyQuery
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers, get_encodings_from_content
 from requests import HTTPError
@@ -106,6 +107,15 @@ class Response(object):
             return json.loads(self.text or self.content)
         except ValueError:
             return None
+
+    @property
+    def doc(self):
+        """Returns a PyQuery object of a request's content"""
+        if hasattr(self, '_doc'):
+            return self._doc
+        doc = self._doc = PyQuery(self.text or self.content)
+        doc.make_links_absolute(self.url)
+        return doc
 
     def raise_for_status(self, allow_redirects=True):
         """Raises stored :class:`HTTPError` or :class:`URLError`, if one occurred."""

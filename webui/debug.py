@@ -7,9 +7,14 @@
 
 
 import sys
+import time
 import datetime
+import traceback
 from app import app
 from flask import abort, render_template, request, json
+from libs.utils import hide_me
+from libs.response import rebuild_response
+from processor.processor import build_module
 
 default_task = {
         'taskid': 'data:,on_start',
@@ -23,16 +28,16 @@ default_script = open('libs/sample_handler.py').read()
 
 @app.route('/debug/<project>')
 def debug(project):
+    projectdb = app.config['projectdb']()
+    info = projectdb.get(project)
+    if info:
+        script = info['script']
+    else:
+        script = default_script.replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
     default_task['project'] = project
-    script = default_script.replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     return render_template("debug.html", task=default_task, script=script)
 
-
-import time
-import traceback
-from libs.utils import hide_me
-from libs.response import rebuild_response
-from processor.processor import build_module
 
 @app.route('/debug/<project>/run', methods=['POST', ])
 def run(project):
@@ -73,3 +78,27 @@ def run(project):
         result['fetch_result']['content'] = response.text
 
     return json.dumps(result), 200, {'Content-Type': 'application/json'}
+
+@app.route('/debug/<project>/save', methods=['POST', ])
+def save(project):
+    projectdb = app.config['projectdb']()
+    script = request.form['script']
+    old_project = projectdb.get(project, fields=['name', 'status', ])
+    if old_project:
+        info = {
+            'script': script,
+            }
+        if old_project.get('status') in ('DEBUG', 'RUNNING', ):
+            info['status'] = 'CHECKING'
+        projectdb.update(project, info)
+    else:
+        info = {
+            'name': project,
+            'script': script,
+            'status': 'TODO',
+            'rate': 1,
+            'burst': 10
+            }
+        projectdb.insert(project, info)
+
+    return 'OK', 200

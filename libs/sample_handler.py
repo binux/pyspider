@@ -3,6 +3,7 @@
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Created on __DATE__
 
+
 from libs.base_handler import *
 from pyquery import PyQuery as pq
 
@@ -14,7 +15,6 @@ class Handler(BaseHandler):
         self.crawl('http://www.baidu.com/', callback=self.index_page)
 
     def index_page(self, response):
-        doc = pq(response.text)
-        doc.make_links_absolute(response.url)
-        for each in map(pq, doc('a')):
+        for each in response.doc('a').items():
             self.crawl(each.attr.href, callback=self.index_page)
+
