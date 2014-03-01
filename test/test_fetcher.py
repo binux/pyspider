@@ -23,7 +23,6 @@ class TestTaskDB(unittest.TestCase):
                     'Cookie': 'a=b', 
                     'a': 'b'
                     },
-                'data': 'a=b&c=d', 
                 'timeout': 60,
                 },
             'process': {
