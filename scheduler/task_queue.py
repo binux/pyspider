@@ -99,6 +99,10 @@ class TaskQueue(object):
     def burst(self, value):
         self.bucket.burst = value
 
+    def check_update(self):
+        self._check_time_queue()
+        self._check_processing()
+
     def _check_time_queue(self):
         now = time.time()
         self.mutex.acquire()

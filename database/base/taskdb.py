@@ -15,6 +15,7 @@
         'schedule': {
             'priority': int,
             'retries': int,
+            'retried': int,
             'exetime': int,
             'age': int,
             'itag': str, #
@@ -44,7 +45,8 @@
                 'time': int,
                 'follows': int,
                 'outputs': int,
-                #'exception': "?",
+                'logs': str,
+                'exception': str,
                 },
             }, # finish
         'lastcrawltime': int, # keep between request

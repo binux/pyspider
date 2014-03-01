@@ -110,7 +110,7 @@ class Processor(object):
                             'time': process_time,
                             'follows': len(ret.follows),
                             'result': unicode(ret.result)[:100],
-                            'logs': ret.logs,
+                            'logs': ret.logstr()[:200],
                             'exception': unicode(ret.exception),
                             }
                         }
