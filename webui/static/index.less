@@ -1,0 +1,63 @@
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-02-23 00:28:30 */
+
+// colors
+@blue: #428bca;
+@green: #5cb85c;
+@blue-light: #5bc0de;
+@orange: #f0ad4e;
+@yellow: #ffe543;
+@red: #d9534f;
+
+.projects {
+  .project-group {
+    width: 100px;
+  }
+
+  .project-name {
+    width: 300px;
+    font-weight: bold;
+  }
+
+  .project-status {
+    width: 100px;
+  }
+  .project-status-span(@color) {
+    border: solid 1px darken(@color, 10%);
+    padding: 1px 5px 0 5px;
+    background: @color;
+    color: white;
+  }
+  .project-status>span {
+    .project-status-span(lighten(black, 50%));
+  }
+  span.status-TODO {
+    .project-status-span(@orange);
+  }
+  span.status-STOP {
+    .project-status-span(@red);
+  }
+  span.status-CHECKING {
+    .project-status-span(darken(@yellow, 10%));
+  }
+  span.status-DEBUG {
+    .project-status-span(@blue);
+  }
+  span.status-RUNNING {
+    .project-status-span(@green);
+  }
+
+  .project-rate {
+    width: 100px;
+  }
+  
+  .project-progress {
+    position: relative;
+  }
+
+  .project-actions {
+    width: 100px;
+  }
+}

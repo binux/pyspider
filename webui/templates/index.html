@@ -9,11 +9,53 @@
 
     <meta name="description" content="pyspider dashboard">
     <meta name="author" content="binux">
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://cdn.staticfile.org/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='index.css') }}" rel="stylesheet">
   </head>
 
   <body>
-    hello world
+    <section>
+      <table class="table projects">
+        <thead>
+          <th>group</th>
+          <th>project name</th>
+          <th>status</th>
+          <th>rate/burst</th>
+          <th colspan=3>progress</th>
+          <th>actions</th>
+        </thead>
+        <tbody>
+          {% for project in projects %}
+          <tr data-name="{{ project['name'] }}">
+            <td class="project-group"><span>{{ project['group'] or '' }}</span></td>
+            <td class="project-name"><a href="/debug/{{ project['name'] }}">{{ project['name'] }}</a></td>
+            <td class="project-status">
+              <span class="status-{{ project['status'] }}" data-value="{{ project['status'] }}">{{ project['status'] }}</span>
+            </td>
+            <td class="project-rate"><span>{{ project['rate'] }}/{{ project['burst'] }}</span></td>
+            <td class="project-progress progress-5min">loading...</td>
+            <td class="project-progress progress-1h">loading...</td>
+            <td class="project-progress progress-total">loading...</td>
+            <td class="project-actions">
+              <button class="project-run btn btn-default btn-xs">Run</button>
+            </td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan=7></td>
+            <td>
+              <button class="project-create btn btn-default btn-primary">Create</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <script src="http://cdn.staticfile.org/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="http://cdn.staticfile.org/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
   </body>
 </html>
-<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8 syntax=htmldjango: -->
 

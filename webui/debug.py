@@ -6,6 +6,7 @@
 # Created on 2014-02-23 00:19:06
 
 
+import re
 import sys
 import time
 import datetime
@@ -26,8 +27,15 @@ default_task = {
         }
 default_script = open('libs/sample_handler.py').read()
 
+def verify_project_name(project):
+    if re.search(r"[^\w]", project):
+        return False
+    return True
+
 @app.route('/debug/<project>')
 def debug(project):
+    if not verify_project_name(project):
+        return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']()
     info = projectdb.get(project)
     if info:
@@ -81,6 +89,8 @@ def run(project):
 
 @app.route('/debug/<project>/save', methods=['POST', ])
 def save(project):
+    if not verify_project_name(project):
+        return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']()
     script = request.form['script']
     old_project = projectdb.get(project, fields=['name', 'status', ])

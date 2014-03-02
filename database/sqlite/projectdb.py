@@ -37,7 +37,8 @@ class ProjectDB(BaseProjectDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        self._update(self.__tablename__, where="name = '%s'" % name, **obj)
+        ret = self._update(self.__tablename__, where="name = '%s'" % name, **obj)
+        return ret.rowcount
 
     def get_all(self, fields=None):
         what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
