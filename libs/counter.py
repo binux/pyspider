@@ -13,15 +13,28 @@ from UserDict import DictMixin
 
 class BaseCounter(object): pass
 
+class TotalCounter(BaseCounter):
+    def __init__(self):
+        self.cnt = 0
+
+    def event(self, value):
+        self.cnt += value
+
+    @property
+    def avg(self):
+        return self.cnt
+
+    @property
+    def sum(self):
+        return self.cnt
+
 class AverageWindowCounter(BaseCounter):
     def __init__(self, window_size=300):
         self.window_size = window_size
         self.values = deque(maxlen=window_size)
-        self.times = deque(maxlen=window_size)
 
     def event(self, value=1):
         self.values.append(value)
-        self.times.append(time.time())
 
     @property
     def avg(self):
@@ -32,7 +45,7 @@ class AverageWindowCounter(BaseCounter):
         return sum(self.values)
 
     def empty(self):
-        if not self.values and not self.cache_start:
+        if not self.values:
             return True
 
 class TimebaseAverageWindowCounter(BaseCounter):
@@ -63,6 +76,7 @@ class TimebaseAverageWindowCounter(BaseCounter):
             self.cache_start = now
         else:
             self.cache_value += value
+        return self
 
     def _trim_window(self):
         now = time.time()
@@ -158,6 +172,7 @@ class CounterManager(DictMixin):
         if key not in self.counters:
             self.counters[key] = self.cls()
         self.counters[key].event(value)
+        return self
 
     def trim(self):
         for key, value in self.counters.items():
@@ -214,3 +229,4 @@ class CounterManager(DictMixin):
             logging.exception("can't load counter from file: %s" % filename)
             return False
         return True
+

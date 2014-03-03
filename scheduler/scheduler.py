@@ -10,6 +10,7 @@ import time
 import Queue
 import logging
 from task_queue import TaskQueue
+from libs import counter
 logger = logging.getLogger('scheduler')
 
 
@@ -22,6 +23,7 @@ class Scheduler(object):
             'age': 30*24*60*60,
             'itag': None,
             }
+    LOOP_LIMIT = 1000
     
     def __init__(self, taskdb, projectdb, request_fifo, status_fifo, out_fifo):
         self.taskdb = taskdb
@@ -34,6 +36,21 @@ class Scheduler(object):
         self.projects = dict()
         self._last_update_project = 0
         self.task_queue = dict()
+
+        self._cnt = {
+                "5m": counter.CounterManager(
+                    lambda : counter.TimebaseAverageWindowCounter(30, 10)),
+                "1h": counter.CounterManager(
+                    lambda : counter.TimebaseAverageWindowCounter(60, 60)),
+                "1d": counter.CounterManager(
+                    lambda : counter.TimebaseAverageWindowCounter(10*60, 24*6)),
+                "all": counter.CounterManager(
+                    lambda : counter.TotalCounter()),
+                }
+        self._cnt['1h'].load('.scheduler.1h')
+        self._cnt['1d'].load('.scheduler.1d')
+        self._cnt['all'].load('.scheduler.all')
+        self._last_dump_cnt = 0
 
     def _load_projects(self):
         self.projects = dict()
@@ -63,26 +80,37 @@ class Scheduler(object):
             exetime = _schedule.get('exetime', self.default_schedule['exetime'])
             self.task_queue.put(taskid, priority, exetime)
 
-    def _insert_task(self, task):
+    def task_verify(self, task):
+        for each in ('taskid', 'project', 'url', ):
+            if each not in task:
+                logger.error('each not in task: %s' % unicode(task[:200]))
+                return False
+        return True
+
+    def insert_task(self, task):
         return self.taskdb.insert(task['project'], task['taskid'], task)
 
-    def _update_task(self, task):
+    def update_task(self, task):
         return self.taskdb.update(task['project'], task['taskid'], task)
+
+    def put_task(self, task):
+        _schedule = task.get('schedule', self.default_schedule)
+        self.task_queue[task['project']].put(task['taskid'],
+                priority=_schedule.get('priority', self.default_schedule['priority']),
+                exetime=_schedule.get('exetime', self.default_schedule['exetime']))
+
+    def send_task(self, task):
+        self.out_fifo.put(task)
 
     def _check_task_done(self):
         cnt = 0
         try:
-            while True:
+            while cnt < self.LOOP_LIMIT:
                 task = self.status_fifo.get_nowait()
-                if not self._task_verify(task):
+                if not self.task_verify(task):
                     continue
                 self.task_queue[task['project']].done(task['taskid'])
                 task = self.on_task_status(task)
-                if task:
-                    logger.debug('task_done %(project)s:%(taskid)s %(url)s' % task)
-                    self._update_task(task)
-                else:
-                    logger.info('ignore task_done %(project)s:%(taskid)s %(url)s' % task)
                 cnt += 1
         except Queue.Empty:
             pass
@@ -92,29 +120,16 @@ class Scheduler(object):
     def _check_request(self):
         cnt = 0
         try:
-            while True:
+            while cnt < self.LOOP_LIMIT:
                 task = self.request_fifo.get_nowait()
-                if not self._task_verify(task):
+                if not self.task_verify(task):
                     continue
                 oldtask = self.taskdb.get_task(task['project'], task['taskid'],
                         self.merge_task_fields)
-
                 if oldtask:
                     task = self.on_old_request(task, oldtask)
-                    self._update_task(task)
                 else:
                     task = self.on_new_request(task)
-                    self._insert_task(task)
-
-                if task:
-                    logger.debug('newtask %(project)s:%(taskid)s %(url)s' % task)
-                    _schedule = task.get('schedule', self.default_schedule)
-                    self.task_queue[task['project']].put(task['taskid'],
-                            priority=_schedule.get('priority', self.default_schedule['priority']),
-                            exetime=_schedule.get('exetime', self.default_schedule['exetime']))
-                else:
-                    logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
-
                 cnt += 1
         except Queue.Empty:
             pass
@@ -126,18 +141,24 @@ class Scheduler(object):
             self.task_queue[project].check_update()
             cnt = 0
             taskid = task_queue.get()
-            while taskid:
+            while taskid and cnt < self.LOOP_LIMIT / 10:
                 task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
                 task = self.on_select_task(task)
-                if task:
-                    logger.debug('select %(project)s:%(taskid)s %(url)s' % task)
-                    cnt += 1
-                    self.out_fifo.put(task)
-                else:
-                    logger.info('ignore select %(project)s:%(taskid)s %(url)s' % task)
                 taskid = task_queue.get()
+                cnt += 1
             cnt_dict[project] = cnt
         return cnt_dict
+
+    def _dump_cnt(self):
+        self._cnt['1h'].dump('.scheduler.1h')
+        self._cnt['1d'].dump('.scheduler.1d')
+        self._cnt['all'].dump('.scheduler.all')
+
+    def _try_dump_cnt(self):
+        now = time.time()
+        if now - self._last_dump_cnt > 60:
+            self._last_dump_cnt = now
+            self._dump_cnt()
 
     def __len__(self):
         return sum((len(x) for x in self.task_queue.itervalues()))
@@ -160,23 +181,42 @@ class Scheduler(object):
             self._check_task_done()
             self._check_request()
             self._check_select()
-            time.sleep(0.1)
+            time.sleep(0.01)
 
+        self._dump_cnt()
 
-    def _task_verify(self, task):
-        for each in ('taskid', 'project', 'url', ):
-            if each not in task:
-                logger.error('each not in task: %s' % unicode(task[:200]))
-                return False
-        return True
+    def xmlrpc_run(self, port=23333, bind='127.0.0.1'):
+        from SimpleXMLRPCServer import SimpleXMLRPCServer
+
+        server = SimpleXMLRPCServer((bind, port), allow_none=True)
+        server.register_introspection_functions()
+        server.register_multicall_functions()
+
+        server.register_function(self.quit, '_quit')
+        server.register_function(self.__len__, 'size')
+        def dump_counter(_time, _type):
+            return self._cnt[_time].to_dict(_type)
+        server.register_function(dump_counter, 'counter')
+
+        server.serve_forever()
     
     def on_new_request(self, task):
         task['status'] = self.taskdb.ACTIVE
+        self.insert_task(task)
+        self.put_task(task)
+
+        project = task['project']
+        self._cnt['5m'].event((project, 'pending'), +1)
+        self._cnt['1h'].event((project, 'pending'), +1)
+        self._cnt['1d'].event((project, 'pending'), +1)
+        self._cnt['all'].event((project, 'task'), +1).event((project, 'pending'), +1)
+        logger.debug('new task %(project)s:%(taskid)s %(url)s' % task)
         return task
 
     def on_old_request(self, task, old_task):
         now = time.time()
         if old_task['status'] == self.taskdb.ACTIVE:
+            logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
             return None
 
         _schedule = task.get('schedule', self.default_schedule)
@@ -188,9 +228,23 @@ class Scheduler(object):
         elif _schedule['age'] + old_task['lastcrawltime'] < now:
             restart = True
 
-        if restart:
-            task['status'] = self.taskdb.ACTIVE
-            return task
+        if not restart:
+            logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
+
+        task['status'] = self.taskdb.ACTIVE
+        self.update_task(task)
+        self.put_task(task)
+
+        project = task['project']
+        self._cnt['5m'].event((project, 'pending'), +1)
+        self._cnt['1h'].event((project, 'pending'), +1)
+        self._cnt['1d'].event((project, 'pending'), +1)
+        if old_task['status'] == self.taskdb.SUCCESS:
+            self._cnt['all'].event((project, 'success'), -1).event((project, 'pending'), +1)
+        elif old_task['status'] == self.taskdb.FAILED:
+            self._cnt['all'].event((project, 'failed'), -1).event((project, 'pending'), +1)
+        logger.debug('restart task %(project)s:%(taskid)s %(url)s' % task)
+        return task
 
     def on_task_status(self, task):
         if 'track' not in task:
@@ -212,6 +266,14 @@ class Scheduler(object):
         called by task_status
         '''
         task['status'] = self.taskdb.SUCCESS
+        self.update_task(task)
+
+        project = task['project']
+        self._cnt['5m'].event((project, 'success'), +1)
+        self._cnt['1h'].event((project, 'success'), +1)
+        self._cnt['1d'].event((project, 'success'), +1)
+        self._cnt['all'].event((project, 'success'), +1).event((project, 'pending'), -1)
+        logger.debug('task done %(project)s:%(taskid)s %(url)s' % task)
         return task
 
     def on_task_failed(self, task):
@@ -233,15 +295,29 @@ class Scheduler(object):
 
         if retried >= retries:
             task['status'] = self.taskdb.FAILED
+            self.update_task(task)
+
+            project = task['project']
+            self._cnt['5m'].event((project, 'failed'), +1)
+            self._cnt['1h'].event((project, 'failed'), +1)
+            self._cnt['1d'].event((project, 'failed'), +1)
+            self._cnt['all'].event((project, 'failed'), +1).event((project, 'pending'), -1)
+            logger.info('task failed %(project)s:%(taskid)s %(url)s' % task)
             return task
         else:
             task['schedule']['retried'] = retried + 1
             task['schedule']['exetime'] = time.time() + next_exetime
-            self.task_queue[task['project']].put(task['taskid'],
-                    priority=task['schedule'].get('priority', self.default_schedule['priority']),
-                    exetime=task['schedule']['exetime'])
+            self.update_task(task)
+            self.put_task(task)
+
+            project = task['project']
+            self._cnt['5m'].event((project, 'retry'), +1)
+            self._cnt['1h'].event((project, 'retry'), +1)
+            self._cnt['1d'].event((project, 'retry'), +1)
+            logger.info('task retry %(project)s:%(taskid)s %(url)s' % task)
             return task
         
-
     def on_select_task(self, task):
+        logger.debug('select %(project)s:%(taskid)s %(url)s' % task)
+        self.send_task(task)
         return task

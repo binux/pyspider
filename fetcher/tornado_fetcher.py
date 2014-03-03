@@ -62,12 +62,25 @@ class Fetcher(object):
         else:
             self.http_client = tornado.httpclient.HTTPClient(MyCurlAsyncHTTPClient, max_clients=self.poolsize)
 
-        self._init()
+        self._cnt = {
+                '5m': counter.CounterManager(
+                    lambda : counter.TimebaseAverageWindowCounter(30, 10)),
+                '1h': counter.CounterManager(
+                    lambda : counter.TimebaseAverageWindowCounter(60, 60)),
+                }
+
+    def send_result(self, type, task, result):
+        """type in ('data', 'http')"""
+        if self.outqueue:
+            try:
+                self.outqueue.put((task, result))
+            except Exception, e:
+                logging.exception(e)
         
     def fetch(self, task, callback=None):
         url = task.get('url', 'data:,')
         if callback is None:
-            callback = self.put_result
+            callback = self.send_result
         if url.startswith('data:'):
             return self.data_fetch(url, task, callback)
         else:
@@ -250,46 +263,30 @@ class Fetcher(object):
         server.register_introspection_functions()
         server.register_multicall_functions()
 
-        server.register_function(self.sync_fetch, 'fetch')
-        server.register_function(self.size)
-        server.register_function(self.unpause)
         server.register_function(self.quit, '_quit')
-        server.register_function(lambda : self._5min_counter.to_dict('avg'), 'dump_5min')
-        server.register_function(lambda : self._http_time.to_dict('avg'), 'dump_avgtime')
+        server.register_function(self.size)
+        server.register_function(self.sync_fetch, 'fetch')
+        def dump_counter(_time, _type):
+            return self._cnt[_time].to_dict(_type)
+        server.register_function(dump_counter, 'counter')
 
         server.serve_forever()
 
-    def _init(self):
-        self._5min_counter = counter.CounterManager(
-                lambda : counter.TimebaseAverageWindowCounter(60, 5))
-        self._http_time = counter.CounterManager(
-                lambda : counter.AverageWindowCounter(300))
-
     def on_fetch(self, type, task):
         """type in ('data', 'http')"""
-        self._5min_counter.event((task.get('project'), 'fetch'))
-        self._5min_counter.event(('__all__', 'fetch'))
-
-    def put_result(self, type, task, result):
-        """type in ('data', 'http')"""
-        if self.outqueue:
-            try:
-                self.outqueue.put((task, result))
-            except Exception, e:
-                logging.exception(e)
+        pass
 
     def on_result(self, type, task, result):
         """type in ('data', 'http')"""
         status_code = result.get('status_code', 599)
         if status_code != 599:
             status_code = (int(status_code) / 100 * 100)
-        self._5min_counter.event((task.get('project'), status_code))
-        self._5min_counter.event(('__all__', status_code))
-        
-        content_len = len(result.get('content', ''))
-        self._5min_counter.event((task.get('project'), 'speed'), content_len)
-        self._5min_counter.event(('__all__', 'speed'), content_len)
+        self._cnt['5m'].event((task.get('project'), status_code), +1)
+        self._cnt['1h'].event((task.get('project'), status_code), +1)
 
-        if type == 'http':
-            self._5min_counter.event((task.get('project'), 'time'), result.get('time'))
-            self._5min_counter.event(('__all__', 'time'), result.get('time'))
+        if type == 'http' and result.get('time'):
+            content_len = len(result.get('content', ''))
+            self._cnt['5m'].event((task.get('project'), 'speed'), float(content_len)/result.get('time'))
+            self._cnt['1h'].event((task.get('project'), 'speed'), float(content_len)/result.get('time'))
+            self._cnt['5m'].event((task.get('project'), 'time'), result.get('time'))
+            self._cnt['1h'].event((task.get('project'), 'time'), result.get('time'))
