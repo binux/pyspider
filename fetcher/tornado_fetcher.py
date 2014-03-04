@@ -16,6 +16,7 @@ import tornado.httpclient
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from libs import dataurl, counter
+logger = logging.getLogger('fetcher')
 
 class MyCurlAsyncHTTPClient(CurlAsyncHTTPClient):
     def free_size(self):
@@ -75,7 +76,7 @@ class Fetcher(object):
             try:
                 self.outqueue.put((task, result))
             except Exception, e:
-                logging.exception(e)
+                logger.exception(e)
         
     def fetch(self, task, callback=None):
         url = task.get('url', 'data:,')
@@ -114,9 +115,9 @@ class Fetcher(object):
         result['url'] = url
         result['time'] = 0
         if len(result['content']) < 70:
-            logging.info("[200] %s 0s" % url)
+            logger.info("[200] %s 0s" % url)
         else:
-            logging.info("[200] data:,%s...[content:%d] 0s" % (result['content'][:70], len(result['content'])))
+            logger.info("[200] data:,%s...[content:%d] 0s" % (result['content'][:70], len(result['content'])))
 
         callback('data', task, result)
         self.on_result('data', task, result)
@@ -188,9 +189,9 @@ class Fetcher(object):
             result['cookies'] = session.to_dict()
             result['time'] = time.time() - start_time
             if 200 <= response.code < 300:
-                logging.info("[%d] %s %.2fs" % (response.code, url, result['time']))
+                logger.info("[%d] %s %.2fs" % (response.code, url, result['time']))
             else:
-                logging.warning("[%d] %s %.2fs" % (response.code, url, result['time']))
+                logger.warning("[%d] %s %.2fs" % (response.code, url, result['time']))
             callback('http', task, result)
             self.on_result('http', task, result)
             return task, result
@@ -221,7 +222,7 @@ class Fetcher(object):
         except Exception, e:
             result = {'status_code': 599, 'error': "%r" % e, 'time': time.time() - start_time,
                       'orig_url': url, 'url': url, }
-            logging.error("[599] %s, %r %.2fs" % (url, e, result['time']))
+            logger.error("[599] %s, %r %.2fs" % (url, e, result['time']))
             callback('http', task, result)
             self.on_result('http', task, result)
             return task, result
@@ -241,7 +242,7 @@ class Fetcher(object):
                 except Queue.Empty:
                     break
                 except Exception, e:
-                    logging.exception(e)
+                    logger.exception(e)
                     break
 
         tornado.ioloop.PeriodicCallback(queue_loop, 500).start()
@@ -256,7 +257,7 @@ class Fetcher(object):
         self._quit = True
         tornado.ioloop.IOLoop.instance().stop()
 
-    def xmlrpc_run(self, port, bind='127.0.0.1'):
+    def xmlrpc_run(self, port=24444, bind='127.0.0.1'):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
 
         server = SimpleXMLRPCServer((bind, port), allow_none=True)

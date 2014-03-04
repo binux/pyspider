@@ -43,7 +43,7 @@ def build_module(project, env={}):
 class Processor(object):
     CHECK_PROJECTS_INTERVAL = 5*60
 
-    def __init__(self, inqueue, status_queue, newtask_queue, projectdb):
+    def __init__(self, projectdb, inqueue, status_queue, newtask_queue):
         self.inqueue = inqueue
         self.status_queue = status_queue
         self.newtask_queue = newtask_queue
@@ -126,7 +126,7 @@ class Processor(object):
     def run(self):
         while not self._quit:
             try:
-                self._update_project()
+                self._check_projects()
             except Exception, e:
                 logger.exception(e)
 

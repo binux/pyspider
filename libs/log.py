@@ -130,8 +130,7 @@ class SaveLogHandler(logging.Handler):
 
     handle = emit
 
-def enable_pretty_logging():
-    root_logger = logging.getLogger()
+def enable_pretty_logging(logger=logging.getLogger()):
     channel = logging.StreamHandler()
     channel.setFormatter(LogFormatter())
-    root_logger.addHandler(channel)
+    logger.addHandler(channel)

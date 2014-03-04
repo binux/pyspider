@@ -25,12 +25,12 @@ class Scheduler(object):
             }
     LOOP_LIMIT = 1000
     
-    def __init__(self, taskdb, projectdb, request_fifo, status_fifo, out_fifo):
+    def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue):
         self.taskdb = taskdb
         self.projectdb = projectdb
-        self.request_fifo = request_fifo
-        self.status_fifo = status_fifo
-        self.out_fifo = out_fifo
+        self.newtask_queue = newtask_queue
+        self.status_queue = status_queue
+        self.out_queue = out_queue
 
         self._quit = False
         self.projects = dict()
@@ -72,19 +72,21 @@ class Scheduler(object):
     scheduler_task_fields = ['taskid', 'project', 'schedule', ]
     def _load_tasks(self, project):
         self.task_queue[project] = TaskQueue(rate=0, burst=0)
-        for task in self.taskdb.load_tasks('ACTIVE', project,
-                self.scheduler_task_fields):
+        for task in self.taskdb.load_tasks(self.taskdb.ACTIVE, project, self.scheduler_task_fields):
             taskid = task['taskid']
             _schedule = task.get('schedule', self.default_schedule)
             priority = _schedule.get('priority', self.default_schedule['priority'])
             exetime = _schedule.get('exetime', self.default_schedule['exetime'])
-            self.task_queue.put(taskid, priority, exetime)
+            self.task_queue[project].put(taskid, priority, exetime)
 
     def task_verify(self, task):
         for each in ('taskid', 'project', 'url', ):
             if each not in task:
                 logger.error('each not in task: %s' % unicode(task[:200]))
                 return False
+        if task['project'] not in self.task_queue:
+            logger.error('unknow project: %s' % task['project'])
+            return False
         return True
 
     def insert_task(self, task):
@@ -100,13 +102,13 @@ class Scheduler(object):
                 exetime=_schedule.get('exetime', self.default_schedule['exetime']))
 
     def send_task(self, task):
-        self.out_fifo.put(task)
+        self.out_queue.put(task)
 
     def _check_task_done(self):
         cnt = 0
         try:
             while cnt < self.LOOP_LIMIT:
-                task = self.status_fifo.get_nowait()
+                task = self.status_queue.get_nowait()
                 if not self.task_verify(task):
                     continue
                 self.task_queue[task['project']].done(task['taskid'])
@@ -121,9 +123,13 @@ class Scheduler(object):
         cnt = 0
         try:
             while cnt < self.LOOP_LIMIT:
-                task = self.request_fifo.get_nowait()
+                task = self.newtask_queue.get_nowait()
                 if not self.task_verify(task):
                     continue
+                if task['taskid'] in self.task_queue[task['project']]:
+                    if not task.get('schedule', {}).get('force_update', False):
+                        logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
+                        continue
                 oldtask = self.taskdb.get_task(task['project'], task['taskid'],
                         self.merge_task_fields)
                 if oldtask:
@@ -170,18 +176,18 @@ class Scheduler(object):
         logger.info("loading projects")
         self._load_projects()
         for i, project in enumerate(self.projects.keys()):
-            logger.info("loading tasks from %s -- %d/%d" % (
-                project, i+1, len(self.projects)))
             self._load_tasks(project)
             self.task_queue[project].rate = self.projects[project]['rate']
             self.task_queue[project].burst = self.projects[project]['burst']
+            logger.info("loading tasks from %s loaded %d tasks -- %d/%d" % (project, len(self.task_queue[project]),
+                i+1, len(self.projects)))
 
         while not self._quit:
             self._update_projects()
             self._check_task_done()
             self._check_request()
             self._check_select()
-            time.sleep(0.01)
+            time.sleep(0.1)
 
         self._dump_cnt()
 
@@ -197,6 +203,12 @@ class Scheduler(object):
         def dump_counter(_time, _type):
             return self._cnt[_time].to_dict(_type)
         server.register_function(dump_counter, 'counter')
+        def new_task(task):
+            if self.task_verify(task):
+                self.newtask_queue.put(task)
+                return True
+            return False
+        server.register_function(new_task, 'newtask')
 
         server.serve_forever()
     
@@ -215,9 +227,6 @@ class Scheduler(object):
 
     def on_old_request(self, task, old_task):
         now = time.time()
-        if old_task['status'] == self.taskdb.ACTIVE:
-            logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
-            return None
 
         _schedule = task.get('schedule', self.default_schedule)
         old_schedule = old_task.get('schedule', {})
@@ -226,6 +235,8 @@ class Scheduler(object):
         if _schedule.get('itag') and _schedule['itag'] != old_schedule.get('itag'):
             restart = True
         elif _schedule['age'] + old_task['lastcrawltime'] < now:
+            restart = True
+        elif _schedule.get('force_update'):
             restart = True
 
         if not restart:

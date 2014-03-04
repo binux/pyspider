@@ -218,7 +218,7 @@ class CounterManager(DictMixin):
         try:
             cPickle.dump(self.counters, open(filename, 'wb'))
         except:
-            logging.exception("can't dump counter to file: %s" % filename)
+            logging.error("can't dump counter to file: %s" % filename)
             return False
         return True
 
@@ -226,7 +226,7 @@ class CounterManager(DictMixin):
         try:
             self.counters = cPickle.load(open(filename))
         except:
-            logging.exception("can't load counter from file: %s" % filename)
+            logging.error("can't load counter from file: %s" % filename)
             return False
         return True
 

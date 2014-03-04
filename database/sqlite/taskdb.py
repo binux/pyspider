@@ -56,6 +56,8 @@ class TaskDB(BaseTaskDB, BaseDB):
         return data
 
     def load_tasks(self, status, project=None, fields=None):
+        if project not in self.projects:
+            raise StopIteration
         what = ','.join(fields) if fields else '*'
         where = "status = %d" % status
         if project:
@@ -69,6 +71,8 @@ class TaskDB(BaseTaskDB, BaseDB):
                     yield self._parse(each)
 
     def get_task(self, project, taskid, fields=None):
+        if project not in self.projects:
+            return None
         what = ','.join(fields) if fields else '*'
         where = "taskid = '%s'" % taskid
         if project not in self.projects:
@@ -83,6 +87,8 @@ class TaskDB(BaseTaskDB, BaseDB):
         return a dict
         '''
         result = dict()
+        if project not in self.projects:
+            return result
         if project not in self.projects:
             return result
         tablename = '%s_%s' % (self.__tablename__, project)

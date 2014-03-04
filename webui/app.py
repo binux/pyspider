@@ -8,6 +8,6 @@
 import os
 from flask import Flask
 
-app = Flask('pyspider debugger',
+app = Flask('webui',
         static_folder=os.path.join(os.path.dirname(__file__), 'static'),
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
