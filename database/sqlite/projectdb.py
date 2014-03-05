@@ -53,5 +53,5 @@ class ProjectDB(BaseProjectDB, BaseDB):
 
     def check_update(self, timestamp, fields=None):
         what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        where = "updatetime >= %f" % timestamp
+        where = "updatetime >= %d" % timestamp
         return self._select2dic(self.__tablename__, what=what, where=where)

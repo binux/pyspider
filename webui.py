@@ -10,7 +10,8 @@ from fetcher import tornado_fetcher
 from database.sqlite.projectdb import ProjectDB
 
 def fetch(task):
-    return tornado_fetcher.Fetcher(None, None, async=False).fetch(task)
+    t, f = tornado_fetcher.Fetcher(None, None, async=False).fetch(task)
+    return f
 
 def projectdb():
     return ProjectDB('data/project.db')

@@ -78,7 +78,7 @@ class TaskQueue(object):
     task queue for scheduler, have a priority queue and a time queue for delayed tasks
     '''
     processing_timeout = 10*60
-    def __init__(self, rate=1, burst=None):
+    def __init__(self, rate=0, burst=0):
         self.mutex = threading.Lock()
         self.priority_queue = PriorityTaskQueue()
         self.time_queue = PriorityTaskQueue()

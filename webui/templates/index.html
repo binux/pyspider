@@ -22,7 +22,7 @@
           <th>project name</th>
           <th>status</th>
           <th>rate/burst</th>
-          <th colspan=3>progress</th>
+          <th colspan=4>progress - 5min / 1hour / 1day / total</th>
           <th>actions</th>
         </thead>
         <tbody>
@@ -34,16 +34,45 @@
               <span class="status-{{ project['status'] }}" data-value="{{ project['status'] }}">{{ project['status'] }}</span>
             </td>
             <td class="project-rate"><span>{{ project['rate'] }}/{{ project['burst'] }}</span></td>
-            <td class="project-progress progress-5min">loading...</td>
-            <td class="project-progress progress-1h">loading...</td>
-            <td class="project-progress progress-total">loading...</td>
+            <td class="project-progress progress-5m">
+              <div class="progress">
+                <div class="progress-text"></div>
+                <div class="progress-bar progress-pending"></div>
+                <div class="progress-bar progress-bar-success progress-success"></div>
+                <div class="progress-bar progress-bar-danger progress-failed"></div>
+              </div>
+            </td>
+            <td class="project-progress progress-1h">
+              <div class="progress">
+                <div class="progress-text"></div>
+                <div class="progress-bar progress-pending"></div>
+                <div class="progress-bar progress-bar-success progress-success"></div>
+                <div class="progress-bar progress-bar-danger progress-failed"></div>
+              </div>
+            </td>
+            <td class="project-progress progress-1d">
+              <div class="progress">
+                <div class="progress-text"></div>
+                <div class="progress-bar progress-pending"></div>
+                <div class="progress-bar progress-bar-success progress-success"></div>
+                <div class="progress-bar progress-bar-danger progress-failed"></div>
+              </div>
+            </td>
+            <td class="project-progress progress-all">
+              <div class="progress">
+                <div class="progress-text"></div>
+                <div class="progress-bar progress-pending"></div>
+                <div class="progress-bar progress-bar-success progress-success"></div>
+                <div class="progress-bar progress-bar-danger progress-failed"></div>
+              </div>
+            </td>
             <td class="project-actions">
               <button class="project-run btn btn-default btn-xs">Run</button>
             </td>
           </tr>
           {% endfor %}
           <tr>
-            <td colspan=7></td>
+            <td colspan=8></td>
             <td>
               <button class="project-create btn btn-default btn-primary">Create</button>
             </td>

@@ -53,6 +53,21 @@
 }
 .projects .project-progress {
   position: relative;
+  width: 10%;
+}
+.projects .project-progress.progress-all {
+  width: 20%;
+}
+.projects .project-progress .progress {
+  position: relative;
+  margin: 0;
+}
+.projects .project-progress .progress .progress-text {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  font-weight: bold;
+  color: white;
 }
 .projects .project-actions {
   width: 100px;

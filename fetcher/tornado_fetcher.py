@@ -237,7 +237,7 @@ class Fetcher(object):
                         break
                     if self.http_client.free_size() <= 0:
                         break
-                    task = self.inqueue.get()
+                    task = self.inqueue.get_nowait()
                     self.fetch(task)
                 except Queue.Empty:
                     break
@@ -245,7 +245,7 @@ class Fetcher(object):
                     logger.exception(e)
                     break
 
-        tornado.ioloop.PeriodicCallback(queue_loop, 500).start()
+        tornado.ioloop.PeriodicCallback(queue_loop, 100).start()
         tornado.ioloop.IOLoop.instance().start()
         self._running = True
 

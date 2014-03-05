@@ -45,8 +45,10 @@ class TaskDB(BaseTaskDB, BaseDB):
 
     def _parse(self, data):
         for each in ('schedule', 'fetch', 'process', 'track'):
-            if each in data:
+            if each in data and data[each]:
                 data[each] = json.loads(data[each])
+            else:
+                data[each] = {}
         return data
 
     def _stringify(self, data):

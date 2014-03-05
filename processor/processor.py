@@ -101,7 +101,7 @@ class Processor(object):
                             'ok': not response.error,
                             'time': response.time,
                             'status_code': response.status_code,
-                            'headers': response.headers,
+                            'headers': dict(response.headers),
                             'encoding': response.encoding,
                             #'content': response.content,
                             },

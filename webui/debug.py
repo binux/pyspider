@@ -56,10 +56,11 @@ def run(project):
             'script': request.form['script'],
             }
 
+    fetch_result = ""
+    start_time = time.time()
     try:
-        task, fetch_result = app.config['fetch'](task)
+        fetch_result = app.config['fetch'](task)
         response = rebuild_response(fetch_result)
-        start_time = time.time()
         module = build_module(project_info, {'debugger': True})
         ret = module['instance'].run(module['module'], task, response)
     except Exception, e:

@@ -182,7 +182,7 @@ class BaseHandler(object):
 
         task['project'] = self._name
         task['url'] = url
-        task['rowid'] = task.get('rowid') or md5string(url)
+        task['taskid'] = task.get('taskid') or md5string(url)
 
         self._follows.append(task)
         return task

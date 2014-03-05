@@ -42,3 +42,31 @@ def project_update():
         return 'ok', 200
     else:
         return 'update error', 500
+
+@app.route('/counter')
+def counter():
+    rpc = app.config['scheduler_rpc']
+    time = request.args['time']
+    type = request.args.get('type', 'sum')
+
+    return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
+
+@app.route('/run', methods=['POST', ])
+def runtask():
+    rpc = app.config['scheduler_rpc']
+    project = request.form['project']
+    newtask = {
+        "project": project,
+        "taskid": "data:,on_start",
+        "url": "data:,on_start",
+        "process": {
+            "callback": "on_start",
+            },
+        "schedule": {
+            "age": 0,
+            "priority": 9,
+            },
+        }
+
+    ret = rpc.newtask(newtask)
+    return json.dumps({"result": ret}), 200, {'Content-Type': 'application/json'}

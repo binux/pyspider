@@ -9,7 +9,7 @@ import sys
 import time
 import logging
 import logging.config
-from Queue import Queue
+from multiprocessing import Queue
 from database.sqlite import taskdb, projectdb
 
 logging.config.fileConfig("logging.conf")
