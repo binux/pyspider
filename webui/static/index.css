@@ -69,6 +69,10 @@
   font-weight: bold;
   color: white;
 }
+.projects .project-progress .progress .progress-bar {
+  -webkit-transition: none;
+  transition: none;
+}
 .projects .project-actions {
   width: 100px;
 }
