@@ -45,6 +45,10 @@ class Response(object):
         if hasattr(self, '_encoding'):
             return self._encoding
 
+        # content is unicode
+        if isinstance(self.content, unicode):
+            return 'unicode'
+
         # Try charset from content-type
         encoding = get_encoding_from_headers(self.headers)
         if encoding == 'ISO-8859-1':
