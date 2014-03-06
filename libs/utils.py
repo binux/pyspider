@@ -33,3 +33,17 @@ def hide_me(tb, g=globals()):
     if not tb:
         tb = base_tb
     return tb
+
+def run_in_thread(func, *args, **kwargs):
+    from threading import Thread
+    thread = Thread(target=func, args=args, kwargs=kwargs)
+    thread.daemon = True
+    thread.start()
+    return thread
+
+def run_in_subprocess(func, *args, **kwargs):
+    from multiprocessing import Process
+    thread = Process(target=func, args=args, kwargs=kwargs)
+    thread.daemon = True
+    thread.start()
+    return thread

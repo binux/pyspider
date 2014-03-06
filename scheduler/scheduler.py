@@ -24,6 +24,7 @@ class Scheduler(object):
             'itag': None,
             }
     LOOP_LIMIT = 1000
+    LOOP_INTERVAL = 0.1
     
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue):
         self.taskdb = taskdb
@@ -47,9 +48,9 @@ class Scheduler(object):
                 "all": counter.CounterManager(
                     lambda : counter.TotalCounter()),
                 }
-        self._cnt['1h'].load('.scheduler.1h')
-        self._cnt['1d'].load('.scheduler.1d')
-        self._cnt['all'].load('.scheduler.all')
+        self._cnt['1h'].load('./data/scheduler.1h')
+        self._cnt['1d'].load('./data/scheduler.1d')
+        self._cnt['all'].load('./data/scheduler.all')
         self._last_dump_cnt = 0
 
     def _load_projects(self):
@@ -62,8 +63,7 @@ class Scheduler(object):
         now = time.time()
         if self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now:
             return
-        self._last_update_project = now
-        for project in self.projectdb.check_update(now):
+        for project in self.projectdb.check_update(self._last_update_project):
             logger.debug("project: %s updated." % project['name'])
             self.projects[project['name']] = project
             if project['name'] not in self.task_queue:
@@ -74,6 +74,7 @@ class Scheduler(object):
             else:
                 self.task_queue[project['name']].rate = 0
                 self.task_queue[project['name']].burst = 0
+        self._last_update_project = now
 
     scheduler_task_fields = ['taskid', 'project', 'schedule', ]
     def _load_tasks(self, project):
@@ -94,7 +95,7 @@ class Scheduler(object):
 
     def task_verify(self, task):
         for each in ('taskid', 'project', 'url', ):
-            if each not in task:
+            if each not in task or not task[each]:
                 logger.error('%s not in task: %s' % (each, unicode(task)[:200]))
                 return False
         if task['project'] not in self.task_queue:
@@ -144,7 +145,7 @@ class Scheduler(object):
                         logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
                         continue
                 oldtask = self.taskdb.get_task(task['project'], task['taskid'],
-                        self.merge_task_fields)
+                        fields=self.merge_task_fields)
                 if oldtask:
                     task = self.on_old_request(task, oldtask)
                 else:
@@ -170,9 +171,9 @@ class Scheduler(object):
         return cnt_dict
 
     def _dump_cnt(self):
-        self._cnt['1h'].dump('.scheduler.1h')
-        self._cnt['1d'].dump('.scheduler.1d')
-        self._cnt['all'].dump('.scheduler.all')
+        self._cnt['1h'].dump('./data/scheduler.1h')
+        self._cnt['1d'].dump('./data/scheduler.1d')
+        self._cnt['all'].dump('./data/scheduler.all')
 
     def _try_dump_cnt(self):
         now = time.time()
@@ -199,14 +200,15 @@ class Scheduler(object):
             self._check_task_done()
             self._check_request()
             self._check_select()
-            time.sleep(0.1)
+            time.sleep(self.LOOP_INTERVAL)
 
+        logger.info("scheduler exiting...")
         self._dump_cnt()
 
-    def xmlrpc_run(self, port=23333, bind='127.0.0.1'):
+    def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
 
-        server = SimpleXMLRPCServer((bind, port), allow_none=True)
+        server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()
         server.register_multicall_functions()
 

@@ -11,22 +11,9 @@ import logging
 import logging.config
 from multiprocessing import Queue
 from database.sqlite import taskdb, projectdb
+from libs.utils import run_in_thread, run_in_subprocess
 
 logging.config.fileConfig("logging.conf")
-
-def run_in_thread(func, *args, **kwargs):
-    from threading import Thread
-    thread = Thread(target=func, args=args, kwargs=kwargs)
-    thread.daemon = True
-    thread.start()
-    return thread
-
-def run_in_subprocess(func, *args, **kwargs):
-    from multiprocessing import Process
-    thread = Process(target=func, args=args, kwargs=kwargs)
-    thread.daemon = True
-    thread.start()
-    return thread
 
 def get_taskdb():
     return taskdb.TaskDB('./data/task.db')

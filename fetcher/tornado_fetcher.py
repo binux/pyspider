@@ -257,10 +257,10 @@ class Fetcher(object):
         self._quit = True
         tornado.ioloop.IOLoop.instance().stop()
 
-    def xmlrpc_run(self, port=24444, bind='127.0.0.1'):
+    def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
 
-        server = SimpleXMLRPCServer((bind, port), allow_none=True)
+        server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()
         server.register_multicall_functions()
 

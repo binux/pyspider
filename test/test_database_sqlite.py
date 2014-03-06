@@ -60,9 +60,6 @@ class TestTaskDB(unittest.TestCase):
             'updatetime': time.time(),
             }
 
-    def setUp(self):
-        pass
-
     def test_create_project(self):
         taskdb = TaskDB(':memory:')
         with self.assertRaises(AssertionError):
@@ -158,9 +155,9 @@ class TestProjectDB(unittest.TestCase):
         self.assertNotIn('gourp', project)
 
         # update
+        projectdb.update('not found', status='RUNNING')
         time.sleep(0.1)
         now = time.time()
-        projectdb.update('not found', status='RUNNING')
         projectdb.update('abc', status='RUNNING')
 
         # check update

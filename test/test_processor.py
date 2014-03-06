@@ -59,57 +59,55 @@ class TestProjectModule(unittest.TestCase):
                 'name': self.project,
                 'status': 'DEBUG',
                 }
-
-    def test_build_module(self):
-        module = project_module.ProjectModule(self.project, self.script, self.env)
+        self.module = module = project_module.ProjectModule(self.project, self.script, self.env)
         module.rethrow()
         _class = module.get()
-        instance = _class()._init(self.project_info)
+        self.instance = _class()._init(self.project_info)
 
-        # hello
+    def test_2_hello(self):
         self.base_task['process']['callback'] = 'hello'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, "hello world!")
 
-        # echo
+    def test_3_echo(self):
         self.base_task['process']['callback'] = 'echo'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, "test data")
 
-        # saved
+    def test_4_saved(self):
         self.base_task['process']['callback'] = 'saved'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, self.base_task['process']['save'])
 
-        # echo task
+    def test_5_echo_task(self):
         self.base_task['process']['callback'] = 'echo_task'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, self.project)
 
-        # catch_status_code
+    def test_6_catch_status_code(self):
         self.fetch_result['status_code'] = 403
         self.base_task['process']['callback'] = 'catch_status_code'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, 403)
         self.fetch_result['status_code'] = 200
 
-        # raise_exception 
+    def test_7_raise_exception(self):
         self.base_task['process']['callback'] = 'raise_exception'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNotNone(ret.exception)
         logstr = ret.logstr()
         self.assertIn('info', logstr)
         self.assertIn('warning', logstr)
         self.assertIn('error', logstr)
 
-        # add_task
+    def test_8_add_task(self):
         self.base_task['process']['callback'] = 'add_task'
-        ret = instance.run(module, self.base_task, self.fetch_result)
+        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(len(ret.follows), 1)
         self.assertEqual(len(ret.messages), 1)

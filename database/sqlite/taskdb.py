@@ -45,10 +45,11 @@ class TaskDB(BaseTaskDB, BaseDB):
 
     def _parse(self, data):
         for each in ('schedule', 'fetch', 'process', 'track'):
-            if each in data and data[each]:
-                data[each] = json.loads(data[each])
-            else:
-                data[each] = {}
+            if each in data:
+                if data[each]:
+                    data[each] = json.loads(data[each])
+                else:
+                    data[each] = {}
         return data
 
     def _stringify(self, data):
@@ -58,7 +59,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         return data
 
     def load_tasks(self, status, project=None, fields=None):
-        if project not in self.projects:
+        if project and project not in self.projects:
             raise StopIteration
         what = ','.join(fields) if fields else '*'
         where = "status = %d" % status
@@ -73,6 +74,8 @@ class TaskDB(BaseTaskDB, BaseDB):
                     yield self._parse(each)
 
     def get_task(self, project, taskid, fields=None):
+        if project not in self.projects:
+            self._list_project()
         if project not in self.projects:
             return None
         what = ','.join(fields) if fields else '*'
