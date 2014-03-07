@@ -14,9 +14,10 @@ class Handler(BaseHandler):
         self.crawl('http://www.baidu.com/', callback=self.index_page)
 
     def index_page(self, response):
-        for each in response.doc('a').items():
+        for each in response.doc('a[href^="http://"]').items():
             self.crawl(each.attr.href, callback=self.index_page)
-        return response.text[:100]
+        return response.doc('title').text()
 
     def on_result(self, result):
-        print result
+        if result:
+            print result

@@ -68,6 +68,7 @@
   position: absolute;
   font-weight: bold;
   color: white;
+  pointer-events: none;
 }
 .projects .project-progress .progress .progress-bar {
   -webkit-transition: none;

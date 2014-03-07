@@ -115,7 +115,7 @@ class TimebaseAverageWindowCounter(BaseCounter):
     @property
     def sum(self):
         self._trim_window()
-        return sum(self.values)
+        return sum(self.values)+self.cache_value
 
     def empty(self):
         self._trim_window()

@@ -65,6 +65,7 @@ def runtask():
         "schedule": {
             "age": 0,
             "priority": 9,
+            "force_update": True,
             },
         }
 

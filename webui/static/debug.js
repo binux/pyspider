@@ -121,6 +121,7 @@ window.Debugger = (function() {
           success: function(data) {
             console.log(data);
             _this.python_log('');
+            _this.python_log("saved!");
             $('#right-area .overlay').hide();
           },
           error: function(xhr, textStatus, errorThrown) {

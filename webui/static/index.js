@@ -94,10 +94,10 @@ $(function() {
           success = info.success || 0,
           failed = info.failed || 0,
           sum = info.task || pending + success + failed;
-      $e.find(".progress-text").text(sum);
-      $e.find(".progress-pending").width(""+(pending/sum*100)+"%").attr("title", pending);
-      $e.find(".progress-success").width(""+(success/sum*100)+"%").attr("title", success);
-      $e.find(".progress-failed").width(""+(failed/sum*100)+"%").attr("title", failed);
+      $e.find(".progress-text").text(type+": "+sum);
+      $e.find(".progress-pending").width(""+(pending/sum*100)+"%").attr("title", "pending: "+pending);
+      $e.find(".progress-success").width(""+(success/sum*100)+"%").attr("title", "success: "+success);
+      $e.find(".progress-failed").width(""+(failed/sum*100)+"%").attr("title", "failed: "+failed);
     });
   }
   $.get('/counter?time=5m&type=sum', function(data) {

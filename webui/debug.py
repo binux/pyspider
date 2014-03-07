@@ -44,7 +44,7 @@ def debug(project):
         script = default_script.replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     default_task['project'] = project
-    return render_template("debug.html", task=default_task, script=script)
+    return render_template("debug.html", task=default_task, script=script, project_name=project)
 
 
 @app.route('/debug/<project>/run', methods=['POST', ])
