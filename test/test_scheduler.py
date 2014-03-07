@@ -7,6 +7,7 @@
 
 import os
 import time
+import shutil
 import unittest
 import logging
 import logging.config
@@ -71,31 +72,24 @@ from scheduler.scheduler import Scheduler
 from database.sqlite import taskdb, projectdb
 from libs.utils import run_in_subprocess, run_in_thread
 class TestScheduler(unittest.TestCase):
-    taskdb_path = './data/.test_task.db'
-    projectdb_path = './data/.test_project.db'
+    taskdb_path = './test/data/task.db'
+    projectdb_path = './test/data/project.db'
     check_project_time = 1
     scheduler_xmlrpc_port = 23333
 
     @classmethod
-    def rm_db(self):
-        try:
-            os.remove(self.taskdb_path)
-        except OSError:
-            pass
-        try:
-            os.remove(self.projectdb_path)
-        except OSError:
-            pass
-
-    @classmethod
     def setUpClass(self):
-        self.rm_db()
+        shutil.rmtree('./test/data/', ignore_errors=True)
+        os.makedirs('./test/data/')
+
         def get_taskdb():
             return taskdb.TaskDB(self.taskdb_path)
         self.taskdb = get_taskdb()
+
         def get_projectdb():
             return projectdb.ProjectDB(self.projectdb_path)
         self.projectdb = get_projectdb()
+
         self.newtask_queue = Queue(10)
         self.status_queue = Queue(10)
         self.scheduler2fetcher = Queue(10)
@@ -103,7 +97,8 @@ class TestScheduler(unittest.TestCase):
 
         def run_scheduler():
             scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
-                    newtask_queue=self.newtask_queue, status_queue=self.status_queue, out_queue=self.scheduler2fetcher)
+                    newtask_queue=self.newtask_queue, status_queue=self.status_queue,
+                    out_queue=self.scheduler2fetcher, data_path="./test/data/")
             scheduler.UPDATE_PROJECT_INTERVAL = 0.05
             scheduler.LOOP_INTERVAL = 0.01
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
@@ -114,7 +109,7 @@ class TestScheduler(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.rm_db()
+        shutil.rmtree('./test/data/', ignore_errors=True)
         self.process.terminate()
 
     def test_10_new_task_ignore(self):

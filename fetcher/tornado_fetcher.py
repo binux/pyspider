@@ -241,13 +241,18 @@ class Fetcher(object):
                     self.fetch(task)
                 except Queue.Empty:
                     break
+                except KeyboardInterrupt:
+                    break
                 except Exception, e:
                     logger.exception(e)
                     break
 
         tornado.ioloop.PeriodicCallback(queue_loop, 100).start()
-        tornado.ioloop.IOLoop.instance().start()
         self._running = True
+        try:
+            tornado.ioloop.IOLoop.instance().start()
+        except KeyboardInterrupt:
+            pass
 
     def size(self):
         return self.http_client.size()

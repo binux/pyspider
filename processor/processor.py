@@ -67,6 +67,7 @@ class Processor(object):
             return
         for project in self.projectdb.check_update(self.last_check_projects):
             try:
+                logger.debug("project: %s updated." % project['name'])
                 self._update_project(project)
             except Exception, e:
                 logger.exception("exception when check update for %s" % project.get('name', None))
@@ -127,6 +128,8 @@ class Processor(object):
         while not self._quit:
             try:
                 self._check_projects()
+            except KeyboardInterrupt:
+                break
             except Exception, e:
                 logger.exception(e)
 
@@ -136,6 +139,8 @@ class Processor(object):
             except Queue.Empty, e:
                 time.sleep(1)
                 continue
+            except KeyboardInterrupt:
+                break
             except Exception, e:
                 logger.exception(e)
                 continue

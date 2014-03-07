@@ -6,6 +6,7 @@
 # Created on 2014-02-07 17:05:11
 
 
+import os
 import time
 import Queue
 import logging
@@ -26,12 +27,13 @@ class Scheduler(object):
     LOOP_LIMIT = 1000
     LOOP_INTERVAL = 0.1
     
-    def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue):
+    def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data'):
         self.taskdb = taskdb
         self.projectdb = projectdb
         self.newtask_queue = newtask_queue
         self.status_queue = status_queue
         self.out_queue = out_queue
+        self.data_path = data_path
 
         self._quit = False
         self.projects = dict()
@@ -48,9 +50,9 @@ class Scheduler(object):
                 "all": counter.CounterManager(
                     lambda : counter.TotalCounter()),
                 }
-        self._cnt['1h'].load('./data/scheduler.1h')
-        self._cnt['1d'].load('./data/scheduler.1d')
-        self._cnt['all'].load('./data/scheduler.all')
+        self._cnt['1h'].load(os.path.join(self.data_path, 'scheduler.1h'))
+        self._cnt['1d'].load(os.path.join(self.data_path, 'scheduler.1d'))
+        self._cnt['all'].load(os.path.join(self.data_path, 'scheduler.all'))
         self._last_dump_cnt = 0
 
     def _load_projects(self):
@@ -171,9 +173,9 @@ class Scheduler(object):
         return cnt_dict
 
     def _dump_cnt(self):
-        self._cnt['1h'].dump('./data/scheduler.1h')
-        self._cnt['1d'].dump('./data/scheduler.1d')
-        self._cnt['all'].dump('./data/scheduler.all')
+        self._cnt['1h'].dump(os.path.join(self.data_path, 'scheduler.1h'))
+        self._cnt['1d'].dump(os.path.join(self.data_path, 'scheduler.1d'))
+        self._cnt['all'].dump(os.path.join(self.data_path, 'scheduler.all'))
 
     def _try_dump_cnt(self):
         now = time.time()
@@ -196,11 +198,14 @@ class Scheduler(object):
                 i+1, len(self.projects)))
 
         while not self._quit:
-            self._update_projects()
-            self._check_task_done()
-            self._check_request()
-            self._check_select()
-            time.sleep(self.LOOP_INTERVAL)
+            try:
+                self._update_projects()
+                self._check_task_done()
+                self._check_request()
+                self._check_select()
+                time.sleep(self.LOOP_INTERVAL)
+            except KeyboardInterrupt:
+                break
 
         logger.info("scheduler exiting...")
         self._dump_cnt()
@@ -279,7 +284,7 @@ class Scheduler(object):
             fetchok = task['track']['fetch']['ok']
             procesok = task['track']['process']['ok']
         except KeyError, e:
-            logger.error(e)
+            logger.error("key error in status pack: %s" % e)
             return None
 
         if fetchok and procesok:

@@ -76,7 +76,9 @@ if __name__ == '__main__':
             for each in threads:
                 if not each.is_alive():
                     break
-            time.sleep(1)
+            time.sleep(0.1)
+
+        time.sleep(1)
     else:
         cmd = "run_"+sys.argv[1]
         locals()[cmd]()

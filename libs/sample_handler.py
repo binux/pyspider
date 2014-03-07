@@ -5,7 +5,6 @@
 
 
 from libs.base_handler import *
-from pyquery import PyQuery as pq
 
 class Handler(BaseHandler):
     '''
@@ -17,4 +16,7 @@ class Handler(BaseHandler):
     def index_page(self, response):
         for each in response.doc('a').items():
             self.crawl(each.attr.href, callback=self.index_page)
+        return response.text[:100]
 
+    def on_result(self, result):
+        print result
