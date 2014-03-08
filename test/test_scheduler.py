@@ -130,7 +130,7 @@ class TestScheduler(unittest.TestCase):
                 'rate': 1.0,
                 'burst': 10,
             })
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.newtask_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -145,9 +145,12 @@ class TestScheduler(unittest.TestCase):
                 'age': 0,
                 },
             })
-        time.sleep(0.1)
+        timeout = time.time() + 5
+        while self.rpc.size() != 1 and timeout > time.time():
+            time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 1)
         self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['pending'], 1)
+        self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['task'], 1)
 
     def test_30_update_project(self):
         self.projectdb.update('test_project', status="DEBUG")
