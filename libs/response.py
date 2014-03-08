@@ -16,10 +16,12 @@ class Response(object):
     def __init__(self):
         self.status_code = None
         self.url = None
+        self.orig_url = None
         self.headers = CaseInsensitiveDict()
         self.content = ''
         self.cookies = {}
         self.error = None
+        self.time = 0
 
     def __repr__(self):
        return '<Response [%d]>' % self.status_code

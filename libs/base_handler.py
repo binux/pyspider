@@ -51,11 +51,16 @@ def catch_status_code_error(func):
     func._catch_status_code_error = True
     return func
 
-
 def not_send_status(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         self._extinfo['not_send_status'] = True
+    return wrapper
+
+def config(_config):
+    def wrapper(func):
+        func._config = _config
+        return func
     return wrapper
 
 
@@ -160,7 +165,7 @@ class BaseHandler(object):
             kwargs['data'] = _encode_params(kwargs['data'])
 
         schedule = {}
-        for key in ('priority', 'retries', 'exetime', 'age', 'itag'):
+        for key in ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update'):
             if key in kwargs and kwargs[key] is not None:
                 schedule[key] = kwargs[key]
         if schedule:
@@ -213,7 +218,7 @@ class BaseHandler(object):
           itag
 
           save
-          rowid
+          taskid
         '''
 
 

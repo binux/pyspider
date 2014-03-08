@@ -61,7 +61,6 @@ class ProjectModule(object):
                 if inspect.isclass(each) and each is not base_handler.BaseHandler \
                         and issubclass(each, base_handler.BaseHandler):
                             self._module.__dict__['__class__'] = each
-                            break
         return self._module.__dict__.get(key, default)
 
     @property

@@ -12,8 +12,14 @@ Installation
 * python2.7
 * `pip install -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
-* [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
 
+Documents
+=========
+
+* [Wiki](https://github.com/binux/pyspider/wiki)
+* [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
+* [脚本编写指南](https://github.com/binux/pyspider/wiki/%E8%84%9A%E6%9C%AC%E7%BC%96%E5%86%99%E6%8C%87%E5%8D%97)
+* [架构设计](http://blog.binux.me/2014/02/pyspider-architecture/)
 
 Contribute
 ==========
