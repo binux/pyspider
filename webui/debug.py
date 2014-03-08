@@ -86,7 +86,21 @@ def run(project):
                 }
         result['fetch_result']['content'] = response.text
 
-    return json.dumps(result), 200, {'Content-Type': 'application/json'}
+    try:
+        return json.dumps(result), 200, {'Content-Type': 'application/json'}
+    except Exception, e:
+        type, value, tb = sys.exc_info()
+        tb = hide_me(tb, globals())
+        logs = ''.join(traceback.format_exception(type, value, tb))
+        result = {
+                'fetch_result': "",
+                'logs': logs,
+                'follows': [],
+                'messages': [],
+                'result': None,
+                'time': time.time() - start_time,
+                }
+        return json.dumps(result), 200, {'Content-Type': 'application/json'}
 
 @app.route('/debug/<project>/save', methods=['POST', ])
 def save(project):
