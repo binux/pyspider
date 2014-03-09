@@ -39,6 +39,8 @@ def project_update():
     
     ret = projectdb.update(project, update)
     if ret:
+        rpc = app.config['scheduler_rpc']
+        rpc.update_project()
         return 'ok', 200
     else:
         return 'update error', 500

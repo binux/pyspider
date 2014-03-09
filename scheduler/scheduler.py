@@ -166,6 +166,8 @@ class Scheduler(object):
             taskid = task_queue.get()
             while taskid and cnt < self.LOOP_LIMIT / 10:
                 task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
+                # inform processor project may updated
+                task['project_updatetime'] = self.projects[project].get('updatetime', 0)
                 task = self.on_select_task(task)
                 taskid = task_queue.get()
                 cnt += 1
@@ -228,6 +230,9 @@ class Scheduler(object):
                 return True
             return False
         server.register_function(new_task, 'newtask')
+        def update_project():
+            self._last_update_project = 0
+        server.register_function(update_project, 'update_project')
 
         server.serve_forever()
     

@@ -62,8 +62,17 @@ class Processor(object):
                 continue
         self.last_check_projects = time.time()
 
-    def _check_projects(self):
+    def _need_update(self, task):
+        if task['project'] not in self.projects:
+            return True
+        if task.get('project_updatetime', 0) > self.projects[task['project']]['info'].get('updatetime', 0):
+            return True
         if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
+            return True
+        return False
+
+    def _check_projects(self, task):
+        if not self._need_update(task):
             return
         for project in self.projectdb.check_update(self.last_check_projects):
             try:
@@ -127,14 +136,8 @@ class Processor(object):
     def run(self):
         while not self._quit:
             try:
-                self._check_projects()
-            except KeyboardInterrupt:
-                break
-            except Exception, e:
-                logger.exception(e)
-
-            try:
                 task, response = self.inqueue.get()
+                self._check_projects(task)
                 self.on_task(task, response)
             except Queue.Empty, e:
                 time.sleep(1)

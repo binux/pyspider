@@ -73,12 +73,13 @@ if __name__ == '__main__':
         threads.append(run_in_subprocess(run_webui))
 
         while True:
-            for each in threads:
-                if not each.is_alive():
-                    break
-            time.sleep(0.1)
+            try:
+                time.sleep(10)
+            except KeyboardInterrupt:
+                break
 
-        time.sleep(1)
+        for each in threads:
+            each.join()
     else:
         cmd = "run_"+sys.argv[1]
         locals()[cmd]()

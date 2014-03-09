@@ -126,4 +126,7 @@ def save(project):
             }
         projectdb.insert(project, info)
 
+    rpc = app.config['scheduler_rpc']
+    rpc.update_project()
+
     return 'OK', 200
