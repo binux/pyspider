@@ -53,10 +53,10 @@ def catch_status_code_error(func):
 
 def not_send_status(func):
     @functools.wraps(func)
-    def wrapper(self, response, save, task):
+    def wrapper(self, response, task):
         self._extinfo['not_send_status'] = True
         function = func.__get__(self, self.__class__)
-        return self._run_func(function, response, save, task)
+        return self._run_func(function, response, task)
     return wrapper
 
 def config(_config):
@@ -68,10 +68,10 @@ def config(_config):
 def every(minutes=1):
     def wrapper(func):
         @functools.wraps(func)
-        def on_cronjob(self, response, save, task):
-            if save.get('tick', 1) % minutes == 0:
+        def on_cronjob(self, response, task):
+            if response.save and 'tick' in response.save and response.save['tick'] % minutes == 0:
                 function = func.__get__(self, self.__class__)
-                return self._run_func(function, response, save, task)
+                return self._run_func(function, response, task)
             return None
         return on_cronjob
     return wrapper
@@ -99,18 +99,9 @@ class BaseHandler(object):
         self._messages = []
         self._follows = []
 
-    def _run_func(self, function, response, save, task):
+    def _run_func(self, function, *arguments):
         args, varargs, keywords, defaults = inspect.getargspec(function)
-        if len(args) == 1: # foo(self)
-            return function()
-        elif len(args) == 2: # foo(self, response)
-            return function(response)
-        elif len(args) == 3: # foo(self, response, save)
-            return function(response, save)
-        elif len(args) == 4: # foo(self, response, save, task)
-            return function(response, save, task)
-        else:
-            raise TypeError("self.%s() need at least 1 argument and lesser 4 arguments: %s(self, [response], [save], [task])" % (function.__name__, function.__name__))
+        return function(*arguments[:len(args)-1])
 
     def _run(self, task, response):
         self._reset()
@@ -124,7 +115,7 @@ class BaseHandler(object):
         function = getattr(self, callback)
         if not getattr(function, '_catch_status_code_error', False):
             response.raise_for_status()
-        return self._run_func(function, response, process.get('save'), task)
+        return self._run_func(function, response, task)
             
     def run(self, module, task, response):
         logger = module.get('logger')
@@ -135,7 +126,7 @@ class BaseHandler(object):
         try:
             sys.stdout = ListO(module.logs)
             result = self._run(task, response)
-            self._run_func(self.on_result, result, task, None)
+            self._run_func(self.on_result, result, response, task)
         except Exception, e:
             logger.exception(e)
             exception = e
@@ -187,14 +178,14 @@ class BaseHandler(object):
             task['schedule'] = schedule
 
         fetch = {}
-        for key in ('method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', 'proxy', 'etag', 'last_modifed'):
+        for key in ('method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', 'proxy', 'etag', 'last_modifed', 'save'):
             if key in kwargs and kwargs[key] is not None:
                 fetch[key] = kwargs[key]
         if fetch:
             task['fetch'] = fetch
 
         process = {}
-        for key in ('callback', 'save'):
+        for key in ('callback'):
             if key in kwargs and kwargs[key] is not None:
                 process[key] = kwargs[key]
         if process:

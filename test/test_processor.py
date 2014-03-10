@@ -30,10 +30,10 @@ class TestProjectModule(unittest.TestCase):
                     },
                 'data': 'a=b&c=d', 
                 'timeout': 60,
+                'save': [1, 2, 3],
                 },
             'process': {
                 'callback': 'callback',
-                'save': [1, 2, 3],
                 },
             }
     fetch_result = {
@@ -47,6 +47,7 @@ class TestProjectModule(unittest.TestCase):
             'cookies': {
                 'a': 'b',
                 },
+            'save': [1, 2, 3],
             }
 
     def setUp(self):
@@ -80,7 +81,7 @@ class TestProjectModule(unittest.TestCase):
         self.base_task['process']['callback'] = 'saved'
         ret = self.instance.run(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
-        self.assertEqual(ret.result, self.base_task['process']['save'])
+        self.assertEqual(ret.result, self.base_task['fetch']['save'])
 
     def test_5_echo_task(self):
         self.base_task['process']['callback'] = 'echo_task'

@@ -171,12 +171,13 @@ class Scheduler(object):
                 'project': project['name'],
                 'url': 'data:,on_cronjob',
                 'status': self.taskdb.ACTIVE,
-                'fetch': {},
-                'process': {
-                    'callback': 'on_cronjob',
+                'fetch': {
                     'save': {
                         'tick': self._last_tick,
                         },
+                    },
+                'process': {
+                    'callback': 'on_cronjob',
                     },
                 'project_updatetime': self.projects[project['name']].get('updatetime', 0),
                 })

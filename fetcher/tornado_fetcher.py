@@ -188,6 +188,7 @@ class Fetcher(object):
             result['url'] = response.effective_url or url
             result['cookies'] = session.to_dict()
             result['time'] = time.time() - start_time
+            result['save'] = task_fetch.get('save')
             if 200 <= response.code < 300:
                 logger.info("[%d] %s %.2fs" % (response.code, url, result['time']))
             else:

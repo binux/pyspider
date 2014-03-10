@@ -26,10 +26,10 @@
             'headers': dict, 
             'data': str, 
             'timeout': int,
+            'save': dict,
             }, # new and restart 
         'process': {
             'callback': str,
-            'save': dict,
             }, # new and restart
         'track': {
             'fetch': {

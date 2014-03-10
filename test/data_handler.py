@@ -14,10 +14,10 @@ class TestHandler(BaseHandler):
     def echo(self, response):
         return response.content
 
-    def saved(self, response, saved):
-        return saved
+    def saved(self, response):
+        return response.save
 
-    def echo_task(self, response, saved, task):
+    def echo_task(self, response, task):
         return task['project']
 
     @catch_status_code_error
