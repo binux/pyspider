@@ -59,7 +59,7 @@ def runtask():
     project = request.form['project']
     newtask = {
         "project": project,
-        "taskid": "data:,on_start",
+        "taskid": "on_start",
         "url": "data:,on_start",
         "process": {
             "callback": "on_start",

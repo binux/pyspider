@@ -39,6 +39,7 @@ class Scheduler(object):
         self.projects = dict()
         self._last_update_project = 0
         self.task_queue = dict()
+        self._last_tick = int(time.time() / 60)
 
         self._cnt = {
                 "5m": counter.CounterManager(
@@ -144,7 +145,7 @@ class Scheduler(object):
                     continue
                 if task['taskid'] in self.task_queue[task['project']]:
                     if not task.get('schedule', {}).get('force_update', False):
-                        logger.info('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
+                        logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
                         continue
                 oldtask = self.taskdb.get_task(task['project'], task['taskid'],
                         fields=self.merge_task_fields)
@@ -157,10 +158,34 @@ class Scheduler(object):
             pass
         return cnt
 
-    request_task_fields = ['taskid', 'project', 'url', 'status', 'fetch', 'process', 'lastcrawltime']
+    def _check_cronjob(self):
+        now = time.time()
+        if now - self._last_tick * 60 < 60:
+            return
+        self._last_tick += 1
+        for project in self.projects.itervalues():
+            if project['status'] not in ('DEBUG', 'RUNNING'):
+                continue
+            self.send_task({
+                'taskid': 'on_cronjob',
+                'project': project['name'],
+                'url': 'data:,on_cronjob',
+                'status': self.taskdb.ACTIVE,
+                'fetch': {},
+                'process': {
+                    'callback': 'on_cronjob',
+                    'save': {
+                        'tick': self._last_tick,
+                        },
+                    },
+                'project_updatetime': self.projects[project['name']].get('updatetime', 0),
+                })
+
+    request_task_fields = ['taskid', 'project', 'url', 'status', 'fetch', 'process', 'track', 'lastcrawltime']
     def _check_select(self):
         cnt_dict = dict()
         for project, task_queue in self.task_queue.iteritems():
+            # task queue
             self.task_queue[project].check_update()
             cnt = 0
             taskid = task_queue.get()
@@ -204,6 +229,7 @@ class Scheduler(object):
                 self._update_projects()
                 self._check_task_done()
                 self._check_request()
+                self._check_cronjob()
                 self._check_select()
                 time.sleep(self.LOOP_INTERVAL)
             except KeyboardInterrupt:
@@ -283,13 +309,14 @@ class Scheduler(object):
         return task
 
     def on_task_status(self, task):
-        if 'track' not in task:
-            return None
         try:
             fetchok = task['track']['fetch']['ok']
             procesok = task['track']['process']['ok']
+            if task['taskid'] not in self.task_queue[task['project']].processing:
+                logging.error('not processing pack: %(project)s:%(taskid)s %(url)s' % task)
+                return None
         except KeyError, e:
-            logger.error("key error in status pack: %s" % e)
+            logger.error("Bad status pack: %s" % e)
             return None
 
         if fetchok and procesok:
@@ -318,6 +345,9 @@ class Scheduler(object):
         called by task_status
         '''
         old_task = self.taskdb.get_task(task['project'], task['taskid'], fields=['schedule'])
+        if old_task is None:
+            logging.error('unknow status pack: %s' % task)
+            return
         if not task.get('schedule'):
             task['schedule'] = old_task.get('schedule', {})
 

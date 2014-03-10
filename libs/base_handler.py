@@ -53,14 +53,27 @@ def catch_status_code_error(func):
 
 def not_send_status(func):
     @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, response, save, task):
         self._extinfo['not_send_status'] = True
+        function = func.__get__(self, self.__class__)
+        return self._run_func(function, response, save, task)
     return wrapper
 
 def config(_config):
     def wrapper(func):
         func._config = _config
         return func
+    return wrapper
+
+def every(minutes=1):
+    def wrapper(func):
+        @functools.wraps(func)
+        def on_cronjob(self, response, save, task):
+            if save.get('tick', 1) % minutes == 0:
+                function = func.__get__(self, self.__class__)
+                return self._run_func(function, response, save, task)
+            return None
+        return on_cronjob
     return wrapper
 
 
@@ -86,6 +99,19 @@ class BaseHandler(object):
         self._messages = []
         self._follows = []
 
+    def _run_func(self, function, response, save, task):
+        args, varargs, keywords, defaults = inspect.getargspec(function)
+        if len(args) == 1: # foo(self)
+            return function()
+        elif len(args) == 2: # foo(self, response)
+            return function(response)
+        elif len(args) == 3: # foo(self, response, save)
+            return function(response, save)
+        elif len(args) == 4: # foo(self, response, save, task)
+            return function(response, save, task)
+        else:
+            raise TypeError("self.%s() need at least 1 argument and lesser 4 arguments: %s(self, [response], [save], [task])" % (function.__name__, function.__name__))
+
     def _run(self, task, response):
         self._reset()
         if isinstance(response, dict):
@@ -98,18 +124,7 @@ class BaseHandler(object):
         function = getattr(self, callback)
         if not getattr(function, '_catch_status_code_error', False):
             response.raise_for_status()
-
-        args, varargs, keywords, defaults = inspect.getargspec(function)
-        if len(args) == 1: # foo(self)
-            return function()
-        elif len(args) == 2: # foo(self, response)
-            return function(response)
-        elif len(args) == 3: # foo(self, response, save)
-            return function(response, process.get('save'))
-        elif len(args) == 4: # foo(self, response, save, task)
-            return function(response, process.get('save'), task)
-        else:
-            raise TypeError("self.%s() need at least 1 argument and lesser 4 arguments: %s(self, [response], [save], [task])" % (function.__name__, function.__name__))
+        return self._run_func(function, response, process.get('save'), task)
             
     def run(self, module, task, response):
         logger = module.get('logger')
@@ -120,7 +135,7 @@ class BaseHandler(object):
         try:
             sys.stdout = ListO(module.logs)
             result = self._run(task, response)
-            self.on_result(result)
+            self._run_func(self.on_result, result, task, None)
         except Exception, e:
             logger.exception(e)
             exception = e
