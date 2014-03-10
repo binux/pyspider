@@ -170,7 +170,11 @@ class TaskQueue(object):
         return self.priority_queue.qsize() + self.time_queue.qsize()
 
     def __contains__(self, taskid):
-        return taskid in self.priority_queue or taskid in self.time_queue or taskid in self.processing
+        if taskid in self.priority_queue or taskid in self.time_queue:
+            return True
+        if taskid in self.processing and self.processing[taskid].taskid:
+            return True
+        return False
 
 
 if __name__ == '__main__':

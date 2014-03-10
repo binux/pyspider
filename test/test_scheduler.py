@@ -101,6 +101,7 @@ class TestScheduler(unittest.TestCase):
                     out_queue=self.scheduler2fetcher, data_path="./test/data/")
             scheduler.UPDATE_PROJECT_INTERVAL = 0.05
             scheduler.LOOP_INTERVAL = 0.01
+            scheduler._last_tick = time.time() # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
 
@@ -160,7 +161,6 @@ class TestScheduler(unittest.TestCase):
         self.assertIn('fetch', task)
         self.assertIn('process', task)
         self.assertNotIn('schedule', task)
-        self.assertNotIn('track', task)
         self.assertEqual(task['fetch']['data'], 'abc')
 
     def test_40_taskdone_error_no_project(self):
@@ -254,7 +254,7 @@ class TestScheduler(unittest.TestCase):
                 'data': 'abc',
                 },
             'schedule': {
-                'age': 0,
+                'itag': "abc",
                 'retries': 1
                 },
             })
