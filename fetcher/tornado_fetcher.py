@@ -265,6 +265,8 @@ class Fetcher(object):
 
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
+        from xmlrpclib import Binary
+        import cPickle as pickle
 
         server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()
@@ -272,7 +274,11 @@ class Fetcher(object):
 
         server.register_function(self.quit, '_quit')
         server.register_function(self.size)
-        server.register_function(self.sync_fetch, 'fetch')
+        def sync_fetch(task):
+            result = self.sync_fetch(task)
+            result = Binary(pickle.dumps(result))
+            return result
+        server.register_function(sync_fetch, 'fetch')
         def dump_counter(_time, _type):
             return self._cnt[_time].to_dict(_type)
         server.register_function(dump_counter, 'counter')

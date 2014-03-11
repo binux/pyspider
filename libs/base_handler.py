@@ -185,7 +185,7 @@ class BaseHandler(object):
             task['fetch'] = fetch
 
         process = {}
-        for key in ('callback'):
+        for key in ('callback', ):
             if key in kwargs and kwargs[key] is not None:
                 process[key] = kwargs[key]
         if process:

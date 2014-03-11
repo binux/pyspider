@@ -24,6 +24,7 @@ class TestTaskDB(unittest.TestCase):
                     'a': 'b'
                     },
                 'timeout': 60,
+                'save': 'abc',
                 },
             'process': {
                 'callback': 'callback',
@@ -44,6 +45,7 @@ class TestTaskDB(unittest.TestCase):
         result = self.fetcher.sync_fetch(self.sample_task_http)
         self.assertEqual(result['status_code'], 200)
         self.assertEqual(result['orig_url'], self.sample_task_http['url'])
+        self.assertEqual(result['save'], self.sample_task_http['fetch']['save'])
         self.assertIn('content', result)
         content = json.loads(result['content'])
         self.assertIn('headers', content)

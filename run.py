@@ -55,11 +55,12 @@ def run_processor():
 
 def run_webui():
     import xmlrpclib
+    import cPickle as pickle
     scheduler_rpc = xmlrpclib.ServerProxy('http://localhost:%d' % scheduler_xmlrpc_port)
     fetch_rpc = xmlrpclib.ServerProxy('http://localhost:%d' % fetcher_xmlrpc_port)
 
     from webui.app import app
-    app.config['fetch'] = lambda task: fetch_rpc.fetch(task)
+    app.config['fetch'] = lambda task: pickle.loads(fetch_rpc.fetch(task).data)
     app.config['projectdb'] = get_projectdb
     app.config['scheduler_rpc'] = scheduler_rpc
     app.run()
