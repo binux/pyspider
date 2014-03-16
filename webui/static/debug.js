@@ -167,13 +167,28 @@ window.Debugger = (function() {
       });
     },
 
+    render_html: function(html, block_script, resizer, selector_helper) {
+      html = html.replace(/(\s)src=/g, "$1____src____=");
+      var dom = document.createElement('html');
+      dom.innerHTML = html;
+      if (block_script) {
+        $(dom).find('script').attr('type', 'text/plain');
+      }
+      if (resizer) {
+        $(dom).find('body').append('<script src="http://'+location.host+'/helper/resizer.js">');
+      }
+      html = dom.innerHTML;
+      html = html.replace(/(\s)____src____=/g, "$1src=");
+      return "data:text/html;charset=utf-8,"+html;
+    },
+
     run: function() {
       var script = this.python_editor.getDoc().getValue();
       var task = this.task_editor.getDoc().getValue();
       var _this = this;
 
       // reset
-      $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts"></iframe>');
+      $("#tab-web").html('<iframe sandbox></iframe>');
       $("#tab-html pre").html('');
       $('#tab-follows').html('');
       $("#tab-control li[data-id=tab-follows] .num").hide();
@@ -192,27 +207,13 @@ window.Debugger = (function() {
           $('#left-area .overlay').hide();
 
           //web
-          $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts"></iframe>');
-          var elem = $("#tab-web iframe");
-          var doc = elem[0].contentWindow.document;
-          doc.open();
-          doc.write(data.fetch_result.content);
-          var dotime = 0, cnt=1;
-          elem[0].contentWindow.addEventListener('resize', function() {
-            setTimeout(function() {
-              var now = (new Date()).getTime();
-              if (now > dotime && cnt > 0 && $("#tab-web iframe").height() < doc.body.scrollHeight+20) {
-                $("#tab-web iframe").height(doc.body.scrollHeight+20);
-                cnt--;
-              }
-            }, 500);
-            dotime = (new Date()).getTime() + 500;
-          });
-          elem[0].contentWindow.addEventListener('load', function() {
-            $("#tab-web iframe").height(doc.body.scrollHeight+20);
-          });
-          window.doc = doc;
-          doc.close();
+          $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
+          var iframe = $("#tab-web iframe")[0];
+          if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'].indexOf("text") != 0) {
+            iframe.src = "data:,Content-Type:"+(data.fetch_result.headers && data.fetch_result.headers['Content-Type'] || "unknow");
+          } else {
+            iframe.src = _this.render_html(data.fetch_result.content, true, true);
+          }
           $("#tab-control li[data-id=tab-web]").click();
 
           //html
@@ -221,7 +222,7 @@ window.Debugger = (function() {
 
           //follows
           $('#tab-follows').html('');
-          elem = $("#tab-control li[data-id=tab-follows] .num");
+          var elem = $("#tab-control li[data-id=tab-follows] .num");
 
           var newtask_template = '<div class="newtask" data-task="__task__"><span class="task-callback">__callback__</span> &gt; <span class="task-url">__url__</span><div class="task-run"><i class="fa fa-play"></i></div><div class="task-more"> <i class="fa fa-ellipsis-h"></i> </div></div>';
           if (data.follows.length > 0) {
@@ -265,3 +266,7 @@ window.Debugger = (function() {
 })();
 
 Debugger.init();
+
+function resize_iframe(height) {
+  $("#tab-web iframe").height(height+60);
+}

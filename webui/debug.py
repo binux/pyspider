@@ -130,3 +130,13 @@ def save(project):
     rpc.update_project()
 
     return 'OK', 200
+
+@app.route('/helper/resizer.js')
+def resizer_js():
+    host = request.headers['Host']
+    return render_template("resizer.js", host=host), 200, {'Content-Type': 'application/javascript'}
+
+@app.route('/helper/resizer.html')
+def resizer_html():
+    height = request.args['height']
+    return render_template("resizer.html", height=height)
