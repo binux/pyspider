@@ -14,6 +14,20 @@
     <link href="http://cdn.staticfile.org/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet">
     <link href="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='debug.css') }}" rel="stylesheet">
+
+    <script src="http://cdn.staticfile.org/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/codemirror.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/xml/xml.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/css/css.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/javascript/javascript.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/python/python.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/search.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/searchcursor.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/selection/active-line.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/runmode/runmode.min.js"></script>
+    <script src="http://cdn.staticfile.org/codemirror/2.36.0/formatting.min.js"></script>
   </head>
 
   <body>
@@ -44,6 +58,7 @@
           <li data-id="tab-follows">follows<span class="num" style="display: none;"></span></li>
           <li data-id="tab-html">html</li>
           <li data-id="tab-web" class="active">web</li>
+          <li id="enable_css_selecor_helper">enable css selector helper</li>
         </ul>
         <div class="overlay" style="display: none;"></div>
       </div>
@@ -64,19 +79,6 @@
       var task_content = {{ task | tojson | tojson | safe }};
       var script_content = {{ script | tojson | safe }};
     </script>
-    <script src="http://cdn.staticfile.org/jquery/1.11.0/jquery.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/codemirror.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/xml/xml.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/css/css.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/javascript/javascript.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/htmlmixed/htmlmixed.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/mode/python/python.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/search.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/search/searchcursor.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/dialog/dialog.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/selection/active-line.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/3.22.0/addon/runmode/runmode.min.js"></script>
-    <script src="http://cdn.staticfile.org/codemirror/2.36.0/formatting.min.js"></script>
     <script src="{{ url_for('static', filename='splitter.js') }}"></script>
     <script src="{{ url_for('static', filename='debug.js') }}"></script>
   </body>

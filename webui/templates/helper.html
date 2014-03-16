@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <script>
+      {% if height %}
+        parent.parent.resize_iframe({{ height }});
+      {% else %}
+        {% autoescape false %}
+          {{ script }};
+        {% endautoescape %}
+      {% endif %}
+    </script>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
+

@@ -10,6 +10,14 @@ window.Debugger = (function() {
     return tmp_div.text(text).html();
   }
 
+  window.addEventListener("message", function(ev) {
+    if (ev.data.type == "resize") {
+      $("#tab-web iframe").height(ev.data.height+60);
+    } else if (ev.data.type == "selector") {
+      Debugger.python_editor.getDoc().replaceSelection(ev.data.selector);
+    }
+  });
+
   return {
     init: function() {
       //init resizer
@@ -78,8 +86,8 @@ window.Debugger = (function() {
 
     bind_debug_tabs: function() {
       var _this = this;
-      $('#tab-control > li').on('click', function() {
-        $('#tab-control > li').removeClass('active');
+      $('#tab-control > li[data-id]').on('click', function() {
+        $('#tab-control > li[data-id]').removeClass('active');
         var name = $(this).addClass('active').data('id');
         $('#debug-tabs .tab').hide();
         $('#debug-tabs #'+name).show();
@@ -97,6 +105,10 @@ window.Debugger = (function() {
           $("#tab-html pre").html(html_styled);
           $("#tab-html").data("format", true);
         }
+      });
+      $("#enable_css_selector_helper").on('click', function() {
+        var iframe = $("#tab-web iframe")[0];
+        iframe.contentWindow.postMessage({type: 'enable_css_selector_helper'}, '*');
       });
     },
 
@@ -175,7 +187,10 @@ window.Debugger = (function() {
         $(dom).find('script').attr('type', 'text/plain');
       }
       if (resizer) {
-        $(dom).find('body').append('<script src="http://'+location.host+'/helper/resizer.js">');
+        $(dom).find('body').append('<script src="http://'+location.host+'/helper.js">');
+      }
+      if (selector_helper) {
+        $(dom).find('body').append('<script src="http://'+location.host+'/static/css_selector_helper.js">');
       }
       html = dom.innerHTML;
       html = html.replace(/(\s)____src____=/g, "$1src=");
@@ -209,10 +224,10 @@ window.Debugger = (function() {
           //web
           $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
           var iframe = $("#tab-web iframe")[0];
-          if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'].indexOf("text") != 0) {
+          if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'].indexOf("text") !== 0) {
             iframe.src = "data:,Content-Type:"+(data.fetch_result.headers && data.fetch_result.headers['Content-Type'] || "unknow");
           } else {
-            iframe.src = _this.render_html(data.fetch_result.content, true, true);
+            iframe.src = _this.render_html(data.fetch_result.content, true, true, false);
           }
           $("#tab-control li[data-id=tab-web]").click();
 
@@ -266,7 +281,3 @@ window.Debugger = (function() {
 })();
 
 Debugger.init();
-
-function resize_iframe(height) {
-  $("#tab-web iframe").height(height+60);
-}
