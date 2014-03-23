@@ -109,6 +109,7 @@ window.Debugger = (function() {
       $("#enable_css_selector_helper").on('click', function() {
         var iframe = $("#tab-web iframe")[0];
         iframe.contentWindow.postMessage({type: 'enable_css_selector_helper'}, '*');
+        Debugger.python_editor.getDoc().replaceSelection('');
       });
     },
 
@@ -153,16 +154,16 @@ window.Debugger = (function() {
           return;
         }
         var task = $(this).after('<div class="task-show"><pre class="cm-s-default"></pre></div>').data("task");
-        task = JSON.stringify(window.newtasks[task]);
-        CodeMirror.runMode(_this.format_string(task, 'application/json'), 'application/json', $(this).next().find('pre')[0]);
+        task = JSON.stringify(window.newtasks[task], null, '  ');
+        CodeMirror.runMode(task, 'application/json', $(this).next().find('pre')[0]);
       });
       
       $('.newtask .task-run').on('click', function(event) {
         event.preventDefault();
         event.stopPropagation();
         var task = $(this).parents('.newtask').data("task");
-        task = JSON.stringify(window.newtasks[task]);
-        _this.task_editor.setValue(_this.format_string(task, 'application/json'));
+        task = JSON.stringify(window.newtasks[task], null, '  ');
+        _this.task_editor.setValue(task);
         _this.run();
       });
     },
@@ -256,6 +257,17 @@ window.Debugger = (function() {
             _this.bind_follows();
           } else {
             elem.hide();
+          }
+
+          //messages
+          $('#tab-messages pre').html('');
+          if (data.messages.length > 0) {
+            $("#tab-control li[data-id=tab-messages] .num").text(data.messages.length).show();
+            var messages = JSON.stringify(data.messages, null, '  ');
+            CodeMirror.runMode(messages, 'application/json', $('#tab-messages pre')[0]);
+            $('#tab-messages')[0]
+          } else {
+            $("#tab-control li[data-id=tab-messages] .num").hide();
           }
 
           // logs

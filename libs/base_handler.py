@@ -79,8 +79,8 @@ def every(minutes=1):
 
 class BaseHandlerMeta(type):
     def __new__(cls, name, bases, attrs):
-        if 'on_message' in attrs:
-            attrs['on_message'] = not_send_status(attrs['on_message'])
+        if '_on_message' in attrs:
+            attrs['_on_message'] = not_send_status(attrs['_on_message'])
         if 'on_cronjob' in attrs:
             attrs['on_cronjob'] = not_send_status(attrs['on_cronjob'])
         return type.__new__(cls, name, bases, attrs)
@@ -240,10 +240,13 @@ class BaseHandler(object):
         self._messages.append((project, msg))
 
     @not_send_status
-    def on_message(self, response, msg):
+    def _on_message(self, response):
+        project, msg = response.save
+        return self.on_message(project, msg)
+
+    def on_message(self, project, msg):
         pass
 
-    @not_send_status
     def on_cronjob(self):
         pass
 

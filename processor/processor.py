@@ -130,7 +130,27 @@ class Processor(object):
         for task in ret.follows:
             self.newtask_queue.put(task)
 
-        #TODO: do with messages
+        for project, msg in ret.messages:
+            self.inqueue.put(({
+                    'taskid': 'data:,on_message',
+                    'project': project,
+                    'url': 'data:,on_message',
+                    'process': {
+                        'callback': '_on_message',
+                        }
+                }, {
+                    'status_code': 200,
+                    'url': 'data:,on_message',
+                    'save': (task['project'], msg),
+                }))
+
+        if response.error or ret.exception:
+            logger_func = logger.error
+        else:
+            logger_func = logger.info
+        logger_func('process %s:%s %s -> [%d] len:%d -> fol:%d msg:%d err:%r' % (task['project'], task['taskid'],
+            task.get('url'), response.status_code, len(response.content),
+            len(ret.follows), len(ret.messages), ret.exception))
         return True
 
     def run(self):
