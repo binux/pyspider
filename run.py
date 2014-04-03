@@ -63,6 +63,7 @@ def run_webui():
     app.config['fetch'] = lambda task: pickle.loads(fetch_rpc.fetch(task).data)
     app.config['projectdb'] = get_projectdb
     app.config['scheduler_rpc'] = scheduler_rpc
+    #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
     app.run()
 
 if __name__ == '__main__':

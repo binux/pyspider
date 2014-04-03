@@ -6,8 +6,24 @@
 # Created on 2014-02-22 23:17:13
 
 import os
+import sys
+import urlparse
 from flask import Flask
 
 app = Flask('webui',
         static_folder=os.path.join(os.path.dirname(__file__), 'static'),
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+
+def cdn_url_handler(error, endpoint, kwargs):
+    if endpoint == 'cdn':
+        path = kwargs.pop('path')
+        cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
+        return urlparse.urljoin(cdn, path)
+    else:
+        exc_type, exc_value, tb = sys.exc_info()
+        if exc_value is error:
+            raise exc_type, exc_value, tb
+        else:
+            raise error
+
+app.handle_url_build_error = cdn_url_handler
