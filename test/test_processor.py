@@ -9,7 +9,7 @@ import os
 import time
 import unittest
 
-from processor import project_module
+from processor.processor import build_module
 class TestProjectModule(unittest.TestCase):
     base_task = {
             'taskid': 'taskid',
@@ -60,10 +60,12 @@ class TestProjectModule(unittest.TestCase):
                 'name': self.project,
                 'status': 'DEBUG',
                 }
-        self.module = module = project_module.ProjectModule(self.project, self.script, self.env)
-        module.rethrow()
-        _class = module.get()
-        self.instance = _class()._init(self.project_info)
+        data = build_module({
+            'name': self.project,
+            'script': self.script
+            }, {'test': True})
+        self.module = data['module']
+        self.instance = data['instance']
 
     def test_2_hello(self):
         self.base_task['process']['callback'] = 'hello'

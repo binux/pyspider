@@ -20,9 +20,9 @@ def _unicode(message):
     for each in ['utf8', 'gb18030']:
         try:
             return message.decode(each)
-        except:
-            pass
-    raise UnicodeDecodeError
+        except Exception, e:
+            error = e
+    raise e
 
 def _stderr_supports_color():
     color = False

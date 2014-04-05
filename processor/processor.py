@@ -9,8 +9,8 @@ import sys
 import time
 import Queue
 import logging
-import project_module
 from libs.response import rebuild_response
+from project_module import ProjectLoader, ProjectFinder
 logger = logging.getLogger("processor")
 
 def build_module(project, env={}):
@@ -19,21 +19,18 @@ def build_module(project, env={}):
 
     env = dict(env)
     env.update({
-        'project': project,
         'debug': project.get('status', 'DEBUG') == 'DEBUG',
         })
 
-    script = project['script']
-    if isinstance(script, unicode):
-        script = script.encode('utf8')
-
-    module = project_module.ProjectModule(project['name'], script, env)
-    module.rethrow()
-    _class = module.get('__class__')
+    loader = ProjectLoader(project)
+    module = loader.load_module(project['name'])
+    _class = module.__dict__.get('__handler_cls__')
     assert _class is not None, "need BaseHandler in project module"
-    instance = _class()._init(project)
+    instance = _class()
+    instance.__env__ = env
 
     return {
+        'loader': loader,
         'module': module,
         'class': _class,
         'instance': instance,
@@ -52,6 +49,20 @@ class Processor(object):
         self._quit = False
         self.projects = {}
         self.last_check_projects = 0
+
+        self.enable_projects_import()
+
+    def enable_projects_import(self):
+        _self = self
+        class ProcessProjectFinder(ProjectFinder):
+            def get_loader(self, name):
+                info = _self.projectdb.get(name)
+                if info:
+                    return ProjectLoader(info)
+        sys.meta_path.append(ProcessProjectFinder())
+
+    def __del__(self):
+        reload(__builtin__)
 
     def _init_projects(self):
         for project in self.projectdb.get_all():

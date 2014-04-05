@@ -89,11 +89,6 @@ class BaseHandlerMeta(type):
 class BaseHandler(object):
     __metaclass__ = BaseHandlerMeta
 
-    def _init(self, project):
-        self._name = project['name']
-        self._project = project
-        return self
-
     def _reset(self):
         self._extinfo = {}
         self._messages = []
@@ -118,13 +113,13 @@ class BaseHandler(object):
         return self._run_func(function, response, task)
             
     def run(self, module, task, response):
-        logger = module.get('logger')
+        logger = module.logger
         result = None
         exception = None
         stdout = sys.stdout
 
         try:
-            sys.stdout = ListO(module.logs)
+            sys.stdout = ListO(module.log_buffer)
             result = self._run(task, response)
             self._run_func(self.on_result, result, response, task)
         except Exception, e:
@@ -134,7 +129,7 @@ class BaseHandler(object):
             sys.stdout = stdout
             follows = self._follows
             messages = self._messages
-            logs = module.logs
+            logs = module.log_buffer
             extinfo = self._extinfo
 
         return ProcessorResult(result, follows, messages, logs, exception, extinfo)
@@ -191,7 +186,7 @@ class BaseHandler(object):
         if process:
             task['process'] = process
 
-        task['project'] = self._name
+        task['project'] = __name__
         task['url'] = url
         task['taskid'] = task.get('taskid') or md5string(url)
 

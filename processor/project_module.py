@@ -7,6 +7,7 @@
 
 import os
 import sys
+import imp
 import logging
 import inspect
 import linecache
@@ -14,55 +15,64 @@ from libs import base_handler
 from libs.log import SaveLogHandler
 from libs.utils import hide_me
 
-class ObjectDict(dict):
-    def __getattr__(self, name):
-        return self.__getitem__(name)
+class ProjectFinder(object):
+    def find_module(self, fullname, path=None):
+        if fullname == 'projects':
+            return ProjectsLoader()
+        parts = fullname.split('.')
+        if len(parts) == 2 and parts[0] == 'projects':
+            return self.get_loader(parts[1])
 
-class ProjectModule(object):
-    def __init__(self, name, script, env={}):
-        self.name = name
-        self.name_fixed = name.replace('.', '_')
-        self.script = script
-        self.env = env
-        self.error = None
-        self.exc_info = None
+class ProjectsLoader(object):
+    def load_module(self, fullname):
+        mod = sys.modules.setdefault('projects', imp.new_module(fullname))
+        mod.__file__ = '<projects>'
+        mod.__loader__ = self
+        mod.__path__ = []
+        mod.__package__ = 'projects'
+        return mod
 
-        self._log_buffer = []
-        self._logger = logging.Logger(self.name_fixed)
-        self._logger.addHandler(SaveLogHandler(self._log_buffer))
+class ProjectLoader(object):
+    def __init__(self, project, mod=None):
+        self.project = project
+        self.name = project['name']
+        self.mod = mod
 
-        self._build_module()
+    def load_module(self, fullname):
+        if self.mod is None:
+            mod = self.mod = imp.new_module(self.name)
+        else:
+            mod = self.mod
 
-    def _build_module(self):
-        self._module = ObjectDict()
-        self._module.__dict__ = {
-                'logging': self._logger,
-                'logger': self._logger,
-                '__env__': self.env,
-                '__name__': self.name_fixed,
-                '__loader__': ObjectDict(get_source=lambda name: self.script),
-                }
-        try:
-            exec compile(self.script, self.name_fixed+'.py', 'exec') in self._module.__dict__
-            linecache.clearcache()
-        except Exception, e:
-            self.exc_info = sys.exc_info()
-            self.error = e
-            #logging.exception(e)
+        log_buffer = []
+        mod.logging = mod.logger = logging.Logger(self.name)
+        mod.logger.addHandler(SaveLogHandler(log_buffer))
+        mod.log_buffer = log_buffer
+        mod.__file__ = '<%s>' % self.name
+        mod.__loader__ = self
+        mod.__project__ = self.project
+        mod.__package__ = ''
 
-    def rethrow(self):
-        if self.exc_info:
-            type, value, tb = self.exc_info
-            raise type, value, tb
+        code = self.get_code(fullname)
+        exec code in mod.__dict__
+        linecache.clearcache()
 
-    def get(self, key='__class__', default=None):
-        if key is '__class__' and '__class__' not in self._module.__dict__:
-            for each in self._module.__dict__.values():
+        if '__handler_cls__' not in mod.__dict__:
+            for each in mod.__dict__.values():
                 if inspect.isclass(each) and each is not base_handler.BaseHandler \
                         and issubclass(each, base_handler.BaseHandler):
-                            self._module.__dict__['__class__'] = each
-        return self._module.__dict__.get(key, default)
+                    mod.__dict__['__handler_cls__'] = each
 
-    @property
-    def logs(self):
-        return self._log_buffer
+        return mod
+
+    def is_package(self, fullname):
+        return False
+
+    def get_code(self, fullname):
+        return compile(self.get_source(fullname), '<%s>' % self.name, 'exec')
+
+    def get_source(self, fullname):
+        script = self.project['script']
+        if isinstance(script, unicode):
+            return script.encode('utf8')
+        return script

@@ -16,6 +16,7 @@ from flask import abort, render_template, request, json
 from libs.utils import hide_me
 from libs.response import rebuild_response
 from processor.processor import build_module
+from processor.project_module import ProjectFinder, ProjectLoader
 
 default_task = {
         'taskid': 'data:,on_start',
@@ -46,6 +47,14 @@ def debug(project):
     default_task['project'] = project
     return render_template("debug.html", task=default_task, script=script, project_name=project)
 
+@app.before_first_request
+def enable_projects_import():
+    class DebuggerProjectFinder(ProjectFinder):
+        def get_loader(self, name):
+            info = app.config['projectdb']().get(name)
+            if info:
+                return ProjectLoader(info)
+    sys.meta_path.append(DebuggerProjectFinder())
 
 @app.route('/debug/<project>/run', methods=['POST', ])
 def run(project):
@@ -61,7 +70,9 @@ def run(project):
     try:
         fetch_result = app.config['fetch'](task)
         response = rebuild_response(fetch_result)
-        module = build_module(project_info, {'debugger': True})
+        module = build_module(project_info, {
+            'debugger': True
+            })
         ret = module['instance'].run(module['module'], task, response)
     except Exception, e:
         type, value, tb = sys.exc_info()
