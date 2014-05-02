@@ -186,7 +186,7 @@ class BaseHandler(object):
         if process:
             task['process'] = process
 
-        task['project'] = __name__
+        task['project'] = self._project_name
         task['url'] = url
         task['taskid'] = task.get('taskid') or md5string(url)
 

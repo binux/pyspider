@@ -28,6 +28,7 @@ def build_module(project, env={}):
     assert _class is not None, "need BaseHandler in project module"
     instance = _class()
     instance.__env__ = env
+    instance._project_name = project['name']
 
     return {
         'loader': loader,
