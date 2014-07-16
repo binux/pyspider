@@ -19,13 +19,13 @@ class TaskDB(BaseTaskDB, BaseDB):
     def __init__(self, path):
         self.path = path
         self.last_pid = 0
-        self.last_conn = None
+        self.conn = None
         self._list_project()
 
     @property
     def dbcur(self):
         pid = os.getpid()
-        if not (self.last_conn and pid == self.last_pid):
+        if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
             self.conn = sqlite3.connect(self.path)
         return self.conn.cursor()
