@@ -3,13 +3,7 @@
 /*         http://binux.me */
 /* Created on 2014-02-23 00:28:30 */
 
-// colors
-@blue: #428bca;
-@green: #5cb85c;
-@blue-light: #5bc0de;
-@orange: #f0ad4e;
-@yellow: #ffe543;
-@red: #d9534f;
+@import "variable";
 
 .projects {
   .project-group {
@@ -63,12 +57,13 @@
     .progress {
       position: relative;
       margin: 0;
+      background-color: #aaa;
       .progress-text {
         width: 100%;
         text-align: center;
         position: absolute;
         font-weight: bold;
-        color: white;
+        color: #fff;
         pointer-events: none;
       }
       .progress-bar {

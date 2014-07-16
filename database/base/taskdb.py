@@ -78,3 +78,21 @@ class TaskDB(object):
         
     def update(self, project, taskid, obj={}, **kwargs):
         raise NotImplementedError
+
+    @staticmethod
+    def status_to_string(status):
+        return {
+            1: 'ACTIVE',
+            2: 'SUCCESS',
+            3: 'FAILED',
+            4: 'BAD',
+            }.get(status, 'UNKNOWN')
+
+    @staticmethod
+    def status_to_int(status):
+        return {
+            'ACTIVE': 1,
+            'SUCCESS': 2,
+            'FAILED': 3,
+            'BAD': 4,
+            }.get(status, 4)

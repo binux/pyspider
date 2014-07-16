@@ -67,7 +67,7 @@ class Scheduler(object):
         if self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now:
             return
         for project in self.projectdb.check_update(self._last_update_project):
-            logger.debug("project: %s updated." % project['name'])
+            logger.debug("project: %s updated.", project['name'])
             self.projects[project['name']] = project
             if project['name'] not in self.task_queue:
                 self._load_tasks(project['name'])
@@ -145,7 +145,7 @@ class Scheduler(object):
                     continue
                 if task['taskid'] in self.task_queue[task['project']]:
                     if not task.get('schedule', {}).get('force_update', False):
-                        logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
+                        logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
                         continue
                 oldtask = self.taskdb.get_task(task['project'], task['taskid'],
                         fields=self.merge_task_fields)
@@ -273,7 +273,7 @@ class Scheduler(object):
         self._cnt['1h'].event((project, 'pending'), +1)
         self._cnt['1d'].event((project, 'pending'), +1)
         self._cnt['all'].event((project, 'task'), +1).event((project, 'pending'), +1)
-        logger.debug('new task %(project)s:%(taskid)s %(url)s' % task)
+        logger.debug('new task %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_old_request(self, task, old_task):
@@ -291,7 +291,7 @@ class Scheduler(object):
             restart = True
 
         if not restart:
-            logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s' % task)
+            logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
             return
 
         task['status'] = self.taskdb.ACTIVE
@@ -306,7 +306,7 @@ class Scheduler(object):
             self._cnt['all'].event((project, 'success'), -1).event((project, 'pending'), +1)
         elif old_task['status'] == self.taskdb.FAILED:
             self._cnt['all'].event((project, 'failed'), -1).event((project, 'pending'), +1)
-        logger.debug('restart task %(project)s:%(taskid)s %(url)s' % task)
+        logger.debug('restart task %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_task_status(self, task):
@@ -314,10 +314,10 @@ class Scheduler(object):
             fetchok = task['track']['fetch']['ok']
             procesok = task['track']['process']['ok']
             if task['taskid'] not in self.task_queue[task['project']].processing:
-                logging.error('not processing pack: %(project)s:%(taskid)s %(url)s' % task)
+                logging.error('not processing pack: %(project)s:%(taskid)s %(url)s', task)
                 return None
         except KeyError, e:
-            logger.error("Bad status pack: %s" % e)
+            logger.error("Bad status pack: %s", e)
             return None
 
         if fetchok and procesok:
@@ -338,7 +338,7 @@ class Scheduler(object):
         self._cnt['1h'].event((project, 'success'), +1)
         self._cnt['1d'].event((project, 'success'), +1)
         self._cnt['all'].event((project, 'success'), +1).event((project, 'pending'), -1)
-        logger.debug('task done %(project)s:%(taskid)s %(url)s' % task)
+        logger.debug('task done %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_task_failed(self, task):
@@ -384,10 +384,11 @@ class Scheduler(object):
             self._cnt['5m'].event((project, 'retry'), +1)
             self._cnt['1h'].event((project, 'retry'), +1)
             self._cnt['1d'].event((project, 'retry'), +1)
-            logger.info('task retry %(project)s:%(taskid)s %(url)s' % task)
+            logger.info('task retry %d/%d %%(project)s:%%(taskid)s %%(url)s' % (
+                retried, retries), task)
             return task
         
     def on_select_task(self, task):
-        logger.debug('select %(project)s:%(taskid)s %(url)s' % task)
+        logger.debug('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
         return task

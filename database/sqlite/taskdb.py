@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-08 10:25:34
 
+import os
 import re
 import time
 import json
@@ -16,11 +17,17 @@ from basedb import BaseDB
 class TaskDB(BaseTaskDB, BaseDB):
     __tablename__ = 'taskdb'
     def __init__(self, path):
-        self.conn = sqlite3.connect(path)
+        self.path = path
+        self.last_pid = 0
+        self.last_conn = None
         self._list_project()
 
     @property
     def dbcur(self):
+        pid = os.getpid()
+        if not (self.last_conn and pid == self.last_pid):
+            self.last_pid = pid
+            self.conn = sqlite3.connect(self.path)
         return self.conn.cursor()
 
     def _list_project(self):

@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-09 12:05:52
 
+import os
 import re
 import time
 import sqlite3
@@ -15,7 +16,9 @@ from basedb import BaseDB
 class ProjectDB(BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
     def __init__(self, path):
-        self.conn = sqlite3.connect(path)
+        self.path = path
+        self.last_pid = 0
+        self.last_conn = None
         self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
                 name PRIMARY KEY,
                 `group`,
@@ -25,6 +28,10 @@ class ProjectDB(BaseProjectDB, BaseDB):
 
     @property
     def dbcur(self):
+        pid = os.getpid()
+        if not (self.last_conn and pid == self.last_pid):
+            self.last_pid = pid
+            self.conn = sqlite3.connect(self.path)
         return self.conn.cursor()
 
     def insert(self, name, obj={}):

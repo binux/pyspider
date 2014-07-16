@@ -37,21 +37,28 @@ def verify_project_name(project):
 def debug(project):
     if not verify_project_name(project):
         return 'project name is not allowed!', 400
-    projectdb = app.config['projectdb']()
+    projectdb = app.config['projectdb']
     info = projectdb.get(project)
     if info:
         script = info['script']
     else:
         script = default_script.replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
+    taskid = request.args.get('taskid')
+    if taskid:
+        taskdb = app.config['taskdb']
+        task = taskdb.get_task(project, taskid, ['taskid', 'project', 'url', 'process'])
+    else:
+        task = default_task
+
     default_task['project'] = project
-    return render_template("debug.html", task=default_task, script=script, project_name=project)
+    return render_template("debug.html", task=task, script=script, project_name=project)
 
 @app.before_first_request
 def enable_projects_import():
     class DebuggerProjectFinder(ProjectFinder):
         def get_loader(self, name):
-            info = app.config['projectdb']().get(name)
+            info = app.config['projectdb'].get(name)
             if info:
                 return ProjectLoader(info)
     sys.meta_path.append(DebuggerProjectFinder())
@@ -117,7 +124,7 @@ def run(project):
 def save(project):
     if not verify_project_name(project):
         return 'project name is not allowed!', 400
-    projectdb = app.config['projectdb']()
+    projectdb = app.config['projectdb']
     script = request.form['script']
     old_project = projectdb.get(project, fields=['name', 'status', ])
     if old_project:

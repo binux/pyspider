@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>Task - {{ task.project }}:{{ task.taskid }} - pyspider</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="pyspider taskboard of {{ task.project }}:{{task.taskid }}">
+    <meta name="author" content="binux">
+    <link href="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='task.css') }}" rel="stylesheet">
+
+    <script src="{{ url_for('cdn', path='jquery/1.11.0/jquery.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
+  </head>
+
+  <body>
+      <div class=base-info>
+        <p>
+          <span class="status status-{{ task.status }}">{{ status_to_string(task.status) }}</span>
+          <span class=callback>{{ task.project }}.{{ task.process.callback }}</span>
+          &gt;
+          <a class=url href="/debug/{{ task.project }}?taskid={{ task.taskid }}" target=_blank>{{ task.url }}</a>
+          {% if task.status in (2, 3, 4) %}
+          (<span class=last-crawl>{{ task.lastcrawltime | format_date }}</span> crawled )
+          {% else %}
+          (<span class=update-time>{{ task.updatetime | format_date }}</span> updated )
+          {% endif %}
+        </p>
+      </div>
+      <div class=more-info>
+        <dl>
+          <dt>taskid</dt>
+          <dd>{{ task.taskid }}</dd>
+          <dt>lastcrawltime</dt>
+          <dd>{{ task.lastcrawltime}} ({{ task.lastcrawltime| format_date }})</dd>
+          <dt>updatetime</dt>
+          <dd>{{ task.updatetime }} ({{ task.updatetime | format_date }})</dd>
+
+          {% if task.track and task.track.fetch %}
+          <dt>
+            track.fetch
+            <span class="glyphicon glyphicon-{{ "ok" if task.track.fetch.ok else "remove" }}"></span>
+            {{ (task.track.fetch.time * 1000) | round(2) }}ms
+          </dt>
+          <dd>{{ json.dumps(task.track.fetch, indent=2, ensure_ascii=False) }}</dd>
+          {% endif %}
+
+          {% if task.track and task.track.process %}
+          <dt>
+            track.process
+            <span class="glyphicon glyphicon-{{ "ok" if task.track.process.ok else "remove" }}"></span>
+            +{{ task.track.process.follows | int }}
+            {{ (task.track.process.time * 1000) | round(2) }}ms
+          </dt>
+          <dd>logs:
+{{ task.track.process.logs }}
+
+{{ json.dumps(task.track.process, indent=2, ensure_ascii=False) }}</dd>
+          {% endif %}
+        </dl>
+        <dl>
+          {%- set not_shown_keys = ('status', 'url', 'project', 'taskid', 'lastcrawltime', 'updatetime', 'track', ) %}
+          {%- for key, value in task.iteritems() if key not in not_shown_keys %}
+          <dt>{{ key }}</dt>
+          <dd>{{ json.dumps(value, indent=2, ensure_ascii=False) if value is mapping else value }}</dd>
+          {%- endfor %}
+        </dl>
+      </div>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
+

@@ -61,7 +61,8 @@ def run_webui():
 
     from webui.app import app
     app.config['fetch'] = lambda task: pickle.loads(fetch_rpc.fetch(task).data)
-    app.config['projectdb'] = get_projectdb
+    app.config['taskdb'] = get_taskdb()
+    app.config['projectdb'] = get_projectdb()
     app.config['scheduler_rpc'] = scheduler_rpc
     #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
     app.run()
@@ -72,7 +73,7 @@ if __name__ == '__main__':
         threads.append(run_in_subprocess(run_fetcher))
         threads.append(run_in_subprocess(run_processor))
         threads.append(run_in_subprocess(run_scheduler))
-        threads.append(run_in_subprocess(run_webui))
+        #threads.append(run_in_subprocess(run_webui))
 
         while True:
             try:

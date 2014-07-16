@@ -7,6 +7,7 @@
 
 import logging
 import hashlib
+import datetime
 
 md5string = lambda x: hashlib.md5(x).hexdigest()
 
@@ -47,3 +48,75 @@ def run_in_subprocess(func, *args, **kwargs):
     thread.daemon = True
     thread.start()
     return thread
+
+def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=False):
+    """Formats the given date (which should be GMT).
+
+    By default, we return a relative time (e.g., "2 minutes ago"). You
+    can return an absolute date string with ``relative=False``.
+
+    You can force a full format date ("July 10, 1980") with
+    ``full_format=True``.
+
+    This method is primarily intended for dates in the past.
+    For dates in the future, we fall back to full format.
+    """
+    if isinstance(date, float):
+        date = datetime.datetime.utcfromtimestamp(date)
+    now = datetime.datetime.utcnow()
+    if date > now:
+        if relative and (date - now).seconds < 60:
+            # Due to click skew, things are some things slightly
+            # in the future. Round timestamps in the immediate
+            # future down to now in relative mode.
+            date = now
+        else:
+            # Otherwise, future dates always use the full format.
+            full_format = True
+    local_date = date - datetime.timedelta(minutes=gmt_offset)
+    local_now = now - datetime.timedelta(minutes=gmt_offset)
+    local_yesterday = local_now - datetime.timedelta(hours=24)
+    difference = now - date
+    seconds = difference.seconds
+    days = difference.days
+
+    format = None
+    if not full_format:
+        if relative and days == 0:
+            if seconds < 50:
+                return ("1 second ago" if seconds == 1 else \
+                        "%(seconds)d seconds ago") % {"seconds": seconds}
+
+            if seconds < 50 * 60:
+                minutes = round(seconds / 60.0)
+                return ("1 minute ago" if minutes == 1 else \
+                        "%(minutes)d minutes ago") % {"minutes": minutes}
+
+            hours = round(seconds / (60.0 * 60))
+            return ("1 hour ago" if hours else \
+                    "%(hours)d hours ago" ) % {"hours": hours}
+
+        if days == 0:
+            format = "%(time)s"
+        elif days == 1 and local_date.day == local_yesterday.day and \
+                relative:
+            format = "yesterday" if shorter else "yesterday at %(time)s"
+        elif days < 5:
+            format = "%(weekday)s" if shorter else "%(weekday)s at %(time)s"
+        elif days < 334:  # 11mo, since confusing for same month last year
+            format = "%(month_name)s-%(day)s" if shorter else \
+                "%(month_name)s-%(day)s at %(time)s"
+
+    if format is None:
+        format = "%(month_name)s %(day)s, %(year)s" if shorter else \
+            "%(month_name)s %(day)s, %(year)s at %(time)s"
+
+    str_time = "%d:%02d" % (local_date.hour, local_date.minute)
+
+    return format % {
+        "month_name": local_date.month - 1,
+        "weekday": local_date.weekday(),
+        "day": str(local_date.day),
+        "year": str(local_date.year),
+        "time": str_time
+    }

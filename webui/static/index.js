@@ -100,16 +100,20 @@ $(function() {
       $e.find(".progress-failed").width(""+(failed/sum*100)+"%").attr("title", "failed: "+failed);
     });
   }
-  $.get('/counter?time=5m&type=sum', function(data) {
-    fill_progress(data, "5m");
-  });
-  $.get('/counter?time=1h&type=sum', function(data) {
-    fill_progress(data, "1h");
-  });
-  $.get('/counter?time=1d&type=sum', function(data) {
-    fill_progress(data, "1d");
-  });
-  $.get('/counter?time=all&type=sum', function(data) {
-    fill_progress(data, "all");
-  });
+  function update_counters() {
+    $.get('/counter?time=5m&type=sum', function(data) {
+      fill_progress(data, "5m");
+    });
+    $.get('/counter?time=1h&type=sum', function(data) {
+      fill_progress(data, "1h");
+    });
+    $.get('/counter?time=1d&type=sum', function(data) {
+      fill_progress(data, "1d");
+    });
+    $.get('/counter?time=all&type=sum', function(data) {
+      fill_progress(data, "all");
+    });
+  }
+  window.setInterval(update_counters, 15*1000);
+  update_counters();
 });

@@ -12,12 +12,12 @@ from flask import abort, render_template, request, json
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', ]
 @app.route('/')
 def index():
-    projectdb = app.config['projectdb']()
+    projectdb = app.config['projectdb']
     return render_template("index.html", projects=projectdb.get_all(fields=index_fields))
 
 @app.route('/update', methods=['POST', ])
 def project_update():
-    projectdb = app.config['projectdb']()
+    projectdb = app.config['projectdb']
     project = request.form['pk']
     name = request.form['name']
     value = request.form['value']

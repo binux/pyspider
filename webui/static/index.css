@@ -2,6 +2,10 @@
 /* Author: Binux<i@binux.me> */
 /*         http://binux.me */
 /* Created on 2014-02-23 00:28:30 */
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-07-16 19:18:30 */
 .projects .project-group {
   width: 100px;
 }
@@ -61,13 +65,14 @@
 .projects .project-progress .progress {
   position: relative;
   margin: 0;
+  background-color: #aaa;
 }
 .projects .project-progress .progress .progress-text {
   width: 100%;
   text-align: center;
   position: absolute;
   font-weight: bold;
-  color: white;
+  color: #fff;
   pointer-events: none;
 }
 .projects .project-progress .progress .progress-bar {
