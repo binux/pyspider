@@ -7,4 +7,4 @@ pycurl>=7.19
 pyquery>=1.2
 requests>=2.2
 tornado>=3.2
-mysql-connector-python>=1.2.2
+mysql-connector-python>=1.0.9
