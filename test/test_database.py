@@ -218,5 +218,15 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
     def tearDownClass(self):
         pass
 
+class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        from database.mysql.taskdb import TaskDB
+        self.taskdb = TaskDB(database='pyspider_test')
+
+    @classmethod
+    def tearDownClass(self):
+        self.taskdb._execute('DROP DATABASE pyspider_test')
+
 if __name__ == '__main__':
     unittest.main()

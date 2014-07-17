@@ -73,7 +73,7 @@ if __name__ == '__main__':
         threads.append(run_in_subprocess(run_fetcher))
         threads.append(run_in_subprocess(run_processor))
         threads.append(run_in_subprocess(run_scheduler))
-        #threads.append(run_in_subprocess(run_webui))
+        threads.append(run_in_subprocess(run_webui))
 
         while True:
             try:
