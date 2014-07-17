@@ -9,6 +9,7 @@ import os
 import re
 import time
 import json
+import thread
 import sqlite3
 from database.base.taskdb import TaskDB as BaseTaskDB
 from basedb import BaseDB
@@ -24,7 +25,7 @@ class TaskDB(BaseTaskDB, BaseDB):
 
     @property
     def dbcur(self):
-        pid = os.getpid()
+        pid = thread.get_ident()
         if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
             self.conn = sqlite3.connect(self.path)

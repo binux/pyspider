@@ -61,7 +61,9 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
     This method is primarily intended for dates in the past.
     For dates in the future, we fall back to full format.
     """
-    if isinstance(date, float):
+    if not date:
+        return '-'
+    if isinstance(date, float) or isinstance(date, int):
         date = datetime.datetime.utcfromtimestamp(date)
     now = datetime.datetime.utcnow()
     if date > now:

@@ -139,8 +139,8 @@ class Processor(object):
                     }
             self.status_queue.put(status_pack)
 
-        for task in ret.follows:
-            self.newtask_queue.put(task)
+        for newtask in ret.follows:
+            self.newtask_queue.put(newtask)
 
         for project, msg in ret.messages:
             self.inqueue.put(({
@@ -160,7 +160,8 @@ class Processor(object):
             logger_func = logger.error
         else:
             logger_func = logger.info
-        logger_func('process %s:%s %s -> [%d] len:%d -> fol:%d msg:%d err:%r' % (task['project'], task['taskid'],
+        logger_func('process %s:%s %s -> [%d] len:%d -> fol:%d msg:%d err:%r' % (
+            task['project'], task['taskid'],
             task.get('url'), response.status_code, len(response.content),
             len(ret.follows), len(ret.messages), ret.exception))
         return True

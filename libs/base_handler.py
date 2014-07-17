@@ -129,9 +129,10 @@ class BaseHandler(object):
             sys.stdout = stdout
             follows = self._follows
             messages = self._messages
-            logs = module.log_buffer
+            logs = list(module.log_buffer)
             extinfo = self._extinfo
 
+        module.log_buffer[:] = []
         return ProcessorResult(result, follows, messages, logs, exception, extinfo)
 
     def _crawl(self, url, **kwargs):

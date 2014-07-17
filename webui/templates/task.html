@@ -35,7 +35,7 @@
           <dt>taskid</dt>
           <dd>{{ task.taskid }}</dd>
           <dt>lastcrawltime</dt>
-          <dd>{{ task.lastcrawltime}} ({{ task.lastcrawltime| format_date }})</dd>
+          <dd>{{ task.lastcrawltime }} ({{ task.lastcrawltime | format_date }})</dd>
           <dt>updatetime</dt>
           <dd>{{ task.updatetime }} ({{ task.updatetime | format_date }})</dd>
 
@@ -52,13 +52,13 @@
           <dt>
             track.process
             <span class="glyphicon glyphicon-{{ "ok" if task.track.process.ok else "remove" }}"></span>
-            +{{ task.track.process.follows | int }}
+            {% if task.track.process.follows %}+{{ task.track.process.follows | int }}{% endif %}
             {{ (task.track.process.time * 1000) | round(2) }}ms
           </dt>
-          <dd>logs:
-{{ task.track.process.logs }}
-
-{{ json.dumps(task.track.process, indent=2, ensure_ascii=False) }}</dd>
+          <dd>{%- if task.track.process.exception != 'None' %}{{ task.track.process.exception }}
+{% endif -%}
+{%- if task.track.process.logs %}{{ task.track.process.logs or ''}}
+{% endif %}{{ json.dumps(task.track.process, indent=2, ensure_ascii=False) }}</dd>
           {% endif %}
         </dl>
         <dl>

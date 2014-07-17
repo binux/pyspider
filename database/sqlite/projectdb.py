@@ -8,6 +8,7 @@
 import os
 import re
 import time
+import thread
 import sqlite3
 from database.base.projectdb import ProjectDB as BaseProjectDB
 from basedb import BaseDB
@@ -28,7 +29,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
 
     @property
     def dbcur(self):
-        pid = os.getpid()
+        pid = thread.get_ident()
         if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
             self.conn = sqlite3.connect(self.path)
