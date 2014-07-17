@@ -8,10 +8,11 @@
 
 import time
 import unittest
-from database.sqlite.taskdb import TaskDB
 
+from database.base.taskdb import TaskDB
+from database.base.projectdb import ProjectDB
 
-class TestTaskDB(unittest.TestCase):
+class TestTaskDB(object):
     sample_task = {
             'taskid': 'taskid',
             'project': 'project',
@@ -53,42 +54,68 @@ class TestTaskDB(unittest.TestCase):
                     'time': 10,
                     'follows': 3,
                     'outputs': 5,
-                    'exception': "?",
+                    'exception': u"中文",
                     },
                 },
             'lastcrawltime': time.time(),
             'updatetime': time.time(),
             }
 
-    def test_create_project(self):
-        taskdb = TaskDB(':memory:')
+    @classmethod
+    def setUpClass(self):
+        raise NotImplemented()
+
+    @classmethod
+    def tearDownClass(self):
+        raise NotImplemented()
+
+    def test_10_create_project(self):
         with self.assertRaises(AssertionError):
-            taskdb._create_project('abc.abc')
-        taskdb._create_project('abc')
-        taskdb._list_project()
-        self.assertSetEqual(taskdb.projects, set(('abc', )))
+            self.taskdb._create_project('abc.abc')
+        self.taskdb._create_project('abc')
+        self.taskdb._list_project()
+        self.assertEqual(len(self.taskdb.projects), 1)
+        self.assertIn('abc', self.taskdb.projects)
 
-    def test_other(self):
-        taskdb = TaskDB(':memory:')
+    def test_20_insert(self):
+        self.taskdb.insert('project', 'taskid', self.sample_task)
+        self.taskdb.insert('project', 'taskid2', self.sample_task)
 
-        # insert
-        taskdb.insert('project', 'taskid', self.sample_task)
-        taskdb.insert('project', 'taskid2', self.sample_task)
 
-        # status_count
-        status = taskdb.status_count('abc')
+    def test_25_get_task(self):
+        task = self.taskdb.get_task('project', 'taskid2')
+        self.assertEqual(task['taskid'], 'taskid2')
+        self.assertEqual(task['status'], self.taskdb.FAILED)
+        self.assertEqual(task['schedule'], self.sample_task['schedule'])
+        self.assertEqual(task['fetch'], self.sample_task['fetch'])
+        self.assertEqual(task['process'], self.sample_task['process'])
+        self.assertEqual(task['track'], self.sample_task['track'])
+
+        task = self.taskdb.get_task('project', 'taskid1', fields=['status'])
+        self.assertIsNone(task)
+
+        task = self.taskdb.get_task('project', 'taskid', fields=['taskid', 'track', ])
+        self.assertIn('track', task)
+        self.assertNotIn('project', task)
+
+    def test_30_status_count(self):
+        status = self.taskdb.status_count('abc')
         self.assertEqual(status, {})
-        status = taskdb.status_count('project')
-        self.assertEqual(status, {taskdb.FAILED: 2})
+        status = self.taskdb.status_count('project')
+        self.assertEqual(status, {self.taskdb.FAILED: 2})
 
-        # update & status_count
-        taskdb.update('project', 'taskid', status=taskdb.ACTIVE)
-        status = taskdb.status_count('project')
-        self.assertEqual(status, {taskdb.ACTIVE: 1, taskdb.FAILED: 1})
+    def test_40_update_and_status_count(self):
+        self.taskdb.update('project', 'taskid', status=self.taskdb.ACTIVE)
+        status = self.taskdb.status_count('project')
+        self.assertEqual(status, {self.taskdb.ACTIVE: 1, self.taskdb.FAILED: 1})
 
-        # load tasks
-        taskdb.update('project', 'taskid', track={})
-        tasks = list(taskdb.load_tasks(taskdb.ACTIVE))
+        self.taskdb.update('project', 'taskid', track={})
+        task = self.taskdb.get_task('project', 'taskid', fields=['taskid', 'track', ])
+        self.assertIn('track', task)
+        self.assertEqual(task['track'], {})
+
+    def test_50_load_tasks(self):
+        tasks = list(self.taskdb.load_tasks(self.taskdb.ACTIVE))
         self.assertEqual(len(tasks), 1)
         task = tasks[0]
         self.assertEqual(task['taskid'], 'taskid')
@@ -97,31 +124,13 @@ class TestTaskDB(unittest.TestCase):
         self.assertEqual(task['process'], self.sample_task['process'])
         self.assertEqual(task['track'], {})
 
-        tasks = list(taskdb.load_tasks(taskdb.ACTIVE, project='project',
+        tasks = list(self.taskdb.load_tasks(self.taskdb.ACTIVE, project='project',
                 fields=['taskid']))
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0]['taskid'], 'taskid')
         self.assertNotIn('project', tasks[0])
 
-        # get_task
-        task = taskdb.get_task('project', 'taskid1', fields=['status'])
-        self.assertIsNone(task)
-
-        task = taskdb.get_task('project', 'taskid2')
-        self.assertEqual(task['taskid'], 'taskid2')
-        self.assertEqual(task['status'], taskdb.FAILED)
-        self.assertEqual(task['schedule'], self.sample_task['schedule'])
-        self.assertEqual(task['fetch'], self.sample_task['fetch'])
-        self.assertEqual(task['process'], self.sample_task['process'])
-        self.assertEqual(task['track'], self.sample_task['track'])
-
-        task = taskdb.get_task('project', 'taskid', fields=['status'])
-        self.assertEqual(task['status'], taskdb.ACTIVE)
-        self.assertNotIn('taskid', task)
-
-
-from database.sqlite.projectdb import ProjectDB
-class TestProjectDB(unittest.TestCase):
+class TestProjectDB(object):
     sample_project = {
             'name': 'name',
             'group': 'group',
@@ -133,51 +142,81 @@ class TestProjectDB(unittest.TestCase):
             'updatetime': time.time(),
             }
 
-    def test_all(self):
-        projectdb = ProjectDB(':memory:')
+    @classmethod
+    def setUpClass(self):
+        raise NotImplemented()
 
-        # insert
-        projectdb.insert('abc', self.sample_project)
-        projectdb.insert('name', self.sample_project)
+    @classmethod
+    def tearDownClass(self):
+        raise NotImplemented()
 
-        # get all
-        projects = list(projectdb.get_all())
+    def test_10_insert(self):
+        self.projectdb.insert('abc', self.sample_project)
+        self.projectdb.insert(u'name中文', self.sample_project)
+        project = self.projectdb.get('abc')
+        self.assertIsNotNone(project)
+
+    def test_20_get_all(self):
+        projects = list(self.projectdb.get_all())
         self.assertEqual(len(projects), 2)
         project = projects[0]
         self.assertEqual(project['script'], self.sample_project['script'])
         self.assertEqual(project['rate'], self.sample_project['rate'])
         self.assertEqual(project['burst'], self.sample_project['burst'])
 
-        projects = list(projectdb.get_all(fields=['name', 'script']))
+        projects = list(self.projectdb.get_all(fields=['name', 'script']))
         self.assertEqual(len(projects), 2)
         project = projects[1]
         self.assertIn('name', project)
         self.assertNotIn('gourp', project)
 
-        # update
-        projectdb.update('not found', status='RUNNING')
+    def test_30_update(self):
+        self.projectdb.update('not_found', status='RUNNING')
+
+    def test_40_check_update(self):
         time.sleep(0.1)
         now = time.time()
-        projectdb.update('abc', status='RUNNING')
+        self.projectdb.update('abc', status='RUNNING')
 
-        # check update
-        projects = list(projectdb.check_update(now, fields=['name', 'status', 'group']))
+        projects = list(self.projectdb.check_update(now,
+            fields=['name', 'status', 'group']))
         self.assertEqual(len(projects), 1)
         project = projects[0]
         self.assertEqual(project['name'], 'abc')
         self.assertEqual(project['status'], 'RUNNING')
 
-        # get
-        project = projectdb.get('not found')
+    def test_50_get(self):
+        project = self.projectdb.get('not_found')
         self.assertIsNone(project)
 
-        project = projectdb.get('abc')
+        project = self.projectdb.get('abc')
         self.assertEqual(project['name'], 'abc')
         self.assertEqual(project['status'], 'RUNNING')
 
-        project = projectdb.get('name', ['group', 'status', 'name'])
+        project = self.projectdb.get(u'name中文', ['group', 'status', 'name'])
         self.assertIn('status', project)
         self.assertNotIn('gourp', project)
+
+class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        from database.sqlite.taskdb import TaskDB
+        self.taskdb = TaskDB(':memory:')
+
+    @classmethod
+    def tearDownClass(self):
+        pass
+
+
+class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        from database.sqlite.projectdb import ProjectDB
+        self.projectdb = ProjectDB(':memory:')
+
+    @classmethod
+    def tearDownClass(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()

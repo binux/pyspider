@@ -6,12 +6,13 @@
 # Created on 2014-02-15 22:10:35
 
 import time
-import threading
+import json
+import logging
 import unittest
 
-
-import json
+from libs import utils
 from fetcher.tornado_fetcher import Fetcher
+
 class TestTaskDB(unittest.TestCase):
     sample_task_http = {
             'taskid': 'taskid',
@@ -33,9 +34,7 @@ class TestTaskDB(unittest.TestCase):
             }
     def setUp(self):
         self.fetcher = Fetcher(None, None)
-        self.thread = threading.Thread(target=self.fetcher.run)
-        self.thread.daemon = True
-        self.thread.start()
+        self.thread = utils.run_in_thread(self.fetcher.run)
 
     def tearDown(self):
         self.fetcher.quit()
@@ -47,8 +46,17 @@ class TestTaskDB(unittest.TestCase):
         self.assertEqual(result['orig_url'], self.sample_task_http['url'])
         self.assertEqual(result['save'], self.sample_task_http['fetch']['save'])
         self.assertIn('content', result)
+
         content = json.loads(result['content'])
         self.assertIn('headers', content)
         self.assertIn('A', content['headers'])
         self.assertIn('Cookie', content['headers'])
         self.assertEqual(content['headers']['Cookie'], 'a=b')
+
+    def test_dataurl_get(self):
+        data = dict(self.sample_task_http)
+        data['url'] = 'data:,hello';
+        result = self.fetcher.sync_fetch(data)
+        self.assertEqual(result['status_code'], 200)
+        self.assertIn('content', result)
+        self.assertEqual(result['content'], 'hello')
