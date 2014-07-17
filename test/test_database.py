@@ -174,8 +174,8 @@ class TestProjectDB(object):
         self.projectdb.update('not_found', status='RUNNING')
 
     def test_40_check_update(self):
-        time.sleep(0.1)
         now = time.time()
+        time.sleep(0.1)
         self.projectdb.update('abc', status='RUNNING')
 
         projects = list(self.projectdb.check_update(now,
@@ -222,11 +222,21 @@ class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         from database.mysql.taskdb import TaskDB
-        self.taskdb = TaskDB(database='pyspider_test')
+        self.taskdb = TaskDB(database='pyspider_test_taskdb')
 
     @classmethod
     def tearDownClass(self):
-        self.taskdb._execute('DROP DATABASE pyspider_test')
+        self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
+
+class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        from database.mysql.projectdb import ProjectDB
+        self.projectdb = ProjectDB(database='pyspider_test_projectdb')
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
 if __name__ == '__main__':
     unittest.main()

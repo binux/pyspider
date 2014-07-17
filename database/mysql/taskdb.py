@@ -61,9 +61,9 @@ class TaskDB(BaseTaskDB, BaseDB):
             `fetch` BLOB,
             `process` BLOB,
             `track` BLOB,
-            `lastcrawltime` int(11),
-            `updatetime` int(11)
-            ) ENGINE=MyISAM''' % (tablename, ))
+            `lastcrawltime` double(16, 4),
+            `updatetime` double(16, 4)
+            ) ENGINE=MyISAM CHARSET=utf8''' % (tablename, ))
         self._execute('''CREATE INDEX `status_index` ON `%s` (status)''' % (tablename, ))
 
     def _parse(self, data):
