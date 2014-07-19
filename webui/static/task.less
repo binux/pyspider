@@ -24,23 +24,25 @@
   margin: 1em 0px;
 }
 
-.status(@color: lighten(black, 50%)) {
+.status_mix(@color: lighten(black, 50%)) {
   border: solid 1px darken(@color, 10%);
   padding: 1px 5px 0 5px;
   background: @color;
   color: white;
 }
-.status-1 {
-  .status(@blue);
-}
-.status-2 {
-  .status(@green);
-}
-.status-3 {
-  .status(@red);
-}
-.status-4 {
-  .status;
+.status {
+  &-1 {
+    .status_mix(@blue);
+  }
+  &-2 {
+    .status_mix(@green);
+  }
+  &-3 {
+    .status_mix(@red);
+  }
+  &-4 {
+    .status_mix;
+  }
 }
 
 .url {
@@ -51,6 +53,10 @@
 .callback {
   color: @orange;
   font-weight: bold;
+
+  &:hover, &:focus {
+    color: darken(@orange, 10%);
+  }
 }
 
 dt .glyphicon-ok {

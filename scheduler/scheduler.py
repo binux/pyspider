@@ -10,8 +10,10 @@ import os
 import time
 import Queue
 import logging
-from task_queue import TaskQueue
+from collections import deque
+
 from libs import counter
+from task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 
 
@@ -26,6 +28,7 @@ class Scheduler(object):
             }
     LOOP_LIMIT = 1000
     LOOP_INTERVAL = 0.1
+    ACTIVE_TASKS = 100
     
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data'):
         self.taskdb = taskdb
@@ -34,6 +37,8 @@ class Scheduler(object):
         self.status_queue = status_queue
         self.out_queue = out_queue
         self.data_path = data_path
+
+        self.active_tasks = deque(maxlen=self.ACTIVE_TASKS)
 
         self._quit = False
         self.projects = dict()
@@ -248,18 +253,31 @@ class Scheduler(object):
 
         server.register_function(self.quit, '_quit')
         server.register_function(self.__len__, 'size')
+
         def dump_counter(_time, _type):
             return self._cnt[_time].to_dict(_type)
         server.register_function(dump_counter, 'counter')
+
         def new_task(task):
             if self.task_verify(task):
                 self.newtask_queue.put(task)
                 return True
             return False
         server.register_function(new_task, 'newtask')
+
         def update_project():
             self._last_update_project = 0
         server.register_function(update_project, 'update_project')
+
+        def get_active_tasks(limit=100):
+            allowed_keys = set(('taskid', 'project', 'status', 'url', 'lastcrawltime', 'updatetime', 'track', ))
+            for updatetime, task in self.active_tasks:
+                for key in task.keys():
+                    if key in allowed_keys:
+                        continue
+                    del task[key]
+            return list(self.active_tasks)[:limit]
+        server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.serve_forever()
     
@@ -321,9 +339,11 @@ class Scheduler(object):
             return None
 
         if fetchok and procesok:
-            return self.on_task_done(task)
+            ret = self.on_task_done(task)
         else:
-            return self.on_task_failed(task)
+            ret = self.on_task_failed(task)
+        self.active_tasks.append((time.time(), task))
+        return ret
 
     def on_task_done(self, task):
         '''
@@ -391,4 +411,5 @@ class Scheduler(object):
     def on_select_task(self, task):
         logger.debug('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
+        self.active_tasks.append((time.time(), task))
         return task

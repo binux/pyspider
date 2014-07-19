@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>Tasks - pyspider</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="last actived tasks">
+    <meta name="author" content="binux">
+    <link href="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='tasks.css') }}" rel="stylesheet">
+
+    <script src="{{ url_for('cdn', path='jquery/1.11.0/jquery.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
+  </head>
+
+  <body>
+    <ol class=tasks>
+      {% for task in tasks | sort(reverse=True, attribute='updatetime') %}
+      <li class=task>
+        {% if task.status %}
+          <span class="status status-{{ task.status | default(3) }}">{{ status_to_string(task.status) if task.status else 'ERROR' }}</span>
+        {% elif task.track %}
+        <span class="status status-3">
+          {{ 'FETCH_ERROR' if task.track.fetch and not task.track.fetch.ok }}
+          {{ 'PROCESS_ERROR' if task.track.process and not task.track.process.ok }}
+        </span>
+        {% else %}
+          <span class="status status-2 }}">ERROR</span>
+        {% endif %}
+
+        <a class=callback href="/debug/{{ task.project }}?taskid={{ task.taskid }}" target=_blank>{{ task.project }}</a>
+        &gt;
+        <a class=url href="/task/{{ task.project }}:{{ task.taskid }}" target=_blank>{{ task.url }}</a>
+
+        <span class=update-time>{{ task.updatetime | format_date }}</span>
+
+        <span span=use-time>
+        {% if task.track and task.track.fetch %}
+          {% set use_time = task.track.fetch.time + task.track.process.time if task.track and task.track.process else 0%}
+          {{ '%.2f' | format(use_time * 1000) }}ms
+        {% endif %}
+        </span>
+
+        <span span=follows>
+        {% if task.track and task.track.process %}
+        +{{ task.track.process.follows | int }}
+        {% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
+

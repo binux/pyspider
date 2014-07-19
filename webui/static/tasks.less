@@ -1,0 +1,34 @@
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-07-18 23:20:46 */
+
+@import "variable";
+@import "task";
+
+.tasks {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+
+  li {
+    .base-info;
+
+    &:nth-child(even) {
+      background-color: white;
+    }
+  }
+
+  .url {
+    display: inline-block;
+    vertical-align: bottom;
+    max-width: 40em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  
+  .update-time {
+    font-weight: bold;
+  }
+}
