@@ -177,12 +177,12 @@ class TestProjectDB(object):
 
     def test_40_check_update(self):
         now = time.time()
-        time.sleep(1)
+        time.sleep(0.1)
         self.projectdb.update('abc', status='RUNNING')
 
         projects = list(self.projectdb.check_update(now,
             fields=['name', 'status', 'group']))
-        self.assertEqual(len(projects), 1)
+        self.assertEqual(len(projects), 1, repr(projects))
         project = projects[0]
         self.assertEqual(project['name'], 'abc')
         self.assertEqual(project['status'], 'RUNNING')
