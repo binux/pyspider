@@ -172,10 +172,12 @@ class TestProjectDB(object):
 
     def test_30_update(self):
         self.projectdb.update('not_found', status='RUNNING')
+        project = self.projectdb.get('not_found')
+        self.assertIsNone(project)
 
     def test_40_check_update(self):
         now = time.time()
-        time.sleep(0.1)
+        time.sleep(1)
         self.projectdb.update('abc', status='RUNNING')
 
         projects = list(self.projectdb.check_update(now,
