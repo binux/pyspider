@@ -176,12 +176,13 @@ class TestProjectDB(object):
         self.assertIsNone(project)
 
     def test_40_check_update(self):
+        time.sleep(0.1)
         now = time.time()
         time.sleep(0.1)
         self.projectdb.update('abc', status='RUNNING')
 
         projects = list(self.projectdb.check_update(now,
-            fields=['name', 'status', 'group']))
+            fields=['name', 'status', 'group', 'updatetime', ]))
         self.assertEqual(len(projects), 1, repr(projects))
         project = projects[0]
         self.assertEqual(project['name'], 'abc')
