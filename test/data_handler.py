@@ -5,7 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-22 14:02:21
 
-from libs.base_handler import BaseHandler, catch_status_code_error
+from libs.base_handler import BaseHandler, catch_status_code_error, every
 
 class TestHandler(BaseHandler):
     def hello(self):
@@ -33,3 +33,11 @@ class TestHandler(BaseHandler):
     def add_task(self, response):
         self.crawl('http://www.google.com', callback='echo', params={'wd': u'中文'})
         self.send_message('some_project', {'some': 'message'})
+
+    @every
+    def on_cronjob1(self, response):
+        logger.info('on_cronjob1')
+
+    @every(seconds=10)
+    def on_cronjob2(self, response):
+        logger.info('on_cronjob2')

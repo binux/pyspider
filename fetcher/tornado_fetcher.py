@@ -111,9 +111,12 @@ class Fetcher(object):
         result = {}
         result['orig_url'] = url
         result['content'] = dataurl.decode(url)
+        result['headers'] = {}
         result['status_code'] = 200
         result['url'] = url
+        result['cookies'] = {}
         result['time'] = 0
+        result['save'] = task.get('fetch', {}).get('save')
         if len(result['content']) < 70:
             logger.info("[200] %s 0s" % url)
         else:

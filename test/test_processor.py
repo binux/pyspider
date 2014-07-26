@@ -114,3 +114,61 @@ class TestProjectModule(unittest.TestCase):
         self.assertIsNone(ret.exception)
         self.assertEqual(len(ret.follows), 1)
         self.assertEqual(len(ret.messages), 1)
+
+    def test_10_cronjob(self):
+        task = {
+            'taskid': '_on_cronjob',
+            'project': self.project,
+            'url': 'data:,_on_cronjob',
+            'fetch': {
+                'save': {
+                    'tick': 11,
+                    },
+                },
+            'process': {
+                'callback': '_on_cronjob',
+                },
+        }
+        fetch_result = dict(self.fetch_result)
+        fetch_result['save'] = {
+                'tick': 11,
+                }
+        ret = self.instance.run(self.module, task, fetch_result)
+        logstr = ret.logstr()
+        self.assertNotIn('on_cronjob1', logstr)
+        self.assertNotIn('on_cronjob2', logstr)
+
+        task['fetch']['save']['tick'] = 10
+        fetch_result['save'] = task['fetch']['save']
+        ret = self.instance.run(self.module, task, fetch_result)
+        logstr = ret.logstr()
+        self.assertNotIn('on_cronjob1', logstr)
+        self.assertIn('on_cronjob2', logstr)
+
+        task['fetch']['save']['tick'] = 60
+        fetch_result['save'] = task['fetch']['save']
+        ret = self.instance.run(self.module, task, fetch_result)
+        logstr = ret.logstr()
+        self.assertIn('on_cronjob1', logstr)
+        self.assertIn('on_cronjob2', logstr)
+
+    def test_20_get_info(self):
+        task = {
+            'taskid': '_on_get_info',
+            'project': self.project,
+            'url': 'data:,_on_get_info',
+            'fetch': {
+                'save': ['min_tick', ],
+                },
+            'process': {
+                'callback': '_on_get_info',
+                },
+        }
+        fetch_result = dict(self.fetch_result)
+        fetch_result['save'] = task['fetch']['save']
+
+        ret = self.instance.run(self.module, task, fetch_result)
+        self.assertEqual(len(ret.follows), 1, ret.logstr())
+        for each in ret.follows:
+            self.assertEqual(each['url'], 'data:,on_get_info')
+            self.assertEqual(each['fetch']['save']['min_tick'] , 10)

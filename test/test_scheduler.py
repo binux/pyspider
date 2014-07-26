@@ -131,6 +131,18 @@ class TestScheduler(unittest.TestCase):
                 'rate': 1.0,
                 'burst': 10,
             })
+
+    def test_30_update_project(self):
+        import Queue
+        with self.assertRaises(Queue.Empty):
+            task = self.scheduler2fetcher.get(timeout=0.1)
+        self.projectdb.update('test_project', status="DEBUG")
+
+        task = self.scheduler2fetcher.get(timeout=5)
+        self.assertIsNotNone(task)
+        self.assertEqual(task['url'], 'data:,_on_get_info')
+
+    def test_35_new_task(self):
         time.sleep(0.2)
         self.newtask_queue.put({
             'taskid': 'taskid',
@@ -153,8 +165,6 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['pending'], 1)
         self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['task'], 1)
 
-    def test_30_update_project(self):
-        self.projectdb.update('test_project', status="DEBUG")
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
         self.assertEqual(task['project'], 'test_project')

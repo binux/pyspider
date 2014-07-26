@@ -11,6 +11,7 @@ import time
 import inspect
 import functools
 import traceback
+import fractions
 from libs.log import LogFormatter
 from libs.url import quote_chinese, _build_url
 from libs.utils import md5string, hide_me
@@ -65,29 +66,57 @@ def config(_config):
         return func
     return wrapper
 
-def every(minutes=1):
+class NOTSET(object): pass
+
+def every(minutes=NOTSET, seconds=NOTSET):
     def wrapper(func):
         @functools.wraps(func)
         def on_cronjob(self, response, task):
-            if response.save and 'tick' in response.save and response.save['tick'] % minutes == 0:
+            if response.save and 'tick' in response.save and response.save['tick'] % (minutes * 60 + seconds) == 0:
                 function = func.__get__(self, self.__class__)
                 return self._run_func(function, response, task)
             return None
+        on_cronjob.is_cronjob = True
+        on_cronjob.tick = minutes * 60 + seconds
         return on_cronjob
+
+    if inspect.isfunction(minutes):
+        func = minutes
+        minutes = 1
+        seconds = 0
+        return wrapper(func)
+
+    if minutes is NOTSET:
+        if seconds is NOTSET:
+            minutes = 1
+            seconds = 0
+        else:
+            minutes = 0
+    if seconds is NOTSET:
+        seconds = 0
+
     return wrapper
 
 
 class BaseHandlerMeta(type):
     def __new__(cls, name, bases, attrs):
-        if '_on_message' in attrs:
-            attrs['_on_message'] = not_send_status(attrs['_on_message'])
-        if 'on_cronjob' in attrs:
-            attrs['on_cronjob'] = not_send_status(attrs['on_cronjob'])
-        return type.__new__(cls, name, bases, attrs)
+        cron_jobs = []
+        min_tick = 0
+
+        for each in attrs.values():
+            if inspect.isfunction(each) and getattr(each, 'is_cronjob', False):
+                cron_jobs.append(each)
+                min_tick = fractions.gcd(min_tick, each.tick)
+        newcls = type.__new__(cls, name, bases, attrs)
+        newcls.cron_jobs = cron_jobs
+        newcls.min_tick = min_tick
+        return newcls
 
 
 class BaseHandler(object):
     __metaclass__ = BaseHandlerMeta
+    cron_jobs = []
+    min_tick = 0
 
     def _reset(self):
         self._extinfo = {}
@@ -235,16 +264,28 @@ class BaseHandler(object):
     def send_message(self, project, msg):
         self._messages.append((project, msg))
 
+    def on_message(self, project, msg):
+        pass
+
+    def on_result(self, result):
+        pass
+
     @not_send_status
     def _on_message(self, response):
         project, msg = response.save
         return self.on_message(project, msg)
 
-    def on_message(self, project, msg):
-        pass
+    @not_send_status
+    def _on_cronjob(self, response, task):
+        for cronjob in self.cron_jobs:
+            function = cronjob.__get__(self, self.__class__)
+            self._run_func(function, response, task)
 
-    def on_cronjob(self):
-        pass
-
-    def on_result(self, result):
-        pass
+    @not_send_status
+    def _on_get_info(self, response, task):
+        result = {}
+        assert response.save
+        for each in response.save:
+            if each == 'min_tick':
+                result[each] = self.min_tick
+        self.crawl('data:,on_get_info', save=result)

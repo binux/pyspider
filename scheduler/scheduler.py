@@ -44,7 +44,7 @@ class Scheduler(object):
         self.projects = dict()
         self._last_update_project = 0
         self.task_queue = dict()
-        self._last_tick = int(time.time() / 60)
+        self._last_tick = int(time.time())
 
         self._cnt = {
                 "5m": counter.CounterManager(
@@ -64,7 +64,8 @@ class Scheduler(object):
     def _load_projects(self):
         self.projects = dict()
         for project in self.projectdb.get_all():
-            self.projects[project['name']] = project
+            self._update_project(project)
+            logger.debug("project: %s loaded.", project['name'])
         self._last_update_project = time.time()
 
     def _update_projects(self):
@@ -72,20 +73,46 @@ class Scheduler(object):
         if self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now:
             return
         for project in self.projectdb.check_update(self._last_update_project):
+            self._update_project(project)
             logger.debug("project: %s updated.", project['name'])
-            self.projects[project['name']] = project
+        self._last_update_project = now
+
+    def _update_project(self, project):
+        self.projects[project['name']] = project
+
+        # load task queue when project is running and delete task_queue when project is stoped
+        if project['status'] in ('RUNNING', 'DEBUG'):
             if project['name'] not in self.task_queue:
                 self._load_tasks(project['name'])
-            if project['status'] in ('RUNNING', 'DEBUG'):
-                self.task_queue[project['name']].rate = project['rate']
-                self.task_queue[project['name']].burst = project['burst']
-            else:
+            self.task_queue[project['name']].rate = project['rate']
+            self.task_queue[project['name']].burst = project['burst']
+
+            # update project runtime info from processing by sending a on_get_info request,
+            # result is catched by on_request
+            self.send_task({
+                'taskid': '_on_get_info',
+                'project': project['name'],
+                'url': 'data:,_on_get_info',
+                'status': self.taskdb.ACTIVE,
+                'fetch': {
+                    'save': ['min_tick', ],
+                    },
+                'process': {
+                    'callback': '_on_get_info',
+                    },
+                'project_updatetime': self.projects[project['name']].get('updatetime', 0),
+                })
+        else:
+            if project['name'] in self.task_queue:
                 self.task_queue[project['name']].rate = 0
                 self.task_queue[project['name']].burst = 0
-        self._last_update_project = now
+                del self.task_queue[project['name']]
 
     scheduler_task_fields = ['taskid', 'project', 'schedule', ]
     def _load_tasks(self, project):
+        """
+        loading tasks from database
+        """
         self.task_queue[project] = TaskQueue(rate=0, burst=0)
         for task in self.taskdb.load_tasks(self.taskdb.ACTIVE, project, self.scheduler_task_fields):
             taskid = task['taskid']
@@ -93,12 +120,14 @@ class Scheduler(object):
             priority = _schedule.get('priority', self.default_schedule['priority'])
             exetime = _schedule.get('exetime', self.default_schedule['exetime'])
             self.task_queue[project].put(taskid, priority, exetime)
+
         if self.projects[project]['status'] in ('RUNNING', 'DEBUG'):
             self.task_queue[project].rate = self.projects[project]['rate']
             self.task_queue[project].burst = self.projects[project]['burst']
         else:
             self.task_queue[project].rate = 0
             self.task_queue[project].burst = 0
+
         self._cnt['all'].value((project, 'pending'), len(self.task_queue[project]))
 
     def task_verify(self, task):
@@ -148,6 +177,13 @@ class Scheduler(object):
                 task = self.newtask_queue.get_nowait()
                 if not self.task_verify(task):
                     continue
+
+                # check _on_get_info result here
+                if task['url'] == 'data:,on_get_info':
+                    self.projects[task['project']].update(task['fetch'].get('save', {}))
+                    logger.info('%s on_get_info %r', task['project'], task['fetch'].get('save', {}))
+                    continue
+
                 if task['taskid'] in self.task_queue[task['project']]:
                     if not task.get('schedule', {}).get('force_update', False):
                         logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
@@ -164,17 +200,24 @@ class Scheduler(object):
         return cnt
 
     def _check_cronjob(self):
+        """
+        check projects cronjob tick, return True when a new tick is sended
+        """
         now = time.time()
-        if now - self._last_tick * 60 < 60:
-            return
+        if now - self._last_tick < 1:
+            return False
         self._last_tick += 1
         for project in self.projects.itervalues():
             if project['status'] not in ('DEBUG', 'RUNNING'):
                 continue
+            if project.get('min_tick', 0) == 0:
+                continue
+            if self._last_tick % project['min_tick'] != 0:
+                continue
             self.send_task({
-                'taskid': 'on_cronjob',
+                'taskid': '_on_cronjob',
                 'project': project['name'],
-                'url': 'data:,on_cronjob',
+                'url': 'data:,_on_cronjob',
                 'status': self.taskdb.ACTIVE,
                 'fetch': {
                     'save': {
@@ -182,10 +225,11 @@ class Scheduler(object):
                         },
                     },
                 'process': {
-                    'callback': 'on_cronjob',
+                    'callback': '_on_cronjob',
                     },
                 'project_updatetime': self.projects[project['name']].get('updatetime', 0),
                 })
+        return True
 
     request_task_fields = ['taskid', 'project', 'url', 'status', 'fetch', 'process', 'track', 'lastcrawltime']
     def _check_select(self):
@@ -225,17 +269,14 @@ class Scheduler(object):
     def run(self):
         logger.info("loading projects")
         self._load_projects()
-        for i, project in enumerate(self.projects.keys()):
-            self._load_tasks(project)
-            logger.info("loading tasks from %s loaded %d tasks -- %d/%d" % (project, len(self.task_queue[project]),
-                i+1, len(self.projects)))
 
         while not self._quit:
             try:
                 self._update_projects()
                 self._check_task_done()
                 self._check_request()
-                self._check_cronjob()
+                while self._check_cronjob():
+                    pass
                 self._check_select()
                 time.sleep(self.LOOP_INTERVAL)
             except KeyboardInterrupt:
