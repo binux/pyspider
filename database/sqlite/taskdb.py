@@ -12,11 +12,13 @@ import json
 import thread
 import sqlite3
 from database.base.taskdb import TaskDB as BaseTaskDB
-from basedb import BaseDB
+from database.basedb import BaseDB
 
 
 class TaskDB(BaseTaskDB, BaseDB):
     __tablename__ = 'taskdb'
+    placeholder = '?'
+
     def __init__(self, path):
         self.path = path
         self.last_pid = 0
@@ -28,7 +30,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         pid = thread.get_ident()
         if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
-            self.conn = sqlite3.connect(self.path)
+            self.conn = sqlite3.connect(self.path, isolation_level=None)
         return self.conn.cursor()
 
     def _list_project(self):
@@ -69,29 +71,28 @@ class TaskDB(BaseTaskDB, BaseDB):
     def load_tasks(self, status, project=None, fields=None):
         if project and project not in self.projects:
             return
-        what = ','.join(fields) if fields else '*'
         where = "status = %d" % status
+
         if project:
-            tablename = '%s_%s' % (self.__tablename__, project)
-            for each in self._select2dic(tablename, what=what, where=where):
-                yield self._parse(each)
+            projects = [project, ]
         else:
-            for project in self.projects:
-                tablename = '%s_%s' % (self.__tablename__, project)
-                for each in self._select2dic(tablename, what=what, where=where):
-                    yield self._parse(each)
+            projects = self.projects
+
+        for project in projects:
+            tablename = '%s_%s' % (self.__tablename__, project)
+            for each in self._select2dic(tablename, what=fields, where=where):
+                yield self._parse(each)
 
     def get_task(self, project, taskid, fields=None):
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:
             return None
-        what = ','.join(fields) if fields else '*'
-        where = "taskid = '%s'" % taskid
+        where = "`taskid` = %s" % self.placeholder
         if project not in self.projects:
             return None
         tablename = '%s_%s' % (self.__tablename__, project)
-        for each in self._select2dic(tablename, what=what, where=where):
+        for each in self._select2dic(tablename, what=fields, where=where, where_values=(taskid, )):
             return self._parse(each)
         return None
 
@@ -105,7 +106,8 @@ class TaskDB(BaseTaskDB, BaseDB):
         if project not in self.projects:
             return result
         tablename = '%s_%s' % (self.__tablename__, project)
-        for status, count in self._execute("SELECT status, count(1) FROM '%s' GROUP BY status" % tablename):
+        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" % \
+                self.escape(tablename)):
             result[status] = count
         return result
 
@@ -127,4 +129,5 @@ class TaskDB(BaseTaskDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        self._update(tablename, where="taskid = '%s'" % taskid, **self._stringify(obj))
+        self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
+                **self._stringify(obj))

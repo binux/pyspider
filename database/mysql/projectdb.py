@@ -11,7 +11,7 @@ import json
 import mysql.connector
 
 from database.base.projectdb import ProjectDB as BaseProjectDB
-from basedb import BaseDB
+from database.basedb import BaseDB
 
 class ProjectDB(BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
@@ -20,10 +20,10 @@ class ProjectDB(BaseProjectDB, BaseDB):
         self.conn = mysql.connector.connect(user=user, password=passwd,
                 host=host, port=port)
         if database not in [x[0] for x in self._execute('show databases')]:
-            self._execute('CREATE DATABASE `%s`' % database)
+            self._execute('CREATE DATABASE %s' % self.escape(database))
         self.conn.database = database;
 
-        self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
+        self._execute('''CREATE TABLE IF NOT EXISTS %s (
             `name` varchar(64) PRIMARY KEY,
             `group` varchar(64),
             `status` varchar(16),
@@ -32,7 +32,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
             `rate` float(11, 4),
             `burst` float(11, 4),
             `updatetime` double(16, 4)
-            ) ENGINE=MyISAM CHARSET=utf8''' % self.__tablename__)
+            ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(self.__tablename__))
 
     @property
     def dbcur(self):
@@ -42,27 +42,24 @@ class ProjectDB(BaseProjectDB, BaseDB):
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
-        return self._insert(self.__tablename__, **obj)
+        return self._insert(**obj)
 
     def update(self, name, obj={}, **kwargs):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        ret = self._update(self.__tablename__, where="name = %s" % json.dumps(name), **obj)
+        ret = self._update(where="`name` = %s" % self.placeholder, where_values=(name, ), **obj)
         return ret.rowcount
 
     def get_all(self, fields=None):
-        what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        return self._select2dic(self.__tablename__, what=what)
+        return self._select2dic(what=fields)
 
     def get(self, name, fields=None):
-        what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        where = "name = '%s'" % name
-        for each in self._select2dic(self.__tablename__, what=what, where=where):
+        where = "`name` = %s" % self.placeholder
+        for each in self._select2dic(what=fields, where=where, where_values=(name, )):
             return each
         return None
 
     def check_update(self, timestamp, fields=None):
-        what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        where = "updatetime >= %f" % timestamp
-        return self._select2dic(self.__tablename__, what=what, where=where)
+        where = "`updatetime` >= %f" % timestamp
+        return self._select2dic(what=fields, where=where)

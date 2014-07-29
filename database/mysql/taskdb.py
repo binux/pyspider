@@ -12,7 +12,7 @@ import json
 import mysql.connector
 
 from database.base.taskdb import TaskDB as BaseTaskDB
-from basedb import BaseDB
+from database.basedb import BaseDB
 
 
 class TaskDB(BaseTaskDB, BaseDB):
@@ -22,7 +22,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         self.conn = mysql.connector.connect(user=user, password=passwd,
                 host=host, port=port)
         if database not in [x[0] for x in self._execute('show databases')]:
-            self._execute('CREATE DATABASE `%s`' % database)
+            self._execute('CREATE DATABASE %s' % self.escape(database))
         self.conn.database = database;
         self._list_project()
 
@@ -52,7 +52,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         tablename = self._tablename(project)
         if tablename in [x[0] for x in self._execute('show tables')]:
             return
-        self._execute('''CREATE TABLE `%s` (
+        self._execute('''CREATE TABLE %s (
             `taskid` varchar(64) PRIMARY KEY,
             `project` varchar(64),
             `url` varchar(1024),
@@ -63,8 +63,8 @@ class TaskDB(BaseTaskDB, BaseDB):
             `track` BLOB,
             `lastcrawltime` double(16, 4),
             `updatetime` double(16, 4)
-            ) ENGINE=MyISAM CHARSET=utf8''' % (tablename, ))
-        self._execute('''CREATE INDEX `status_index` ON `%s` (status)''' % (tablename, ))
+            ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
+        self._execute('''CREATE INDEX `status_index` ON %s (status)''' % self.escape(tablename))
 
     def _parse(self, data):
         for each in ('schedule', 'fetch', 'process', 'track'):
@@ -84,15 +84,16 @@ class TaskDB(BaseTaskDB, BaseDB):
     def load_tasks(self, status, project=None, fields=None):
         if project and project not in self.projects:
             return
-        what = ','.join("`%s`" % f for f in fields) if fields else '*'
-        where = "status = %d" % status
+        where = "`status` = %s" % self.placeholder
+
         if project:
             projects = [project, ]
         else:
             projects = self.projects
+
         for project in projects:
             tablename = self._tablename(project)
-            for each in self._select2dic(tablename, what=what, where=where):
+            for each in self._select2dic(tablename, what=fields, where=where, where_values=(status, )):
                 yield self._parse(each)
 
     def get_task(self, project, taskid, fields=None):
@@ -100,12 +101,11 @@ class TaskDB(BaseTaskDB, BaseDB):
             self._list_project()
         if project not in self.projects:
             return None
-        what = ','.join("`%s`" % f for f in fields) if fields else '*'
-        where = "`taskid` = %s" % json.dumps(taskid)
+        where = "`taskid` = %s" % self.placeholder
         if project not in self.projects:
             return None
         tablename = self._tablename(project)
-        for each in self._select2dic(tablename, what=what, where=where):
+        for each in self._select2dic(tablename, what=fields, where=where, where_values=(taskid, )):
             return self._parse(each)
         return None
 
@@ -116,7 +116,8 @@ class TaskDB(BaseTaskDB, BaseDB):
         if project not in self.projects:
             return result
         tablename = self._tablename(project)
-        for status, count in self._execute("SELECT status, count(1) FROM `%s` GROUP BY status" % tablename):
+        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" % \
+                self.escape(tablename)):
             result[status] = count
         return result
 
@@ -140,4 +141,5 @@ class TaskDB(BaseTaskDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        self._update(tablename, where="taskid = %s" % json.dumps(taskid), **self._stringify(obj))
+        self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
+                **self._stringify(obj))

@@ -11,11 +11,13 @@ import time
 import thread
 import sqlite3
 from database.base.projectdb import ProjectDB as BaseProjectDB
-from basedb import BaseDB
+from database.basedb import BaseDB
 
 
 class ProjectDB(BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
+    placeholder = '?'
+
     def __init__(self, path):
         self.path = path
         self.last_pid = 0
@@ -32,34 +34,31 @@ class ProjectDB(BaseProjectDB, BaseDB):
         pid = thread.get_ident()
         if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
-            self.conn = sqlite3.connect(self.path)
+            self.conn = sqlite3.connect(self.path, isolation_level=None)
         return self.conn.cursor()
 
     def insert(self, name, obj={}):
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
-        return self._insert(self.__tablename__, **obj)
+        return self._insert(**obj)
 
     def update(self, name, obj={}, **kwargs):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        ret = self._update(self.__tablename__, where="name = '%s'" % name, **obj)
+        ret = self._update(where="`name` = %s" % self.placeholder, where_values=(name, ), **obj)
         return ret.rowcount
 
     def get_all(self, fields=None):
-        what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        return self._select2dic(self.__tablename__, what=what)
+        return self._select2dic(what=fields)
 
     def get(self, name, fields=None):
-        what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        where = "name = '%s'" % name
-        for each in self._select2dic(self.__tablename__, what=what, where=where):
+        where = "`name` = %s" % self.placeholder
+        for each in self._select2dic(what=fields, where=where, where_values=(name, )):
             return each
         return None
 
     def check_update(self, timestamp, fields=None):
-        what = ','.join(('`%s`' % x for x in fields)) if fields else '*'
-        where = "updatetime >= %f" % timestamp
-        return self._select2dic(self.__tablename__, what=what, where=where)
+        where = "`updatetime` >= %f" % timestamp
+        return self._select2dic(what=fields, where=where)

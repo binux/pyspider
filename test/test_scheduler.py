@@ -99,8 +99,8 @@ class TestScheduler(unittest.TestCase):
             scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
                     newtask_queue=self.newtask_queue, status_queue=self.status_queue,
                     out_queue=self.scheduler2fetcher, data_path="./test/data/")
-            scheduler.UPDATE_PROJECT_INTERVAL = 0.05
-            scheduler.LOOP_INTERVAL = 0.01
+            scheduler.UPDATE_PROJECT_INTERVAL = 0.1
+            scheduler.LOOP_INTERVAL = 0.1
             scheduler._last_tick = time.time() # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
@@ -331,7 +331,6 @@ class TestScheduler(unittest.TestCase):
         self.rpc._quit()
         time.sleep(0.2)
         self.assertFalse(self.process.is_alive())
-        self.taskdb.conn.commit()
         self.assertEqual(self.taskdb.get_task('test_project', 'taskid')['status'], self.taskdb.FAILED)
 
 if __name__ == '__main__':
