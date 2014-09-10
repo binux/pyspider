@@ -181,6 +181,9 @@ window.Debugger = (function() {
     },
 
     render_html: function(html, block_script, resizer, selector_helper) {
+      if (html === undefined) {
+        html = '';
+      }
       html = html.replace(/(\s)src=/g, "$1____src____=");
       var dom = document.createElement('html');
       dom.innerHTML = html;
@@ -225,7 +228,7 @@ window.Debugger = (function() {
           //web
           $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
           var iframe = $("#tab-web iframe")[0];
-          if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'].indexOf("text") !== 0) {
+          if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'].indexOf("text") !== 0) {
             iframe.src = "data:,Content-Type:"+(data.fetch_result.headers && data.fetch_result.headers['Content-Type'] || "unknow");
           } else {
             iframe.src = _this.render_html(data.fetch_result.content, true, true, false);

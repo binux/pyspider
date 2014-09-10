@@ -25,7 +25,7 @@
         result += element.tagName;
       }
  
-      if (element.getAttribute('id')) {
+      if (element.getAttribute('id') && element.getAttribute('id').match(/^[a-zA-Z]+/)) {
         return result+'#'+element.getAttribute('id');
       } else if (element.classList.length > 0) {
         for(var i=0; i<element.classList.length; i++) {

@@ -72,7 +72,7 @@ def run(project):
             'script': request.form['script'],
             }
 
-    fetch_result = ""
+    fetch_result = {}
     start_time = time.time()
     try:
         fetch_result = app.config['fetch'](task)
