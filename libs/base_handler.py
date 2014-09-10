@@ -60,7 +60,8 @@ def not_send_status(func):
         return self._run_func(function, response, task)
     return wrapper
 
-def config(_config):
+def config(_config={}, **kwargs):
+    _config.update(kwargs)
     def wrapper(func):
         func._config = _config
         return func
