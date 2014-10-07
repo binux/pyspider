@@ -110,10 +110,13 @@ class Response(object):
     @property
     def json(self):
         """Returns the json-encoded content of a request, if any."""
+        if hasattr(self, '_json'):
+            return self._json
         try:
-            return json.loads(self.text or self.content)
+            self._json = json.loads(self.text or self.content)
         except ValueError:
-            return None
+            self._json = None
+        return self._json
 
     @property
     def doc(self):
