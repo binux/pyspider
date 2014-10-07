@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/envutils
 # -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
@@ -70,7 +70,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    data[each] = json.loads(data[each])
+                    data[each] = json.loads(unicode(data[each], 'utf8'))
                 else:
                     data[each] = {}
         return data
