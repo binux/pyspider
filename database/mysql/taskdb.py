@@ -70,6 +70,8 @@ class TaskDB(BaseTaskDB, BaseDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
+                    if type(data[each]) is bytearray:
+                        data[each] = str(data[each])
                     data[each] = json.loads(unicode(data[each], 'utf8'))
                 else:
                     data[each] = {}
