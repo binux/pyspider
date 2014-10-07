@@ -73,7 +73,8 @@ class TaskDB(BaseTaskDB, BaseDB):
                     try:
                         data[each] = json.loads(data[each])
                     except:
-                        print data[each]
+                        print json.__version__
+                        print repr(data[each])
                         raise
                 else:
                     data[each] = {}
