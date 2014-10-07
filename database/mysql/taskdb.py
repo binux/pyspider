@@ -70,11 +70,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    try:
-                        data[each] = json.loads(data[each])
-                    except:
-                        print data[each]
-                        raise
+                    data[each] = json.loads(unicode(data[each], 'utf8'))
                 else:
                     data[each] = {}
         return data
