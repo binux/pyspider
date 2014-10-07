@@ -13,7 +13,7 @@ import datetime
 import traceback
 from app import app
 from flask import abort, render_template, request, json
-from libs.utils import hide_me
+from libs.utils import hide_me, timeout
 from libs.response import rebuild_response
 from processor.processor import build_module
 from processor.project_module import ProjectFinder, ProjectLoader
@@ -75,12 +75,13 @@ def run(project):
     fetch_result = {}
     start_time = time.time()
     try:
-        fetch_result = app.config['fetch'](task)
-        response = rebuild_response(fetch_result)
-        module = build_module(project_info, {
-            'debugger': True
-            })
-        ret = module['instance'].run(module['module'], task, response)
+        with timeout(30):
+            fetch_result = app.config['fetch'](task)
+            response = rebuild_response(fetch_result)
+            module = build_module(project_info, {
+                'debugger': True
+                })
+            ret = module['instance'].run(module['module'], task, response)
     except Exception, e:
         type, value, tb = sys.exc_info()
         tb = hide_me(tb, globals())
