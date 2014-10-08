@@ -9,6 +9,7 @@
 import time
 import unittest
 
+import database
 from database.base.taskdb import TaskDB
 from database.base.projectdb import ProjectDB
 
@@ -203,8 +204,7 @@ class TestProjectDB(object):
 class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        from database.sqlite.taskdb import TaskDB
-        self.taskdb = TaskDB(':memory:')
+        self.taskdb = database.connect_database('sqlite+taskdb://')
 
     @classmethod
     def tearDownClass(self):
@@ -214,8 +214,7 @@ class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
 class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        from database.sqlite.projectdb import ProjectDB
-        self.projectdb = ProjectDB(':memory:')
+        self.projectdb = database.connect_database('sqlite+projectdb://')
 
     @classmethod
     def tearDownClass(self):
@@ -224,8 +223,7 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
 class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        from database.mysql.taskdb import TaskDB
-        self.taskdb = TaskDB(database='pyspider_test_taskdb')
+        self.taskdb = database.connect_database('mysql+taskdb://localhost/pyspider_test_taskdb')
 
     @classmethod
     def tearDownClass(self):
@@ -234,8 +232,7 @@ class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
 class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        from database.mysql.projectdb import ProjectDB
-        self.projectdb = ProjectDB(database='pyspider_test_projectdb')
+        self.projectdb = database.connect_database('mysql+projectdb://localhost/pyspider_test_projectdb')
 
     @classmethod
     def tearDownClass(self):

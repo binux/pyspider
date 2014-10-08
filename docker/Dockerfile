@@ -12,6 +12,9 @@ RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libxslt1-dev
 RUN git clone https://github.com/binux/pyspider.git /opt/pyspider
 RUN pip install --allow-all-external -r /opt/pyspider/requirements.txt
 
+# run test
+RUN ./runtest.sh
+
 WORKDIR /opt/pyspider
 VOLUME ["/opt/pyspider/data"]
 
