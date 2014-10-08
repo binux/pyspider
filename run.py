@@ -19,7 +19,7 @@ from libs.utils import run_in_thread, run_in_subprocess
 
 scheduler_xmlrpc_port = int(os.environ.get('SCHEDULER_XMLRPC_PORT', 23333))
 fetcher_xmlrpc_port = int(os.environ.get('FETCHER_XMLRPC_PORT', 24444))
-webui_host = os.environ.get('WEBUI_HOST', '127.0.0.1')
+webui_host = os.environ.get('WEBUI_HOST', '0.0.0.0')
 webui_port = int(os.environ.get('WEBUI_PORT', 5000))
 debug = bool(os.environ.get('DEBUG'))
 queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
@@ -60,14 +60,14 @@ def run_scheduler():
     scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
             newtask_queue=newtask_queue, status_queue=status_queue, out_queue=scheduler2fetcher)
 
-    run_in_thread(scheduler.xmlrpc_run, port=scheduler_xmlrpc_port)
+    run_in_thread(scheduler.xmlrpc_run, port=scheduler_xmlrpc_port, bind=webui_host)
     scheduler.run()
 
 def run_fetcher():
     from fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=scheduler2fetcher, outqueue=fetcher2processor)
 
-    run_in_thread(fetcher.xmlrpc_run, port=fetcher_xmlrpc_port)
+    run_in_thread(fetcher.xmlrpc_run, port=fetcher_xmlrpc_port, bind=webui_host)
     fetcher.run()
 
 def run_processor():
