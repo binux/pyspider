@@ -26,7 +26,7 @@ queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
 
 def get_taskdb():
     if os.environ.get('MYSQL_NAME'):
-        return connect_database('mysql+taskdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/pyspider' % os.environ)
+        return connect_database('mysql+taskdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/taskdb' % os.environ)
     elif os.environ.get('TASKDB'):
         return connect_database(os.environ['TAKDB'])
     else:
@@ -34,7 +34,7 @@ def get_taskdb():
 
 def get_projectdb():
     if os.environ.get('MYSQL_NAME'):
-        return connect_database('mysql+projectdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/pyspider' % os.environ)
+        return connect_database('mysql+projectdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/projectdb' % os.environ)
     elif os.environ.get('PROJECTDB'):
         return connect_database(os.environ['PROJECTDB'])
     else:
