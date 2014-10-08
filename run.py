@@ -42,7 +42,7 @@ def get_projectdb():
 
 if os.environ.get('RABBITMQ_NAME'):
     from libs.rabbitmq import Queue
-    amqp_url = 'amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s:%(RABBITMQ_PORT_5672_TCP_PORT)s/%2F' % os.environ
+    amqp_url = 'amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s:%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F' % os.environ
     newtask_queue = Queue("newtask_queue", amqp_url=amqp_url, maxsize=queue_maxsize)
     status_queue = Queue("status_queue", amqp_url=amqp_url, maxsize=queue_maxsize)
     scheduler2fetcher = Queue("scheduler2fetcher", amqp_url=amqp_url, maxsize=queue_maxsize)
@@ -116,7 +116,6 @@ def all_in_one():
         each.join()
 
 if __name__ == '__main__':
-    print sys.argv
     if len(sys.argv) < 2:
         all_in_one()
     else:

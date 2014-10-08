@@ -9,8 +9,7 @@ RUN apt-get install -y python python-dev python-distribute python-pip
 RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libxslt1-dev
 
 # git clone pyspider project and install requirements
-#RUN git clone https://github.com/binux/pyspider.git /opt/pyspider
-RUN git clone ../ /opt/pyspider
+RUN git clone --depth 1 --recursive https://github.com/binux/pyspider.git /opt/pyspider
 RUN pip install --allow-all-external -r /opt/pyspider/requirements.txt
 
 # run test
@@ -19,7 +18,7 @@ RUN IGNORE_MYSQL=1 IGNORE_RABBITMQ=1 ./runtest.sh
 
 VOLUME ["/opt/pyspider/data"]
 
-ENTRYPOINT python run.py
+ENTRYPOINT ["python", "run.py"]
 
 EXPOSE 5000
 EXPOSE 23333
