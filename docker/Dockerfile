@@ -13,9 +13,9 @@ RUN git clone https://github.com/binux/pyspider.git /opt/pyspider
 RUN pip install --allow-all-external -r /opt/pyspider/requirements.txt
 
 # run test
-RUN ./runtest.sh
-
 WORKDIR /opt/pyspider
+RUN IGNORE_MYSQL=1 IGNORE_RABBITMQ=1 ./runtest.sh
+
 VOLUME ["/opt/pyspider/data"]
 
 ENTRYPOINT python run.py

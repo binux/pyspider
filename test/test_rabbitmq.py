@@ -5,12 +5,14 @@
 #         http://binux.me
 # Created on 2014-10-07 10:33:38
 
+import os
 import time
 import unittest
 
 from libs import utils
 from libs import rabbitmq
 
+@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
 class TestRabbitMQ(unittest.TestCase):
     @classmethod
     def setUpClass(self):

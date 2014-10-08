@@ -15,7 +15,7 @@ app = Flask('webui',
         static_folder=os.path.join(os.path.dirname(__file__), 'static'),
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 app.config.update({
-    'fetcher': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(task)[1],
+    'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(x)[1],
     'taskdb': None,
     'projectdb': None,
     'scheduler_rpc': None,

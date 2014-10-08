@@ -10,69 +10,96 @@ import sys
 import time
 import logging
 import logging.config
-
 logging.config.fileConfig("logging.conf")
 
-scheduler_xmlrpc_port = os.environ.get('SCHEDULER_XMLRPC_PORT', 23333)
-fetcher_xmlrpc_port = os.environ.get('FETCHER_XMLRPC_PORT', 24444)
+from database import connect_database
+from libs.utils import run_in_thread, run_in_subprocess
+
+# config form environment -------------------
+
+scheduler_xmlrpc_port = int(os.environ.get('SCHEDULER_XMLRPC_PORT', 23333))
+fetcher_xmlrpc_port = int(os.environ.get('FETCHER_XMLRPC_PORT', 24444))
 webui_host = os.environ.get('WEBUI_HOST', '127.0.0.1')
 webui_port = int(os.environ.get('WEBUI_PORT', 5000))
 debug = bool(os.environ.get('DEBUG'))
 queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
 
-def all_in_one():
-    from multiprocessing import Queue
-    from database import connect_database
-    from libs.utils import run_in_thread, run_in_subprocess
-
-    def get_taskdb():
+def get_taskdb():
+    if os.environ.get('MYSQL_NAME'):
+        return connect_database('mysql+taskdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/pyspider' % os.environ)
+    elif os.environ.get('TASKDB'):
+        return connect_database(os.environ['TAKDB'])
+    else:
         return connect_database('sqlite+taskdb:///data/task.db')
 
-    def get_projectdb():
+def get_projectdb():
+    if os.environ.get('DB_NAME'):
+        return connect_database('mysql+projectdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/pyspider' % os.environ)
+    elif os.environ.get('PROJECTDB'):
+        return connect_database(os.environ['PROJECTDB'])
+    else:
         return connect_database('sqlite+projectdb:///data/project.db')
 
+if os.environ.get('RABBITMQ_NAME'):
+    from libs.rabbitmq import Queue
+    amqp_url = 'amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s:%(RABBITMQ_PORT_5672_TCP_PORT)s/%2F' % os.environ
+    newtask_queue = Queue("newtask_queue", amqp_url=amqp_url, maxsize=queue_maxsize)
+    status_queue = Queue("status_queue", amqp_url=amqp_url, maxsize=queue_maxsize)
+    scheduler2fetcher = Queue("scheduler2fetcher", amqp_url=amqp_url, maxsize=queue_maxsize)
+    fetcher2processor = Queue("fetcher2processor", amqp_url=amqp_url, maxsize=queue_maxsize)
+else:
+    from multiprocessing import Queue
     newtask_queue = Queue(queue_maxsize)
     status_queue = Queue(queue_maxsize)
     scheduler2fetcher = Queue(queue_maxsize)
     fetcher2processor = Queue(queue_maxsize)
 
-    def run_scheduler():
-        from scheduler import Scheduler
-        scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
-                newtask_queue=newtask_queue, status_queue=status_queue, out_queue=scheduler2fetcher)
+# run commands ------------------------------------------
+def run_scheduler():
+    from scheduler import Scheduler
+    scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
+            newtask_queue=newtask_queue, status_queue=status_queue, out_queue=scheduler2fetcher)
 
-        run_in_thread(scheduler.xmlrpc_run, port=scheduler_xmlrpc_port)
-        scheduler.run()
+    run_in_thread(scheduler.xmlrpc_run, port=scheduler_xmlrpc_port)
+    scheduler.run()
 
-    def run_fetcher():
-        from fetcher.tornado_fetcher import Fetcher
-        fetcher = Fetcher(inqueue=scheduler2fetcher, outqueue=fetcher2processor)
+def run_fetcher():
+    from fetcher.tornado_fetcher import Fetcher
+    fetcher = Fetcher(inqueue=scheduler2fetcher, outqueue=fetcher2processor)
 
-        run_in_thread(fetcher.xmlrpc_run, port=fetcher_xmlrpc_port)
-        fetcher.run()
+    run_in_thread(fetcher.xmlrpc_run, port=fetcher_xmlrpc_port)
+    fetcher.run()
 
-    def run_processor():
-        from processor import Processor
-        processor = Processor(projectdb=get_projectdb(),
-                inqueue=fetcher2processor, status_queue=status_queue, newtask_queue=newtask_queue)
-        
-        processor.run()
+def run_processor():
+    from processor import Processor
+    processor = Processor(projectdb=get_projectdb(),
+            inqueue=fetcher2processor, status_queue=status_queue, newtask_queue=newtask_queue)
+    
+    processor.run()
 
-    def run_webui():
-        import xmlrpclib
-        import cPickle as pickle
-        scheduler_rpc = xmlrpclib.ServerProxy('http://localhost:%d' % scheduler_xmlrpc_port)
-        fetch_rpc = xmlrpclib.ServerProxy('http://localhost:%d' % fetcher_xmlrpc_port)
+scheduler_rpc = None
+if os.environ.get('SCHEDULER_NAME'):
+    import xmlrpclib
+    scheduler_rpc = xmlrpclib.ServerProxy('http://%s:%d' % \
+            os.environ['SCHEDULER_PORT_%d_TCP_ADDR' % scheduler_xmlrpc_port],
+            os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port])
 
-        from webui.app import app
-        app.config['fetch'] = lambda task: pickle.loads(fetch_rpc.fetch(task).data)
-        app.config['taskdb'] = get_taskdb()
-        app.config['projectdb'] = get_projectdb()
-        app.config['scheduler_rpc'] = scheduler_rpc
-        #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
-        app.run(host=webui_host, port=webui_port)
+def run_webui():
+    import cPickle as pickle
 
-    # run here
+    from webui.app import app
+    app.config['taskdb'] = get_taskdb()
+    app.config['projectdb'] = get_projectdb()
+    app.config['scheduler_rpc'] = scheduler_rpc
+    #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
+    app.run(host=webui_host, port=webui_port)
+
+def all_in_one():
+    import xmlrpclib
+    global scheduler_rpc
+    scheduler_rpc = xmlrpclib.ServerProxy('http://localhost:%d' % \
+            scheduler_xmlrpc_port)
+
     threads = []
     threads.append(run_in_subprocess(run_fetcher))
     threads.append(run_in_subprocess(run_processor))
@@ -87,18 +114,6 @@ def all_in_one():
 
     for each in threads:
         each.join()
-
-def run_scheduler():
-    pass
-
-def run_fetcher():
-    pass
-
-def run_processor():
-    pass
-
-def run_webui():
-    pass
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

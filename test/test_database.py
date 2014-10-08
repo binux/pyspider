@@ -5,7 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-08 22:37:13
 
-
+import os
 import time
 import unittest
 
@@ -220,6 +220,7 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
     def tearDownClass(self):
         pass
 
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -229,6 +230,7 @@ class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     def tearDownClass(self):
         self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
 
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
