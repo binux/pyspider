@@ -42,7 +42,7 @@ def get_projectdb():
 
 if os.environ.get('RABBITMQ_NAME'):
     from libs.rabbitmq import Queue
-    amqp_url = 'amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s:%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F' % os.environ
+    amqp_url = "amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s:%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ
     newtask_queue = Queue("newtask_queue", amqp_url=amqp_url, maxsize=queue_maxsize)
     status_queue = Queue("status_queue", amqp_url=amqp_url, maxsize=queue_maxsize)
     scheduler2fetcher = Queue("scheduler2fetcher", amqp_url=amqp_url, maxsize=queue_maxsize)
@@ -80,9 +80,9 @@ def run_processor():
 scheduler_rpc = None
 if os.environ.get('SCHEDULER_NAME'):
     import xmlrpclib
-    scheduler_rpc = xmlrpclib.ServerProxy('http://%s:%d' % \
+    scheduler_rpc = xmlrpclib.ServerProxy('http://%s:%d' % (
             os.environ['SCHEDULER_PORT_%d_TCP_ADDR' % scheduler_xmlrpc_port],
-            os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port])
+            os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port]))
 
 def run_webui():
     import cPickle as pickle
