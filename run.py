@@ -33,7 +33,7 @@ def get_taskdb():
         return connect_database('sqlite+taskdb:///data/task.db')
 
 def get_projectdb():
-    if os.environ.get('DB_NAME'):
+    if os.environ.get('MYSQL_NAME'):
         return connect_database('mysql+projectdb://%(MYSQL_PORT_3306_TCP_ADDR)s:%(MYSQL_PORT_3306_TCP_PORT)s/pyspider' % os.environ)
     elif os.environ.get('PROJECTDB'):
         return connect_database(os.environ['PROJECTDB'])
