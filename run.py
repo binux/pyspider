@@ -80,7 +80,7 @@ def run_processor():
 scheduler_rpc = None
 if os.environ.get('SCHEDULER_NAME'):
     import xmlrpclib
-    scheduler_rpc = xmlrpclib.ServerProxy('http://%s:%d' % (
+    scheduler_rpc = xmlrpclib.ServerProxy('http://%s:%s' % (
             os.environ['SCHEDULER_PORT_%d_TCP_ADDR' % scheduler_xmlrpc_port],
             os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port]))
 
