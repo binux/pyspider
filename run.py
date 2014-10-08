@@ -116,6 +116,7 @@ def all_in_one():
         each.join()
 
 if __name__ == '__main__':
+    print sys.argv
     if len(sys.argv) < 2:
         all_in_one()
     else:
