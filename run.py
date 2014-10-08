@@ -22,14 +22,14 @@ queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
 
 def all_in_one():
     from multiprocessing import Queue
-    from database.sqlite import taskdb, projectdb
+    from database import connect_database
     from libs.utils import run_in_thread, run_in_subprocess
 
     def get_taskdb():
-        return taskdb.TaskDB('./data/task.db')
+        return connect_database('sqlite+taskdb:///data/task.db')
 
     def get_projectdb():
-        return projectdb.ProjectDB('./data/project.db')
+        return connect_database('sqlite+projectdb:///data/project.db')
 
     newtask_queue = Queue(queue_maxsize)
     status_queue = Queue(queue_maxsize)

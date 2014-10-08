@@ -53,7 +53,7 @@ def connect_database(url):
         if parsed.path.startswith('//'):
             path = '/'+parsed.path.strip('/')
         elif parsed.path.startswith('/'):
-            path = parsed.path.strip('/')
+            path = './'+parsed.path.strip('/')
         elif not parsed.path:
             path = ':memory:'
         else:
