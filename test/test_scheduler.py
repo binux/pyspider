@@ -101,6 +101,7 @@ class TestScheduler(unittest.TestCase):
                     out_queue=self.scheduler2fetcher, data_path="./test/data/")
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
+            scheduler.INQUEUE_LIMIT = 10
             scheduler._last_tick = time.time() # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
@@ -323,6 +324,20 @@ class TestScheduler(unittest.TestCase):
                 }
             })
         time.sleep(0.2)
+
+    def test_x10_inqueue_limit(self):
+        for i in range(20):
+            self.newtask_queue.put({
+                'taskid': 'taskid%d' % i,
+                'project': 'test_project',
+                'url': 'url',
+                'schedule': {
+                    'age': 3000,
+                    'force_update': True,
+                    },
+                })
+        time.sleep(0.1)
+        self.assertEqual(self.rpc.size(), 10)
 
     def test_z10_startup(self):
         self.assertTrue(self.process.is_alive())

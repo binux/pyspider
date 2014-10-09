@@ -29,7 +29,7 @@ class Scheduler(object):
     LOOP_LIMIT = 1000
     LOOP_INTERVAL = 0.1
     ACTIVE_TASKS = 100
-    TASKS_LIMIT_PER_PROJECT = 0
+    INQUEUE_LIMIT = 0
     
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data'):
         self.taskdb = taskdb
@@ -184,6 +184,9 @@ class Scheduler(object):
                     logger.info('%s on_get_info %r', task['project'], task['fetch'].get('save', {}))
                     continue
 
+                if self.INQUEUE_LIMIT and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT:
+                    logger.debug('overflow task %(project)s:%(taskid)s %(url)s', task)
+                    continue
                 if task['taskid'] in self.task_queue[task['project']]:
                     if not task.get('schedule', {}).get('force_update', False):
                         logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
