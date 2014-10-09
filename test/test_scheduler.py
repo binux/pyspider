@@ -346,6 +346,7 @@ class TestScheduler(unittest.TestCase):
                     'force_update': True,
                     },
                 })
+        time.sleep(1)
         self.assertEqual(self.rpc.size(), 10)
 
     def test_z10_startup(self):
