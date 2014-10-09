@@ -20,7 +20,7 @@ build:
 run:  
 ```
 # mysql
-docker run -it -d --name rabbitmq dockerfile/mysql
+docker run -it -d --name mysql dockerfile/mysql
 # rabbitmq
 docker run -it -d --name rabbitmq dockerfile/rabbitmq
 
