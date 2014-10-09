@@ -326,17 +326,26 @@ class TestScheduler(unittest.TestCase):
         time.sleep(0.2)
 
     def test_x10_inqueue_limit(self):
+        self.projectdb.insert('test_inqueue_project', {
+                'name': 'test_inqueue_project',
+                'group': 'group',
+                'status': 'DEBUG',
+                'script': 'import time\nprint time.time()',
+                'comments': 'test project',
+                'rate': 0,
+                'burst': 0,
+            })
+        time.sleep(0.1)
         for i in range(20):
             self.newtask_queue.put({
                 'taskid': 'taskid%d' % i,
-                'project': 'test_project',
+                'project': 'test_inqueue_project',
                 'url': 'url',
                 'schedule': {
                     'age': 3000,
                     'force_update': True,
                     },
                 })
-        time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 10)
 
     def test_z10_startup(self):
