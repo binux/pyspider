@@ -3,3 +3,5 @@ python:
     - "2.7"
 install: "pip install --allow-all-external -r requirements.txt"
 script: ./runtest.sh
+services:
+    - rabbitmq

@@ -18,7 +18,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
     def __init__(self, host='localhost', port=3306, database='projectdb',
             user='root', passwd=None):
         self.conn = mysql.connector.connect(user=user, password=passwd,
-                host=host, port=port)
+                host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
             self._execute('CREATE DATABASE %s' % self.escape(database))
         self.conn.database = database;

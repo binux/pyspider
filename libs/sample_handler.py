@@ -3,7 +3,7 @@
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Created on __DATE__
 
-
+from libs.pprint import pprint
 from libs.base_handler import *
 
 class Handler(BaseHandler):
@@ -19,5 +19,7 @@ class Handler(BaseHandler):
         return response.doc('title').text()
 
     def on_result(self, result):
-        if result:
-            print result
+        if not result:
+            return
+        if self.__env__.get('debugger'):
+            pprint(result)

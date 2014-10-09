@@ -9,6 +9,7 @@ import sys
 import time
 import Queue
 import logging
+from libs import utils
 from libs.response import rebuild_response
 from project_module import ProjectLoader, ProjectFinder
 logger = logging.getLogger("processor")
@@ -39,6 +40,7 @@ def build_module(project, env={}):
         }
 
 class Processor(object):
+    PROCESS_TIME_LIMIT = 30
     CHECK_PROJECTS_INTERVAL = 5*60
 
     def __init__(self, projectdb, inqueue, status_queue, newtask_queue):
@@ -101,13 +103,15 @@ class Processor(object):
     def on_task(self, task, response):
         start_time = time.time()
         try:
-            response = rebuild_response(response)
-            assert 'taskid' in task, 'need taskid in task'
-            project = task['project']
-            if project not in self.projects:
-                raise LookupError("not such project: %s" % project)
-            project_data = self.projects[project]
-            ret = project_data['instance'].run(project_data['module'], task, response)
+            with utils.timeout(self.PROCESS_TIME_LIMIT):
+                response = rebuild_response(response)
+                assert 'taskid' in task, 'need taskid in task'
+                project = task['project']
+                if project not in self.projects:
+                    raise LookupError("not such project: %s" % project)
+                project_data = self.projects[project]
+                ret = project_data['instance'].run(
+                        project_data['module'], task, response)
         except Exception, e:
             logger.exception(e)
             return False

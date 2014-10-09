@@ -9,10 +9,17 @@ import os
 import sys
 import urlparse
 from flask import Flask
+from fetcher import tornado_fetcher
 
 app = Flask('webui',
         static_folder=os.path.join(os.path.dirname(__file__), 'static'),
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+app.config.update({
+    'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(x)[1],
+    'taskdb': None,
+    'projectdb': None,
+    'scheduler_rpc': None,
+    })
 
 def cdn_url_handler(error, endpoint, kwargs):
     if endpoint == 'cdn':

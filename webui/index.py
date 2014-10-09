@@ -48,6 +48,9 @@ def project_update():
 @app.route('/counter')
 def counter():
     rpc = app.config['scheduler_rpc']
+    if rpc is None:
+        return json.dumps({})
+
     time = request.args['time']
     type = request.args.get('type', 'sum')
 
@@ -56,6 +59,9 @@ def counter():
 @app.route('/run', methods=['POST', ])
 def runtask():
     rpc = app.config['scheduler_rpc']
+    if rpc is None:
+        return json.dumps({})
+
     project = request.form['project']
     newtask = {
         "project": project,

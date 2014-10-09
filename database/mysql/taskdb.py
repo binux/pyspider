@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/envutils
 # -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
@@ -20,7 +20,7 @@ class TaskDB(BaseTaskDB, BaseDB):
     def __init__(self, host='localhost', port=3306, database='taskdb',
             user='root', passwd=None):
         self.conn = mysql.connector.connect(user=user, password=passwd,
-                host=host, port=port)
+                host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
             self._execute('CREATE DATABASE %s' % self.escape(database))
         self.conn.database = database;
@@ -70,7 +70,9 @@ class TaskDB(BaseTaskDB, BaseDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    data[each] = json.loads(data[each])
+                    if type(data[each]) is bytearray:
+                        data[each] = str(data[each])
+                    data[each] = json.loads(unicode(data[each], 'utf8'))
                 else:
                     data[each] = {}
         return data
