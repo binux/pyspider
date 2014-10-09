@@ -15,9 +15,7 @@ Installation
 
 Docker
 ======
-build:  
-`docker build -t pyspider .`
-run:  
+
 ```
 # mysql
 docker run -it -d --name mysql dockerfile/mysql
@@ -25,13 +23,13 @@ docker run -it -d --name mysql dockerfile/mysql
 docker run -it -d --name rabbitmq dockerfile/rabbitmq
 
 # scheduler
-docker run -it -d --name scheduler --link mysql:mysql --link rabbitmq:rabbitmq pyspider scheduler
+docker run -it -d --name scheduler --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider scheduler
 # fetcher, run multiple instance if needed.
-docker run -it -d --link mysql:mysql --link rabbitmq:rabbitmq pyspider fetcher
+docker run -it -d -m 64m --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider fetcher
 # processor, run multiple instance if needed.
-docker run -it -d --link mysql:mysql --link rabbitmq:rabbitmq pyspider processor
+docker run -it -d -m 128m --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider processor
 # webui
-docker run -it -d -P 5000:5000 --link mysql:mysql --link rabbitmq:rabbitmq --link scheduler:scheduler pyspider webui
+docker run -it -d -p 5000:5000 --link mysql:mysql --link rabbitmq:rabbitmq --link scheduler:scheduler binux/pyspider webui
 ```
 
 Documents
