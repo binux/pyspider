@@ -29,7 +29,7 @@ def project_update():
         if len(value) != 2:
             return 'format error: rate/burst', 400
         rate = float(value[0])
-        burst = int(value[1])
+        burst = float(value[1])
         update = {
                 'rate': min(rate, app.config.get('max_rate', rate)),
                 'burst': min(burst, app.config.get('max_burst', burst)),

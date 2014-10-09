@@ -140,8 +140,8 @@ def save(project):
             'name': project,
             'script': script,
             'status': 'TODO',
-            'rate': 1,
-            'burst': 10
+            'rate': app.config.get('max_rate', 1),
+            'burst': app.config.get('max_burst', 3),
             }
         projectdb.insert(project, info)
 
