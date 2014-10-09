@@ -13,7 +13,7 @@ from database.sqlite import taskdb, projectdb
 config = {
         'taskdb': taskdb.TaskDB('./data/task.db'),
         'projectdb': projectdb.ProjectDB('data/project.db'),
-        'scheduler_rpc': xmlrpclib.ServerProxy('http://localhost:23333'),
+        'scheduler_rpc': xmlrpclib.ServerProxy('http://localhost:23333', allow_none=True),
         }
 
 if __name__ == '__main__':

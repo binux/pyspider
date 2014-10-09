@@ -82,7 +82,8 @@ if os.environ.get('SCHEDULER_NAME'):
     import xmlrpclib
     scheduler_rpc = xmlrpclib.ServerProxy('http://%s:%s' % (
             os.environ['SCHEDULER_PORT_%d_TCP_ADDR' % scheduler_xmlrpc_port],
-            os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port]))
+            os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port]),
+            allow_none=True)
 
 def run_webui():
     import cPickle as pickle

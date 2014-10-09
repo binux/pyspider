@@ -8,9 +8,12 @@ RUN apt-get install -y python python-dev python-distribute python-pip
 # install binary depends
 RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libxslt1-dev
 
-# git clone pyspider project and install requirements
-RUN git clone --depth 1 --recursive https://github.com/binux/pyspider.git /opt/pyspider
+# install requirements
+ADD requirements.txt /opt/pyspider/requirements.txt
 RUN pip install --allow-all-external -r /opt/pyspider/requirements.txt
+
+# add all repo
+ADD ./ /opt/pyspider
 
 # run test
 WORKDIR /opt/pyspider

@@ -26,10 +26,12 @@ def task(taskid):
 def tasks():
     rpc = app.config['scheduler_rpc']
     taskdb = app.config['taskdb']
+    project = request.args.get('project', "")
     limit = int(request.args.get('limit', 100))
 
     tasks = {}
-    for updatetime, task in sorted(rpc.get_active_tasks(limit), key=lambda x: x[0]):
+    for updatetime, task in sorted(
+            rpc.get_active_tasks(project, limit), key=lambda x: x[0]):
         task['updatetime'] = updatetime
         tasks['%(project)s:%(taskid)s' % task] = task
 

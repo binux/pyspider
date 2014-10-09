@@ -29,6 +29,7 @@ class Scheduler(object):
     LOOP_LIMIT = 1000
     LOOP_INTERVAL = 0.1
     ACTIVE_TASKS = 100
+    TASKS_LIMIT_PER_PROJECT = 0
     
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data'):
         self.taskdb = taskdb
@@ -37,8 +38,6 @@ class Scheduler(object):
         self.status_queue = status_queue
         self.out_queue = out_queue
         self.data_path = data_path
-
-        self.active_tasks = deque(maxlen=self.ACTIVE_TASKS)
 
         self._quit = False
         self.projects = dict()
@@ -79,6 +78,7 @@ class Scheduler(object):
 
     def _update_project(self, project):
         self.projects[project['name']] = project
+        self.projects[project['name']]['active_tasks'] = deque(maxlen=self.ACTIVE_TASKS)
 
         # load task queue when project is running and delete task_queue when project is stoped
         if project['status'] in ('RUNNING', 'DEBUG'):
@@ -310,14 +310,24 @@ class Scheduler(object):
             self._last_update_project = 0
         server.register_function(update_project, 'update_project')
 
-        def get_active_tasks(limit=100):
+        def get_active_tasks(project=None, limit=100):
             allowed_keys = set(('taskid', 'project', 'status', 'url', 'lastcrawltime', 'updatetime', 'track', ))
-            for updatetime, task in self.active_tasks:
+
+            iters = [iter(x['active_tasks']) for k, x in self.projects.iteritems()\
+                    if x and (k == project if project else True)]
+            tasks = [next(x, None) for x in iters]
+            result = []
+
+            while len(result) < limit and tasks and not all(x is None for x in tasks):
+                updatetime, task = t = max(tasks)
+                i = tasks.index(t)
+                tasks[i] = next(iters[i], None)
                 for key in task.keys():
                     if key in allowed_keys:
                         continue
                     del task[key]
-            return list(self.active_tasks)[:limit]
+                result.append(t)
+            return result
         server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.serve_forever()
@@ -383,7 +393,7 @@ class Scheduler(object):
             ret = self.on_task_done(task)
         else:
             ret = self.on_task_failed(task)
-        self.active_tasks.append((time.time(), task))
+        self.projects[task['project']]['active_tasks'].append((time.time(), task))
         return ret
 
     def on_task_done(self, task):
@@ -452,5 +462,5 @@ class Scheduler(object):
     def on_select_task(self, task):
         logger.debug('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
-        self.active_tasks.append((time.time(), task))
+        self.projects[task['project']]['active_tasks'].append((time.time(), task))
         return task

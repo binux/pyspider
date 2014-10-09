@@ -13,6 +13,27 @@ Installation
 * `pip install -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
 
+Docker
+======
+build:  
+`docker build -t pyspider .`
+run:  
+```
+# mysql
+docker run -it -d --name rabbitmq dockerfile/mysql
+# rabbitmq
+docker run -it -d --name rabbitmq dockerfile/rabbitmq
+
+# scheduler
+docker run -it -d --name scheduler --link mysql:mysql --link rabbitmq:rabbitmq pyspider scheduler
+# fetcher, run multiple instance if needed.
+docker run -it -d --link mysql:mysql --link rabbitmq:rabbitmq pyspider fetcher
+# processor, run multiple instance if needed.
+docker run -it -d --link mysql:mysql --link rabbitmq:rabbitmq pyspider processor
+# webui
+docker run -it -d -P 5000:5000 --link mysql:mysql --link rabbitmq:rabbitmq --link scheduler:scheduler pyspider webui
+```
+
 Documents
 =========
 
