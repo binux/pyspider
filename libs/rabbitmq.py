@@ -90,7 +90,10 @@ class Queue(object):
             try:
                 return self.get_nowait(ack)
             except BaseQueue.Empty as e:
-                time.sleep(min(self.max_timeout, timeout - lasted))
+                if timeout and timeout > lasted:
+                    time.sleep(min(self.max_timeout, timeout - lasted))
+                else:
+                    raise
 
     @catch_error
     def get_nowait(self, ack=True):

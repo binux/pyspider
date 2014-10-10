@@ -176,11 +176,11 @@ class Processor(object):
                 task, response = self.inqueue.get()
                 self._check_projects(task)
                 self.on_task(task, response)
-            except Queue.Empty, e:
+            except Queue.Empty as e:
                 time.sleep(1)
                 continue
             except KeyboardInterrupt:
                 break
-            except Exception, e:
+            except Exception as e:
                 logger.exception(e)
                 continue
