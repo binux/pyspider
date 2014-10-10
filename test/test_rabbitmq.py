@@ -39,6 +39,8 @@ class TestRabbitMQ(unittest.TestCase):
         self.assertEqual(self.q1.get(timeout=0.01), 'TEST_DATA1')
         self.assertEqual(self.q2.get_nowait(), 'TEST_DATA2')
         with self.assertRaises(self.q1.Empty):
+            self.q2.get()
+        with self.assertRaises(self.q1.Empty):
             self.q2.get(timeout=0.01)
         with self.assertRaises(self.q1.Empty):
             self.q2.get_nowait()
