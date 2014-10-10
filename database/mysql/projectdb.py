@@ -36,7 +36,11 @@ class ProjectDB(BaseProjectDB, BaseDB):
 
     @property
     def dbcur(self):
-        return self.conn.cursor()
+        try:
+            return self.conn.cursor()
+        except mysql.connector.OperationalError as e:
+            self.conn.ping(reconnect=True)
+            return self.conn.cursor()
 
     def insert(self, name, obj={}):
         obj = dict(obj)
