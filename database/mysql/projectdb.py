@@ -40,6 +40,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
             return self.conn.cursor()
         except mysql.connector.OperationalError as e:
             self.conn.ping(reconnect=True)
+            self.conn.database = database;
             return self.conn.cursor()
 
     def insert(self, name, obj={}):
