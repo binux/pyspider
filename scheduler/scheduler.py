@@ -128,6 +128,12 @@ class Scheduler(object):
             self.task_queue[project].rate = 0
             self.task_queue[project].burst = 0
 
+        if project not in self._cnt['all']:
+            status_count = self.taskdb.status_count(project)
+            self._cnt['all'].value((project, 'success'),
+                status_count.get(self.taskdb.SUCCESS, 0))
+            self._cnt['all'].value((project, 'failed'),
+                status_count.get(self.taskdb.FAILED, 0)+status_count.get(self.taskdb.BAD, 0))
         self._cnt['all'].value((project, 'pending'), len(self.task_queue[project]))
 
     def task_verify(self, task):
@@ -344,7 +350,7 @@ class Scheduler(object):
         self._cnt['5m'].event((project, 'pending'), +1)
         self._cnt['1h'].event((project, 'pending'), +1)
         self._cnt['1d'].event((project, 'pending'), +1)
-        self._cnt['all'].event((project, 'task'), +1).event((project, 'pending'), +1)
+        self._cnt['all'].event((project, 'pending'), +1)
         logger.debug('new task %(project)s:%(taskid)s %(url)s', task)
         return task
 
@@ -458,6 +464,7 @@ class Scheduler(object):
             self._cnt['5m'].event((project, 'retry'), +1)
             self._cnt['1h'].event((project, 'retry'), +1)
             self._cnt['1d'].event((project, 'retry'), +1)
+            #self._cnt['all'].event((project, 'retry'), +1)
             logger.info('task retry %d/%d %%(project)s:%%(taskid)s %%(url)s' % (
                 retried, retries), task)
             return task

@@ -164,7 +164,6 @@ class TestScheduler(unittest.TestCase):
             time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 1)
         self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['pending'], 1)
-        self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['task'], 1)
 
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
