@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2014-10-11 23:54:50
 
-import re
 import json
 import time
 from pymongo import MongoClient
@@ -18,7 +17,12 @@ class TaskDB(BaseTaskDB):
     def __init__(self, url, database='taskdb'):
         self.conn = MongoClient(url)
         self.database = self.conn[database]
+        self.projects = set()
+
         self._list_project()
+        for project in self.projects:
+            collection_name = self._collection_name(project)
+            self.database[collection_name].ensure_index('status')
 
     def _list_project(self):
         self.projects = set()
@@ -37,6 +41,8 @@ class TaskDB(BaseTaskDB):
             return project
 
     def _parse(self, data):
+        if '_id' in data:
+            del data['_id']
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:

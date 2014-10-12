@@ -76,6 +76,9 @@ def connect_database(url):
         if dbtype == 'taskdb':
             from .mongodb.taskdb import TaskDB
             return TaskDB(url, **parames)
+        elif dbtype == 'projectdb':
+            from .mongodb.projectdb import ProjectDB
+            return ProjectDB(url, **parames)
         else:
             raise Exception('unknow database type: %s' % dbtype)
     else:

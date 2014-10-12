@@ -242,7 +242,7 @@ class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
         self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
 @unittest.skipUnless(os.environ.get('TEST_MONGODB'), 'no mongodb server for test.')
-class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
+class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('mongodb+taskdb://localhost/pyspider_test_taskdb')
@@ -250,6 +250,16 @@ class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
+
+@unittest.skipUnless(os.environ.get('TEST_MONGODB'), 'no mongodb server for test.')
+class TestMongoDBTaskDB(TestProjectDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database('mongodb+projectdb://localhost/pyspider_test_projectdb')
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb.conn.drop_database(self.projectdb.database.name)
 
 if __name__ == '__main__':
     unittest.main()
