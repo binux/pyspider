@@ -4,4 +4,5 @@ python:
 install: "pip install --allow-all-external -r requirements.txt"
 script: ./runtest.sh
 services:
+    - mongodb
     - rabbitmq
