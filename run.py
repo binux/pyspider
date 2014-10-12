@@ -74,7 +74,7 @@ class g(object):
         scheduler_rpc = None
 
 # run commands ------------------------------------------
-def run_scheduler():
+def run_scheduler(g=g):
     from scheduler import Scheduler
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb,
             newtask_queue=g.newtask_queue, status_queue=g.status_queue,
@@ -83,14 +83,14 @@ def run_scheduler():
     run_in_thread(scheduler.xmlrpc_run, port=g.scheduler_xmlrpc_port, bind=g.webui_host)
     scheduler.run()
 
-def run_fetcher():
+def run_fetcher(g=g):
     from fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor)
 
     run_in_thread(fetcher.xmlrpc_run, port=g.fetcher_xmlrpc_port, bind=g.webui_host)
     fetcher.run()
 
-def run_processor():
+def run_processor(g=g):
     from processor import Processor
     processor = Processor(projectdb=g.projectdb,
             inqueue=g.fetcher2processor, status_queue=g.status_queue,
@@ -98,7 +98,7 @@ def run_processor():
     
     processor.run()
 
-def run_webui():
+def run_webui(g=g):
     import cPickle as pickle
 
     from webui.app import app
@@ -114,10 +114,10 @@ def all_in_one():
             'http://localhost:%d' % g.scheduler_xmlrpc_port)
 
     threads = []
-    threads.append(run_in_subprocess(run_fetcher))
-    threads.append(run_in_subprocess(run_processor))
-    threads.append(run_in_subprocess(run_scheduler))
-    threads.append(run_in_subprocess(run_webui))
+    threads.append(run_in_subprocess(run_fetcher, g=g))
+    threads.append(run_in_subprocess(run_processor, g=g))
+    threads.append(run_in_subprocess(run_scheduler, g=g))
+    threads.append(run_in_subprocess(run_webui, g=g))
 
     while True:
         try:
