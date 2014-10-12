@@ -67,5 +67,16 @@ def connect_database(url):
             return ProjectDB(path)
         else:
             raise Exception('unknow database type: %s' % dbtype)
+    elif engine == 'mongodb':
+        url = url.replace(parsed.scheme, 'mongodb')
+        parames = {}
+        if parsed.path.strip('/'):
+            parames['database'] = parsed.path.strip('/')
+
+        if dbtype == 'taskdb':
+            from .mongodb.taskdb import TaskDB
+            return TaskDB(url, **parames)
+        else:
+            raise Exception('unknow database type: %s' % dbtype)
     else:
         raise Exception('unknow engine: %s' % engine)

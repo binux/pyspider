@@ -120,7 +120,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         obj['project'] = project
         obj['updatetime'] = time.time()
         tablename = '%s_%s' % (self.__tablename__, project)
-        self._insert(tablename, **self._stringify(obj))
+        return self._insert(tablename, **self._stringify(obj))
         
     def update(self, project, taskid, obj={}, **kwargs):
         if project not in self.projects:
@@ -129,5 +129,5 @@ class TaskDB(BaseTaskDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
+        return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
                 **self._stringify(obj))
