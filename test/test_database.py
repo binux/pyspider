@@ -221,7 +221,7 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
     def tearDownClass(self):
         pass
 
-@unittest.skipUnless(os.environ.get('TEST_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -231,7 +231,7 @@ class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
     def tearDownClass(self):
         self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
 
-@unittest.skipUnless(os.environ.get('TEST_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -241,7 +241,7 @@ class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
     def tearDownClass(self):
         self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
-@unittest.skipUnless(os.environ.get('TEST_MONGODB'), 'no mongodb server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
 class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -251,7 +251,7 @@ class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
     def tearDownClass(self):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
 
-@unittest.skipUnless(os.environ.get('TEST_MONGODB'), 'no mongodb server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
 class TestMongoDBTaskDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):

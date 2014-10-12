@@ -12,7 +12,7 @@ import unittest
 from libs import utils
 from libs import rabbitmq
 
-@unittest.skipUnless(os.environ.get('TEST_RABBITMQ'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
 class TestRabbitMQ(unittest.TestCase):
     @classmethod
     def setUpClass(self):

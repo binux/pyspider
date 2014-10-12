@@ -17,7 +17,7 @@ ADD ./ /opt/pyspider
 
 # run test
 WORKDIR /opt/pyspider
-RUN ./runtest.sh
+RUN IGNORE_MYSQL=1 IGNORE_RABBITMQ=1 IGNORE_MONGODB=1 ./runtest.sh
 
 VOLUME ["/opt/pyspider/data"]
 
