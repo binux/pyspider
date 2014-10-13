@@ -65,6 +65,9 @@ def connect_database(url):
         elif dbtype == 'projectdb':
             from .sqlite.projectdb import ProjectDB
             return ProjectDB(path)
+        elif dbtype == 'resultdb':
+            from .sqlite.resultdb import ResultDB
+            return ResultDB(path)
         else:
             raise Exception('unknow database type: %s' % dbtype)
     elif engine == 'mongodb':

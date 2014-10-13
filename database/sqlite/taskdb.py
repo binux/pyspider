@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2014-02-08 10:25:34
 
-import os
 import re
 import time
 import json

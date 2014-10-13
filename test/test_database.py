@@ -202,6 +202,54 @@ class TestProjectDB(object):
         self.assertIn('status', project)
         self.assertNotIn('gourp', project)
 
+class TestResultDB(object):
+    @classmethod
+    def setUpClass(self):
+        raise NotImplemented()
+
+    @classmethod
+    def tearDownClass(self):
+        raise NotImplemented()
+
+    def test_10_save(self):
+        self.resultdb.save('test_project', 'test_taskid', 'test_url', 'result')
+        result = self.resultdb.get('test_project', 'test_taskid')
+        self.assertEqual(result['result'], 'result')
+
+        self.resultdb.save('test_project', 'test_taskid', 'test_url_updated', 'result_updated')
+        result = self.resultdb.get('test_project', 'test_taskid')
+        self.assertEqual(result['result'], 'result_updated')
+        self.assertEqual(result['url'], 'test_url_updated')
+
+    def test_20_get(self):
+        result = self.resultdb.get('test_project', 'not_exists')
+        self.assertIsNone(result)
+
+        result = self.resultdb.get('not_exists', 'test_taskid')
+        self.assertIsNone(result)
+
+        result = self.resultdb.get('test_project', 'test_taskid', fields=('url', ))
+        self.assertIn('url', result)
+        self.assertNotIn('result', result)
+
+    def test_30_select(self):
+        for i in range(5):
+            self.resultdb.save('test_project', 'test_taskid-%d' % i,
+                    'test_url', 'result-%d' % i)
+        ret = list(self.resultdb.select('test_project'))
+        self.assertEqual(len(ret), 6)
+
+        ret = list(self.resultdb.select('test_project', limit=4))
+        self.assertEqual(len(ret), 4)
+
+        for ret in self.resultdb.select('test_project', fields=('url', ), limit=1):
+            self.assertIn('url', ret)
+            self.assertNotIn('result', ret)
+
+    def test_40_count(self):
+        self.assertEqual(self.resultdb.count('test_project'), 6)
+
+
 class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -216,6 +264,15 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('sqlite+projectdb://')
+
+    @classmethod
+    def tearDownClass(self):
+        pass
+
+class TestSqliteResultDB(TestResultDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database('sqlite+resultdb://')
 
     @classmethod
     def tearDownClass(self):
