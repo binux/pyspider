@@ -76,6 +76,7 @@ window.Debugger = (function() {
         styleActiveLine: true
       });
       this.auto_format(cm);
+      cm.getDoc().clearHistory();
       cm.on('focus', function() {
         $el.addClass("focus");
       });
@@ -117,6 +118,12 @@ window.Debugger = (function() {
       var _this = this;
       $('#run-task-btn').on('click', function() {
         _this.run();
+      });
+      $('#undo-btn').on('click', function(ev) {
+        _this.task_editor.execCommand('undo');
+      });
+      $('#redo-btn').on('click', function(ev) {
+        _this.task_editor.execCommand('redo');
       });
     },
 
@@ -233,7 +240,6 @@ window.Debugger = (function() {
           } else {
             iframe.src = _this.render_html(data.fetch_result.content, true, true, false);
           }
-          $("#tab-control li[data-id=tab-web]").click();
 
           //html
           $("#tab-html pre").text(data.fetch_result.content);
@@ -272,6 +278,8 @@ window.Debugger = (function() {
           } else {
             $("#tab-control li[data-id=tab-messages] .num").hide();
           }
+
+          $("#tab-control li.active").click();
 
           // logs
           _this.python_log(data.logs);

@@ -98,14 +98,38 @@ body {
   cursor: pointer;
   font-weight: bold;
   line-height: 15px;
-  box-shadow: 0px 0px 30px @color;
 
   &:hover {
     background: darken(@color, 10%);
   }
 }
+
 #run-task-btn {
   .right-top-btn(@color: @green);
+}
+#undo-redo-btn-group {
+  @color: lighten(@green, 15%);
+  .right-top-btn(@color: @color);
+
+  top: auto;
+  bottom: 0;
+  border-radius: 5px 0 0 0;
+  padding: 5px 0 3px 0;
+  box-shadow: 0px 0px 30px @color;
+  overflow: hidden;
+
+  &:hover {
+    background: @color;
+  }
+
+  a {
+    color: white;
+    text-decoration: none;
+    padding: 5px 7px 3px 10px;
+    &:hover {
+      background: darken(@color, 10%);
+    }
+  }
 }
 #save-task-btn {
   .right-top-btn(@color: @blue);
