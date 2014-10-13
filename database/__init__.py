@@ -47,6 +47,9 @@ def connect_database(url):
         elif dbtype == 'projectdb':
             from .mysql.projectdb import ProjectDB
             return ProjectDB(**parames)
+        elif dbtype == 'resultdb':
+            from .mysql.resultdb import ResultDB
+            return ResultDB(**parames)
         else:
             raise Exception('unknow database type: %s' % dbtype)
     elif engine == 'sqlite':
@@ -82,6 +85,9 @@ def connect_database(url):
         elif dbtype == 'projectdb':
             from .mongodb.projectdb import ProjectDB
             return ProjectDB(url, **parames)
+        elif dbtype == 'resultdb':
+            from .mongodb.resultdb import ResultDB
+            return ResultDB(url, **parames)
         else:
             raise Exception('unknow database type: %s' % dbtype)
     else:

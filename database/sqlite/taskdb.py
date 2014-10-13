@@ -51,6 +51,7 @@ class TaskDB(BaseTaskDB, BaseDB):
                 schedule, fetch, process, track,
                 lastcrawltime, updatetime
                 )''' % tablename)
+        self._execute('''CREATE INDEX IF NOT EXISTS `status_index` ON %s (status)''' % self.escape(tablename))
 
     def _parse(self, data):
         for each in ('schedule', 'fetch', 'process', 'track'):

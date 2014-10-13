@@ -257,7 +257,7 @@ class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        pass
+        del self.taskdb
 
 
 class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
@@ -267,7 +267,7 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        pass
+        del self.projectdb
 
 class TestSqliteResultDB(TestResultDB, unittest.TestCase):
     @classmethod
@@ -276,7 +276,8 @@ class TestSqliteResultDB(TestResultDB, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        pass
+        del self.resultdb
+
 
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
@@ -298,6 +299,17 @@ class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
     def tearDownClass(self):
         self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+class TestMysqlResultDB(TestResultDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database('mysql+resultdb://localhost/pyspider_test_resultdb')
+
+    @classmethod
+    def tearDownClass(self):
+        self.resultdb._execute('DROP DATABASE pyspider_test_resultdb')
+
+
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
 class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
@@ -309,7 +321,7 @@ class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
 
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
-class TestMongoDBTaskDB(TestProjectDB, unittest.TestCase):
+class TestMongoDBProjectDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('mongodb+projectdb://localhost/pyspider_test_projectdb')
@@ -317,6 +329,16 @@ class TestMongoDBTaskDB(TestProjectDB, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.projectdb.conn.drop_database(self.projectdb.database.name)
+
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
+class TestMongoDBResultDB(TestResultDB, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database('mongodb+resultdb://localhost/pyspider_test_resultdb')
+
+    @classmethod
+    def tearDownClass(self):
+        self.resultdb.conn.drop_database(self.resultdb.database.name)
 
 if __name__ == '__main__':
     unittest.main()

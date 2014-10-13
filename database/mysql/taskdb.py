@@ -57,7 +57,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         tablename = self._tablename(project)
         if tablename in [x[0] for x in self._execute('show tables')]:
             return
-        self._execute('''CREATE TABLE %s (
+        self._execute('''CREATE TABLE IF NOT EXISTS %s (
             `taskid` varchar(64) PRIMARY KEY,
             `project` varchar(64),
             `url` varchar(1024),
@@ -67,15 +67,15 @@ class TaskDB(BaseTaskDB, BaseDB):
             `process` BLOB,
             `track` BLOB,
             `lastcrawltime` double(16, 4),
-            `updatetime` double(16, 4)
+            `updatetime` double(16, 4),
+            INDEX `status_index` (`status`)
             ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
-        self._execute('''CREATE INDEX `status_index` ON %s (status)''' % self.escape(tablename))
 
     def _parse(self, data):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    if type(data[each]) is bytearray:
+                    if isinstance(data[each], bytearray):
                         data[each] = str(data[each])
                     data[each] = json.loads(unicode(data[each], 'utf8'))
                 else:
