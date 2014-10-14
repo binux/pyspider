@@ -51,7 +51,8 @@ class g(object):
         from libs.rabbitmq import Queue
         amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                     ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
-        amqp = lambda name, amqp_url=amqp_url, queue_maxsize=queue_maxsize: Queue(name, amqp_url=amqp_url, maxsize=queue_maxsize)
+        amqp = lambda name, Queue=Queue, amqp_url=amqp_url, queue_maxsize=queue_maxsize: \
+                Queue(name, amqp_url=amqp_url, maxsize=queue_maxsize)
         newtask_queue = Get(lambda amqp=amqp: amqp("newtask_queue"))
         status_queue = Get(lambda amqp=amqp: amqp("status_queue"))
         scheduler2fetcher = Get(lambda amqp=amqp: amqp("scheduler2fetcher"))
@@ -66,7 +67,8 @@ class g(object):
     # scheduler_rpc
     if os.environ.get('SCHEDULER_NAME'):
         import xmlrpclib
-        scheduler_rpc = Get(lambda xmlrpclib=xmlrpclib: xmlrpclib.ServerProxy('http://%s:%s' % (
+        scheduler_rpc = Get(lambda xmlrpclib=xmlrpclib, scheduler_xmlrpc_port=scheduler_xmlrpc_port: \
+                xmlrpclib.ServerProxy('http://%s:%s' % (
             os.environ['SCHEDULER_PORT_%d_TCP_ADDR' % scheduler_xmlrpc_port],
             os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port]),
             allow_none=True))
