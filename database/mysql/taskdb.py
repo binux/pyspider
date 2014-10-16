@@ -19,6 +19,7 @@ class TaskDB(BaseTaskDB, BaseDB):
     __tablename__ = ''
     def __init__(self, host='localhost', port=3306, database='taskdb',
             user='root', passwd=None):
+        self.database_name = database
         self.conn = mysql.connector.connect(user=user, password=passwd,
                 host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
@@ -32,7 +33,7 @@ class TaskDB(BaseTaskDB, BaseDB):
             return self.conn.cursor()
         except mysql.connector.OperationalError as e:
             self.conn.ping(reconnect=True)
-            self.conn.database = database;
+            self.conn.database = self.database_name
             return self.conn.cursor()
 
     def _tablename(self, project):

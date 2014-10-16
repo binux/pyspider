@@ -9,7 +9,7 @@ demo code: [gist:9424801](https://gist.github.com/binux/9424801)
 Installation
 ============
 
-* python2.7
+* python2.6/2.7
 * `pip install -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
 

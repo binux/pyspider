@@ -17,6 +17,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
     def __init__(self, host='localhost', port=3306, database='projectdb',
             user='root', passwd=None):
+        self.database_name = database
         self.conn = mysql.connector.connect(user=user, password=passwd,
                 host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
@@ -40,7 +41,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
             return self.conn.cursor()
         except mysql.connector.OperationalError as e:
             self.conn.ping(reconnect=True)
-            self.conn.database = database;
+            self.conn.database = self.database_name
             return self.conn.cursor()
 
     def insert(self, name, obj={}):
