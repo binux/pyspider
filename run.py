@@ -30,6 +30,7 @@ class g(object):
     webui_port = int(os.environ.get('WEBUI_PORT', 5000))
     debug = bool(os.environ.get('DEBUG'))
     queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
+    demo_mode = bool(os.environ.get('DEMO_MODE'))
 
     # databases
     if os.environ.get('MYSQL_NAME'):
@@ -81,7 +82,8 @@ def run_scheduler(g=g):
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb,
             newtask_queue=g.newtask_queue, status_queue=g.status_queue,
             out_queue=g.scheduler2fetcher)
-    #scheduler.INQUEUE_LIMIT = 1000
+    if g.demo_mode:
+        scheduler.INQUEUE_LIMIT = 1000
 
     run_in_thread(scheduler.xmlrpc_run, port=g.scheduler_xmlrpc_port, bind=g.webui_host)
     scheduler.run()
@@ -109,8 +111,9 @@ def run_webui(g=g):
     app.config['projectdb'] = g.projectdb
     app.config['scheduler_rpc'] = g.scheduler_rpc
     #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
-    #app.config['max_rate'] = 0.2
-    #app.config['max_burst'] = 3.0
+    if g.demo_mode:
+        app.config['max_rate'] = 0.2
+        app.config['max_burst'] = 3.0
     app.run(host=g.webui_host, port=g.webui_port)
 
 def all_in_one():
