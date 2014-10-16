@@ -7,7 +7,7 @@
 
 import os
 import time
-import unittest
+import unittest2 as unittest
 
 from processor.processor import build_module
 class TestProjectModule(unittest.TestCase):

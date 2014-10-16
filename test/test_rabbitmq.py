@@ -7,7 +7,7 @@
 
 import os
 import time
-import unittest
+import unittest2 as unittest
 
 from libs import utils
 from libs import rabbitmq

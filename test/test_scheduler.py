@@ -8,7 +8,7 @@
 import os
 import time
 import shutil
-import unittest
+import unittest2 as unittest
 import logging
 import logging.config
 logging.config.fileConfig("logging.conf")

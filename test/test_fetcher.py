@@ -8,7 +8,7 @@
 import time
 import json
 import logging
-import unittest
+import unittest2 as unittest
 
 from libs import utils
 from fetcher.tornado_fetcher import Fetcher

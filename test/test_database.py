@@ -7,7 +7,7 @@
 
 import os
 import time
-import unittest
+import unittest2 as unittest
 
 import database
 from database.base.taskdb import TaskDB
