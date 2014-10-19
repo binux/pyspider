@@ -402,7 +402,7 @@ class Scheduler(object):
             ret = self.on_task_done(task)
         else:
             ret = self.on_task_failed(task)
-        self.projects[task['project']]['active_tasks'].append((time.time(), task))
+        self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return ret
 
     def on_task_done(self, task):
@@ -472,5 +472,5 @@ class Scheduler(object):
     def on_select_task(self, task):
         logger.debug('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
-        self.projects[task['project']]['active_tasks'].append((time.time(), task))
+        self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return task

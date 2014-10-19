@@ -18,8 +18,11 @@ def task(taskid):
 
     taskdb = app.config['taskdb']
     task = taskdb.get_task(project, taskid)
+    resultdb = app.config['resultdb']
+    if resultdb:
+        result = resultdb.get(project, taskid)
 
-    return render_template("task.html", task=task, json=json,
+    return render_template("task.html", task=task, json=json, result=result,
             status_to_string=app.config['taskdb'].status_to_string)
 
 @app.route('/tasks')

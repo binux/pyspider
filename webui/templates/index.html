@@ -71,16 +71,20 @@
               </div>
             </td>
             <td class="project-actions">
-              {% if config.scheduler_rpc is not none %}
+              # if config.scheduler_rpc is not none:
               <button class="project-run btn btn-default btn-xs">Run</button>
-              {% endif %}
+              <a class="btn btn-default btn-xs" href="/tasks?project={{ project.name }}" target=_blank>Active Tasks</a>
+              # endif
+              # if config.resultdb:
+              <a class="btn btn-default btn-xs" href="/results?project={{ project.name }}" target=_blank>Results</a>
+              # endif
             </td>
           </tr>
           {% endfor %}
           <tr>
             <td colspan=8>
               {% if config.scheduler_rpc is not none %}
-              <a class="btn btn-default btn-info" href='/tasks'>Recent Active Tasks</a>
+              <a class="btn btn-default btn-info" href='/tasks' target=_blank>Recent Active Tasks</a>
               {% endif %}
             </td>
             <td>

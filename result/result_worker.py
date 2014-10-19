@@ -33,10 +33,10 @@ class ResultWorker(object):
             try:
                 task, result = self.inqueue.get()
                 if 'taskid' in task and 'project' in task and 'url' in task:
-                    logger.info('result %s:%s %s -> %30r' % (
+                    logger.info('result %s:%s %s -> %.30r' % (
                         task['project'], task['taskid'], task['url'], result))
                 else:
-                    logger.warning('result UNKNOW -> %30r' % result)
+                    logger.warning('result UNKNOW -> %.30r' % result)
                 ret = self.on_result(task, result)
             except Queue.Empty as e:
                 time.sleep(1)

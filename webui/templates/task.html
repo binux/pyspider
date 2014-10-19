@@ -68,6 +68,12 @@
           <dd>{{ json.dumps(value, indent=2, ensure_ascii=False) if value is mapping else value }}</dd>
           {%- endfor %}
         </dl>
+        # if result and result.get('result'):
+        <dl>
+          <dt>result</dt>
+          <dd>{{ json.dumps(result['result'], indent=2, ensure_ascii=False) }}</dd>
+        </dl>
+        # endif
       </div>
   </body>
 </html>

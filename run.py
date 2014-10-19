@@ -138,17 +138,21 @@ def run_webui(g=g):
     from webui.app import app
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
+    app.config['resultdb'] = g.resultdb
     app.config['scheduler_rpc'] = g.scheduler_rpc
     #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
     if g.demo_mode:
         app.config['max_rate'] = 0.2
         app.config['max_burst'] = 3.0
+    if not getattr(g, 'all_in_one', False):
+        app.debug = True
     app.run(host=g.webui_host, port=g.webui_port)
 
 def all_in_one():
     import xmlrpclib
     g.scheduler_rpc = xmlrpclib.ServerProxy(
             'http://localhost:%d' % g.scheduler_xmlrpc_port)
+    g.all_in_one = True
 
     threads = []
     threads.append(run_in_subprocess(run_result_worker, g=g))

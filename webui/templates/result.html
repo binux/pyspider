@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>Results - {{ project }} - pyspider</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="results of {{ project }}">
+    <meta name="author" content="binux">
+    <link href="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='result.css') }}" rel="stylesheet">
+
+    <script src="{{ url_for('cdn', path='jquery/1.11.0/jquery.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
+  </head>
+
+  <body>
+    # set common_fields, results = result_formater(results)
+    <table class="table table-condensed table-striped">
+      <thead>
+        <th>url</th>
+        # for field in common_fields|sort
+        <th>
+          {{ field }}
+        </th>
+        # endfor
+        <th>
+          ...
+        </th>
+      </thead>
+      <tbody>
+        # for result in results
+        <tr>
+          <td><a class=url
+              href="/task/{{ project }}:{{ result.taskid }}" target=_blank>{{ result.url }}</a></td>
+          # for field in common_fields|sort
+          <td>{{ json.dumps(result.result_formated[field], ensure_ascii=False) | truncate(100) }}</td>
+          # endfor
+          <td>
+            {{ json.dumps(result.others, ensure_ascii=False) }}
+          </td>
+        # endfor
+      </tbody>
+    </table>
+
+    <ul class="pagination">
+      # set current_page = int(offset/limit) + (1 if offset%limit else 0)
+      # set total_page = int(count/limit) + (1 if count%limit else 0)
+      <li class="{{ "disabled" if current_page - 1 <= 0 else "" }}">
+        <a href="{% if current_page>1 %}/results?project={{ project }}&offset={{ (current_page-1)*limit }}&limit={{ limit }}{% endif %}">&laquo;</a>
+      </li>
+      # for i in range(0, total_page):
+      <li class="{% if i == current_page %}active{% endif %}">
+        <a href="/results?project={{ project }}&offset={{ i*limit }}&limit={{ limit }}">{{ i + 1 }}</a>
+      </li>
+      # endfor
+      <li class="{{ "disabled" if current_page + 1 >= total_page else "" }}">
+        <a href="{% if current_page+1<total_page %}/results?project={{ project }}&offset={{ (current_page+1)*limit }}&limit={{ limit }}{% endif %}">&raquo;</a>
+      </li>
+    </ul>
+  </body>
+</html>

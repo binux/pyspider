@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-22 23:17:13
 
+import __builtin__
 import os
 import sys
 import urlparse
@@ -14,6 +15,9 @@ from fetcher import tornado_fetcher
 app = Flask('webui',
         static_folder=os.path.join(os.path.dirname(__file__), 'static'),
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+app.jinja_env.line_statement_prefix = '#'
+app.jinja_env.globals.update(__builtin__.__dict__)
+
 app.config.update({
     'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(x)[1],
     'taskdb': None,

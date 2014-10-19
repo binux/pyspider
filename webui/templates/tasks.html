@@ -24,8 +24,8 @@
           <span class="status status-{{ task.status | default(3) }}">{{ status_to_string(task.status) if task.status else 'ERROR' }}</span>
         {% elif task.track %}
         <span class="status status-3">
-          {{ 'FETCH_ERROR' if task.track.fetch and not task.track.fetch.ok }}
-          {{ 'PROCESS_ERROR' if task.track.process and not task.track.process.ok }}
+          {{- 'FETCH_ERROR' if task.track.fetch and not task.track.fetch.ok -}}
+          {{- 'PROCESS_ERROR' if task.track.process and not task.track.process.ok -}}
         </span>
         {% else %}
           <span class="status status-2 }}">ERROR</span>
