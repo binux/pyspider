@@ -268,8 +268,9 @@ class BaseHandler(object):
     def on_message(self, project, msg):
         pass
 
-    def on_result(self, result):
-        pass
+    def on_result(self, result, response=None, task=None):
+        if self.__env__.get('result_queue'):
+            self.__env__['result_queue'].put((task, result))
 
     @not_send_status
     def _on_message(self, response):

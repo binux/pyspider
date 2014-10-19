@@ -18,8 +18,9 @@ class Handler(BaseHandler):
             self.crawl(each.attr.href, callback=self.index_page)
         return response.doc('title').text()
 
-    def on_result(self, result):
+    def on_result(self, result, response, task):
         if not result:
             return
         if self.__env__.get('debugger'):
             pprint(result)
+        super(Handler, self).on_result(result, response, task)

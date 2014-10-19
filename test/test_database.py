@@ -314,7 +314,7 @@ class TestMysqlResultDB(TestResultDB, unittest.TestCase):
 class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.taskdb = database.connect_database('mongodb+taskdb://localhost/pyspider_test_taskdb')
+        self.taskdb = database.connect_database('mongodb+taskdb://localhost:27017/pyspider_test_taskdb')
 
     @classmethod
     def tearDownClass(self):

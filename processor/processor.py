@@ -43,10 +43,11 @@ class Processor(object):
     PROCESS_TIME_LIMIT = 30
     CHECK_PROJECTS_INTERVAL = 5*60
 
-    def __init__(self, projectdb, inqueue, status_queue, newtask_queue):
+    def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue):
         self.inqueue = inqueue
         self.status_queue = status_queue
         self.newtask_queue = newtask_queue
+        self.result_queue = result_queue
         self.projectdb = projectdb
 
         self._quit = False
@@ -98,7 +99,8 @@ class Processor(object):
         self.last_check_projects = time.time()
 
     def _update_project(self, project):
-        self.projects[project['name']] = build_module(project)
+        self.projects[project['name']] = build_module(project, dict(
+            result_queue=self.result_queue))
 
     def on_task(self, task, response):
         start_time = time.time()

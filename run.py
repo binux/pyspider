@@ -33,19 +33,40 @@ class g(object):
     demo_mode = bool(os.environ.get('DEMO_MODE'))
 
     # databases
-    if os.environ.get('MYSQL_NAME'):
+    taskdb = None
+    projectdb = None
+    resultdb = None
+    if os.environ.get('TASKDB'):
+        if os.environ.get('TASKDB'):
+            taskdb = Get(lambda : connect_database(os.environ['TASKDB']))
+        if os.environ.get('PROJECTDB'):
+            projectdb = Get(lambda : connect_database(os.environ['PROJECTDB']))
+        if os.environ.get('RESULTDB'):
+            resultdb = Get(lambda : connect_database(os.environ['RESULTDB']))
+    elif os.environ.get('MYSQL_NAME'):
         taskdb = Get(lambda : connect_database(
                 'mysql+taskdb://%(MYSQL_PORT_3306_TCP_ADDR)s'
                 ':%(MYSQL_PORT_3306_TCP_PORT)s/taskdb' % os.environ))
         projectdb = Get(lambda : connect_database(
             'mysql+projectdb://%(MYSQL_PORT_3306_TCP_ADDR)s'
             ':%(MYSQL_PORT_3306_TCP_PORT)s/projectdb' % os.environ))
-    elif os.environ.get('TASKDB'):
-        taskdb = Get(lambda : connect_database(os.environ['TAKDB']))
-        projectdb = Get(lambda : connect_database(os.environ['PROJECTDB']))
+        resultdb = Get(lambda : connect_database(
+            'mysql+resultdb://%(MYSQL_PORT_3306_TCP_ADDR)s'
+            ':%(MYSQL_PORT_3306_TCP_PORT)s/resultdb' % os.environ))
+    elif os.environ.get('MONGODB_NAME'):
+        taskdb = Get(lambda : connect_database(
+            'mongodb+taskdb://%(MONGODB_PORT_27017_TCP_ADDR)s'
+            ':%(MONGODB_PORT_27017_TCP_PORT)s/taskdb' % os.environ))
+        projectdb = Get(lambda : connect_database(
+            'mongodb+projectdb://%(MONGODB_PORT_27017_TCP_ADDR)s'
+            ':%(MONGODB_PORT_27017_TCP_PORT)s/projectdb' % os.environ))
+        resultdb = Get(lambda : connect_database(
+            'mongodb+resultdb://%(MONGODB_PORT_27017_TCP_ADDR)s'
+            ':%(MONGODB_PORT_27017_TCP_PORT)s/resultdb' % os.environ))
     else:
         taskdb = Get(lambda : connect_database('sqlite+taskdb:///data/task.db'))
         projectdb = Get(lambda : connect_database('sqlite+projectdb:///data/project.db'))
+        resultdb = Get(lambda : connect_database('sqlite+resultdb:///data/resultdb.db'))
 
     # queue
     if os.environ.get('RABBITMQ_NAME'):
@@ -58,12 +79,14 @@ class g(object):
         status_queue = Get(lambda amqp=amqp: amqp("status_queue"))
         scheduler2fetcher = Get(lambda amqp=amqp: amqp("scheduler2fetcher"))
         fetcher2processor = Get(lambda amqp=amqp: amqp("fetcher2processor"))
+        processor2result = Get(lambda amqp=amqp: amqp("processor2result"))
     else:
         from multiprocessing import Queue
         newtask_queue = Queue(queue_maxsize)
         status_queue = Queue(queue_maxsize)
         scheduler2fetcher = Queue(queue_maxsize)
         fetcher2processor = Queue(queue_maxsize)
+        processor2result = Queue(queue_maxsize)
 
     # scheduler_rpc
     if os.environ.get('SCHEDULER_NAME'):
@@ -99,9 +122,15 @@ def run_processor(g=g):
     from processor import Processor
     processor = Processor(projectdb=g.projectdb,
             inqueue=g.fetcher2processor, status_queue=g.status_queue,
-            newtask_queue=g.newtask_queue)
+            newtask_queue=g.newtask_queue, result_queue=g.processor2result)
     
     processor.run()
+
+def run_result_worker(g=g):
+    from result import ResultWorker
+    result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
+
+    result_worker.run()
 
 def run_webui(g=g):
     import cPickle as pickle
@@ -122,8 +151,9 @@ def all_in_one():
             'http://localhost:%d' % g.scheduler_xmlrpc_port)
 
     threads = []
-    threads.append(run_in_subprocess(run_fetcher, g=g))
+    threads.append(run_in_subprocess(run_result_worker, g=g))
     threads.append(run_in_subprocess(run_processor, g=g))
+    threads.append(run_in_subprocess(run_fetcher, g=g))
     threads.append(run_in_subprocess(run_scheduler, g=g))
     threads.append(run_in_subprocess(run_webui, g=g))
 
