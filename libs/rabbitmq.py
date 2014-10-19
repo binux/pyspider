@@ -10,6 +10,7 @@ import cPickle
 import Queue as BaseQueue
 import socket
 import select
+import threading
 import pika
 import pika.exceptions
 
@@ -31,6 +32,7 @@ class Queue(object):
         self.name = name
         self.amqp_url = amqp_url
         self.maxsize = maxsize
+        self.lock = threading.Lock()
 
         self._last_ack = None
         self.reconnect()
@@ -43,7 +45,8 @@ class Queue(object):
 
     @catch_error
     def qsize(self):
-        ret = self.channel.queue_declare(self.name, passive=True)
+        with self.lock:
+            ret = self.channel.queue_declare(self.name, passive=True)
         return ret.method.message_count
 
     def empty(self):
@@ -64,18 +67,25 @@ class Queue(object):
             return self.put_nowait()
 
         start_time = time.time()
-        while self.full():
-            lasted = time.time() - start_time
-            if timeout and lasted >= timeout:
-                raise BaseQueue.Full
-            time.sleep(min(self.max_timeout, timeout - lasted))
-        return self.channel.basic_publish("", self.name, cPickle.dumps(obj))
+        while True:
+            try:
+                return self.put_nowait(obj)
+            except BaseQueue.Full as e:
+                if timeout:
+                    lasted = time.time() - start_time
+                    if timeout > lasted:
+                        time.sleep(min(self.max_timeout, timeout - lasted))
+                    else:
+                        raise
+                else:
+                    time.sleep(self.max_timeout)
 
     @catch_error
     def put_nowait(self, obj):
         if self.full():
             raise BaseQueue.Full
-        return self.channel.basic_publish("", self.name, cPickle.dumps(obj))
+        with self.lock:
+            return self.channel.basic_publish("", self.name, cPickle.dumps(obj))
 
     @catch_error
     def get(self, block=True, timeout=None, ack=True):
@@ -84,26 +94,28 @@ class Queue(object):
 
         start_time = time.time()
         while True:
-            lasted = time.time() - start_time
-            if timeout and lasted >= timeout:
-                raise BaseQueue.Empty
             try:
                 return self.get_nowait(ack)
             except BaseQueue.Empty as e:
-                if timeout and timeout > lasted:
-                    time.sleep(min(self.max_timeout, timeout - lasted))
+                if timeout:
+                    lasted = time.time() - start_time
+                    if timeout > lasted:
+                        time.sleep(min(self.max_timeout, timeout - lasted))
+                    else:
+                        raise
                 else:
-                    raise
+                    time.sleep(self.max_timeout)
 
     @catch_error
     def get_nowait(self, ack=True):
-        method_frame, header_frame, body = self.channel.basic_get(self.name)
-        if method_frame is None:
-            raise BaseQueue.Empty
-        if ack:
-            self.channel.basic_ack(method_frame.delivery_tag)
-        else:
-            self._last_ack = method_frame.delivery_tag
+        with self.lock:
+            method_frame, header_frame, body = self.channel.basic_get(self.name)
+            if method_frame is None:
+                raise BaseQueue.Empty
+            if ack:
+                self.channel.basic_ack(method_frame.delivery_tag)
+            else:
+                self._last_ack = method_frame.delivery_tag
         return cPickle.loads(body)
 
     @catch_error
@@ -112,9 +124,12 @@ class Queue(object):
             id = self._last_ack
         if id is None:
             return False
-        self.channel.basic_ack(id)
+        with self.lock:
+            self.channel.basic_ack(id)
         return True
 
     @catch_error
     def delete(self):
-        return self.channel.queue_delete(queue=self.name)
+        with self.lock:
+            return self.channel.queue_delete(queue=self.name)
+

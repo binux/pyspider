@@ -19,12 +19,19 @@ class TestRabbitMQ(unittest.TestCase):
         with utils.timeout(3):
             self.q1 = rabbitmq.Queue('test_queue', maxsize=5)
             self.q2 = rabbitmq.Queue('test_queue', maxsize=5)
+            self.q3 = rabbitmq.Queue('test_queue_for_threading_test')
+        self.q2.delete()
+        self.q2.reconnect()
+        self.q3.delete()
+        self.q3.reconnect()
 
     @classmethod
     def tearDownClass(self):
         self.q2.delete()
+        self.q3.delete()
         del self.q1
         del self.q2
+        del self.q3
 
     def test_10_put(self):
         self.assertEqual(self.q1.qsize(), 0)
@@ -38,8 +45,6 @@ class TestRabbitMQ(unittest.TestCase):
     def test_20_get(self):
         self.assertEqual(self.q1.get(timeout=0.01), 'TEST_DATA1')
         self.assertEqual(self.q2.get_nowait(), 'TEST_DATA2')
-        with self.assertRaises(self.q1.Empty):
-            self.q2.get()
         with self.assertRaises(self.q1.Empty):
             self.q2.get(timeout=0.01)
         with self.assertRaises(self.q1.Empty):
@@ -56,3 +61,14 @@ class TestRabbitMQ(unittest.TestCase):
             self.q1.put('TEST_DATA6', timeout=0.01)
         with self.assertRaises(self.q1.Full):
             self.q1.put_nowait('TEST_DATA6')
+
+    def test_40_multiple_threading_error(self):
+        def put(q):
+            for i in range(100):
+                q.put("DATA_%d" % i)
+        def get(q):
+            for i in range(100):
+                q.get()
+
+        thread = utils.run_in_thread(put, self.q3)
+        get(self.q3)

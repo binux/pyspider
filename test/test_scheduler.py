@@ -61,9 +61,9 @@ class TestBucket(unittest.TestCase):
         bucket.desc(100)
         self.assertEqual(bucket.get(), 900)
         time.sleep(0.1)
-        self.assertAlmostEqual(bucket.get(), 910, 0)
+        self.assertAlmostEqual(bucket.get(), 910, delta=2)
         time.sleep(0.1)
-        self.assertAlmostEqual(bucket.get(), 920, 0)
+        self.assertAlmostEqual(bucket.get(), 920, delta=2)
 
 
 import xmlrpclib

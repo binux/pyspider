@@ -5,7 +5,13 @@
 #         http://binux.me
 # Created on 2014-10-16 23:55:41
 
+import sys
 import unittest2 as unittest
 
-suite = unittest.TestLoader().discover('test', "test_*.py")
-unittest.TextTestRunner(verbosity=1).run(suite)
+if __name__ == '__main__':
+    glob = "test_*.py"
+    if len(sys.argv) > 1:
+        glob = sys.argv[1]
+
+    suite = unittest.TestLoader().discover('test', glob)
+    unittest.TextTestRunner(verbosity=1).run(suite)
