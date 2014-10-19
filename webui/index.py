@@ -7,8 +7,6 @@
 
 from app import app
 from flask import abort, render_template, request, json
-from libs.utils import timeout
-
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', ]
 @app.route('/')
@@ -43,8 +41,7 @@ def project_update():
     ret = projectdb.update(project, update)
     if ret:
         rpc = app.config['scheduler_rpc']
-        with timeout(3):
-            rpc.update_project()
+        rpc.update_project()
         return 'ok', 200
     else:
         return 'update error', 500
@@ -58,8 +55,7 @@ def counter():
     time = request.args['time']
     type = request.args.get('type', 'sum')
 
-    with timeout(3):
-        return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
+    return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
 
 @app.route('/run', methods=['POST', ])
 def runtask():
@@ -82,6 +78,5 @@ def runtask():
             },
         }
 
-    with timeout(3):
-        ret = rpc.newtask(newtask)
+    ret = rpc.newtask(newtask)
     return json.dumps({"result": ret}), 200, {'Content-Type': 'application/json'}
