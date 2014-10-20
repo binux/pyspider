@@ -18,7 +18,7 @@ def catch_error(func):
     def wrap(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
-        except (select.error, socket.error, pika.exceptions.AMQPConnectionError) as e:
+        except (select.error, socket.error, pika.exceptions.ConnectionClosed, pika.exceptions.AMQPConnectionError) as e:
             self.reconnect()
             raise
     return wrap
