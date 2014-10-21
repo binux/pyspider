@@ -42,6 +42,7 @@ def build_module(project, env={}):
 class Processor(object):
     PROCESS_TIME_LIMIT = 30
     CHECK_PROJECTS_INTERVAL = 5*60
+    EXCEPTION_LIMIT = 3
 
     def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue):
         self.inqueue = inqueue
@@ -51,6 +52,7 @@ class Processor(object):
         self.projectdb = projectdb
 
         self._quit = False
+        self._exceptions = 10
         self.projects = {}
         self.last_check_projects = 0
 
@@ -178,6 +180,7 @@ class Processor(object):
                 task, response = self.inqueue.get()
                 self._check_projects(task)
                 self.on_task(task, response)
+                self._exceptions = 0
             except Queue.Empty as e:
                 time.sleep(1)
                 continue
@@ -185,4 +188,7 @@ class Processor(object):
                 break
             except Exception as e:
                 logger.exception(e)
+                self._exceptions += 1
+                if self._exceptions > self.EXCEPTION_LIMIT:
+                    break
                 continue

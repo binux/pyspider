@@ -30,6 +30,7 @@ class Scheduler(object):
     LOOP_INTERVAL = 0.1
     ACTIVE_TASKS = 100
     INQUEUE_LIMIT = 0
+    EXCEPTION_LIMIT = 3
     
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data'):
         self.taskdb = taskdb
@@ -40,6 +41,7 @@ class Scheduler(object):
         self.data_path = data_path
 
         self._quit = False
+        self._exceptions = 0
         self.projects = dict()
         self._last_update_project = 0
         self.task_queue = dict()
@@ -281,15 +283,23 @@ class Scheduler(object):
 
         while not self._quit:
             try:
+                time.sleep(self.LOOP_INTERVAL)
                 self._update_projects()
                 self._check_task_done()
                 self._check_request()
                 while self._check_cronjob():
                     pass
                 self._check_select()
-                time.sleep(self.LOOP_INTERVAL)
+                self._try_dump_cnt()
+                self._exceptions = 0
             except KeyboardInterrupt:
                 break
+            except Exception as e:
+                logger.exception(e)
+                self._exceptions += 1
+                if self._exceptions > self.EXCEPTION_LIMIT:
+                    break
+                continue
 
         logger.info("scheduler exiting...")
         self._dump_cnt()
