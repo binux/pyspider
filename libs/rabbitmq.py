@@ -20,7 +20,7 @@ def catch_error(func):
             return func(self, *args, **kwargs)
         except (select.error, socket.error, pika.exceptions.ConnectionClosed, pika.exceptions.AMQPConnectionError) as e:
             self.reconnect()
-            raise
+            return func(self, *args, **kwargs)
     return wrap
 
 class Queue(object):
