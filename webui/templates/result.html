@@ -17,6 +17,19 @@
   </head>
 
   <body>
+    <div class="top-bar">
+      <h1>{{ project }} - Results</h1>
+      <div class="btn-group">
+        <a href="/results/dump/{{ project }}.json"
+          target="_blank" class="btn btn-default btn-sm">
+          <span class="glyphicon glyphicon-download-alt"></span>
+          JSON</a>
+        <a href="/results/dump/{{ project }}.txt"
+          target="_blank" class="btn btn-default btn-sm">URL-JSON</a>
+        <a href="/results/dump/{{ project }}.csv"
+          target="_blank" class="btn btn-default btn-sm">CSV</a>
+      </div>
+    </div>
     # set common_fields, results = result_formater(results)
     <table class="table table-condensed table-striped">
       <thead>

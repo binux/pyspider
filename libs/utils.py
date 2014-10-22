@@ -149,3 +149,8 @@ except ImportError:
             pass
         def __exit__(self, type, value, traceback):
             pass
+
+def utf8(string):
+    if isinstance(string, unicode):
+        return string.encode('utf8')
+    return string
