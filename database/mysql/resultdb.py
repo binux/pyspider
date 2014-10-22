@@ -27,6 +27,8 @@ class ResultDB(BaseResultDB, BaseDB):
     @property
     def dbcur(self):
         try:
+            if self.conn.unread_result:
+                self.conn.get_rows()
             return self.conn.cursor()
         except mysql.connector.OperationalError as e:
             self.conn.ping(reconnect=True)

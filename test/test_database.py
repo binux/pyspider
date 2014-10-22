@@ -249,6 +249,10 @@ class TestResultDB(object):
     def test_40_count(self):
         self.assertEqual(self.resultdb.count('test_project'), 6)
 
+    def test_50_select_not_finished(self):
+        for i in self.resultdb.select('test_project'):
+            break
+        self.assertEqual(self.resultdb.count('test_project'), 6)
 
 class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod
