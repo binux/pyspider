@@ -150,8 +150,12 @@ class BaseHandler(object):
 
         try:
             sys.stdout = ListO(module.log_buffer)
-            result = self._run(task, response)
-            self._run_func(self.on_result, result, response, task)
+            if inspect.isgeneratorfunction(self._run):
+                for result in self._run(task, response):
+                    self._run_func(self.on_result, result, response, task)
+            else:
+                result = self._run(task, response)
+                self._run_func(self.on_result, result, response, task)
         except Exception, e:
             logger.exception(e)
             exception = e
@@ -262,8 +266,8 @@ class BaseHandler(object):
                 result.append(self._crawl(each, **kwargs))
             return result
 
-    def send_message(self, project, msg):
-        self._messages.append((project, msg))
+    def send_message(self, project, msg, url='data:,on_message'):
+        self._messages.append((project, msg, url))
 
     def on_message(self, project, msg):
         pass

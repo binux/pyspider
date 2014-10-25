@@ -30,6 +30,7 @@ def build_module(project, env={}):
     instance = _class()
     instance.__env__ = env
     instance._project_name = project['name']
+    instance._project = project
 
     return {
         'loader': loader,
@@ -149,17 +150,17 @@ class Processor(object):
         for newtask in ret.follows:
             self.newtask_queue.put(newtask)
 
-        for project, msg in ret.messages:
+        for project, msg, url in ret.messages:
             self.inqueue.put(({
-                    'taskid': 'data:,on_message',
+                    'taskid': utils.md5string(url),
                     'project': project,
-                    'url': 'data:,on_message',
+                    'url': url,
                     'process': {
                         'callback': '_on_message',
                         }
                 }, {
                     'status_code': 200,
-                    'url': 'data:,on_message',
+                    'url': url,
                     'save': (task['project'], msg),
                 }))
 
