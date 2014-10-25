@@ -122,7 +122,7 @@ class Processor(object):
         process_time = time.time() - start_time
 
         if not ret.extinfo.get('not_send_status', False):
-            status_pack = {
+            status_pack = utils.unicode_obj({
                     'taskid': task['taskid'],
                     'project': task['project'],
                     'url': task.get('url'),
@@ -141,10 +141,10 @@ class Processor(object):
                             'follows': len(ret.follows),
                             'result': unicode(ret.result)[:100],
                             'logs': ret.logstr()[:200],
-                            'exception': unicode(ret.exception),
-                            }
-                        }
-                    }
+                            'exception': ret.exception,
+                            },
+                        },
+                    })
             self.status_queue.put(status_pack)
 
         for newtask in ret.follows:

@@ -154,3 +154,37 @@ def utf8(string):
     if isinstance(string, unicode):
         return string.encode('utf8')
     return string
+
+def pretty_unicode(string):
+    if isinstance(string, unicode):
+        return string
+    try:
+        return string.decode("utf8")
+    except UnicodeDecodeError as e:
+        return string.decode('Latin-1').encode('unicode_escape')
+
+def unicode_dict(_dict):
+    r = {}
+    for k, v in _dict.iteritems():
+        r[pretty_unicode(k)] = unicode_obj(v)
+    return r
+
+def unicode_list(_list):
+    return [unicode_obj(x) for x in _list]
+
+def unicode_obj(obj):
+    if isinstance(obj, dict):
+        return unicode_dict(obj)
+    elif isinstance(obj, (list, tuple)):
+        return unicode_list(obj)
+    elif isinstance(obj, basestring):
+        return pretty_unicode(obj)
+    elif isinstance(obj, (int, float)):
+        return obj
+    elif obj is None:
+        return obj
+    else:
+        try:
+            return unicode(obj)
+        except:
+            return unicode(repr(obj))

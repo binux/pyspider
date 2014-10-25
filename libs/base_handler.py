@@ -14,19 +14,19 @@ import traceback
 import fractions
 from libs.log import LogFormatter
 from libs.url import quote_chinese, _build_url
-from libs.utils import md5string, hide_me
+from libs.utils import md5string, hide_me, unicode_obj
 from libs.ListIO import ListO
 from libs.response import rebuild_response
 from collections import namedtuple
 
 class ProcessorResult(object):
     def __init__(self, result, follows, messages, logs, exception, extinfo):
-        self.result = result
-        self.follows = follows
-        self.messages = messages
+        self.result = unicode_obj(result)
+        self.follows = unicode_obj(follows)
+        self.messages = unicode_obj(messages)
         self.logs = logs
-        self.exception = exception
-        self.extinfo = extinfo
+        self.exception = unicode_obj(exception)
+        self.extinfo = unicode_obj(extinfo)
 
     def rethrow(self):
         if self.exception:
