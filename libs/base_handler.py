@@ -18,6 +18,7 @@ from libs.utils import md5string, hide_me, unicode_obj
 from libs.ListIO import ListO
 from libs.response import rebuild_response
 from collections import namedtuple
+from libs.pprint import pprint
 
 class ProcessorResult(object):
     def __init__(self, result, follows, messages, logs, exception, extinfo):
