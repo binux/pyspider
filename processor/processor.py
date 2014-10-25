@@ -107,15 +107,14 @@ class Processor(object):
     def on_task(self, task, response):
         start_time = time.time()
         try:
-            with utils.timeout(self.PROCESS_TIME_LIMIT):
-                response = rebuild_response(response)
-                assert 'taskid' in task, 'need taskid in task'
-                project = task['project']
-                if project not in self.projects:
-                    raise LookupError("not such project: %s" % project)
-                project_data = self.projects[project]
-                ret = project_data['instance'].run(
-                        project_data['module'], task, response)
+            response = rebuild_response(response)
+            assert 'taskid' in task, 'need taskid in task'
+            project = task['project']
+            if project not in self.projects:
+                raise LookupError("not such project: %s" % project)
+            project_data = self.projects[project]
+            ret = project_data['instance'].run(
+                    project_data['module'], task, response)
         except Exception, e:
             logger.exception(e)
             return False

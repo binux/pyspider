@@ -60,16 +60,12 @@ def dump_result(project, _format):
     if _format == 'json':
         def generator():
             for result in resultdb.select(project):
-                yield json.dumps(result, ensure_ascii=False)
-                yield '\n'
+                yield json.dumps(result, ensure_ascii=False)+'\n'
         return Response(generator(), mimetype='application/json')
     elif _format == 'txt':
         def generator():
             for result in resultdb.select(project):
-                yield result['url']
-                yield '\t'
-                yield json.dumps(result)
-                yield '\n'
+                yield result['url']+'\t'+json.dumps(result['result'], ensure_ascii=False)+'\n'
         return Response(generator(), mimetype='text/plain')
     elif _format == 'csv':
         def toString(obj):
