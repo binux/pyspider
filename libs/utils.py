@@ -86,16 +86,16 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
     if not full_format:
         if relative and days == 0:
             if seconds < 50:
-                return ("1 second ago" if seconds == 1 else \
+                return ("1 second ago" if seconds <= 1 else \
                         "%(seconds)d seconds ago") % {"seconds": seconds}
 
             if seconds < 50 * 60:
                 minutes = round(seconds / 60.0)
-                return ("1 minute ago" if minutes == 1 else \
+                return ("1 minute ago" if minutes <= 1 else \
                         "%(minutes)d minutes ago") % {"minutes": minutes}
 
             hours = round(seconds / (60.0 * 60))
-            return ("1 hour ago" if hours else \
+            return ("1 hour ago" if hours <= 1 else \
                     "%(hours)d hours ago" ) % {"hours": hours}
 
         if days == 0:
