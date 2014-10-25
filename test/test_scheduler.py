@@ -102,7 +102,7 @@ class TestScheduler(unittest.TestCase):
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
             scheduler.INQUEUE_LIMIT = 10
-            scheduler._last_tick = time.time() # not dispatch cronjob
+            scheduler._last_tick = int(time.time()) # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
 

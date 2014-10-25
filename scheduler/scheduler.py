@@ -43,6 +43,7 @@ class Scheduler(object):
         self._quit = False
         self._exceptions = 0
         self.projects = dict()
+        self._force_update_project = False
         self._last_update_project = 0
         self.task_queue = dict()
         self._last_tick = int(time.time())
@@ -71,16 +72,20 @@ class Scheduler(object):
 
     def _update_projects(self):
         now = time.time()
-        if self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now:
+        if not self._force_update_project and self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now:
             return
         for project in self.projectdb.check_update(self._last_update_project):
             self._update_project(project)
             logger.debug("project: %s updated.", project['name'])
+        self._force_update_project = False
         self._last_update_project = now
 
     def _update_project(self, project):
-        self.projects[project['name']] = project
-        self.projects[project['name']]['active_tasks'] = deque(maxlen=self.ACTIVE_TASKS)
+        if project['name'] not in self.projects:
+            self.projects[project['name']] = {}
+        self.projects[project['name']].update(project)
+        if not self.projects[project['name']].get('active_tasks', None):
+            self.projects[project['name']]['active_tasks'] = deque(maxlen=self.ACTIVE_TASKS)
 
         # load task queue when project is running and delete task_queue when project is stoped
         if project['status'] in ('RUNNING', 'DEBUG'):
@@ -215,6 +220,7 @@ class Scheduler(object):
         check projects cronjob tick, return True when a new tick is sended
         """
         now = time.time()
+        self._last_tick = int(self._last_tick)
         if now - self._last_tick < 1:
             return False
         self._last_tick += 1
@@ -223,7 +229,7 @@ class Scheduler(object):
                 continue
             if project.get('min_tick', 0) == 0:
                 continue
-            if self._last_tick % project['min_tick'] != 0:
+            if self._last_tick % int(project['min_tick']) != 0:
                 continue
             self.send_task({
                 'taskid': '_on_cronjob',
@@ -326,7 +332,7 @@ class Scheduler(object):
         server.register_function(new_task, 'newtask')
 
         def update_project():
-            self._last_update_project = 0
+            self._force_update_project = True
         server.register_function(update_project, 'update_project')
 
         def get_active_tasks(project=None, limit=100):
