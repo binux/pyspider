@@ -3,7 +3,6 @@
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Created on __DATE__
 
-from libs.pprint import pprint
 from libs.base_handler import *
 
 class Handler(BaseHandler):
@@ -13,14 +12,17 @@ class Handler(BaseHandler):
     def on_start(self):
         self.crawl('http://www.baidu.com/', callback=self.index_page)
 
+    @every(minutes=1, seconds=10)
+    def some_cronjob(self):
+        self.on_start()
+
+    @config(age=10*24*60*60)
     def index_page(self, response):
         for each in response.doc('a[href^="http://"]').items():
-            self.crawl(each.attr.href, callback=self.index_page)
-        return response.doc('title').text()
+            self.crawl(each.attr.href, callback=self.detail_page)
 
-    def on_result(self, result, response, task):
-        if not result:
-            return
-        if self.__env__.get('debugger'):
-            pprint(result)
-        super(Handler, self).on_result(result, response, task)
+    def detail_page(self, response):
+        return {
+                "url": response.url,
+                "title": response.doc('title').text(),
+                }

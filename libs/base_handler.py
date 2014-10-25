@@ -156,6 +156,8 @@ class BaseHandler(object):
         result = None
         exception = None
         stdout = sys.stdout
+        self.task = task
+        self.response = response
 
         try:
             sys.stdout = ListO(module.log_buffer)
@@ -169,6 +171,8 @@ class BaseHandler(object):
             logger.exception(e)
             exception = e
         finally:
+            self.task = None
+            self.response = None
             sys.stdout = stdout
             follows = self._follows
             messages = self._messages
@@ -230,7 +234,7 @@ class BaseHandler(object):
         if process:
             task['process'] = process
 
-        task['project'] = self._project_name
+        task['project'] = self.project_name
         task['url'] = url
         task['taskid'] = task.get('taskid') or md5string(url)
 
@@ -275,15 +279,23 @@ class BaseHandler(object):
                 result.append(self._crawl(each, **kwargs))
             return result
 
+    def is_debugger(self):
+        return self.__env__.get('debugger')
+
     def send_message(self, project, msg, url='data:,on_message'):
         self._messages.append((project, msg, url))
 
     def on_message(self, project, msg):
         pass
 
-    def on_result(self, result, response=None, task=None):
+    def on_result(self, result):
+        if not result:
+            return
+        assert self.task, "on_result can't outside a callback."
+        if self.is_debugger():
+            pprint(result)
         if self.__env__.get('result_queue'):
-            self.__env__['result_queue'].put((task, result))
+            self.__env__['result_queue'].put((self.task, result))
 
     @not_send_status
     def _on_message(self, response):
