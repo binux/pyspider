@@ -18,6 +18,7 @@ from libs.utils import md5string, hide_me
 from libs.ListIO import ListO
 from libs.response import rebuild_response
 from collections import namedtuple
+from libs.pprint import pprint
 
 class ProcessorResult(object):
     def __init__(self, result, follows, messages, logs, exception, extinfo):
@@ -273,6 +274,7 @@ class BaseHandler(object):
         pass
 
     def on_result(self, result, response=None, task=None):
+        pprint(result)
         if self.__env__.get('result_queue'):
             self.__env__['result_queue'].put((task, result))
 

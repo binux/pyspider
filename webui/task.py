@@ -18,6 +18,8 @@ def task(taskid):
 
     taskdb = app.config['taskdb']
     task = taskdb.get_task(project, taskid)
+    if not task:
+        abort(404)
     resultdb = app.config['resultdb']
     if resultdb:
         result = resultdb.get(project, taskid)
