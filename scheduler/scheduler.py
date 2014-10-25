@@ -424,9 +424,9 @@ class Scheduler(object):
         self.update_task(task)
 
         project = task['project']
-        self._cnt['5m'].event((project, 'success'), +1).event((project, 'pending'), -1)
-        self._cnt['1h'].event((project, 'success'), +1).event((project, 'pending'), -1)
-        self._cnt['1d'].event((project, 'success'), +1).event((project, 'pending'), -1)
+        self._cnt['5m'].event((project, 'success'), +1)
+        self._cnt['1h'].event((project, 'success'), +1)
+        self._cnt['1d'].event((project, 'success'), +1)
         self._cnt['all'].event((project, 'success'), +1).event((project, 'pending'), -1)
         logger.debug('task done %(project)s:%(taskid)s %(url)s', task)
         return task
@@ -457,9 +457,9 @@ class Scheduler(object):
             self.update_task(task)
 
             project = task['project']
-            self._cnt['5m'].event((project, 'failed'), +1).event((project, 'pending'), -1)
-            self._cnt['1h'].event((project, 'failed'), +1).event((project, 'pending'), -1)
-            self._cnt['1d'].event((project, 'failed'), +1).event((project, 'pending'), -1)
+            self._cnt['5m'].event((project, 'failed'), +1)
+            self._cnt['1h'].event((project, 'failed'), +1)
+            self._cnt['1d'].event((project, 'failed'), +1)
             self._cnt['all'].event((project, 'failed'), +1).event((project, 'pending'), -1)
             logger.info('task failed %(project)s:%(taskid)s %(url)s' % task)
             return task
