@@ -13,7 +13,7 @@ import functools
 import traceback
 import fractions
 from libs.log import LogFormatter
-from libs.url import quote_chinese, _build_url
+from libs.url import quote_chinese, _build_url, _encode_params
 from libs.utils import md5string, hide_me, unicode_obj
 from libs.ListIO import ListO
 from libs.response import rebuild_response
