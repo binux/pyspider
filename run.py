@@ -144,6 +144,9 @@ def run_webui(g=g):
     if g.demo_mode:
         app.config['max_rate'] = 0.2
         app.config['max_burst'] = 3.0
+    if 'WEBUI_USERNAME' in os.environ:
+        app.config['webui_username'] = os.environ['WEBUI_USERNAME']
+        app.config['webui_password'] = os.environ.get('WEBUI_PASSWORD', '')
     if not getattr(g, 'all_in_one', False):
         app.debug = True
     app.run(host=g.webui_host, port=g.webui_port)

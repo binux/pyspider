@@ -13,6 +13,8 @@ import datetime
 import traceback
 from app import app
 from flask import abort, render_template, request, json
+from flask.ext import login
+
 from libs.utils import hide_me
 from libs.response import rebuild_response
 from processor.processor import build_module
@@ -126,12 +128,18 @@ def save(project):
         return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']
     script = request.form['script']
-    old_project = projectdb.get(project, fields=['name', 'status', ])
-    if old_project:
+    project_info = projectdb.get(project, fields=['name', 'status', 'group'])
+    if not project_info:
+        return "not such project.", 404
+    if 'lock' in projectdb.split_group(project_info.get('group')) \
+            and not login.current_user.is_active():
+        return app.login_response
+
+    if project_info:
         info = {
             'script': script,
             }
-        if old_project.get('status') in ('DEBUG', 'RUNNING', ):
+        if project_info.get('status') in ('DEBUG', 'RUNNING', ):
             info['status'] = 'CHECKING'
         projectdb.update(project, info)
     else:
@@ -145,7 +153,8 @@ def save(project):
         projectdb.insert(project, info)
 
     rpc = app.config['scheduler_rpc']
-    rpc.update_project()
+    if rpc:
+        rpc.update_project()
 
     return 'OK', 200
 

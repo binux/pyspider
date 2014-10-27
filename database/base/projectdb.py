@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-09 11:28:52
 
+import re
 import time
 
 {
@@ -45,3 +46,6 @@ class ProjectDB(object):
 
     def check_update(self, timestamp, fields=None):
         raise NotImplementedError
+
+    def split_group(self, group):
+        return re.split("\W+", group or '')

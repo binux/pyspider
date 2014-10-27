@@ -5,8 +5,10 @@
 #         http://binux.me
 # Created on 2014-02-22 23:20:39
 
+import re
 from app import app
 from flask import abort, render_template, request, json
+from flask.ext import login
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', ]
 @app.route('/')
@@ -20,6 +22,13 @@ def project_update():
     project = request.form['pk']
     name = request.form['name']
     value = request.form['value']
+
+    project_info = projectdb.get(project, fields=('name', 'group'))
+    if not project_info:
+        return "not such project.", 404
+    if 'lock' in projectdb.split_group(project_info.get('group')) \
+            and not login.current_user.is_active():
+        return app.login_response
 
     if name not in ('group', 'status', 'rate'):
         return 'unknow field: %s' % name, 400
@@ -41,7 +50,8 @@ def project_update():
     ret = projectdb.update(project, update)
     if ret:
         rpc = app.config['scheduler_rpc']
-        rpc.update_project()
+        if rpc:
+            rpc.update_project()
         return 'ok', 200
     else:
         return 'update error', 500
@@ -63,7 +73,15 @@ def runtask():
     if rpc is None:
         return json.dumps({})
 
+    projectdb = app.config['projectdb']
     project = request.form['project']
+    project_info = projectdb.get(project, fields=('name', 'group'))
+    if not project_info:
+        return "not such project.", 404
+    if 'lock' in projectdb.split_group(project_info.get('group')) \
+            and not login.current_user.is_active():
+        return app.login_response
+
     newtask = {
         "project": project,
         "taskid": "on_start",
