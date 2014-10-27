@@ -33,7 +33,7 @@ class TaskDB(BaseTaskDB, BaseDB):
             if self.conn.unread_result:
                 self.conn.get_rows()
             return self.conn.cursor()
-        except mysql.connector.OperationalError as e:
+        except (mysql.connector.OperationalError, mysql.connector.InterfaceError) as e:
             self.conn.ping(reconnect=True)
             self.conn.database = self.database_name
             return self.conn.cursor()

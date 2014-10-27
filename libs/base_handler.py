@@ -213,6 +213,8 @@ class BaseHandler(object):
             kwargs['data'] = data
         if kwargs.get('data'):
             kwargs['data'] = _encode_params(kwargs['data'])
+        if kwargs.get('data'):
+            kwargs.setdefault('method', 'POST')
 
         schedule = {}
         for key in ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update'):
