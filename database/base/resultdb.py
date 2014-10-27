@@ -32,3 +32,6 @@ class ResultDB(object):
 
     def get(self, project, taskid, fields=None):
         pass
+
+    def drop(self, project):
+        pass

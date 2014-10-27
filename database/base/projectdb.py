@@ -44,8 +44,11 @@ class ProjectDB(object):
     def get(self, name, fields):
         raise NotImplementedError
 
+    def drop(self, name):
+        raise NotImplementedError
+
     def check_update(self, timestamp, fields=None):
         raise NotImplementedError
 
-    def split_group(self, group):
-        return re.split("\W+", group or '')
+    def split_group(self, group, lower=True):
+        return re.split("\W+", (group or '').lower())

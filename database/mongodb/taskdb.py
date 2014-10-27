@@ -74,6 +74,10 @@ class TaskDB(BaseTaskDB):
                 yield self._parse(task)
 
     def get_task(self, project, taskid, fields=None):
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
         collection_name = self._collection_name(project)
         ret = self.database[collection_name].find_one({'taskid': taskid}, fields=fields)
         if not ret:
@@ -81,6 +85,10 @@ class TaskDB(BaseTaskDB):
         return self._parse(ret)
 
     def status_count(self, project):
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return {}
         collection_name = self._collection_name(project)
         ret = self.database[collection_name].aggregate( [
            { '$group': {
@@ -110,3 +118,12 @@ class TaskDB(BaseTaskDB):
         obj['updatetime'] = time.time()
         collection_name = self._collection_name(project)
         return self.database[collection_name].update({'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True)
+
+    def drop(self, project):
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
+        collection_name = self._collection_name(project)
+        self.database[collection_name].drop()
+        self._list_project()

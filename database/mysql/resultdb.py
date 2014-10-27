@@ -118,3 +118,12 @@ class ResultDB(BaseResultDB, BaseDB):
         for task in self._select2dic(tablename, what=fields,
                 where=where, where_values=(taskid, )):
             return self._parse(task)
+
+    def drop(self, project):
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
+        tablename = self._tablename(project)
+        self._execute("DROP TABLE %s" % self.escape(tablename))
+        self._list_project()

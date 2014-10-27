@@ -131,3 +131,12 @@ class TaskDB(BaseTaskDB, BaseDB):
         obj['updatetime'] = time.time()
         return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
                 **self._stringify(obj))
+
+    def drop(self, project):
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
+        tablename = '%s_%s' % (self.__tablename__, project)
+        self._execute("DROP TABLE %s" % self.escape(tablename))
+        self._list_project()

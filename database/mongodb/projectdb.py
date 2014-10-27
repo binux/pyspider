@@ -51,3 +51,6 @@ class ProjectDB(BaseProjectDB):
                 project = self.get(project['name'], fields)
                 result.append(project)
         return result
+
+    def drop(self, name):
+        return self.collection.remove({'name': name})

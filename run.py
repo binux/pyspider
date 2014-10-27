@@ -102,7 +102,7 @@ class g(object):
 # run commands ------------------------------------------
 def run_scheduler(g=g):
     from scheduler import Scheduler
-    scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb,
+    scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb.g.resultdb,
             newtask_queue=g.newtask_queue, status_queue=g.status_queue,
             out_queue=g.scheduler2fetcher)
     if g.demo_mode:

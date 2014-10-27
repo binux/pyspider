@@ -246,7 +246,7 @@ class CounterManager(DictMixin):
         try:
             self.counters = cPickle.load(open(filename))
         except:
-            logging.error("can't load counter from file: %s" % filename)
+            logging.debug("can't load counter from file: %s" % filename)
             return False
         return True
 

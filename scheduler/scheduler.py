@@ -31,10 +31,12 @@ class Scheduler(object):
     ACTIVE_TASKS = 100
     INQUEUE_LIMIT = 0
     EXCEPTION_LIMIT = 3
+    DELETE_TIME = 24*60*60
     
-    def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data'):
+    def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path = './data', resultdb=None):
         self.taskdb = taskdb
         self.projectdb = projectdb
+        self.resultdb = resultdb
         self.newtask_queue = newtask_queue
         self.status_queue = status_queue
         self.out_queue = out_queue
@@ -277,6 +279,27 @@ class Scheduler(object):
             self._last_dump_cnt = now
             self._dump_cnt()
 
+    def _check_delete(self):
+        now = time.time()
+        for project in self.projects.values():
+            if project['status'] != 'STOP':
+                continue
+            if now - project['updatetime'] < self.DELETE_TIME:
+                continue
+            if 'delete' not in self.projectdb.split_group(project['group']):
+                continue
+
+            logger.warning("deleting project: %s!", project['name'])
+            if project['name'] in self.task_queue:
+                self.task_queue[project['name']].rate = 0
+                self.task_queue[project['name']].burst = 0
+                del self.task_queue[project['name']]
+            del self.projects[project['name']]
+            self.taskdb.drop(project['name'])
+            self.projectdb.drop(project['name'])
+            if self.resultdb:
+                self.resultdb.drop(project['name'])
+
     def __len__(self):
         return sum((len(x) for x in self.task_queue.itervalues()))
 
@@ -296,6 +319,7 @@ class Scheduler(object):
                 while self._check_cronjob():
                     pass
                 self._check_select()
+                self._check_delete()
                 self._try_dump_cnt()
                 self._exceptions = 0
             except KeyboardInterrupt:

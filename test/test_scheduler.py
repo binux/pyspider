@@ -69,11 +69,12 @@ class TestBucket(unittest.TestCase):
 import xmlrpclib
 from multiprocessing import Queue
 from scheduler.scheduler import Scheduler
-from database.sqlite import taskdb, projectdb
+from database.sqlite import taskdb, projectdb, resultdb
 from libs.utils import run_in_subprocess, run_in_thread
 class TestScheduler(unittest.TestCase):
     taskdb_path = './test/data/task.db'
     projectdb_path = './test/data/project.db'
+    resultdb_path = './test/data/result.db'
     check_project_time = 1
     scheduler_xmlrpc_port = 23333
 
@@ -85,10 +86,12 @@ class TestScheduler(unittest.TestCase):
         def get_taskdb():
             return taskdb.TaskDB(self.taskdb_path)
         self.taskdb = get_taskdb()
-
         def get_projectdb():
             return projectdb.ProjectDB(self.projectdb_path)
         self.projectdb = get_projectdb()
+        def get_resultdb():
+            return resultdb.ResultDB(self.resultdb_path)
+        self.resultdb = get_resultdb()
 
         self.newtask_queue = Queue(10)
         self.status_queue = Queue(10)
@@ -98,10 +101,12 @@ class TestScheduler(unittest.TestCase):
         def run_scheduler():
             scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
                     newtask_queue=self.newtask_queue, status_queue=self.status_queue,
-                    out_queue=self.scheduler2fetcher, data_path="./test/data/")
+                    out_queue=self.scheduler2fetcher, data_path="./test/data/",
+                    resultdb=get_resultdb())
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
             scheduler.INQUEUE_LIMIT = 10
+            Scheduler.DELETE_TIME = 0
             scheduler._last_tick = int(time.time()) # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
@@ -335,6 +340,7 @@ class TestScheduler(unittest.TestCase):
                 'burst': 0,
             })
         time.sleep(0.1)
+        self.assertLess(self.rpc.size(), 10)
         for i in range(20):
             self.newtask_queue.put({
                 'taskid': 'taskid%d' % i,
@@ -347,6 +353,15 @@ class TestScheduler(unittest.TestCase):
                 })
         time.sleep(1)
         self.assertEqual(self.rpc.size(), 10)
+
+    def test_x20_delete_project(self):
+        self.assertIsNotNone(self.projectdb.get('test_inqueue_project'))
+        self.assertIsNotNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
+        self.projectdb.update('test_inqueue_project', status="STOP", group="lock,delete")
+        time.sleep(1)
+        self.assertIsNone(self.projectdb.get('test_inqueue_project'))
+        self.taskdb._list_project()
+        self.assertIsNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
 
     def test_z10_startup(self):
         self.assertTrue(self.process.is_alive())

@@ -83,7 +83,6 @@ class TestTaskDB(object):
         self.taskdb.insert('project', 'taskid', self.sample_task)
         self.taskdb.insert('project', 'taskid2', self.sample_task)
 
-
     def test_25_get_task(self):
         task = self.taskdb.get_task('project', 'taskid2')
         self.assertEqual(task['taskid'], 'taskid2')
@@ -131,6 +130,13 @@ class TestTaskDB(object):
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0]['taskid'], 'taskid')
         self.assertNotIn('project', tasks[0])
+
+    def test_z900_drop(self):
+        self.taskdb.insert('project2', 'taskid', self.sample_task)
+        self.taskdb.insert('project3', 'taskid', self.sample_task)
+        self.taskdb.drop('project3')
+        self.assertIsNotNone(self.taskdb.get_task('project2', 'taskid'), None)
+        self.assertIsNone(self.taskdb.get_task('project3', 'taskid'), None)
 
 class TestProjectDB(object):
     sample_project = {
@@ -202,6 +208,13 @@ class TestProjectDB(object):
         self.assertIn('status', project)
         self.assertNotIn('gourp', project)
 
+    def test_z900_drop(self):
+        self.projectdb.insert(u'project2', self.sample_project)
+        self.projectdb.insert(u'project3', self.sample_project)
+        self.projectdb.drop('project3')
+        self.assertIsNotNone(self.projectdb.get('project2'))
+        self.assertIsNone(self.projectdb.get('project3'))
+
 class TestResultDB(object):
     @classmethod
     def setUpClass(self):
@@ -253,6 +266,13 @@ class TestResultDB(object):
         for i in self.resultdb.select('test_project'):
             break
         self.assertEqual(self.resultdb.count('test_project'), 6)
+
+    def test_z900_drop(self):
+        self.resultdb.save('test_project2', 'test_taskid', 'test_url', 'result')
+        self.resultdb.save('test_project3', 'test_taskid', 'test_url', 'result')
+        self.resultdb.drop('test_project3')
+        self.assertIsNotNone(self.resultdb.get('test_project2', 'test_taskid'))
+        self.assertIsNone(self.resultdb.get('test_project3', 'test_taskid'))
 
 class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
     @classmethod

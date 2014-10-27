@@ -62,3 +62,7 @@ class ProjectDB(BaseProjectDB, BaseDB):
     def check_update(self, timestamp, fields=None):
         where = "`updatetime` >= %f" % timestamp
         return self._select2dic(what=fields, where=where)
+
+    def drop(self, name):
+        where = "`name` = %s" % self.placeholder
+        return self._delete(where=where, where_values=(name, ))

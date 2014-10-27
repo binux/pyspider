@@ -79,6 +79,9 @@ class TaskDB(object):
     def update(self, project, taskid, obj={}, **kwargs):
         raise NotImplementedError
 
+    def drop(self, project):
+        raise NotImplementedError
+
     @staticmethod
     def status_to_string(status):
         return {
