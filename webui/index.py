@@ -50,7 +50,7 @@ def project_update():
     ret = projectdb.update(project, update)
     if ret:
         rpc = app.config['scheduler_rpc']
-        if rpc:
+        if rpc is not None:
             rpc.update_project()
         return 'ok', 200
     else:

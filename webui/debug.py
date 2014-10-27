@@ -153,7 +153,7 @@ def save(project):
         projectdb.insert(project, info)
 
     rpc = app.config['scheduler_rpc']
-    if rpc:
+    if rpc is not None:
         rpc.update_project()
 
     return 'OK', 200
