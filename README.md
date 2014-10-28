@@ -1,7 +1,7 @@
 pyspider [![Build Status](https://travis-ci.org/binux/pyspider.png?branch=master)](https://travis-ci.org/binux/pyspider)
 ========
 
-most powerful spider system in python!
+a spider in python! [Try It Now!](http://demo.pyspider.org/)
 
 ![debug demo](http://f.binux.me/debug_demo.png)
 demo code: [gist:9424801](https://gist.github.com/binux/9424801)
@@ -25,7 +25,7 @@ docker run -it -d --name rabbitmq dockerfile/rabbitmq
 # scheduler
 docker run -it -d --name scheduler --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider scheduler
 # fetcher, run multiple instance if needed.
-docker run -it -d -m 64m --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider fetcher
+docker run -it -d -m 64m --link rabbitmq:rabbitmq binux/pyspider fetcher
 # processor, run multiple instance if needed.
 docker run -it -d -m 128m --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider processor
 # webui
@@ -45,7 +45,6 @@ Contribute
 
 * 部署使用，提交 bug、特性 [Issue](https://github.com/binux/pyspider/issues)
 * 参与 [特性讨论](https://github.com/binux/pyspider/issues?labels=discussion&state=open) 或 [完善文档](https://github.com/binux/pyspider/wiki)
-* 我正在进行 [Bugfix and Basic Features](https://github.com/binux/pyspider/issues?milestone=2&state=open) 的第二个里程碑开发。欢迎发 pull request (代码、注释和提交日志请用英文）
 
 
 License
