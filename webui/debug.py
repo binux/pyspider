@@ -129,9 +129,7 @@ def save(project):
     projectdb = app.config['projectdb']
     script = request.form['script']
     project_info = projectdb.get(project, fields=['name', 'status', 'group'])
-    if not project_info:
-        return "not such project.", 404
-    if 'lock' in projectdb.split_group(project_info.get('group')) \
+    if project_info and 'lock' in projectdb.split_group(project_info.get('group')) \
             and not login.current_user.is_active():
         return app.login_response
 

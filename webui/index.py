@@ -25,7 +25,7 @@ def project_update():
 
     project_info = projectdb.get(project, fields=('name', 'group'))
     if not project_info:
-        return "not such project.", 404
+        return "no such project.", 404
     if 'lock' in projectdb.split_group(project_info.get('group')) \
             and not login.current_user.is_active():
         return app.login_response
@@ -77,7 +77,7 @@ def runtask():
     project = request.form['project']
     project_info = projectdb.get(project, fields=('name', 'group'))
     if not project_info:
-        return "not such project.", 404
+        return "no such project.", 404
     if 'lock' in projectdb.split_group(project_info.get('group')) \
             and not login.current_user.is_active():
         return app.login_response

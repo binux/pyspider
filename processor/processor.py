@@ -112,7 +112,7 @@ class Processor(object):
             assert 'taskid' in task, 'need taskid in task'
             project = task['project']
             if project not in self.projects:
-                raise LookupError("not such project: %s" % project)
+                raise LookupError("no such project: %s" % project)
             project_data = self.projects[project]
             ret = project_data['instance'].run(
                     project_data['module'], task, response)
