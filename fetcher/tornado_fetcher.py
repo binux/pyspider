@@ -6,6 +6,7 @@
 # Created on 2012-12-17 11:07:19
 
 import time
+import json
 import Queue
 import logging
 import threading
@@ -46,7 +47,7 @@ class Fetcher(object):
             'headers': {},
             'timeout': 120,
             }
-    allowed_options = ['method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', ]
+    phantomjs_proxy = None
 
     def __init__(self, inqueue, outqueue, poolsize=10, proxy=None, async=True):
         self.inqueue = inqueue
@@ -84,6 +85,8 @@ class Fetcher(object):
             callback = self.send_result
         if url.startswith('data:'):
             return self.data_fetch(url, task, callback)
+        elif task.get('fetch', {}).get('fetch_type') == 'phantomjs':
+            return self.phantomjs_fetch(url, task, callback)
         else:
             return self.http_fetch(url, task, callback)
 
@@ -118,14 +121,15 @@ class Fetcher(object):
         result['time'] = 0
         result['save'] = task.get('fetch', {}).get('save')
         if len(result['content']) < 70:
-            logger.info("[200] %s 0s" % url)
+            logger.info("[200] %s 0s", url)
         else:
-            logger.info("[200] data:,%s...[content:%d] 0s" % (result['content'][:70], len(result['content'])))
+            logger.info("[200] data:,%s...[content:%d] 0s", result['content'][:70], len(result['content']))
 
         callback('data', task, result)
         self.on_result('data', task, result)
         return task, result
 
+    allowed_options = ['method', 'data', 'timeout', 'allow_redirects', 'cookies']
     def http_fetch(self, url, task, callback):
         self.on_fetch('http', task)
         fetch = dict(self.default_options)
@@ -138,12 +142,13 @@ class Fetcher(object):
         for each in self.allowed_options:
             if each in task_fetch:
                 fetch[each] = task_fetch[each]
+        fetch['headers'].update(fetch.get('headers', {}))
 
         track_headers = task.get('track', {}).get('fetch', {}).get('headers', {})
         #proxy
         if self.proxy and task_fetch.get('proxy', True):
-            fetch['proxy_host'] = self.proxy['http'].split(":")[0]
-            fetch['proxy_port'] = int(self.proxy['http'].split(":")[1])
+            fetch['proxy_host'] = self.proxy.split(":")[0]
+            fetch['proxy_port'] = int(self.proxy.split(":")[1])
         #etag
         if task_fetch.get('etag', True):
             _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), basestring) \
@@ -159,7 +164,6 @@ class Fetcher(object):
                 fetch['headers'].setdefault('If-Modifed-Since', _t)
 
         #fix for tornado request obj
-        cookie = None
         if 'allow_redirects' in fetch:
             fetch['follow_redirects'] = fetch['allow_redirects']
             del fetch['allow_redirects']
@@ -170,6 +174,7 @@ class Fetcher(object):
         if 'data' in fetch:
             fetch['body'] = fetch['data']
             del fetch['data']
+        cookie = None
         if 'cookies' in fetch:
             cookie = fetch['cookies']
             del fetch['cookies']
@@ -178,8 +183,13 @@ class Fetcher(object):
             response.headers = final_headers
             session.extract_cookies_to_jar(request, cookie_headers)
             if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
-                result = {'status_code': 599, 'error': "%r" % response.error,
-                          'time': time.time() - start_time, 'orig_url': url, 'url': url, }
+                result = {
+                        'status_code': 599,
+                        'content': "%r" % response.error,
+                        'time': time.time() - start_time,
+                        'orig_url': url,
+                        'url': url,
+                        }
                 callback('http', task, result)
                 self.on_result('http', task, result)
                 return task, result
@@ -193,9 +203,9 @@ class Fetcher(object):
             result['time'] = time.time() - start_time
             result['save'] = task_fetch.get('save')
             if 200 <= response.code < 300:
-                logger.info("[%d] %s %.2fs" % (response.code, url, result['time']))
+                logger.info("[%d] %s %.2fs", response.code, url, result['time'])
             else:
-                logger.warning("[%d] %s %.2fs" % (response.code, url, result['time']))
+                logger.warning("[%d] %s %.2fs", response.code, url, result['time'])
             callback('http', task, result)
             self.on_result('http', task, result)
             return task, result
@@ -223,12 +233,92 @@ class Fetcher(object):
                 response = self.http_client.fetch(request, handle_response)
             else:
                 return handle_response(self.http_client.fetch(request))
-        except Exception, e:
-            result = {'status_code': 599, 'error': "%r" % e, 'time': time.time() - start_time,
-                      'orig_url': url, 'url': url, }
-            logger.error("[599] %s, %r %.2fs" % (url, e, result['time']))
+        except tornado.httpclient.HTTPError as e:
+            return handle_response(e.response)
+        except Exception as e:
+            result = {
+                    'status_code': 599,
+                    'content': "%r" % e,
+                    'time': time.time() - start_time,
+                    'orig_url': url,
+                    'url': url,
+                    }
+            logger.error("[599] %s, %r %.2fs", url, e, result['time'])
             callback('http', task, result)
             self.on_result('http', task, result)
+            return task, result
+
+    phantomjs_adding_options = ['js_run_at', 'js_script', 'load_images']
+    def phantomjs_fetch(self, url, task, callback):
+        self.on_fetch('phantomjs', task)
+        if not self.phantomjs_proxy:
+            result = {
+                    "orig_url": url,
+                    "content": "phantomjs is not enabled.",
+                    "headers": {},
+                    "status_code": 501,
+                    "url": url,
+                    "cookies": {},
+                    "time": 0,
+                    "save": task.get('fetch', {}).get('save')
+                    }
+            logger.warning("[501] %s 0s", url)
+            callback('http', task, result)
+            self.on_result('http', task, result)
+            return task, result
+
+        request_conf = {
+                'follow_redirects': False
+                }
+
+        fetch = dict(self.default_options)
+        fetch.setdefault('url', url)
+        fetch.setdefault('headers', {})
+        task_fetch = task.get('fetch', {})
+        fetch.update(task_fetch)
+        if 'timeout' in fetch:
+            request_conf['connect_timeout'] = fetch['timeout']
+            request_conf['request_timeout'] = fetch['timeout']
+        fetch['headers'].setdefault('User-Agent', self.user_agent)
+
+        start_time = time.time()
+        def handle_response(response):
+            try:
+                return task, json.loads(response.body)
+            except Exception as e:
+                result = {
+                        'status_code': 599,
+                        'content': "%r" % e,
+                        'time': time.time() - start_time,
+                        'orig_url': url,
+                        'url': url,
+                        }
+                logger.exception("[599] %s, %r %.2fs", url, e, result['time'])
+                callback('phantomjs', task, result)
+                self.on_result('phantomjs', task, result)
+                return task, result
+
+        try:
+            request = tornado.httpclient.HTTPRequest(
+                    url="%s" % self.phantomjs_proxy, method="POST",
+                    body=json.dumps(fetch), **request_conf)
+            if self.async:
+                response = self.http_client.fetch(request, handle_response)
+            else:
+                return handle_response(self.http_client.fetch(request))
+        except tornado.httpclient.HTTPError as e:
+            return handle_response(e.response)
+        except Exception as e:
+            result = {
+                    'status_code': 599,
+                    'content': "%r" % e,
+                    'time': time.time() - start_time,
+                    'orig_url': url,
+                    'url': url,
+                    }
+            logger.error("[599] %s, %r %.2fs", url, e, result['time'])
+            callback('phantomjs', task, result)
+            self.on_result('phantomjs', task, result)
             return task, result
 
     def run(self):

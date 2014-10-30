@@ -224,7 +224,7 @@ class BaseHandler(object):
             task['schedule'] = schedule
 
         fetch = {}
-        for key in ('method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', 'proxy', 'etag', 'last_modifed', 'save'):
+        for key in ('method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', 'proxy', 'etag', 'last_modifed', 'save', 'js_run_at', 'js_script', 'load_images', 'fetch_type'):
             if key in kwargs and kwargs[key] is not None:
                 fetch[key] = kwargs[key]
         if fetch:
