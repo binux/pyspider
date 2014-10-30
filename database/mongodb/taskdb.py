@@ -31,6 +31,8 @@ class TaskDB(BaseTaskDB):
         else:
             prefix = ''
         for each in self.database.collection_names():
+            if each.startswith('system.'):
+                continue
             if each.startswith(prefix):
                 self.projects.add(each[len(prefix):])
 
