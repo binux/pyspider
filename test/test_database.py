@@ -131,6 +131,11 @@ class TestTaskDB(object):
         self.assertEqual(tasks[0]['taskid'], 'taskid')
         self.assertNotIn('project', tasks[0])
 
+    def test_60_relist_projects(self):
+        if hasattr(self.taskdb, '_list_project'):
+            self.taskdb._list_project()
+            self.assertNotIn('system.indexes', self.taskdb.projects)
+
     def test_z900_drop(self):
         self.taskdb.insert('project2', 'taskid', self.sample_task)
         self.taskdb.insert('project3', 'taskid', self.sample_task)
@@ -266,6 +271,11 @@ class TestResultDB(object):
         for i in self.resultdb.select('test_project'):
             break
         self.assertEqual(self.resultdb.count('test_project'), 6)
+
+    def test_60_relist_projects(self):
+        if hasattr(self.resultdb, '_list_project'):
+            self.resultdb._list_project()
+            self.assertNotIn('system.indexes', self.resultdb.projects)
 
     def test_z900_drop(self):
         self.resultdb.save('test_project2', 'test_taskid', 'test_url', 'result')

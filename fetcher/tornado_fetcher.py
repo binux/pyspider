@@ -142,7 +142,7 @@ class Fetcher(object):
         for each in self.allowed_options:
             if each in task_fetch:
                 fetch[each] = task_fetch[each]
-        fetch['headers'].update(fetch.get('headers', {}))
+        fetch['headers'].update(task_fetch.get('headers', {}))
 
         track_headers = task.get('track', {}).get('fetch', {}).get('headers', {})
         #proxy
