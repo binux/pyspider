@@ -207,7 +207,7 @@ class Scheduler(object):
                     if not task.get('schedule', {}).get('force_update', False):
                         logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
                         continue
-                cache_key = "%(project)s:%(project)s" % task
+                cache_key = "%(project)s:%(taskid)s" % task
                 if cache_key in processed_task_cache:
                     logger.debug('processed newtask %(project)s:%(taskid)s %(url)s', task)
                     continue
