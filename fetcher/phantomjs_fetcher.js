@@ -68,7 +68,7 @@ if (system.args.length !== 2) {
       end_time = null;
     };
     page.onResourceReceived = function(response) {
-      console.debug("Request finished: #"+response.id+" ["+response.statusText+"]"+response.url+" "+response.time+"ms");
+      console.debug("Request finished: #"+response.id+" ["+response.statusText+"]"+response.url);
       if (first_response === null) {
         first_response = response;
       }
@@ -105,6 +105,7 @@ if (system.args.length !== 2) {
         setTimeout(make_result, Date.now() - end_time, page);
         return;
       }
+      end_time = null;
 
       var cookies = {};
       page.cookies.forEach(function(e) {
