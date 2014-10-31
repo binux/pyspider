@@ -192,6 +192,8 @@ def all_in_one():
 if __name__ == '__main__':
     print "running with config:"
     for key in dir(g):
+        if key.startswith("__"):
+            continue
         print "%s=%r" % (key, getattr(g, key))
 
     if len(sys.argv) < 2:

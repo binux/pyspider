@@ -29,6 +29,8 @@ Docker
 docker run -it -d --name mysql dockerfile/mysql
 # rabbitmq
 docker run -it -d --name rabbitmq dockerfile/rabbitmq
+# phantomjs link to fetcher and webui
+docker run --name phantomjs -it -d -v `pwd`:/mnt/test --expose 25555 cmfatih/phantomjs /usr/bin/phantomjs /mnt/test/fetcher/phantomjs_fetcher.js 25555
 
 # scheduler
 docker run -it -d --name scheduler --link mysql:mysql --link rabbitmq:rabbitmq binux/pyspider scheduler
