@@ -1,7 +1,15 @@
 pyspider [![Build Status](https://travis-ci.org/binux/pyspider.png?branch=master)](https://travis-ci.org/binux/pyspider)
 ========
 
-a spider in python! [Try It Now!](http://demo.pyspider.org/)
+A spider system in python. [Try It Now!](http://demo.pyspider.org/)
+
+- Write script with python
+- Web script editor, debugger, task monitor, project manager and result viewer
+- Distributed architecture
+- MySQL, MongoDB and SQLite as database backend 
+- Full control of crawl process with powerful API
+- Javascript pages Support! (with phantomjs fetcher)
+
 
 ![debug demo](http://f.binux.me/debug_demo.png)
 demo code: [gist:9424801](https://gist.github.com/binux/9424801)

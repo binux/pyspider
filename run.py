@@ -26,6 +26,7 @@ class Get(object):
 class g(object):
     scheduler_xmlrpc_port = int(os.environ.get('SCHEDULER_XMLRPC_PORT', 23333))
     fetcher_xmlrpc_port = int(os.environ.get('FETCHER_XMLRPC_PORT', 24444))
+    phantomjs_proxy_port = int(os.environ.get('PHANTOMJS_PROXY_PORT', 25555))
     webui_host = os.environ.get('WEBUI_HOST', '0.0.0.0')
     webui_port = int(os.environ.get('WEBUI_PORT', 5000))
     debug = bool(os.environ.get('DEBUG'))
@@ -99,6 +100,15 @@ class g(object):
     else:
         scheduler_rpc = None
 
+    # phantomjs_proxy
+    if os.environ.get('PHANTOMJS_NAME'):
+        phantomjs_proxy = "%s:%s" % (
+                os.environ['PHANTOMJS_PORT_%d_TCP_ADDR' % phantomjs_proxy_port],
+                os.environ['PHANTOMJS_PORT_%d_TCP_PORT' % phantomjs_proxy_port]
+                )
+    else:
+        phantomjs_proxy = None
+
 # run commands ------------------------------------------
 def run_scheduler(g=g):
     from scheduler import Scheduler
@@ -114,6 +124,7 @@ def run_scheduler(g=g):
 def run_fetcher(g=g):
     from fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor)
+    fetcher.phantomjs_proxy = g.phantomjs_proxy
 
     run_in_thread(fetcher.xmlrpc_run, port=g.fetcher_xmlrpc_port, bind=g.webui_host)
     fetcher.run()
@@ -135,10 +146,15 @@ def run_result_worker(g=g):
 def run_webui(g=g):
     import cPickle as pickle
 
+    from fetcher.tornado_fetcher import Fetcher
+    fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
+    fetcher.phantomjs_proxy = g.phantomjs_proxy
+
     from webui.app import app
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
     app.config['resultdb'] = g.resultdb
+    app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
     app.config['scheduler_rpc'] = g.scheduler_rpc
     #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
     if g.demo_mode:
@@ -174,6 +190,10 @@ def all_in_one():
         each.join()
 
 if __name__ == '__main__':
+    print "running with config:"
+    for key in dir(g):
+        print "%s=%r" % (key, getattr(g, key))
+
     if len(sys.argv) < 2:
         all_in_one()
     else:

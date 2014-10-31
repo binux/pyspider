@@ -263,6 +263,11 @@ class BaseHandler(object):
           etag
           last_modifed
 
+          fetch_type
+          js_run_at
+          js_script
+          load_images
+
           priority
           retries
           exetime

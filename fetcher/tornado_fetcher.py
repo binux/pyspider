@@ -85,7 +85,7 @@ class Fetcher(object):
             callback = self.send_result
         if url.startswith('data:'):
             return self.data_fetch(url, task, callback)
-        elif task.get('fetch', {}).get('fetch_type') == 'phantomjs':
+        elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
             return self.phantomjs_fetch(url, task, callback)
         else:
             return self.http_fetch(url, task, callback)
@@ -283,20 +283,30 @@ class Fetcher(object):
 
         start_time = time.time()
         def handle_response(response):
-            try:
-                return task, json.loads(response.body)
-            except Exception as e:
+            if not response:
                 result = {
                         'status_code': 599,
-                        'content': "%r" % e,
+                        'content': "timeout error",
                         'time': time.time() - start_time,
                         'orig_url': url,
                         'url': url,
                         }
-                logger.exception("[599] %s, %r %.2fs", url, e, result['time'])
-                callback('phantomjs', task, result)
-                self.on_result('phantomjs', task, result)
-                return task, result
+            else:
+                try:
+                    return task, json.loads(response.body)
+                except Exception as e:
+                    result = {
+                            'status_code': 599,
+                            'content': "%r" % e,
+                            'time': time.time() - start_time,
+                            'orig_url': url,
+                            'url': url,
+                            }
+            logger.exception("[599] %s, %r %.2fs",
+                    url, result['content'], result['time'])
+            callback('phantomjs', task, result)
+            self.on_result('phantomjs', task, result)
+            return task, result
 
         try:
             request = tornado.httpclient.HTTPRequest(
