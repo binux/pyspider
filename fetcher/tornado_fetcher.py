@@ -293,7 +293,7 @@ class Fetcher(object):
                         }
             else:
                 try:
-                    return task, json.loads(response.body)
+                    result = json.loads(response.body)
                 except Exception as e:
                     result = {
                             'status_code': 599,
@@ -302,8 +302,11 @@ class Fetcher(object):
                             'orig_url': url,
                             'url': url,
                             }
-            logger.exception("[599] %s, %r %.2fs",
-                    url, result['content'], result['time'])
+            if result.get('status_code', 200):
+                logger.info("[%d] %s %.2fs", result['status_code'], url, result['time'])
+            else:
+                logger.exception("[%d] %s, %r %.2fs", result['status_code'],
+                        url, result['content'], result['time'])
             callback('phantomjs', task, result)
             self.on_result('phantomjs', task, result)
             return task, result

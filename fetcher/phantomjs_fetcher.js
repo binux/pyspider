@@ -16,7 +16,9 @@ if (system.args.length !== 2) {
   port = system.args[1];
   server = require('webserver').create();
 
-  service = server.listen(port, function (request, response) {
+  service = server.listen(port, {
+    'keepAlive': true
+  }, function (request, response) {
     //console.log(JSON.stringify(request, null, 4));
     // check method
     if (request.method == 'GET') {
@@ -46,6 +48,7 @@ if (system.args.length !== 2) {
     
     // add callbacks
     var first_response = null,
+        finished = false,
         page_loaded = false,
         start_time = Date.now(),
         end_time = null;
@@ -98,14 +101,13 @@ if (system.args.length !== 2) {
 
     // make response
     function make_result(page) {
-      if (!!!end_time) {
+      if (!!!end_time || finished) {
         return;
       }
       if (end_time > Date.now()) {
         setTimeout(make_result, Date.now() - end_time, page);
         return;
       }
-      end_time = null;
 
       var cookies = {};
       page.cookies.forEach(function(e) {
@@ -119,19 +121,25 @@ if (system.args.length !== 2) {
         status_code: first_response.status || 599,
         url: page.url,
         cookies: cookies,
-        time: (end_time - start_time) / 1000,
+        time: (Date.now() - start_time) / 1000,
         save: fetch.save
       }
       console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
 
-      var body = JSON.stringify(result, null, 2);
+      var body = unescape(encodeURIComponent(JSON.stringify(result, null, 2)));
       response.statusCode = 200;
       response.headers = {
         'Cache': 'no-cache',
         'Content-Type': 'application/json',
+        'Connection': 'Keep-Alive',
+        'Keep-Alive': 'timeout=5, max=100',
+        'Content-Length': body.length
       };
+      response.setEncoding("binary");
       response.write(body);
-      response.closeGracefully();
+      response.close();
+      finished = true;
+      page.close();
     }
   });
 

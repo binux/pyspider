@@ -49,7 +49,7 @@ def debug(project):
     taskid = request.args.get('taskid')
     if taskid:
         taskdb = app.config['taskdb']
-        task = taskdb.get_task(project, taskid, ['taskid', 'project', 'url', 'process'])
+        task = taskdb.get_task(project, taskid, ['taskid', 'project', 'url', 'fetch', 'process'])
     else:
         task = default_task
 
