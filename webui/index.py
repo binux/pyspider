@@ -98,3 +98,9 @@ def runtask():
 
     ret = rpc.newtask(newtask)
     return json.dumps({"result": ret}), 200, {'Content-Type': 'application/json'}
+
+@app.route('/robots.txt')
+def robots():
+    return """User-agent: *
+Disallow: /
+""", 200, {'Content-Type': 'text/plain'}
