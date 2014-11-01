@@ -114,10 +114,17 @@ if (system.args.length !== 2) {
         cookies[e.name] = e.value;
       });
 
+      var headers = {};
+      if (first_response.headers) {
+        first_response.headers.forEach(function(e) {
+          headers[e.name] = e.value;
+        });
+      }
+
       var result = {
         orig_url: fetch.url,
         content: first_response.errorString || page.content,
-        headers: first_response.headers || {},
+        headers: headers,
         status_code: first_response.status || 599,
         url: page.url,
         cookies: cookies,
