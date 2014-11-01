@@ -128,6 +128,8 @@ class TimeoutError(Exception):
 
 try:
     import signal
+    if not hasattr(signal, 'SIGALRM'):
+        raise ImportError('signal')
     class timeout:
         def __init__(self, seconds=1, error_message='Timeout'):
             self.seconds = seconds
