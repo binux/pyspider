@@ -64,10 +64,16 @@
       <li class="{{ "disabled" if current_page - 1 <= 0 else "" }}">
         <a href="{% if current_page>1 %}/results?project={{ project }}&offset={{ (current_page-1)*limit }}&limit={{ limit }}{% endif %}">&laquo;</a>
       </li>
+      # set prev = 0
       # for i in range(0, total_page):
-      <li class="{% if i == current_page %}active{% endif %}">
-        <a href="/results?project={{ project }}&offset={{ i*limit }}&limit={{ limit }}">{{ i + 1 }}</a>
-      </li>
+      # if abs(i-0) < 2 or abs(i-total_page) < 2 or -2 < i-current_page < 5:
+        # set prev = i
+        <li class="{% if i == current_page %}active{% endif %}">
+          <a href="/results?project={{ project }}&offset={{ i*limit }}&limit={{ limit }}">{{ i + 1 }}</a>
+        </li>
+      # elif prev == i-1:
+      <li class="disabled"><a>…</a></li>
+      # endif
       # endfor
       <li class="{{ "disabled" if current_page + 1 >= total_page else "" }}">
         <a href="{% if current_page+1<total_page %}/results?project={{ project }}&offset={{ (current_page+1)*limit }}&limit={{ limit }}{% endif %}">&raquo;</a>
