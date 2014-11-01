@@ -167,7 +167,7 @@ def run_webui(g=g):
         app.debug = True
     app.run(host=g.webui_host, port=g.webui_port)
 
-def all_in_one():
+def all_in_one(g=g):
     import xmlrpclib
     g.scheduler_rpc = xmlrpclib.ServerProxy(
             'http://localhost:%d' % g.scheduler_xmlrpc_port)
@@ -197,7 +197,7 @@ if __name__ == '__main__':
         print "%s=%r" % (key, getattr(g, key))
 
     if len(sys.argv) < 2:
-        all_in_one()
+        all_in_one(g)
     else:
         cmd = "run_"+sys.argv[1]
-        locals()[cmd]()
+        locals()[cmd](g)
