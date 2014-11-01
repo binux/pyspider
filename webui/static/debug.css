@@ -29,9 +29,10 @@ body {
   background-color: #eeeeee;
   box-shadow: 0px 1px 2px #999999;
 }
-#control .title {
+#control div {
   line-height: 35px;
   margin-left: 10px;
+  margin-right: 10px;
 }
 #editarea {
   width: 100%;

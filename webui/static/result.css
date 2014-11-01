@@ -23,3 +23,13 @@
   right: 0;
   top: 0;
 }
+.pagination-wrap {
+  text-align: right;
+  padding-right: 15px;
+}
+table {
+  border-bottom: 1px solid #ddd;
+}
+table td {
+  word-break: break-all;
+}

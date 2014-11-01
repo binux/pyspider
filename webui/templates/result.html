@@ -34,6 +34,7 @@
     <table class="table table-condensed table-striped">
       <thead>
         <th>url</th>
+        <th></th>
         # for field in common_fields|sort
         <th>
           {{ field }}
@@ -46,8 +47,12 @@
       <tbody>
         # for result in results
         <tr>
-          <td><a class=url
-              href="/task/{{ project }}:{{ result.taskid }}" target=_blank>{{ result.url }}</a></td>
+          <td>
+            <a class=url href="/task/{{ project }}:{{ result.taskid }}" target=_blank>{{ result.url }}</a>
+          </td>
+          <td>
+            <a class=open-url href="{{ result.url }}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a>
+          </td>
           # for field in common_fields|sort
           <td>{{ json.dumps(result.result_formated[field], ensure_ascii=False) | truncate(100) }}</td>
           # endfor
@@ -58,26 +63,28 @@
       </tbody>
     </table>
 
-    <ul class="pagination">
-      # set current_page = int(offset/limit) + (1 if offset%limit else 0)
-      # set total_page = int(count/limit) + (1 if count%limit else 0)
-      <li class="{{ "disabled" if current_page - 1 <= 0 else "" }}">
-        <a href="{% if current_page>1 %}/results?project={{ project }}&offset={{ (current_page-1)*limit }}&limit={{ limit }}{% endif %}">&laquo;</a>
-      </li>
-      # set prev = 0
-      # for i in range(0, total_page):
-      # if abs(i-0) < 2 or abs(i-total_page) < 2 or -2 < i-current_page < 5:
-        # set prev = i
-        <li class="{% if i == current_page %}active{% endif %}">
-          <a href="/results?project={{ project }}&offset={{ i*limit }}&limit={{ limit }}">{{ i + 1 }}</a>
+    <div class="pagination-wrap">
+      <ul class="pagination">
+        # set current_page = int(offset/limit) + (1 if offset%limit else 0)
+        # set total_page = int(count/limit) + (1 if count%limit else 0)
+        <li class="{{ "disabled" if current_page - 1 <= 0 else "" }}">
+          <a href="{% if current_page>1 %}/results?project={{ project }}&offset={{ (current_page-1)*limit }}&limit={{ limit }}{% endif %}">&laquo;</a>
         </li>
-      # elif prev == i-1:
-      <li class="disabled"><a>…</a></li>
-      # endif
-      # endfor
-      <li class="{{ "disabled" if current_page + 1 >= total_page else "" }}">
-        <a href="{% if current_page+1<total_page %}/results?project={{ project }}&offset={{ (current_page+1)*limit }}&limit={{ limit }}{% endif %}">&raquo;</a>
-      </li>
-    </ul>
+        # set prev = 0
+        # for i in range(0, total_page):
+        # if abs(i-0) < 2 or abs(i-total_page) < 2 or -2 < i-current_page < 5:
+          # set prev = i
+          <li class="{% if i == current_page %}active{% endif %}">
+            <a href="/results?project={{ project }}&offset={{ i*limit }}&limit={{ limit }}">{{ i + 1 }}</a>
+          </li>
+        # elif prev == i-1:
+        <li class="disabled"><a>…</a></li>
+        # endif
+        # endfor
+        <li class="{{ "disabled" if current_page + 1 >= total_page else "" }}">
+          <a href="{% if current_page+1<total_page %}/results?project={{ project }}&offset={{ (current_page+1)*limit }}&limit={{ limit }}{% endif %}">&raquo;</a>
+        </li>
+      </ul>
+    </div>
   </body>
 </html>

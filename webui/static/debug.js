@@ -33,7 +33,9 @@ window.Debugger = (function() {
       this.bind_others();
     },
 
+    not_saved: false,
     init_python_editor: function($el) {
+      var _this = this;
       var cm = this.python_editor = CodeMirror($el[0], {
         value: script_content,
         mode: "python",
@@ -47,6 +49,16 @@ window.Debugger = (function() {
       });
       cm.on('blur', function() {
         $el.removeClass("focus");
+      });
+      cm.on('change', function() {
+        _this.not_saved = true;
+      });
+      window.addEventListener('beforeunload', function(e) {
+        if (_this.not_saved) {
+          var returnValue = "You have not saved changes.";
+          (e || window.event).returnValue = returnValue;
+          return returnValue;
+        }
       });
     },
 
@@ -142,6 +154,7 @@ window.Debugger = (function() {
             console.log(data);
             _this.python_log('');
             _this.python_log("saved!");
+            _this.not_saved = false;
             $('#right-area .overlay').hide();
           },
           error: function(xhr, textStatus, errorThrown) {

@@ -20,7 +20,7 @@
       <div class=base-info>
         <p>
           <span class="status status-{{ task.status }}">{{ status_to_string(task.status) }}</span>
-          <a class=callback href="/debug/{{ task.project }}?taskid={{ task.taskid }}" target=_blank>{{ task.project }}.{{ task.process.callback }}</a>
+          <a class=callback href="/debug/{{ task.project }}?taskid={{ task.taskid }}">{{ task.project }}.{{ task.process.callback }}</a>
           &gt;
           <a class=url href="{{ task.url }}" target=_blank>{{ task.url }}</a>
           {% if task.status in (2, 3, 4) %}
