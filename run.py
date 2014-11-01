@@ -173,12 +173,17 @@ def all_in_one(g=g):
             'http://localhost:%d' % g.scheduler_xmlrpc_port)
     g.all_in_one = True
 
+    if os.name == 'nt':
+        run_in = run_in_thread
+    else:
+        run_in = run_in_subprocess
+
     threads = []
-    threads.append(run_in_subprocess(run_result_worker, g=g))
-    threads.append(run_in_subprocess(run_processor, g=g))
-    threads.append(run_in_subprocess(run_fetcher, g=g))
-    threads.append(run_in_subprocess(run_scheduler, g=g))
-    threads.append(run_in_subprocess(run_webui, g=g))
+    threads.append(run_in(run_result_worker, g=g))
+    threads.append(run_in(run_processor, g=g))
+    threads.append(run_in(run_fetcher, g=g))
+    threads.append(run_in(run_scheduler, g=g))
+    threads.append(run_in(run_webui, g=g))
 
     while True:
         try:
