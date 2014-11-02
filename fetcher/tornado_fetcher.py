@@ -185,7 +185,8 @@ class Fetcher(object):
             if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
                 result = {
                         'status_code': 599,
-                        'content': "%r" % response.error,
+                        'error': "%r" % response.error,
+                        'content': "",
                         'time': time.time() - start_time,
                         'orig_url': url,
                         'url': url,
@@ -238,7 +239,8 @@ class Fetcher(object):
         except Exception as e:
             result = {
                     'status_code': 599,
-                    'content': "%r" % e,
+                    'error': '%r' % e,
+                    'content': "",
                     'time': time.time() - start_time,
                     'orig_url': url,
                     'url': url,
@@ -286,7 +288,8 @@ class Fetcher(object):
             if not response:
                 result = {
                         'status_code': 599,
-                        'content': "timeout error",
+                        'error': "599 Timeout error",
+                        'content': "",
                         'time': time.time() - start_time,
                         'orig_url': url,
                         'url': url,
@@ -297,7 +300,8 @@ class Fetcher(object):
                 except Exception as e:
                     result = {
                             'status_code': 599,
-                            'content': "%r" % e,
+                            'error': '%r' % e,
+                            'content': '',
                             'time': time.time() - start_time,
                             'orig_url': url,
                             'url': url,
@@ -324,7 +328,8 @@ class Fetcher(object):
         except Exception as e:
             result = {
                     'status_code': 599,
-                    'content': "%r" % e,
+                    'error': "%r" % e,
+                    'content': '',
                     'time': time.time() - start_time,
                     'orig_url': url,
                     'url': url,

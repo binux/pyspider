@@ -128,19 +128,20 @@ class Processor(object):
                     'url': task.get('url'),
                     'track': {
                         'fetch': {
-                            'ok': not response.error,
+                            'ok': response.isok(),
                             'time': response.time,
                             'status_code': response.status_code,
                             'headers': dict(response.headers),
                             'encoding': response.encoding,
-                            #'content': response.content,
+                            'content': response.content[:500] \
+                                    if not response.isok() or ret.exception else None,
                             },
                         'process': {
                             'ok': not ret.exception,
                             'time': process_time,
                             'follows': len(ret.follows),
                             'result': unicode(ret.result)[:100],
-                            'logs': ret.logstr()[:200],
+                            'logs': ret.logstr()[-200:],
                             'exception': ret.exception,
                             },
                         },

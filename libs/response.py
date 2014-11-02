@@ -148,6 +148,13 @@ class Response(object):
             http_error.response = self
             raise http_error
 
+    def isok(self):
+        try:
+            self.raise_for_status()
+            return True
+        except:
+            return False
+
 def rebuild_response(r):
     response = Response()
     response.status_code = r.get('status_code', 599)

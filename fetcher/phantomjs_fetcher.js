@@ -123,9 +123,10 @@ if (system.args.length !== 2) {
 
       var result = {
         orig_url: fetch.url,
-        content: first_response.errorString || page.content,
-        headers: headers,
         status_code: first_response.status || 599,
+        error: first_response.errorString,
+        content:  page.content,
+        headers: headers,
         url: page.url,
         cookies: cookies,
         time: (Date.now() - start_time) / 1000,
