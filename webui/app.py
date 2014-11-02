@@ -12,6 +12,10 @@ import urlparse
 from flask import Flask, Response
 from fetcher import tornado_fetcher
 
+if os.name == 'nt':
+    import mimetypes
+    mimetypes.add_type("text/css", ".css", True)
+
 app = Flask('webui',
         static_folder=os.path.join(os.path.dirname(__file__), 'static'),
         template_folder=os.path.join(os.path.dirname(__file__), 'templates'))

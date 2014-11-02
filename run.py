@@ -167,18 +167,23 @@ def run_webui(g=g):
         app.debug = True
     app.run(host=g.webui_host, port=g.webui_port)
 
-def all_in_one():
+def all_in_one(g=g):
     import xmlrpclib
     g.scheduler_rpc = xmlrpclib.ServerProxy(
             'http://localhost:%d' % g.scheduler_xmlrpc_port)
     g.all_in_one = True
 
+    if os.name == 'nt':
+        run_in = run_in_thread
+    else:
+        run_in = run_in_subprocess
+
     threads = []
-    threads.append(run_in_subprocess(run_result_worker, g=g))
-    threads.append(run_in_subprocess(run_processor, g=g))
-    threads.append(run_in_subprocess(run_fetcher, g=g))
-    threads.append(run_in_subprocess(run_scheduler, g=g))
-    threads.append(run_in_subprocess(run_webui, g=g))
+    threads.append(run_in(run_result_worker, g=g))
+    threads.append(run_in(run_processor, g=g))
+    threads.append(run_in(run_fetcher, g=g))
+    threads.append(run_in(run_scheduler, g=g))
+    threads.append(run_in(run_webui, g=g))
 
     while True:
         try:
@@ -197,7 +202,7 @@ if __name__ == '__main__':
         print "%s=%r" % (key, getattr(g, key))
 
     if len(sys.argv) < 2:
-        all_in_one()
+        all_in_one(g)
     else:
         cmd = "run_"+sys.argv[1]
-        locals()[cmd]()
+        locals()[cmd](g)
