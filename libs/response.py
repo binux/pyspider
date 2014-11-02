@@ -131,22 +131,18 @@ class Response(object):
         """Raises stored :class:`HTTPError` or :class:`URLError`, if one occurred."""
 
         if self.error:
-            raise HTTPError(self.error)
-
-        if (self.status_code >= 300) and (self.status_code < 400) and not allow_redirects:
+            http_error = HTTPError(self.error)
+        elif (self.status_code >= 300) and (self.status_code < 400) and not allow_redirects:
             http_error = HTTPError('%s Redirection' % (self.status_code))
-            http_error.response = self
-            raise http_error
-
         elif (self.status_code >= 400) and (self.status_code < 500):
             http_error = HTTPError('%s Client Error' % (self.status_code))
-            http_error.response = self
-            raise http_error
-
         elif (self.status_code >= 500) and (self.status_code < 600):
             http_error = HTTPError('%s Server Error' % (self.status_code))
-            http_error.response = self
-            raise http_error
+        else:
+            return
+
+        http_error.response = self
+        raise http_error
 
     def isok(self):
         try:
