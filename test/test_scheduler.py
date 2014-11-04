@@ -13,7 +13,6 @@ import logging
 import logging.config
 logging.config.fileConfig("logging.conf")
 
-
 from scheduler.task_queue import TaskQueue
 class TestTaskQueue(unittest.TestCase):
     @classmethod
@@ -111,13 +110,16 @@ class TestScheduler(unittest.TestCase):
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
 
-        self.process = run_in_subprocess(run_scheduler)
+        self.process = run_in_thread(run_scheduler)
         time.sleep(1)
 
     @classmethod
     def tearDownClass(self):
+        if self.process.is_alive():
+            self.rpc._quit()
+            self.process.join(5)
+        assert not self.process.is_alive()
         shutil.rmtree('./test/data/', ignore_errors=True)
-        self.process.terminate()
 
     def test_10_new_task_ignore(self):
         self.newtask_queue.put({

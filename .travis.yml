@@ -11,4 +11,5 @@ install:
 script:
     coverage run --source=database,scheduler,fetcher,processor,result,libs ./runtest.py
 after_success:
-    coveralls
+    - coverage combine
+    - coveralls
