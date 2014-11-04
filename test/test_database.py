@@ -13,7 +13,7 @@ import database
 from database.base.taskdb import TaskDB
 from database.base.projectdb import ProjectDB
 
-class TestTaskDB(object):
+class TaskDBCase(object):
     sample_task = {
             'taskid': 'taskid',
             'project': 'project',
@@ -143,7 +143,7 @@ class TestTaskDB(object):
         self.assertIsNotNone(self.taskdb.get_task('project2', 'taskid'), None)
         self.assertIsNone(self.taskdb.get_task('project3', 'taskid'), None)
 
-class TestProjectDB(object):
+class ProjectDBCase(object):
     sample_project = {
             'name': 'name',
             'group': 'group',
@@ -220,7 +220,7 @@ class TestProjectDB(object):
         self.assertIsNotNone(self.projectdb.get('project2'))
         self.assertIsNone(self.projectdb.get('project3'))
 
-class TestResultDB(object):
+class ResultDBCase(object):
     @classmethod
     def setUpClass(self):
         raise NotImplemented()
@@ -284,7 +284,7 @@ class TestResultDB(object):
         self.assertIsNotNone(self.resultdb.get('test_project2', 'test_taskid'))
         self.assertIsNone(self.resultdb.get('test_project3', 'test_taskid'))
 
-class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
+class TestSqliteTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('sqlite+taskdb://')
@@ -294,7 +294,7 @@ class TestSqliteTaskDB(TestTaskDB, unittest.TestCase):
         del self.taskdb
 
 
-class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
+class TestSqliteProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('sqlite+projectdb://')
@@ -303,7 +303,7 @@ class TestSqliteProjectDB(TestProjectDB, unittest.TestCase):
     def tearDownClass(self):
         del self.projectdb
 
-class TestSqliteResultDB(TestResultDB, unittest.TestCase):
+class TestSqliteResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database('sqlite+resultdb://')
@@ -314,7 +314,7 @@ class TestSqliteResultDB(TestResultDB, unittest.TestCase):
 
 
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
-class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
+class TestMysqlTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('mysql+taskdb://localhost/pyspider_test_taskdb')
@@ -324,7 +324,7 @@ class TestMysqlTaskDB(TestTaskDB, unittest.TestCase):
         self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
 
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
-class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
+class TestMysqlProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('mysql+projectdb://localhost/pyspider_test_projectdb')
@@ -334,7 +334,7 @@ class TestMysqlProjectDB(TestProjectDB, unittest.TestCase):
         self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
-class TestMysqlResultDB(TestResultDB, unittest.TestCase):
+class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database('mysql+resultdb://localhost/pyspider_test_resultdb')
@@ -345,7 +345,7 @@ class TestMysqlResultDB(TestResultDB, unittest.TestCase):
 
 
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
-class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
+class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('mongodb+taskdb://localhost:27017/pyspider_test_taskdb')
@@ -355,7 +355,7 @@ class TestMongoDBTaskDB(TestTaskDB, unittest.TestCase):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
 
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
-class TestMongoDBProjectDB(TestProjectDB, unittest.TestCase):
+class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('mongodb+projectdb://localhost/pyspider_test_projectdb')
@@ -365,7 +365,7 @@ class TestMongoDBProjectDB(TestProjectDB, unittest.TestCase):
         self.projectdb.conn.drop_database(self.projectdb.database.name)
 
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
-class TestMongoDBResultDB(TestResultDB, unittest.TestCase):
+class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database('mongodb+resultdb://localhost/pyspider_test_resultdb')

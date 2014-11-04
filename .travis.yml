@@ -2,8 +2,13 @@ language: python
 python:
     - "2.6"
     - "2.7"
-install: "pip install --allow-all-external -r requirements.txt"
-script: ./runtest.py
 services:
     - mongodb
     - rabbitmq
+install:
+    - pip install --allow-all-external -r requirements.txt
+    - pip install coveralls
+script:
+    coverage run --source=pyspider ./runtest.py
+after_success:
+    coveralls
