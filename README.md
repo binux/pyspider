@@ -1,4 +1,4 @@
-pyspider [![Build Status](https://travis-ci.org/binux/pyspider.png?branch=master)](https://travis-ci.org/binux/pyspider)
+pyspider [![Build Status](https://travis-ci.org/binux/pyspider.png?branch=master)](https://travis-ci.org/binux/pyspider) [![Coverage Status](https://coveralls.io/repos/binux/pyspider/badge.png)](https://coveralls.io/r/binux/pyspider)
 ========
 
 A spider system in python. [Try It Now!](http://demo.pyspider.org/)

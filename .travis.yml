@@ -9,6 +9,6 @@ install:
     - pip install --allow-all-external -r requirements.txt
     - pip install coveralls
 script:
-    coverage run --source=pyspider ./runtest.py
+    coverage run --source=database,scheduler,fetcher,processor,result,libs ./runtest.py
 after_success:
     coveralls
