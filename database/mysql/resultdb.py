@@ -9,10 +9,12 @@ import re
 import time
 import json
 import mysql.connector
+
 from database.base.resultdb import ResultDB as BaseResultDB
 from database.basedb import BaseDB
+from mysqlbase import MySQLMixin, SplitTableMixin
 
-class ResultDB(BaseResultDB, BaseDB):
+class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
     __tablename__ = ''
     def __init__(self, host='localhost', port=3306, database='resultdb',
             user='root', passwd=None):
@@ -23,34 +25,6 @@ class ResultDB(BaseResultDB, BaseDB):
             self._execute('CREATE DATABASE %s' % self.escape(database))
         self.conn.database = database;
         self._list_project()
-
-    @property
-    def dbcur(self):
-        try:
-            if self.conn.unread_result:
-                self.conn.get_rows()
-            return self.conn.cursor()
-        except mysql.connector.OperationalError as e:
-            self.conn.ping(reconnect=True)
-            self.conn.database = self.database_name
-            return self.conn.cursor()
-
-    def _tablename(self, project):
-        if self.__tablename__:
-            return '%s_%s' % (self.__tablename__, project)
-        else:
-            return project
-
-    def _list_project(self):
-        self.projects = set()
-        if self.__tablename__:
-            prefix = '%s_' % self.__tablename__
-        else:
-            prefix = ''
-        for project, in self._execute('show tables;'):
-            if project.startswith(prefix):
-                project = project[len(prefix):]
-                self.projects.add(project)
 
     def _create_project(self, project):
         assert re.match(r'^\w+$', project) is not None
@@ -118,12 +92,3 @@ class ResultDB(BaseResultDB, BaseDB):
         for task in self._select2dic(tablename, what=fields,
                 where=where, where_values=(taskid, )):
             return self._parse(task)
-
-    def drop(self, project):
-        if project not in self.projects:
-            self._list_project()
-        if project not in self.projects:
-            return
-        tablename = self._tablename(project)
-        self._execute("DROP TABLE %s" % self.escape(tablename))
-        self._list_project()

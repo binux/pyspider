@@ -12,8 +12,9 @@ import mysql.connector
 
 from database.base.projectdb import ProjectDB as BaseProjectDB
 from database.basedb import BaseDB
+from mysqlbase import MySQLMixin
 
-class ProjectDB(BaseProjectDB, BaseDB):
+class ProjectDB(MySQLMixin, BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
     def __init__(self, host='localhost', port=3306, database='projectdb',
             user='root', passwd=None):
@@ -34,17 +35,6 @@ class ProjectDB(BaseProjectDB, BaseDB):
             `burst` float(11, 4),
             `updatetime` double(16, 4)
             ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(self.__tablename__))
-
-    @property
-    def dbcur(self):
-        try:
-            if self.conn.unread_result:
-                self.conn.get_rows()
-            return self.conn.cursor()
-        except mysql.connector.OperationalError as e:
-            self.conn.ping(reconnect=True)
-            self.conn.database = self.database_name
-            return self.conn.cursor()
 
     def insert(self, name, obj={}):
         obj = dict(obj)
