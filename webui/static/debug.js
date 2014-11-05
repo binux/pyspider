@@ -21,7 +21,14 @@ window.Debugger = (function() {
   return {
     init: function() {
       //init resizer
-      $(".debug-panel:not(:first)").splitter().data('splitter').trigger('init');
+      $(".debug-panel:not(:first)").splitter().data('splitter')
+      .trigger('init')
+      .on('resize-start', function() {
+        $('#left-area .overlay').show();
+      })
+      .on('resize-end', function() {
+        $('#left-area .overlay').hide();
+      });
 
       //codemirror
       CodeMirror.keyMap.basic.Tab = 'indentMore';

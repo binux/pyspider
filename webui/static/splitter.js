@@ -12,7 +12,6 @@ $.fn.splitter = function (_type) {
 
   var splitterSettings = JSON.parse(localStorage.getItem('splitterSettings') || '[]');
   return this.each(function () {
-    console.log(_type);
     var $el = $(this),
     $originalContainer = $(this),
     guid = $.fn.splitter.guid++,
@@ -154,6 +153,7 @@ $.fn.splitter = function (_type) {
     $document.bind('mouseup touchend', function () {
       if (dragging) {
         dragging = false;
+        $handle.trigger('resize-end');
         $blocker.remove();
         // $handle.css( 'opacity', '0');
         $body.removeClass('dragging');
@@ -172,6 +172,7 @@ $.fn.splitter = function (_type) {
 
     $handle.bind('mousedown touchstart', function (e) {
       dragging = true;
+      $handle.trigger('resize-start');
       $body.append($blocker).addClass('dragging');
       props[type].size = $parent[props[type].sizeProp]();
       props[type].currentPos = 0; // is this really required then?
