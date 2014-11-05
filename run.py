@@ -29,7 +29,7 @@ class g(object):
     phantomjs_proxy_port = int(os.environ.get('PHANTOMJS_PROXY_PORT', 25555))
     webui_host = os.environ.get('WEBUI_HOST', '0.0.0.0')
     webui_port = int(os.environ.get('WEBUI_PORT', 5000))
-    debug = bool(os.environ.get('DEBUG'))
+    debug = bool(os.environ.get('DEBUG', False))
     queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
     demo_mode = bool(os.environ.get('DEMO_MODE'))
 
@@ -164,7 +164,7 @@ def run_webui(g=g):
         app.config['webui_username'] = os.environ['WEBUI_USERNAME']
         app.config['webui_password'] = os.environ.get('WEBUI_PASSWORD', '')
     if not getattr(g, 'all_in_one', False):
-        app.debug = True
+        app.debug = g.debug
     app.run(host=g.webui_host, port=g.webui_port)
 
 def all_in_one(g=g):
