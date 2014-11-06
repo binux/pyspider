@@ -5,6 +5,8 @@
 #         http://binux.me
 # Created on 2014-11-05 10:42:24
 
+import mysql.connector
+
 class MySQLMixin(object):
     @property
     def dbcur(self):
