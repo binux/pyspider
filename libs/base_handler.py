@@ -83,10 +83,10 @@ def every(minutes=NOTSET, seconds=NOTSET):
     def wrapper(func):
         @functools.wraps(func)
         def on_cronjob(self, response, task):
-            if response.save and 'tick' in response.save and response.save['tick'] % (minutes * 60 + seconds) == 0:
-                function = func.__get__(self, self.__class__)
-                return self._run_func(function, response, task)
-            return None
+            if response.save and 'tick' in response.save and response.save['tick'] % (minutes * 60 + seconds) != 0:
+                return None
+            function = func.__get__(self, self.__class__)
+            return self._run_func(function, response, task)
         on_cronjob.is_cronjob = True
         on_cronjob.tick = minutes * 60 + seconds
         return on_cronjob

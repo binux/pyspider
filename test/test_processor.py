@@ -8,6 +8,8 @@
 import os
 import time
 import unittest2 as unittest
+import logging.config
+logging.config.fileConfig("logging.conf")
 
 from processor.processor import build_module
 class TestProjectModule(unittest.TestCase):
@@ -172,3 +174,89 @@ class TestProjectModule(unittest.TestCase):
         for each in ret.follows:
             self.assertEqual(each['url'], 'data:,on_get_info')
             self.assertEqual(each['fetch']['save']['min_tick'] , 10)
+
+import shutil
+from multiprocessing import Queue
+from database.sqlite import projectdb
+from processor.processor import Processor
+from libs.utils import run_in_subprocess, run_in_thread
+class TestProcessor(unittest.TestCase):
+    projectdb_path = './test/data/project.db'
+
+    @classmethod
+    def setUpClass(self):
+        shutil.rmtree('./test/data/', ignore_errors=True)
+        os.makedirs('./test/data/')
+
+        def get_projectdb():
+            return projectdb.ProjectDB(self.projectdb_path)
+        self.projectdb = get_projectdb()
+        self.in_queue = Queue(10)
+        self.status_queue = Queue(10)
+        self.newtask_queue = Queue(10)
+        self.result_queue = Queue(10)
+
+        def run_processor():
+            self.processor = Processor(get_projectdb(), self.in_queue,
+                    self.status_queue, self.newtask_queue, self.result_queue)
+            self.processor.CHECK_PROJECTS_INTERVAL = 0.1
+            self.processor.run()
+        self.process = run_in_thread(run_processor)
+        time.sleep(1)
+
+    @classmethod
+    def tearDownClass(self):
+        if self.process.is_alive():
+            self.processor.quit()
+            self.process.join(2)
+        assert not self.process.is_alive()
+        shutil.rmtree('./test/data/', ignore_errors=True)
+
+    def test_10_update_project(self):
+        self.assertEqual(len(self.processor.projects), 0)
+        self.projectdb.insert('test_project', {
+                'name': 'test_project',
+                'group': 'group',
+                'status': 'TODO',
+                'script': open('libs/sample_handler.py', 'r').read(),
+                'comments': 'test project',
+                'rate': 1.0,
+                'burst': 10,
+            })
+
+        task = {
+                "process": {
+                    "callback": "on_start"
+                    },
+                "project": "not_exists",
+                "taskid": "data:,on_start",
+                "url": "data:,on_start"
+                }
+        self.in_queue.put((task, {}))
+        time.sleep(1)
+        self.assertTrue(self.status_queue.empty())
+        self.assertEqual(len(self.processor.projects), 1)
+
+    def test_30_new_task(self):
+        self.assertTrue(self.status_queue.empty())
+        self.assertTrue(self.newtask_queue.empty())
+        task = {
+                "process": {
+                    "callback": "on_start"
+                    },
+                "project": "test_project",
+                "taskid": "data:,on_start",
+                "url": "data:,on_start"
+                }
+        fetch_result = {
+                "orig_url": "data:,on_start",
+                "content": "on_start",
+                "headers": {},
+                "status_code": 200,
+                "url": "data:,on_start",
+                "time": 0,
+                }
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        self.assertFalse(self.newtask_queue.empty())

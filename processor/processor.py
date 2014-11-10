@@ -175,15 +175,17 @@ class Processor(object):
             ret.result, len(ret.follows), len(ret.messages), ret.exception))
         return True
 
+    def quit(self):
+        self._quit = True
+
     def run(self):
         while not self._quit:
             try:
-                task, response = self.inqueue.get()
+                task, response = self.inqueue.get(timeout=1)
                 self._check_projects(task)
                 self.on_task(task, response)
                 self._exceptions = 0
             except Queue.Empty as e:
-                time.sleep(1)
                 continue
             except KeyboardInterrupt:
                 break

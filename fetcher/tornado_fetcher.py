@@ -229,7 +229,9 @@ class Fetcher(object):
             request = tornado.httpclient.HTTPRequest(header_callback=header_callback, **fetch)
             if cookie:
                 session.update(cookie)
-                request.headers.add('Cookie', self.session.get_cookie_header(request))
+                if 'Cookie' in request.headers:
+                    del request.headers['Cookie']
+                request.headers['Cookie'] = session.get_cookie_header(request)
             if self.async:
                 response = self.http_client.fetch(request, handle_response)
             else:
@@ -237,6 +239,7 @@ class Fetcher(object):
         except tornado.httpclient.HTTPError as e:
             return handle_response(e.response)
         except Exception as e:
+            raise
             result = {
                     'status_code': 599,
                     'error': '%r' % e,
