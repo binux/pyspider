@@ -28,10 +28,13 @@ class ResultWorker(object):
         assert 'url' in task, 'need url in task'
         return self.resultdb.save(project=task['project'], taskid=task['taskid'], url=task['url'], result=result)
 
+    def quit(self):
+        self._quit = True
+
     def run(self):
         while not self._quit:
             try:
-                task, result = self.inqueue.get()
+                task, result = self.inqueue.get(timeout=1)
                 if 'taskid' in task and 'project' in task and 'url' in task:
                     logger.info('result %s:%s %s -> %.30r' % (
                         task['project'], task['taskid'], task['url'], result))
@@ -39,7 +42,6 @@ class ResultWorker(object):
                     logger.warning('result UNKNOW -> %.30r' % result)
                 ret = self.on_result(task, result)
             except Queue.Empty as e:
-                time.sleep(1)
                 continue
             except KeyboardInterrupt:
                 break
