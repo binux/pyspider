@@ -259,4 +259,27 @@ class TestProcessor(unittest.TestCase):
         self.in_queue.put((task, fetch_result))
         time.sleep(1)
         self.assertFalse(self.status_queue.empty())
+        while not self.status_queue.empty():
+            self.status_queue.get()
         self.assertFalse(self.newtask_queue.empty())
+
+    def test_40_index_page(self):
+        task = None
+        while not self.newtask_queue.empty():
+            task = self.newtask_queue.get()
+        self.assertIsNotNone(task)
+
+        fetch_result = {
+                "orig_url": task['url'],
+                "content": "<html><body><a href='http://binux.me'>binux</a></body></html>",
+                "headers": {},
+                "status_code": 200,
+                "url": task['url'],
+                "time": 0,
+                }
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        self.assertFalse(self.newtask_queue.empty())
+        task = self.newtask_queue.get()
+        self.assertEqual(task['url'], 'http://binux.me/')

@@ -128,6 +128,7 @@ class TestScheduler(unittest.TestCase):
             'url': 'url'
             })
         self.assertEqual(self.rpc.size(), 0)
+        self.assertEqual(len(self.rpc.get_active_tasks()), 0)
 
     def test_20_new_project(self):
         self.projectdb.insert('test_project', {
@@ -145,6 +146,7 @@ class TestScheduler(unittest.TestCase):
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=0.1)
         self.projectdb.update('test_project', status="DEBUG")
+        self.rpc.update_project()
 
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
@@ -173,6 +175,7 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['pending'], 1)
 
         task = self.scheduler2fetcher.get(timeout=5)
+        self.assertEqual(len(self.rpc.get_active_tasks()), 1)
         self.assertIsNotNone(task)
         self.assertEqual(task['project'], 'test_project')
         self.assertIn('fetch', task)
@@ -242,6 +245,24 @@ class TestScheduler(unittest.TestCase):
 
     def test_80_newtask_age_ignore(self):
         self.newtask_queue.put({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url',
+            'fetch': {
+                'data': 'abc',
+                },
+            'process': {
+                'data': 'abc',
+                },
+            'schedule': {
+                'age': 30,
+                },
+            })
+        time.sleep(0.1)
+        self.assertEqual(self.rpc.size(), 0)
+
+    def test_82_newtask_via_rpc(self):
+        self.rpc.newtask({
             'taskid': 'taskid',
             'project': 'test_project',
             'url': 'url',

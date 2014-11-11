@@ -1,4 +1,17 @@
+[run]
+source =
+    database
+    scheduler
+    fetcher
+    processor
+    result
+    libs
+
 [report]
+omit =
+    libs/sample_handler.py
+    libs/pprint.py
+
 exclude_lines =
     pragma: no cover
     def __repr__
@@ -9,3 +22,4 @@ exclude_lines =
     if 0:
     if __name__ == .__main__.:
     except ImportError:
+    pass

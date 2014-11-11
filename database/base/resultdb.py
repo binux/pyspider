@@ -22,16 +22,16 @@ class ResultDB(object):
     """
 
     def save(self, project, taskid, url, result):
-        pass
+        raise NotImplementedError
 
     def select(self, project, fields=None, offset=0, limit=None):
-        pass
+        raise NotImplementedError
 
     def count(self, project):
-        pass
+        raise NotImplementedError
 
     def get(self, project, taskid, fields=None):
-        pass
+        raise NotImplementedError
 
     def drop(self, project):
-        pass
+        raise NotImplementedError

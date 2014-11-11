@@ -9,7 +9,7 @@ install:
     - pip install --allow-all-external -r requirements.txt
     - pip install coveralls
 script:
-    coverage run --source=database,scheduler,fetcher,processor,result,libs --omit=libs/sample_handler.py,libs/pprint.py ./runtest.py
+    coverage run ./runtest.py
 after_success:
     - coverage combine
     - coveralls
