@@ -3,7 +3,6 @@
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Created on __DATE__
 
-from libs.pprint import pprint
 from libs.base_handler import *
 
 class Handler(BaseHandler):
@@ -12,7 +11,7 @@ class Handler(BaseHandler):
     '''
     @every(minutes=24*60, seconds=0)
     def on_start(self):
-        self.crawl('http://www.baidu.com/', callback=self.index_page)
+        self.crawl('http://scrapy.org/', callback=self.index_page)
 
     @config(age=10*24*60*60)
     def index_page(self, response):
