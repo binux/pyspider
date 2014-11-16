@@ -146,9 +146,13 @@ class Fetcher(object):
 
         track_headers = task.get('track', {}).get('fetch', {}).get('headers', {})
         #proxy
-        if self.proxy and task_fetch.get('proxy', True):
-            fetch['proxy_host'] = self.proxy.split(":")[0]
-            fetch['proxy_port'] = int(self.proxy.split(":")[1])
+        if 'proxy' in task_fetch:
+            if isinstance(task_fetch['proxy'], basestring):
+                fetch['proxy_host'] = task_fetch['proxy'].split(":")[0]
+                fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
+            elif self.proxy and task_fetch.get('proxy', True):
+                fetch['proxy_host'] = self.proxy.split(":")[0]
+                fetch['proxy_port'] = int(self.proxy.split(":")[1])
         #etag
         if task_fetch.get('etag', True):
             _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), basestring) \
