@@ -54,6 +54,7 @@ Documents
 
 * [Wiki](https://github.com/binux/pyspider/wiki)
 * [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
+* [API Reference](https://github.com/binux/pyspider/wiki/API-Reference)
 * [脚本编写指南](https://github.com/binux/pyspider/wiki/%E8%84%9A%E6%9C%AC%E7%BC%96%E5%86%99%E6%8C%87%E5%8D%97)
 * [架构设计](http://blog.binux.me/2014/02/pyspider-architecture/)
 
@@ -61,7 +62,7 @@ Contribute
 ==========
 
 * Use It, Open [Issue](https://github.com/binux/pyspider/issues), PR is welcome.
-* [Discuss](https://github.com/binux/pyspider/issues?labels=discussion&state=open) [Document](https://github.com/binux/pyspider/wiki)
+* [Discuss](https://github.com/binux/pyspider/issues?labels=discussion&state=open), [Document](https://github.com/binux/pyspider/wiki)
 
 
 License
