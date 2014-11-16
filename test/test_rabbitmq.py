@@ -37,14 +37,14 @@ class TestRabbitMQ(unittest.TestCase):
         self.assertEqual(self.q1.qsize(), 0)
         self.assertEqual(self.q2.qsize(), 0)
         self.q1.put('TEST_DATA1', timeout=3)
-        self.q1.put('TEST_DATA2', timeout=3)
+        self.q1.put('TEST_DATA2_中文', timeout=3)
         time.sleep(0.01)
         self.assertEqual(self.q1.qsize(), 2)
         self.assertEqual(self.q2.qsize(), 2)
 
     def test_20_get(self):
         self.assertEqual(self.q1.get(timeout=0.01), 'TEST_DATA1')
-        self.assertEqual(self.q2.get_nowait(), 'TEST_DATA2')
+        self.assertEqual(self.q2.get_nowait(), 'TEST_DATA2_中文')
         with self.assertRaises(self.q1.Empty):
             self.q2.get(timeout=0.01)
         with self.assertRaises(self.q1.Empty):
