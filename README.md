@@ -47,7 +47,7 @@ Installation
 
 if ubuntu: `apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml`
 
-or [Run with Docker](https://github.com/binux/pyspider/wiki/Run-pyspider-with-Docker)
+or [Running with Docker](https://github.com/binux/pyspider/wiki/Running-pyspider-with-Docker)
 
 Documents
 =========
