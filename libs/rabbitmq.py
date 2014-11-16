@@ -6,7 +6,7 @@
 # Created on 2012-11-15 17:27:54
 
 import time
-import cPickle
+import umsgpack
 import Queue as BaseQueue
 import socket
 import select
@@ -85,7 +85,7 @@ class Queue(object):
         if self.full():
             raise BaseQueue.Full
         with self.lock:
-            return self.channel.basic_publish("", self.name, cPickle.dumps(obj))
+            return self.channel.basic_publish("", self.name, umsgpack.packb(obj))
 
     @catch_error
     def get(self, block=True, timeout=None, ack=True):
@@ -116,7 +116,7 @@ class Queue(object):
                 self.channel.basic_ack(method_frame.delivery_tag)
             else:
                 self._last_ack = method_frame.delivery_tag
-        return cPickle.loads(body)
+        return umsgpack.unpackb(body)
 
     @catch_error
     def ack(self, id=None):
