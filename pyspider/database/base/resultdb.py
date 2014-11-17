@@ -20,6 +20,7 @@ class ResultDB(object):
     """
     database for result
     """
+    projects = set()  # projects in resultdb
 
     def save(self, project, taskid, url, result):
         raise NotImplementedError

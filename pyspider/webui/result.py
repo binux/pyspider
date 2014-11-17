@@ -56,6 +56,8 @@ def result():
 @app.route('/results/dump/<project>.<_format>')
 def dump_result(project, _format):
     resultdb = app.config['resultdb']
+    if project not in resultdb.projects:
+        return "no such project.", 404
 
     if _format == 'json':
         def generator():

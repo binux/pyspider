@@ -61,6 +61,8 @@ class TaskDB(object):
     FAILED = 3
     BAD = 4
 
+    projects = set()  # projects in taskdb
+
     def load_tasks(self, status, project=None, fields=None):
         raise NotImplementedError
 
