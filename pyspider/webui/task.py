@@ -8,7 +8,7 @@
 from app import app
 from flask import abort, render_template, request, json
 
-from libs import utils
+from pyspider.libs import utils
 
 @app.route('/task/<taskid>')
 def task(taskid):

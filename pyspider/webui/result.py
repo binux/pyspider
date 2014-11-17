@@ -12,7 +12,7 @@ from flask import stream_with_context, Response
 import csv
 import itertools
 import cStringIO as StringIO
-from libs.utils import utf8
+from pyspider.libs.utils import utf8
 
 def result_formater(results):
     common_fields = None

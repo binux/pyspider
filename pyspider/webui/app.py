@@ -10,7 +10,7 @@ import os
 import sys
 import urlparse
 from flask import Flask, Response
-from fetcher import tornado_fetcher
+from pyspider.fetcher import tornado_fetcher
 
 if os.name == 'nt':
     import mimetypes

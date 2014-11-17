@@ -9,16 +9,18 @@
 import re
 import sys
 import time
+import inspect
 import datetime
 import traceback
 from app import app
 from flask import abort, render_template, request, json
 from flask.ext import login
 
-from libs.utils import hide_me
-from libs.response import rebuild_response
-from processor.processor import build_module
-from processor.project_module import ProjectFinder, ProjectLoader
+from pyspider.libs import sample_handler
+from pyspider.libs.utils import hide_me
+from pyspider.libs.response import rebuild_response
+from pyspider.processor.processor import build_module
+from pyspider.processor.project_module import ProjectFinder, ProjectLoader
 
 default_task = {
         'taskid': 'data:,on_start',
@@ -28,7 +30,7 @@ default_task = {
             'callback': 'on_start',
             },
         }
-default_script = open('libs/sample_handler.py').read()
+default_script = inspect.getsource(sample_handler)
 
 def verify_project_name(project):
     if re.search(r"[^\w]", project):
