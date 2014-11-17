@@ -12,7 +12,7 @@ import Queue
 import logging
 from collections import deque
 
-from libs import counter
+from pyspider.libs import counter
 from task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 

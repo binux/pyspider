@@ -10,8 +10,8 @@ import time
 import json
 import thread
 import sqlite3
-from database.base.resultdb import ResultDB as BaseResultDB
-from database.basedb import BaseDB
+from pyspider.database.base.resultdb import ResultDB as BaseResultDB
+from pyspider.database.basedb import BaseDB
 
 class ResultDB(BaseResultDB, BaseDB):
     __tablename__ = 'resultdb'

@@ -10,8 +10,8 @@ import re
 import time
 import thread
 import sqlite3
-from database.base.projectdb import ProjectDB as BaseProjectDB
-from database.basedb import BaseDB
+from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
+from pyspider.database.basedb import BaseDB
 
 
 class ProjectDB(BaseProjectDB, BaseDB):

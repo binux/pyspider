@@ -13,16 +13,16 @@ logging.config.fileConfig("logging.conf")
 
 import shutil
 from multiprocessing import Queue
-from database.sqlite import resultdb
-from result.result_worker import ResultWorker
-from libs.utils import run_in_subprocess, run_in_thread
+from pyspider.database.sqlite import resultdb
+from pyspider.result.result_worker import ResultWorker
+from pyspider.libs.utils import run_in_subprocess, run_in_thread
 class TestProcessor(unittest.TestCase):
-    resultdb_path = './test/data/result.db'
+    resultdb_path = './data/tests/result.db'
     
     @classmethod
     def setUpClass(self):
-        shutil.rmtree('./test/data/', ignore_errors=True)
-        os.makedirs('./test/data/')
+        shutil.rmtree('./data/tests/', ignore_errors=True)
+        os.makedirs('./data/tests/')
 
         def get_resultdb():
             return resultdb.ResultDB(self.resultdb_path)
@@ -41,7 +41,7 @@ class TestProcessor(unittest.TestCase):
             self.result_worker.quit()
             self.process.join(2)
         assert not self.process.is_alive()
-        shutil.rmtree('./test/data/', ignore_errors=True)
+        shutil.rmtree('./data/tests/', ignore_errors=True)
 
     def test_10_bad_result(self):
         self.inqueue.put(({'project': 'test_project'}, {}))

@@ -3,7 +3,7 @@
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Created on __DATE__
 
-from libs.base_handler import *
+from pyspider.libs.base_handler import *
 
 class Handler(BaseHandler):
     '''

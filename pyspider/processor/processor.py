@@ -5,18 +5,23 @@
 #         http://binux.me
 # Created on 2014-02-16 22:59:56
 
+import os
 import sys
 import time
 import Queue
 import logging
-from libs import utils
-from libs.response import rebuild_response
+from pyspider.libs import utils
+from pyspider.libs.response import rebuild_response
 from project_module import ProjectLoader, ProjectFinder
 logger = logging.getLogger("processor")
 
 def build_module(project, env={}):
     assert 'name' in project, 'need name of project'
     assert 'script' in project, 'need script of project'
+
+    # fix for old non-package version scripts
+    if 'pyspider' not in sys.path:
+        sys.path.insert(1, 'pyspider')
 
     env = dict(env)
     env.update({

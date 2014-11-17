@@ -13,7 +13,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         glob = sys.argv[1]
 
-    suite = unittest.TestLoader().discover('test', glob)
+    suite = unittest.TestLoader().discover('tests', glob)
     result = unittest.TextTestRunner(verbosity=1).run(suite)
     if result.errors or result.failures:
         sys.exit(1)

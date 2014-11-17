@@ -13,7 +13,7 @@ import logging
 import logging.config
 logging.config.fileConfig("logging.conf")
 
-from scheduler.task_queue import TaskQueue
+from pyspider.scheduler.task_queue import TaskQueue
 class TestTaskQueue(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -50,7 +50,7 @@ class TestTaskQueue(unittest.TestCase):
         self.assertEqual(self.task_queue.get(), None)
 
 
-from scheduler.token_bucket import Bucket
+from pyspider.scheduler.token_bucket import Bucket
 class TestBucket(unittest.TestCase):
     def test_bucket(self):
         bucket = Bucket(100, 1000)
@@ -67,20 +67,20 @@ class TestBucket(unittest.TestCase):
 
 import xmlrpclib
 from multiprocessing import Queue
-from scheduler.scheduler import Scheduler
-from database.sqlite import taskdb, projectdb, resultdb
-from libs.utils import run_in_subprocess, run_in_thread
+from pyspider.scheduler.scheduler import Scheduler
+from pyspider.database.sqlite import taskdb, projectdb, resultdb
+from pyspider.libs.utils import run_in_subprocess, run_in_thread
 class TestScheduler(unittest.TestCase):
-    taskdb_path = './test/data/task.db'
-    projectdb_path = './test/data/project.db'
-    resultdb_path = './test/data/result.db'
+    taskdb_path = './data/tests/task.db'
+    projectdb_path = './data/tests/project.db'
+    resultdb_path = './data/tests/result.db'
     check_project_time = 1
     scheduler_xmlrpc_port = 23333
 
     @classmethod
     def setUpClass(self):
-        shutil.rmtree('./test/data/', ignore_errors=True)
-        os.makedirs('./test/data/')
+        shutil.rmtree('./data/tests', ignore_errors=True)
+        os.makedirs('./data/tests')
 
         def get_taskdb():
             return taskdb.TaskDB(self.taskdb_path)
@@ -100,7 +100,7 @@ class TestScheduler(unittest.TestCase):
         def run_scheduler():
             scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
                     newtask_queue=self.newtask_queue, status_queue=self.status_queue,
-                    out_queue=self.scheduler2fetcher, data_path="./test/data/",
+                    out_queue=self.scheduler2fetcher, data_path="./data/tests/",
                     resultdb=get_resultdb())
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
@@ -119,7 +119,7 @@ class TestScheduler(unittest.TestCase):
             self.rpc._quit()
             self.process.join(5)
         assert not self.process.is_alive()
-        shutil.rmtree('./test/data/', ignore_errors=True)
+        shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_new_task_ignore(self):
         self.newtask_queue.put({

@@ -13,8 +13,8 @@ import cPickle as pickle
 import unittest2 as unittest
 from multiprocessing import Queue
 
-from libs import utils
-from fetcher.tornado_fetcher import Fetcher
+from pyspider.libs import utils
+from pyspider.fetcher.tornado_fetcher import Fetcher
 
 class TestFetcher(unittest.TestCase):
     sample_task_http = {

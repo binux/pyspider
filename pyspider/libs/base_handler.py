@@ -12,13 +12,13 @@ import inspect
 import functools
 import traceback
 import fractions
-from libs.log import LogFormatter
-from libs.url import quote_chinese, _build_url, _encode_params
-from libs.utils import md5string, hide_me, unicode_obj
-from libs.ListIO import ListO
-from libs.response import rebuild_response
 from collections import namedtuple
-from libs.pprint import pprint
+from pyspider.libs.log import LogFormatter
+from pyspider.libs.url import quote_chinese, _build_url, _encode_params
+from pyspider.libs.utils import md5string, hide_me, unicode_obj
+from pyspider.libs.ListIO import ListO
+from pyspider.libs.response import rebuild_response
+from pyspider.libs.pprint import pprint
 
 class ProcessorResult(object):
     def __init__(self, result, follows, messages, logs, exception, extinfo):

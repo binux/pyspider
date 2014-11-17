@@ -9,7 +9,7 @@ import json
 import time
 from pymongo import MongoClient
 
-from database.base.projectdb import ProjectDB as BaseProjectDB
+from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
 class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'

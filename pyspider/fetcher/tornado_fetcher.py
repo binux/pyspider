@@ -16,7 +16,7 @@ import tornado.httputil
 import tornado.httpclient
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
-from libs import dataurl, counter
+from pyspider.libs import dataurl, counter
 logger = logging.getLogger('fetcher')
 
 class MyCurlAsyncHTTPClient(CurlAsyncHTTPClient):

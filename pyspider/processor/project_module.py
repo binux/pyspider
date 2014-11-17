@@ -11,9 +11,9 @@ import imp
 import logging
 import inspect
 import linecache
-from libs import base_handler
-from libs.log import SaveLogHandler
-from libs.utils import hide_me
+from pyspider.libs import base_handler
+from pyspider.libs.log import SaveLogHandler
+from pyspider.libs.utils import hide_me
 
 class ProjectFinder(object):
     def find_module(self, fullname, path=None):
@@ -58,9 +58,10 @@ class ProjectLoader(object):
         linecache.clearcache()
 
         if '__handler_cls__' not in mod.__dict__:
+            BaseHandler = mod.__dict__.get('BaseHandler', base_handler.BaseHandler)
             for each in mod.__dict__.values():
-                if inspect.isclass(each) and each is not base_handler.BaseHandler \
-                        and issubclass(each, base_handler.BaseHandler):
+                if inspect.isclass(each) and each is not BaseHandler \
+                        and issubclass(each, BaseHandler):
                     mod.__dict__['__handler_cls__'] = each
 
         return mod

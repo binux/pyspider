@@ -9,9 +9,9 @@ import os
 import time
 import unittest2 as unittest
 
-import database
-from database.base.taskdb import TaskDB
-from database.base.projectdb import ProjectDB
+from pyspider import database
+from pyspider.database.base.taskdb import TaskDB
+from pyspider.database.base.projectdb import ProjectDB
 
 class TaskDBCase(object):
     sample_task = {

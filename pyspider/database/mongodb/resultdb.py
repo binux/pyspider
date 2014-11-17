@@ -8,7 +8,7 @@
 import json
 import time
 from pymongo import MongoClient
-from database.base.resultdb import ResultDB as BaseResultDB
+from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 
 class ResultDB(BaseResultDB):
     collection_prefix = ''

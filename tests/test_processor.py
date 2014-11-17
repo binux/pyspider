@@ -11,7 +11,7 @@ import unittest2 as unittest
 import logging.config
 logging.config.fileConfig("logging.conf")
 
-from processor.processor import build_module
+from pyspider.processor.processor import build_module
 class TestProjectModule(unittest.TestCase):
     base_task = {
             'taskid': 'taskid',
@@ -177,16 +177,16 @@ class TestProjectModule(unittest.TestCase):
 
 import shutil
 from multiprocessing import Queue
-from database.sqlite import projectdb
-from processor.processor import Processor
-from libs.utils import run_in_subprocess, run_in_thread
+from pyspider.database.sqlite import projectdb
+from pyspider.processor.processor import Processor
+from pyspider.libs.utils import run_in_subprocess, run_in_thread
 class TestProcessor(unittest.TestCase):
-    projectdb_path = './test/data/project.db'
+    projectdb_path = './data/tests/project.db'
 
     @classmethod
     def setUpClass(self):
-        shutil.rmtree('./test/data/', ignore_errors=True)
-        os.makedirs('./test/data/')
+        shutil.rmtree('./data/tests/', ignore_errors=True)
+        os.makedirs('./data/tests/')
 
         def get_projectdb():
             return projectdb.ProjectDB(self.projectdb_path)
@@ -210,7 +210,7 @@ class TestProcessor(unittest.TestCase):
             self.processor.quit()
             self.process.join(2)
         assert not self.process.is_alive()
-        shutil.rmtree('./test/data/', ignore_errors=True)
+        shutil.rmtree('./data/tests/', ignore_errors=True)
 
     def test_10_update_project(self):
         self.assertEqual(len(self.processor.projects), 0)
@@ -218,7 +218,7 @@ class TestProcessor(unittest.TestCase):
                 'name': 'test_project',
                 'group': 'group',
                 'status': 'TODO',
-                'script': open('libs/sample_handler.py', 'r').read(),
+                'script': open('pyspider/libs/sample_handler.py', 'r').read(),
                 'comments': 'test project',
                 'rate': 1.0,
                 'burst': 10,

@@ -9,7 +9,7 @@ import json
 import time
 from pymongo import MongoClient
 
-from database.base.taskdb import TaskDB as BaseTaskDB
+from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 
 
 class TaskDB(BaseTaskDB):

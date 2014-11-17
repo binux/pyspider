@@ -10,8 +10,8 @@ import time
 import json
 import mysql.connector
 
-from database.base.projectdb import ProjectDB as BaseProjectDB
-from database.basedb import BaseDB
+from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
+from pyspider.database.basedb import BaseDB
 from mysqlbase import MySQLMixin
 
 class ProjectDB(MySQLMixin, BaseProjectDB, BaseDB):

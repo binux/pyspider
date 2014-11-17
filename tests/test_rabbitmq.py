@@ -9,8 +9,8 @@ import os
 import time
 import unittest2 as unittest
 
-from libs import utils
-from libs import rabbitmq
+from pyspider.libs import utils
+from pyspider.libs import rabbitmq
 
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
 class TestRabbitMQ(unittest.TestCase):
