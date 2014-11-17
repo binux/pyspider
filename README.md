@@ -1,4 +1,4 @@
-pyspider [![Build Status](https://travis-ci.org/binux/pyspider.png?branch=master)](https://travis-ci.org/binux/pyspider) [![Coverage Status](https://coveralls.io/repos/binux/pyspider/badge.png)](https://coveralls.io/r/binux/pyspider)
+pyspider [![Build Status](https://travis-ci.org/binux/pyspider.svg?branch=master)](https://travis-ci.org/binux/pyspider) [![Coverage Status](https://img.shields.io/coveralls/binux/pyspider.svg?branch=master)](https://coveralls.io/r/binux/pyspider)
 ========
 
 A Powerful Spider System in Python. [Try It Now!](http://demo.pyspider.org/)
