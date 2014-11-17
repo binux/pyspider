@@ -123,7 +123,7 @@ class Response(object):
         """Returns a PyQuery object of a request's content"""
         if hasattr(self, '_doc'):
             return self._doc
-        doc = self._doc = PyQuery(self.text or self.content)
+        doc = self._doc = PyQuery(self.content)
         doc.make_links_absolute(self.url)
         return doc
 
