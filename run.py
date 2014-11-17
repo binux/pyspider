@@ -12,8 +12,8 @@ import logging
 import logging.config
 logging.config.fileConfig("logging.conf")
 
-from database import connect_database
-from libs.utils import run_in_thread, run_in_subprocess
+from pyspider.database import connect_database
+from pyspider.libs.utils import run_in_thread, run_in_subprocess
 
 class Get(object):
     def __init__(self, getter):
@@ -71,7 +71,7 @@ class g(object):
 
     # queue
     if os.environ.get('RABBITMQ_NAME'):
-        from libs.rabbitmq import Queue
+        from pyspider.libs.rabbitmq import Queue
         amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                     ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
         amqp = lambda name, Queue=Queue, amqp_url=amqp_url, queue_maxsize=queue_maxsize: \
@@ -111,7 +111,7 @@ class g(object):
 
 # run commands ------------------------------------------
 def run_scheduler(g=g):
-    from scheduler import Scheduler
+    from pyspider.scheduler import Scheduler
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
             newtask_queue=g.newtask_queue, status_queue=g.status_queue,
             out_queue=g.scheduler2fetcher)
@@ -122,7 +122,7 @@ def run_scheduler(g=g):
     scheduler.run()
 
 def run_fetcher(g=g):
-    from fetcher.tornado_fetcher import Fetcher
+    from pyspider.fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
 
@@ -130,7 +130,7 @@ def run_fetcher(g=g):
     fetcher.run()
 
 def run_processor(g=g):
-    from processor import Processor
+    from pyspider.processor import Processor
     processor = Processor(projectdb=g.projectdb,
             inqueue=g.fetcher2processor, status_queue=g.status_queue,
             newtask_queue=g.newtask_queue, result_queue=g.processor2result)
@@ -138,7 +138,7 @@ def run_processor(g=g):
     processor.run()
 
 def run_result_worker(g=g):
-    from result import ResultWorker
+    from pyspider.result import ResultWorker
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
     result_worker.run()
@@ -146,11 +146,11 @@ def run_result_worker(g=g):
 def run_webui(g=g):
     import cPickle as pickle
 
-    from fetcher.tornado_fetcher import Fetcher
+    from pyspider.fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
 
-    from webui.app import app
+    from pyspider.webui.app import app
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
     app.config['resultdb'] = g.resultdb

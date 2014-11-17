@@ -1,16 +1,11 @@
 [run]
 source =
-    database
-    scheduler
-    fetcher
-    processor
-    result
-    libs
+    pyspider
 
 [report]
 omit =
-    libs/sample_handler.py
-    libs/pprint.py
+    pyspider/libs/sample_handler.py
+    pyspider/libs/pprint.py
 
 exclude_lines =
     pragma: no cover
