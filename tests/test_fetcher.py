@@ -48,6 +48,7 @@ class TestFetcher(unittest.TestCase):
     def tearDownClass(self):
         self.rpc._quit()
         self.thread.join()
+        time.sleep(1)
 
     def test_10_http_get(self):
         result = self.fetcher.sync_fetch(self.sample_task_http)

@@ -405,7 +405,9 @@ class Scheduler(object):
             return result
         server.register_function(get_active_tasks, 'get_active_tasks')
 
-        server.serve_forever()
+        server.timeout = 0.5
+        while not self._quit:
+            server.handle_request()
     
     def on_new_request(self, task):
         task['status'] = self.taskdb.ACTIVE

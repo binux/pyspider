@@ -401,7 +401,9 @@ class Fetcher(object):
             return self._cnt[_time].to_dict(_type)
         server.register_function(dump_counter, 'counter')
 
-        server.serve_forever()
+        server.timeout = 0.5
+        while not self._quit:
+            server.handle_request()
 
     def on_fetch(self, type, task):
         """type in ('data', 'http')"""

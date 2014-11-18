@@ -190,3 +190,10 @@ def unicode_obj(obj):
             return unicode(obj)
         except:
             return unicode(repr(obj))
+
+class Get(object):
+    def __init__(self, getter):
+        self.getter = getter
+ 
+    def __get__(self, instance, owner):
+        return self.getter()

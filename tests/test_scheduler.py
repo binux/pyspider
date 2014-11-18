@@ -75,7 +75,7 @@ class TestScheduler(unittest.TestCase):
     projectdb_path = './data/tests/project.db'
     resultdb_path = './data/tests/result.db'
     check_project_time = 1
-    scheduler_xmlrpc_port = 23333
+    scheduler_xmlrpc_port = 24333
 
     @classmethod
     def setUpClass(self):
@@ -120,6 +120,7 @@ class TestScheduler(unittest.TestCase):
             self.process.join(5)
         assert not self.process.is_alive()
         shutil.rmtree('./data/tests', ignore_errors=True)
+        time.sleep(1)
 
     def test_10_new_task_ignore(self):
         self.newtask_queue.put({
