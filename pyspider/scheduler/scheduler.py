@@ -42,6 +42,7 @@ class Scheduler(object):
         self.out_queue = out_queue
         self.data_path = data_path
 
+        self._send_buffer = deque()
         self._quit = False
         self._exceptions = 0
         self.projects = dict()
@@ -167,8 +168,14 @@ class Scheduler(object):
                 priority=_schedule.get('priority', self.default_schedule['priority']),
                 exetime=_schedule.get('exetime', self.default_schedule['exetime']))
 
-    def send_task(self, task):
-        self.out_queue.put(task)
+    def send_task(self, task, force=True):
+        try:
+            self.out_queue.put_nowait(task)
+        except Queue.Full:
+            if force:
+                self._send_buffer.appendleft(task)
+            else:
+                raise
 
     def _check_task_done(self):
         cnt = 0
@@ -259,18 +266,30 @@ class Scheduler(object):
 
     request_task_fields = ['taskid', 'project', 'url', 'status', 'fetch', 'process', 'track', 'lastcrawltime']
     def _check_select(self):
+        while self._send_buffer:
+            _task = self._send_buffer.pop()
+            try:
+                self.out_queue.put_nowait(_task)
+            except Queue.Full:
+                self._send_buffer.append(_task)
+                break
+
         cnt_dict = dict()
         for project, task_queue in self.task_queue.iteritems():
             # task queue
             self.task_queue[project].check_update()
             cnt = 0
-            taskid = task_queue.get()
-            while taskid and cnt < self.LOOP_LIMIT / 10:
+            while cnt < self.LOOP_LIMIT / 10 and not self._send_buffer:
+                taskid = task_queue.get()
+                if not taskid:
+                    break
                 task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
+                if not task:
+                    continue
+
                 # inform processor project may updated
                 task['project_updatetime'] = self.projects[project].get('updatetime', 0)
                 task = self.on_select_task(task)
-                taskid = task_queue.get()
                 cnt += 1
             cnt_dict[project] = cnt
         return cnt_dict
