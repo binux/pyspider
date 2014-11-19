@@ -75,7 +75,7 @@ class TestScheduler(unittest.TestCase):
     projectdb_path = './data/tests/project.db'
     resultdb_path = './data/tests/result.db'
     check_project_time = 1
-    scheduler_xmlrpc_port = 24333
+    scheduler_xmlrpc_port = 23333
 
     @classmethod
     def setUpClass(self):

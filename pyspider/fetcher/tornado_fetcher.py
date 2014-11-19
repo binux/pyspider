@@ -404,6 +404,7 @@ class Fetcher(object):
         server.timeout = 0.5
         while not self._quit:
             server.handle_request()
+        server.server_close()
 
     def on_fetch(self, type, task):
         """type in ('data', 'http')"""

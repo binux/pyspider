@@ -408,6 +408,7 @@ class Scheduler(object):
         server.timeout = 0.5
         while not self._quit:
             server.handle_request()
+        server.server_close()
     
     def on_new_request(self, task):
         task['status'] = self.taskdb.ACTIVE
