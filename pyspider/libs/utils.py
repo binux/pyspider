@@ -197,3 +197,10 @@ class Get(object):
  
     def __get__(self, instance, owner):
         return self.getter()
+
+class ObjectDict(dict):
+    def __getattr__(self, name):
+        ret = self.__getitem__(name)
+        if hasattr(ret, '__get__'):
+            return ret.__get__(self, ObjectDict)
+        return ret

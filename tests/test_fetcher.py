@@ -8,8 +8,8 @@
 import time
 import json
 import logging
+import umsgpack
 import xmlrpclib
-import cPickle as pickle
 import unittest2 as unittest
 from multiprocessing import Queue
 
@@ -102,7 +102,7 @@ class TestFetcher(unittest.TestCase):
     def test_40_with_rpc(self):
         data = dict(self.sample_task_http)
         data['url'] = 'data:,hello';
-        result = pickle.loads(self.rpc.fetch(data).data)
+        result = umsgpack.unpackb(self.rpc.fetch(data).data)
         self.assertEqual(result['status_code'], 200)
         self.assertIn('content', result)
         self.assertEqual(result['content'], 'hello')

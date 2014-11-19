@@ -68,6 +68,7 @@ def cdn_url_handler(error, endpoint, kwargs):
     if endpoint == 'cdn':
         path = kwargs.pop('path')
         #cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
+        #cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
         cdn = app.config.get('cdn', '//cdnjscn.b0.upaiyun.com/libs/')
         return urlparse.urljoin(cdn, path)
     else:

@@ -12,124 +12,128 @@ import logging
 import logging.config
 logging.config.fileConfig("logging.conf")
 
+import click
 from pyspider.database import connect_database
-from pyspider.libs.utils import run_in_thread, run_in_subprocess
+from pyspider.libs.utils import run_in_thread, run_in_subprocess, Get, ObjectDict
 
-class Get(object):
-    def __init__(self, getter):
-        self.getter = getter
+def connect_db(ctx, param, value):
+    if value is None:
+        return
+    return Get(lambda : connect_database(value))
 
-    def __get__(self, instance, owner):
-        return self.getter()
+def connect_rpc(ctx, param, value):
+    if value is None:
+        return
+    import xmlrpclib
+    return xmlrpclib.ServerProxy(value)
 
-# config form environment -------------------
-class g(object):
-    scheduler_xmlrpc_port = int(os.environ.get('SCHEDULER_XMLRPC_PORT', 23333))
-    fetcher_xmlrpc_port = int(os.environ.get('FETCHER_XMLRPC_PORT', 24444))
-    phantomjs_proxy_port = int(os.environ.get('PHANTOMJS_PROXY_PORT', 25555))
-    webui_host = os.environ.get('WEBUI_HOST', '0.0.0.0')
-    webui_port = int(os.environ.get('WEBUI_PORT', 5000))
-    debug = bool(os.environ.get('DEBUG', False))
-    queue_maxsize = int(os.environ.get('QUEUE_MAXSIZE', 100))
-    demo_mode = bool(os.environ.get('DEMO_MODE'))
-
-    # databases
-    taskdb = None
-    projectdb = None
-    resultdb = None
-    if os.environ.get('TASKDB'):
-        if os.environ.get('TASKDB'):
-            taskdb = Get(lambda : connect_database(os.environ['TASKDB']))
-        if os.environ.get('PROJECTDB'):
-            projectdb = Get(lambda : connect_database(os.environ['PROJECTDB']))
-        if os.environ.get('RESULTDB'):
-            resultdb = Get(lambda : connect_database(os.environ['RESULTDB']))
-    elif os.environ.get('MYSQL_NAME'):
-        taskdb = Get(lambda : connect_database(
-                'mysql+taskdb://%(MYSQL_PORT_3306_TCP_ADDR)s'
-                ':%(MYSQL_PORT_3306_TCP_PORT)s/taskdb' % os.environ))
-        projectdb = Get(lambda : connect_database(
-            'mysql+projectdb://%(MYSQL_PORT_3306_TCP_ADDR)s'
-            ':%(MYSQL_PORT_3306_TCP_PORT)s/projectdb' % os.environ))
-        resultdb = Get(lambda : connect_database(
-            'mysql+resultdb://%(MYSQL_PORT_3306_TCP_ADDR)s'
-            ':%(MYSQL_PORT_3306_TCP_PORT)s/resultdb' % os.environ))
-    elif os.environ.get('MONGODB_NAME'):
-        taskdb = Get(lambda : connect_database(
-            'mongodb+taskdb://%(MONGODB_PORT_27017_TCP_ADDR)s'
-            ':%(MONGODB_PORT_27017_TCP_PORT)s/taskdb' % os.environ))
-        projectdb = Get(lambda : connect_database(
-            'mongodb+projectdb://%(MONGODB_PORT_27017_TCP_ADDR)s'
-            ':%(MONGODB_PORT_27017_TCP_PORT)s/projectdb' % os.environ))
-        resultdb = Get(lambda : connect_database(
-            'mongodb+resultdb://%(MONGODB_PORT_27017_TCP_ADDR)s'
-            ':%(MONGODB_PORT_27017_TCP_PORT)s/resultdb' % os.environ))
-    else:
-        taskdb = Get(lambda : connect_database('sqlite+taskdb:///data/task.db'))
-        projectdb = Get(lambda : connect_database('sqlite+projectdb:///data/project.db'))
-        resultdb = Get(lambda : connect_database('sqlite+resultdb:///data/resultdb.db'))
+@click.group(invoke_without_command=True)
+@click.option('--debug', envvar='DEBUG', is_flag=True, help='debug mode')
+@click.option('--queue-maxsize', envvar='QUEUE_MAXSIZE', default=100,
+        help='maxsize of queue')
+@click.option('--taskdb', envvar='TASKDB', callback=connect_db,
+        help='database url for taskdb, default: sqlite')
+@click.option('--projectdb', envvar='PROJECTDB', callback=connect_db,
+        help='database url for projectdb, default: sqlite')
+@click.option('--resultdb', envvar='RESULTDB', callback=connect_db,
+        help='database url for resultdb, default: sqlite')
+@click.option('--amqp-url', help='amqp url for rabbitmq, default: built-in Queue')
+@click.option('--phantomjs-proxy', help="phantomjs proxy ip:port")
+@click.option('-c', '--config', type=click.File('r'),
+        help='a json file with default values for subcommands. {"webui": {"port":5001}}')
+@click.pass_context
+def cli(ctx, **kwargs):
+    """
+    A powerful spider system in python.
+    """
+    # get db from env
+    for db in ('taskdb', 'projectdb', 'resultdb'):
+        if kwargs[db] is not None:
+            continue
+        if os.environ.get('MYSQL_NAME'):
+            kwargs[db] = Get(lambda db=db: connect_database('mysql+%s://%s:%s/%s' % (
+                db, os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+                os.environ['MYSQL_PORT_3306_TCP_PORT'], db)))
+        elif os.environ.get('MONGODB_NAME'):
+            kwargs[db] = Get(lambda db=db: connect_database('mongodb+%s://%s:%s/%s' % (
+                db, os.environ['MONGODB_PORT_27017_TCP_ADDR'],
+                os.environ['MYSQL_PORT_3306_TCP_PORT'], db)))
+        else:
+            kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///data/%s.db' % (
+                db, db[:-2])))
 
     # queue
-    if os.environ.get('RABBITMQ_NAME'):
+    if kwargs.get('amqp_url'):
         from pyspider.libs.rabbitmq import Queue
         amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                     ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
-        amqp = lambda name, Queue=Queue, amqp_url=amqp_url, queue_maxsize=queue_maxsize: \
-                Queue(name, amqp_url=amqp_url, maxsize=queue_maxsize)
-        newtask_queue = Get(lambda amqp=amqp: amqp("newtask_queue"))
-        status_queue = Get(lambda amqp=amqp: amqp("status_queue"))
-        scheduler2fetcher = Get(lambda amqp=amqp: amqp("scheduler2fetcher"))
-        fetcher2processor = Get(lambda amqp=amqp: amqp("fetcher2processor"))
-        processor2result = Get(lambda amqp=amqp: amqp("processor2result"))
+        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
+                'fetcher2processor', 'processor2result'):
+            kwargs[name] = Get(lambda name=name: Queue(name, amqp_url=amqp_url,
+                maxsize=kwargs['queue_maxsize']))
     else:
         from multiprocessing import Queue
-        newtask_queue = Queue(queue_maxsize)
-        status_queue = Queue(queue_maxsize)
-        scheduler2fetcher = Queue(queue_maxsize)
-        fetcher2processor = Queue(queue_maxsize)
-        processor2result = Queue(queue_maxsize)
+        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
+                'fetcher2processor', 'processor2result'):
+            kwargs[name] = Queue(kwargs['queue_maxsize'])
 
-    # scheduler_rpc
-    if os.environ.get('SCHEDULER_NAME'):
-        import xmlrpclib
-        scheduler_rpc = Get(lambda xmlrpclib=xmlrpclib, scheduler_xmlrpc_port=scheduler_xmlrpc_port: \
-                xmlrpclib.ServerProxy('http://%s:%s' % (
-            os.environ['SCHEDULER_PORT_%d_TCP_ADDR' % scheduler_xmlrpc_port],
-            os.environ['SCHEDULER_PORT_%d_TCP_PORT' % scheduler_xmlrpc_port]),
-            allow_none=True))
+    if kwargs['config']:
+        import json
+        kwargs['config'] = json.load(kwargs['config'])
+        ctx.default_map = kwargs['config']
     else:
-        scheduler_rpc = None
+        kwargs['config'] = {}
 
-    # phantomjs_proxy
-    if os.environ.get('PHANTOMJS_NAME'):
-        phantomjs_proxy = "%s:%s" % (
-                os.environ['PHANTOMJS_PORT_%d_TCP_ADDR' % phantomjs_proxy_port],
-                os.environ['PHANTOMJS_PORT_%d_TCP_PORT' % phantomjs_proxy_port]
-                )
-    else:
-        phantomjs_proxy = None
+    ctx.obj.update(kwargs)
 
-# run commands ------------------------------------------
-def run_scheduler(g=g):
+    if ctx.invoked_subcommand is None:
+        ctx.invoke(all)
+
+@cli.command()
+@click.option('--xmlrpc/--no-xmlrpc', default=True)
+@click.option('--xmlrpc-host', default='0.0.0.0')
+@click.option('--xmlrpc-port', envvar='SCHEDULER_XMLRPC_PORT', default=23333)
+@click.option('--inqueue-limit', default=0,
+        help='size limit of task queue for each project, '
+        'tasks will been ignored when overflow')
+@click.option('--delete-time', default=24*60*60,
+        help='delete time before marked as delete')
+@click.option('--active-tasks', default=100, help='active log size')
+@click.pass_context
+def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
+        inqueue_limit, delete_time, active_tasks):
+    g = ctx.obj
     from pyspider.scheduler import Scheduler
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
             newtask_queue=g.newtask_queue, status_queue=g.status_queue,
             out_queue=g.scheduler2fetcher)
-    if g.demo_mode:
-        scheduler.INQUEUE_LIMIT = 1000
+    scheduler.INQUEUE_LIMIT = inqueue_limit
+    scheduler.DELETE_TIME = delete_time
+    scheduler.ACTIVE_TASKS = active_tasks
 
-    run_in_thread(scheduler.xmlrpc_run, port=g.scheduler_xmlrpc_port, bind=g.webui_host)
+    if xmlrpc:
+        run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     scheduler.run()
 
-def run_fetcher(g=g):
+@cli.command()
+@click.option('--xmlrpc/--no-xmlrpc', default=False)
+@click.option('--xmlrpc-host', default='0.0.0.0')
+@click.option('--xmlrpc-port', envvar='FETCHER_XMLRPC_PORT', default=24444)
+@click.pass_context
+def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port):
+    g = ctx.obj
     from pyspider.fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
 
-    run_in_thread(fetcher.xmlrpc_run, port=g.fetcher_xmlrpc_port, bind=g.webui_host)
+    if xmlrpc:
+        run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     fetcher.run()
 
-def run_processor(g=g):
+@cli.command()
+@click.pass_context
+def processor(ctx):
+    g = ctx.obj
     from pyspider.processor import Processor
     processor = Processor(projectdb=g.projectdb,
             inqueue=g.fetcher2processor, status_queue=g.status_queue,
@@ -137,53 +141,66 @@ def run_processor(g=g):
     
     processor.run()
 
-def run_result_worker(g=g):
+@cli.command()
+@click.pass_context
+def result_worker(ctx):
+    g = ctx.obj
     from pyspider.result import ResultWorker
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
     result_worker.run()
 
-def run_webui(g=g):
-    import cPickle as pickle
-
-    from pyspider.fetcher.tornado_fetcher import Fetcher
-    fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
-    fetcher.phantomjs_proxy = g.phantomjs_proxy
-
+@cli.command()
+@click.option('--host', default='0.0.0.0', envvar='WEBUI_HOST',
+        help='webui bind to host')
+@click.option('--port', default=5000, envvar='WEBUI_PORT',
+        help='webui bind to host')
+@click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/', 
+        help='js/css cdn server')
+@click.option('--scheduler-rpc', callback=connect_rpc, help='xmlrpc path of scheduler')
+@click.option('--fetcher-rpc', callback=connect_rpc, help='xmlrpc path of fetcher')
+@click.option('--max-rate', type=float, help='max rate for each project')
+@click.option('--max-burst', type=float, help='max burst for each project')
+@click.option('--username', envvar='WEBUI_USERNAME',
+        help='username of lock -ed projects')
+@click.option('--password', envvar='WEBUI_PASSWORD',
+        help='password of lock -ed projects')
+@click.pass_context
+def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
+        max_rate, max_burst, username, password):
+    g = ctx.obj
     from pyspider.webui.app import app
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
     app.config['resultdb'] = g.resultdb
-    app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
-    app.config['scheduler_rpc'] = g.scheduler_rpc
-    #app.config['cdn'] = '//cdnjs.cloudflare.com/ajax/libs/'
-    if g.demo_mode:
-        app.config['max_rate'] = 0.2
-        app.config['max_burst'] = 3.0
-    if 'WEBUI_USERNAME' in os.environ:
-        app.config['webui_username'] = os.environ['WEBUI_USERNAME']
-        app.config['webui_password'] = os.environ.get('WEBUI_PASSWORD', '')
-    if not getattr(g, 'all_in_one', False):
-        app.debug = g.debug
-    app.run(host=g.webui_host, port=g.webui_port)
-
-def all_in_one(g=g):
-    import xmlrpclib
-    g.scheduler_rpc = xmlrpclib.ServerProxy(
-            'http://localhost:%d' % g.scheduler_xmlrpc_port)
-    g.all_in_one = True
-
-    if os.name == 'nt':
-        run_in = run_in_thread
+    if fetcher_rpc is None:
+        from pyspider.fetcher.tornado_fetcher import Fetcher
+        fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
+        fetcher.phantomjs_proxy = g.phantomjs_proxy
+        app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
     else:
-        run_in = run_in_subprocess
+        import umsgpack
+        app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
+    app.config['scheduler_rpc'] = scheduler_rpc
+    app.config['cdn'] = cdn
+    app.config['max_rate'] = max_rate
+    app.config['max_burst'] = max_burst
+    app.config['webui_username'] = username
+    app.config['webui_password'] = password
+    app.debug = g.debug
+    app.run(host=host, port=port)
 
-    threads = []
-    threads.append(run_in(run_result_worker, g=g))
-    threads.append(run_in(run_processor, g=g))
-    threads.append(run_in(run_fetcher, g=g))
-    threads.append(run_in(run_scheduler, g=g))
-    threads.append(run_in(run_webui, g=g))
+@cli.command()
+@click.pass_context
+def all(ctx):
+    ctx.obj['debug'] = False
+    g = ctx.obj
+
+    run_in_thread(ctx.forward, result_worker, **g.config.get('result_worker', {}))
+    run_in_thread(ctx.forward, processor, **g.config.get('processor', {}))
+    run_in_thread(ctx.forward, fetcher, **g.config.get('fetcher', {}))
+    run_in_thread(ctx.forward, scheduler, **g.config.get('scheduler', {}))
+    run_in_thread(ctx.forward, webui, **g.config.get('webui', {}))
 
     while True:
         try:
@@ -195,14 +212,4 @@ def all_in_one(g=g):
         each.join()
 
 if __name__ == '__main__':
-    print "running with config:"
-    for key in dir(g):
-        if key.startswith("__"):
-            continue
-        print "%s=%r" % (key, getattr(g, key))
-
-    if len(sys.argv) < 2:
-        all_in_one(g)
-    else:
-        cmd = "run_"+sys.argv[1]
-        locals()[cmd](g)
+    cli(obj=ObjectDict(), default_map={})

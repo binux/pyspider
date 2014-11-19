@@ -58,7 +58,7 @@ class TestProcessor(unittest.TestCase):
             'taskid': 'id1',
             'url': 'url1'
             }, data))
-        time.sleep(0.1)
+        time.sleep(0.5)
         self.resultdb._list_project()
         self.assertEqual(len(self.resultdb.projects), 1)
         self.assertEqual(self.resultdb.count('test_project'), 1)

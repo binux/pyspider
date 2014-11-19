@@ -382,9 +382,9 @@ class Fetcher(object):
         tornado.ioloop.IOLoop.instance().stop()
 
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
+        import umsgpack
         from SimpleXMLRPCServer import SimpleXMLRPCServer
         from xmlrpclib import Binary
-        import cPickle as pickle
 
         server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()
@@ -394,7 +394,7 @@ class Fetcher(object):
         server.register_function(self.size)
         def sync_fetch(task):
             result = self.sync_fetch(task)
-            result = Binary(pickle.dumps(result))
+            result = Binary(umsgpack.packb(result))
             return result
         server.register_function(sync_fetch, 'fetch')
         def dump_counter(_time, _type):
