@@ -50,6 +50,9 @@ class Processor(object):
     CHECK_PROJECTS_INTERVAL = 5*60
     EXCEPTION_LIMIT = 3
 
+    RESULT_LOGS_LIMIT = 1000
+    RESULT_RESULT_LIMIT = 100
+
     def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue):
         self.inqueue = inqueue
         self.status_queue = status_queue
@@ -145,8 +148,8 @@ class Processor(object):
                             'ok': not ret.exception,
                             'time': process_time,
                             'follows': len(ret.follows),
-                            'result': unicode(ret.result)[:100],
-                            'logs': ret.logstr()[-200:],
+                            'result': unicode(ret.result)[:self.RESULT_RESULT_LIMIT],
+                            'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
                             'exception': ret.exception,
                             },
                         },
