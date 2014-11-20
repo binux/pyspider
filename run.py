@@ -239,17 +239,31 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         run_in = run_in_thread
 
     threads = []
+
+    # result worker
+    result_worker_config = g.config.get('result_worker', {})
     for i in range(result_worker_num):
-        threads.append(run_in(ctx.invoke, result_worker, **g.config.get('result_worker', {})))
+        threads.append(run_in(ctx.invoke, result_worker, **result_worker_config))
+
+    # processor
+    processor_config = g.config.get('processor', {})
     for i in range(processor_num):
-        threads.append(run_in(ctx.invoke, processor, **g.config.get('processor', {})))
+        threads.append(run_in(ctx.invoke, processor, **processor_config))
+
+    # fetcher
+    fetcher_config = g.config.get('fetcher', {})
+    fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
     for i in range(fetcher_num):
-        threads.append(run_in(ctx.invoke, fetcher, **g.config.get('fetcher', {})))
-    threads.append(run_in(ctx.invoke, scheduler, **g.config.get('scheduler', {})))
+        threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
+
+    # scheduler
+    scheduler_config = g.config.get('scheduler', {})
+    scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
+    threads.append(run_in(ctx.invoke, scheduler, **scheduler_config))
 
     # running webui in main thread to make it exitable
     webui_config = g.config.get('webui', {})
-    webui_config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://localhost:%s/'\
+    webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'\
             % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
     ctx.invoke(webui, **webui_config)
 
