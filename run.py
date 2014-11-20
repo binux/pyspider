@@ -66,6 +66,12 @@ def cli(ctx, **kwargs):
     # queue
     if kwargs.get('amqp_url'):
         from pyspider.libs.rabbitmq import Queue
+        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
+                'fetcher2processor', 'processor2result'):
+            kwargs[name] = Get(lambda name=name: Queue(name, amqp_url=kwargs['amqp_url'],
+                maxsize=kwargs['queue_maxsize']))
+    elif os.environ.get('RABBITMQ_NAME'):
+        from pyspider.libs.rabbitmq import Queue
         amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                     ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
