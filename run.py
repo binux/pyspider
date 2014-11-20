@@ -10,7 +10,6 @@ import sys
 import time
 import logging
 import logging.config
-logging.config.fileConfig("logging.conf")
 
 import click
 from pyspider.database import connect_database
@@ -46,6 +45,8 @@ def cli(ctx, **kwargs):
     """
     A powerful spider system in python.
     """
+    logging.config.fileConfig("logging.conf")
+
     # get db from env
     for db in ('taskdb', 'projectdb', 'resultdb'):
         if kwargs[db] is not None:
@@ -77,6 +78,13 @@ def cli(ctx, **kwargs):
                 'fetcher2processor', 'processor2result'):
             kwargs[name] = Queue(kwargs['queue_maxsize'])
 
+    # phantomjs-proxy
+    if kwargs.get('phantomjs_proxy'):
+        pass
+    elif os.environ.get('PHANTOMJS_NAME'):
+        kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT'][len('tcp://'):]
+
+    # config
     if kwargs['config']:
         import json
         kwargs['config'] = json.load(kwargs['config'])
@@ -178,6 +186,20 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
     app.config['resultdb'] = g.resultdb
+    app.config['cdn'] = cdn
+
+    if max_rate:
+        app.config['max_rate'] = max_rate
+    if max_burst:
+        app.config['max_burst'] = max_burst
+    if username:
+        app.config['webui_username'] = username
+    if password:
+        app.config['webui_password'] = password
+
+    # fetcher rpc
+    if isinstance(fetcher_rpc, basestring):
+        fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
     if fetcher_rpc is None:
         from pyspider.fetcher.tornado_fetcher import Fetcher
         fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
@@ -186,12 +208,15 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
     else:
         import umsgpack
         app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
-    app.config['scheduler_rpc'] = scheduler_rpc
-    app.config['cdn'] = cdn
-    app.config['max_rate'] = max_rate
-    app.config['max_burst'] = max_burst
-    app.config['webui_username'] = username
-    app.config['webui_password'] = password
+
+    if isinstance(scheduler_rpc, basestring):
+        scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
+    if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
+        app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://%s/' % (
+            os.environ['SCHEDULER_PORT_23333_TCP'][len('tcp://'):]))
+    else:
+        app.config['scheduler_rpc'] = scheduler_rpc
+
     app.debug = g.debug
     app.run(host=host, port=port)
 
@@ -223,7 +248,10 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     threads.append(run_in(ctx.invoke, scheduler, **g.config.get('scheduler', {})))
 
     # running webui in main thread to make it exitable
-    ctx.invoke(webui, **g.config.get('webui', {}))
+    webui_config = g.config.get('webui', {})
+    webui_config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://localhost:%s/'\
+            % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+    ctx.invoke(webui, **webui_config)
 
     for each in g.instances:
         each.quit()
