@@ -84,6 +84,7 @@ def cli(ctx, **kwargs):
     else:
         kwargs['config'] = {}
 
+    ctx.obj['instances'] = []
     ctx.obj.update(kwargs)
 
     if ctx.invoked_subcommand is None:
@@ -110,6 +111,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     scheduler.INQUEUE_LIMIT = inqueue_limit
     scheduler.DELETE_TIME = delete_time
     scheduler.ACTIVE_TASKS = active_tasks
+    g.instances.append(scheduler)
 
     if xmlrpc:
         run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
@@ -125,6 +127,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port):
     from pyspider.fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
+    g.instances.append(fetcher)
 
     if xmlrpc:
         run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
@@ -138,6 +141,7 @@ def processor(ctx):
     processor = Processor(projectdb=g.projectdb,
             inqueue=g.fetcher2processor, status_queue=g.status_queue,
             newtask_queue=g.newtask_queue, result_queue=g.processor2result)
+    g.instances.append(processor)
     
     processor.run()
 
@@ -147,6 +151,7 @@ def result_worker(ctx):
     g = ctx.obj
     from pyspider.result import ResultWorker
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
+    g.instances.append(result_worker)
 
     result_worker.run()
 
@@ -191,22 +196,37 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
     app.run(host=host, port=port)
 
 @cli.command()
+@click.option('--fetcher-num', default=1, help='instance num of fetcher')
+@click.option('--processor-num', default=1, help='instance num of processor')
+@click.option('--result-worker-num', default=1,
+        help='instance num of result worker')
+@click.option('--run-in', default='subprocess', type=click.Choice(['subprocess', 'thread']),
+        help='run each components in thread or subprocess. '
+        'always using thread for windows.')
 @click.pass_context
-def all(ctx):
+def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     ctx.obj['debug'] = False
     g = ctx.obj
 
-    run_in_thread(ctx.forward, result_worker, **g.config.get('result_worker', {}))
-    run_in_thread(ctx.forward, processor, **g.config.get('processor', {}))
-    run_in_thread(ctx.forward, fetcher, **g.config.get('fetcher', {}))
-    run_in_thread(ctx.forward, scheduler, **g.config.get('scheduler', {}))
-    run_in_thread(ctx.forward, webui, **g.config.get('webui', {}))
+    if run_in == 'subprocess' and os.name != 'nt':
+        run_in = run_in_subprocess
+    else:
+        run_in = run_in_thread
 
-    while True:
-        try:
-            time.sleep(10)
-        except KeyboardInterrupt:
-            break
+    threads = []
+    for i in range(result_worker_num):
+        threads.append(run_in(ctx.invoke, result_worker, **g.config.get('result_worker', {})))
+    for i in range(processor_num):
+        threads.append(run_in(ctx.invoke, processor, **g.config.get('processor', {})))
+    for i in range(fetcher_num):
+        threads.append(run_in(ctx.invoke, fetcher, **g.config.get('fetcher', {})))
+    threads.append(run_in(ctx.invoke, scheduler, **g.config.get('scheduler', {})))
+
+    # running webui in main thread to make it exitable
+    ctx.invoke(webui, **g.config.get('webui', {}))
+
+    for each in g.instances:
+        each.quit()
 
     for each in threads:
         each.join()

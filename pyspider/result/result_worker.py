@@ -51,3 +51,5 @@ class ResultWorker(object):
             except Exception as e:
                 logger.exception(e)
                 continue
+
+        logger.info("result_worker exiting...")

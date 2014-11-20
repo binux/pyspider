@@ -116,7 +116,11 @@ class LogFormatter(logging.Formatter):
             if not record.exc_text:
                 record.exc_text = self.formatException(record.exc_info)
         if record.exc_text:
-            formatted = formatted.rstrip() + "\n" + _unicode(record.exc_text)
+            try:
+                exc_text = _unicode(record.exc_text)
+            except UnicodeDecodeError:
+                exc_text = repr(record.exc_text)
+            formatted = formatted.rstrip() + "\n" + exc_text
         return formatted.replace("\n", "\n    ")
 
 class SaveLogHandler(logging.Handler):

@@ -203,3 +203,5 @@ class Processor(object):
                 if self._exceptions > self.EXCEPTION_LIMIT:
                     break
                 continue
+
+        logger.info("processor exiting...")

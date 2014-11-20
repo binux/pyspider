@@ -373,6 +373,8 @@ class Fetcher(object):
         except KeyboardInterrupt:
             pass
 
+        logger.info("fetcher exiting...")
+
     def size(self):
         return self.http_client.size()
 
