@@ -20,10 +20,13 @@ def connect_database(url):
         sqlite+type:////path/to/database.db
         # memory database
         sqlite+type://
+    mongodb:
+        mongodb+type://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
 
     type:
         taskdb
         projectdb
+        resultdb
     
     """
     parsed = urlparse.urlparse(url)
