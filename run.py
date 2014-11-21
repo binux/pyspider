@@ -101,8 +101,9 @@ def cli(ctx, **kwargs):
     ctx.obj['instances'] = []
     ctx.obj.update(kwargs)
 
-    if ctx.invoked_subcommand is None:
+    if ctx.invoked_subcommand is None and not ctx.obj.get('testing_mode'):
         ctx.invoke(all)
+    return ctx
 
 @cli.command()
 @click.option('--xmlrpc/--no-xmlrpc', default=True)
@@ -125,7 +126,10 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     scheduler.INQUEUE_LIMIT = inqueue_limit
     scheduler.DELETE_TIME = delete_time
     scheduler.ACTIVE_TASKS = active_tasks
+
     g.instances.append(scheduler)
+    if g.get('testing_mode'):
+        return scheduler
 
     if xmlrpc:
         run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
@@ -153,6 +157,9 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, 
         fetcher.default_options['timeout'] = timeout
 
     g.instances.append(fetcher)
+    if g.get('testing_mode'):
+        return fetcher
+
     if xmlrpc:
         run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     fetcher.run()
@@ -165,7 +172,10 @@ def processor(ctx):
     processor = Processor(projectdb=g.projectdb,
             inqueue=g.fetcher2processor, status_queue=g.status_queue,
             newtask_queue=g.newtask_queue, result_queue=g.processor2result)
+
     g.instances.append(processor)
+    if g.get('testing_mode'):
+        return processor
     
     processor.run()
 
@@ -175,7 +185,10 @@ def result_worker(ctx):
     g = ctx.obj
     from pyspider.result import ResultWorker
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
+
     g.instances.append(result_worker)
+    if g.get('testing_mode'):
+        return result_worker
 
     result_worker.run()
 
@@ -236,6 +249,9 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
         app.config['scheduler_rpc'] = scheduler_rpc
 
     app.debug = g.debug
+    if g.get('testing_mode'):
+        return app
+
     app.run(host=host, port=port)
 
 @cli.command()

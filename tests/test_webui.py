@@ -15,7 +15,7 @@ import unittest2 as unittest
 
 import run
 from pyspider.webui.app import app
-from pyspider.libs.utils import run_in_thread
+from pyspider.libs.utils import run_in_thread, ObjectDict
 
 class TestWebUI(unittest.TestCase):
     @classmethod
@@ -23,28 +23,43 @@ class TestWebUI(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
-        run_in_thread(run.run_scheduler, g=run.g)
-        run_in_thread(run.run_fetcher, g=run.g)
-        run_in_thread(run.run_processor, g=run.g)
-        run_in_thread(run.run_result_worker, g=run.g)
-        time.sleep(1)
+        ctx = run.cli.make_context('test', [
+            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
+            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
+            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+            ], None, obj=ObjectDict(testing_mode=True))
+        self.ctx = run.cli.invoke(ctx)
 
-        app.config['taskdb'] = run.g.taskdb
-        app.config['projectdb'] = run.g.projectdb
-        app.config['resultdb'] = run.g.resultdb
-        app.config['scheduler_rpc'] = xmlrpclib.ServerProxy('http://localhost:23333')
+        ctx = run.scheduler.make_context('scheduler', [], self.ctx)
+        scheduler = run.scheduler.invoke(ctx)
+        run_in_thread(scheduler.xmlrpc_run)
+        run_in_thread(scheduler.run)
+
+        ctx = run.fetcher.make_context('fetcher', [], self.ctx)
+        fetcher = run.fetcher.invoke(ctx)
+        run_in_thread(fetcher.run)
+
+        ctx = run.processor.make_context('processor', [], self.ctx)
+        processor = run.processor.invoke(ctx)
+        run_in_thread(processor.run)
+
+        ctx = run.result_worker.make_context('result_worker', [], self.ctx)
+        result_worker = run.result_worker.invoke(ctx)
+        run_in_thread(result_worker.run)
+
+        ctx = run.webui.make_context('webui', [
+            '--scheduler-rpc', 'http://localhost:23333/'
+            ], self.ctx)
+        app = run.webui.invoke(ctx)
         self.app = app.test_client()
+        self.rpc = app.config['scheduler_rpc']
+
+        time.sleep(1)
 
     @classmethod
     def tearDownClass(self):
-        if hasattr(run.g, 'scheduler'):
-            run.g.scheduler.quit()
-        if hasattr(run.g, 'fetcher'):
-            run.g.fetcher.quit()
-        if hasattr(run.g, 'processor'):
-            run.g.processor.quit()
-        if hasattr(run.g, 'result_worker'):
-            run.g.result_worker.quit()
+        for each in self.ctx.obj.instances:
+            each.quit()
         time.sleep(1)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
@@ -117,7 +132,7 @@ class TestWebUI(unittest.TestCase):
     def test_60_change_rate(self):
         rv = self.app.post('/update', data={
             'name': 'rate',
-            'value': '4/4',
+            'value': '1/4',
             'pk': 'test_project'
             })
         self.assertEqual(rv.status_code, 200)
@@ -154,30 +169,35 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(json.loads(rv.data)['result'], True)
 
     def test_a10_counter(self):
-        time.sleep(10)
+        for i in range(30):
+            time.sleep(1)
+            if self.rpc.counter('5m', 'sum')\
+                    .get('test_project' , {}).get('success', 0) > 3:
+                break
+
         rv = self.app.get('/counter?time=5m&type=sum')
         self.assertEqual(rv.status_code, 200)
         data = json.loads(rv.data)
         self.assertGreater(data.keys(), 0)
-        self.assertGreater(data['test_project']['success'], 1)
+        self.assertGreater(data['test_project']['success'], 3)
 
         rv = self.app.get('/counter?time=1h&type=sum')
         self.assertEqual(rv.status_code, 200)
         data = json.loads(rv.data)
         self.assertGreater(data.keys(), 0)
-        self.assertGreater(data['test_project']['success'], 1)
+        self.assertGreater(data['test_project']['success'], 3)
 
         rv = self.app.get('/counter?time=1d&type=sum')
         self.assertEqual(rv.status_code, 200)
         data = json.loads(rv.data)
         self.assertGreater(data.keys(), 0)
-        self.assertGreater(data['test_project']['success'], 1)
+        self.assertGreater(data['test_project']['success'], 3)
 
         rv = self.app.get('/counter?time=all&type=sum')
         self.assertEqual(rv.status_code, 200)
         data = json.loads(rv.data)
         self.assertGreater(data.keys(), 0)
-        self.assertGreater(data['test_project']['success'], 1)
+        self.assertGreater(data['test_project']['success'], 3)
 
     def test_a20_tasks(self):
         rv = self.app.get('/tasks')
