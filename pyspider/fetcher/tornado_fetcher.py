@@ -41,7 +41,7 @@ fetcher_output = {
         }
 
 class Fetcher(object):
-    user_agent = "BaiDuSpider"
+    user_agent = "pyspider/master (+http://pyspider.org/)"
     default_options = {
             'method': 'GET',
             'headers': {},

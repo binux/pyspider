@@ -135,14 +135,24 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--xmlrpc/--no-xmlrpc', default=False)
 @click.option('--xmlrpc-host', default='0.0.0.0')
 @click.option('--xmlrpc-port', envvar='FETCHER_XMLRPC_PORT', default=24444)
+@click.option('--poolsize', default=10, help="max simultaneous fetches")
+@click.option('--proxy', help="proxy host:port")
+@click.option('--user-agent', help='user agent')
+@click.option('--timeout', help='default fetch timeout')
 @click.pass_context
-def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port):
+def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, timeout):
     g = ctx.obj
     from pyspider.fetcher.tornado_fetcher import Fetcher
-    fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor)
+    fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
+            poolsize=poolsize, proxy=proxy)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
-    g.instances.append(fetcher)
+    if user_agent:
+        fetcher.user_agent = user_agent
+    if timeout:
+        fetcher.default_options = dict(fetcher.default_options)
+        fetcher.default_options['timeout'] = timeout
 
+    g.instances.append(fetcher)
     if xmlrpc:
         run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     fetcher.run()
