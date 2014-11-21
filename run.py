@@ -58,7 +58,7 @@ def cli(ctx, **kwargs):
         elif os.environ.get('MONGODB_NAME'):
             kwargs[db] = Get(lambda db=db: connect_database('mongodb+%s://%s:%s/%s' % (
                 db, os.environ['MONGODB_PORT_27017_TCP_ADDR'],
-                os.environ['MYSQL_PORT_3306_TCP_PORT'], db)))
+                os.environ['MONGODB_PORT_27017_TCP_PORT'], db)))
         else:
             kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///data/%s.db' % (
                 db, db[:-2])))
@@ -220,6 +220,8 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
     if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://%s/' % (
             os.environ['SCHEDULER_PORT_23333_TCP'][len('tcp://'):]))
+    elif scheduler_rpc is None:
+        app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://localhost:23333/')
     else:
         app.config['scheduler_rpc'] = scheduler_rpc
 
