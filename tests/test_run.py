@@ -106,7 +106,7 @@ class TestRun(unittest.TestCase):
             os.environ['MONGODB_PORT_27017_TCP_PORT'] = '27017'
             ctx = run.cli.make_context('test', [], None,
                     obj=ObjectDict(testing_mode=True))
-            ctx = run.cli.invoke(ctxr)
+            ctx = run.cli.invoke(ctx)
             resultdb = ctx.obj.resultdb
         except Exception as e:
             self.assertIsNone(e)
