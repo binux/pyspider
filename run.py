@@ -15,6 +15,14 @@ import click
 from pyspider.database import connect_database
 from pyspider.libs.utils import run_in_thread, run_in_subprocess, Get, ObjectDict
 
+def read_config(ctx, param, value):
+    if not value:
+        return {}
+    import json
+    config = json.load(value)
+    ctx.default_map = config
+    return config
+
 def connect_db(ctx, param, value):
     if value is None:
         return
@@ -27,6 +35,8 @@ def connect_rpc(ctx, param, value):
     return xmlrpclib.ServerProxy(value)
 
 @click.group(invoke_without_command=True)
+@click.option('-c', '--config', callback=read_config, type=click.File('r'),
+        help='a json file with default values for subcommands. {"webui": {"port":5001}}')
 @click.option('--debug', envvar='DEBUG', is_flag=True, help='debug mode')
 @click.option('--queue-maxsize', envvar='QUEUE_MAXSIZE', default=100,
         help='maxsize of queue')
@@ -38,8 +48,6 @@ def connect_rpc(ctx, param, value):
         help='database url for resultdb, default: sqlite')
 @click.option('--amqp-url', help='amqp url for rabbitmq, default: built-in Queue')
 @click.option('--phantomjs-proxy', help="phantomjs proxy ip:port")
-@click.option('-c', '--config', type=click.File('r'),
-        help='a json file with default values for subcommands. {"webui": {"port":5001}}')
 @click.pass_context
 def cli(ctx, **kwargs):
     """
@@ -89,14 +97,6 @@ def cli(ctx, **kwargs):
         pass
     elif os.environ.get('PHANTOMJS_NAME'):
         kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT'][len('tcp://'):]
-
-    # config
-    if kwargs['config']:
-        import json
-        kwargs['config'] = json.load(kwargs['config'])
-        ctx.default_map = kwargs['config']
-    else:
-        kwargs['config'] = {}
 
     ctx.obj['instances'] = []
     ctx.obj.update(kwargs)
