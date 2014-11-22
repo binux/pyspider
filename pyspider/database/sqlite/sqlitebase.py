@@ -1,24 +1,22 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: Binux<i@binux.me>
+# Author: Binux<roy@binux.me>
 #         http://binux.me
-# Created on 2014-11-05 10:42:24
+# Created on 2014-11-22 20:30:44
 
 import time
-import mysql.connector
+import thread
+import sqlite3
 
-class MySQLMixin(object):
+class SQLiteMixin(object):
     @property
     def dbcur(self):
-        try:
-            if self.conn.unread_result:
-                self.conn.get_rows()
-            return self.conn.cursor()
-        except (mysql.connector.OperationalError, mysql.connector.InterfaceError) as e:
-            self.conn.ping(reconnect=True)
-            self.conn.database = self.database_name
-            return self.conn.cursor()
+        pid = thread.get_ident()
+        if not (self.conn and pid == self.last_pid):
+            self.last_pid = pid
+            self.conn = sqlite3.connect(self.path, isolation_level=None)
+        return self.conn.cursor()
 
 class SplitTableMixin(object):
     UPDATE_PROJECTS_TIME = 10*60
@@ -47,7 +45,8 @@ class SplitTableMixin(object):
             prefix = '%s_' % self.__tablename__
         else:
             prefix = ''
-        for project, in self._execute('show tables;'):
+        for project, in self._select('sqlite_master', what='name',
+                where='type = "table"'):
             if project.startswith(prefix):
                 project = project[len(prefix):]
                 self.projects.add(project)

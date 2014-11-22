@@ -8,13 +8,13 @@
 import re
 import time
 import json
-import thread
-import sqlite3
+
+from sqlitebase import SQLiteMixin, SplitTableMixin
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
 
 
-class TaskDB(BaseTaskDB, BaseDB):
+class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
     __tablename__ = 'taskdb'
     placeholder = '?'
 
@@ -24,26 +24,9 @@ class TaskDB(BaseTaskDB, BaseDB):
         self.conn = None
         self._list_project()
 
-    @property
-    def dbcur(self):
-        pid = thread.get_ident()
-        if not (self.conn and pid == self.last_pid):
-            self.last_pid = pid
-            self.conn = sqlite3.connect(self.path, isolation_level=None)
-        return self.conn.cursor()
-
-    def _list_project(self):
-        self.projects = set()
-        prefix = '%s_' % self.__tablename__
-        for project, in self._select('sqlite_master', what='name',
-                where='type = "table"'):
-            if project.startswith(prefix):
-                project = project[len(prefix):]
-                self.projects.add(project)
-
     def _create_project(self, project):
         assert re.match(r'^\w+$', project) is not None
-        tablename = '%s_%s' % (self.__tablename__, project)
+        tablename = self._tablename(project)
         self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
                 taskid PRIMARY KEY,
                 project,
@@ -79,7 +62,7 @@ class TaskDB(BaseTaskDB, BaseDB):
             projects = self.projects
 
         for project in projects:
-            tablename = '%s_%s' % (self.__tablename__, project)
+            tablename = self._tablename(project)
             for each in self._select2dic(tablename, what=fields, where=where):
                 yield self._parse(each)
 
@@ -91,7 +74,7 @@ class TaskDB(BaseTaskDB, BaseDB):
         where = "`taskid` = %s" % self.placeholder
         if project not in self.projects:
             return None
-        tablename = '%s_%s' % (self.__tablename__, project)
+        tablename = self._tablename(project)
         for each in self._select2dic(tablename, what=fields, where=where, where_values=(taskid, )):
             return self._parse(each)
         return None
@@ -105,7 +88,7 @@ class TaskDB(BaseTaskDB, BaseDB):
             self._list_project()
         if project not in self.projects:
             return result
-        tablename = '%s_%s' % (self.__tablename__, project)
+        tablename = self._tablename(project)
         for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" % \
                 self.escape(tablename)):
             result[status] = count
@@ -119,24 +102,15 @@ class TaskDB(BaseTaskDB, BaseDB):
         obj['taskid'] = taskid
         obj['project'] = project
         obj['updatetime'] = time.time()
-        tablename = '%s_%s' % (self.__tablename__, project)
+        tablename = self._tablename(project)
         return self._insert(tablename, **self._stringify(obj))
         
     def update(self, project, taskid, obj={}, **kwargs):
         if project not in self.projects:
             raise LookupError
-        tablename = '%s_%s' % (self.__tablename__, project)
+        tablename = self._tablename(project)
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
                 **self._stringify(obj))
-
-    def drop(self, project):
-        if project not in self.projects:
-            self._list_project()
-        if project not in self.projects:
-            return
-        tablename = '%s_%s' % (self.__tablename__, project)
-        self._execute("DROP TABLE %s" % self.escape(tablename))
-        self._list_project()

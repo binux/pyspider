@@ -136,12 +136,22 @@ class TaskDBCase(object):
             self.taskdb._list_project()
             self.assertNotIn('system.indexes', self.taskdb.projects)
 
-    def test_z900_drop(self):
-        self.taskdb.insert('project2', 'taskid', self.sample_task)
-        self.taskdb.insert('project3', 'taskid', self.sample_task)
-        self.taskdb.drop('project3')
-        self.assertIsNotNone(self.taskdb.get_task('project2', 'taskid'), None)
-        self.assertIsNone(self.taskdb.get_task('project3', 'taskid'), None)
+    def test_z10_drop(self):
+        self.taskdb.insert('drop_project2', 'taskid', self.sample_task)
+        self.taskdb.insert('drop_project3', 'taskid', self.sample_task)
+        self.taskdb.drop('drop_project3')
+        self.assertIsNotNone(self.taskdb.get_task('drop_project2', 'taskid'), None)
+        self.assertIsNone(self.taskdb.get_task('drop_project3', 'taskid'), None)
+
+    def test_z20_update_projects(self):
+        self.taskdb.projects = set()
+        saved = self.taskdb.UPDATE_PROJECTS_TIME
+        self.taskdb.UPDATE_PROJECTS_TIME = 0.1
+        time.sleep(0.2)
+        self.assertIn('drop_project2', self.taskdb.projects)
+        self.assertNotIn('drop_project3', self.taskdb.projects)
+        self.taskdb.UPDATE_PROJECTS_TIME = saved
+
 
 class ProjectDBCase(object):
     sample_project = {
@@ -213,12 +223,12 @@ class ProjectDBCase(object):
         self.assertIn('status', project)
         self.assertNotIn('gourp', project)
 
-    def test_z900_drop(self):
-        self.projectdb.insert(u'project2', self.sample_project)
-        self.projectdb.insert(u'project3', self.sample_project)
-        self.projectdb.drop('project3')
-        self.assertIsNotNone(self.projectdb.get('project2'))
-        self.assertIsNone(self.projectdb.get('project3'))
+    def test_z10_drop(self):
+        self.projectdb.insert(u'drop_project2', self.sample_project)
+        self.projectdb.insert(u'drop_project3', self.sample_project)
+        self.projectdb.drop('drop_project3')
+        self.assertIsNotNone(self.projectdb.get('drop_project2'))
+        self.assertIsNone(self.projectdb.get('drop_project3'))
 
 class ResultDBCase(object):
     @classmethod
@@ -277,12 +287,21 @@ class ResultDBCase(object):
             self.resultdb._list_project()
             self.assertNotIn('system.indexes', self.resultdb.projects)
 
-    def test_z900_drop(self):
-        self.resultdb.save('test_project2', 'test_taskid', 'test_url', 'result')
-        self.resultdb.save('test_project3', 'test_taskid', 'test_url', 'result')
-        self.resultdb.drop('test_project3')
-        self.assertIsNotNone(self.resultdb.get('test_project2', 'test_taskid'))
-        self.assertIsNone(self.resultdb.get('test_project3', 'test_taskid'))
+    def test_z10_drop(self):
+        self.resultdb.save('drop_project2', 'test_taskid', 'test_url', 'result')
+        self.resultdb.save('drop_project3', 'test_taskid', 'test_url', 'result')
+        self.resultdb.drop('drop_project3')
+        self.assertIsNotNone(self.resultdb.get('drop_project2', 'test_taskid'))
+        self.assertIsNone(self.resultdb.get('drop_project3', 'test_taskid'))
+
+    def test_z20_update_projects(self):
+        self.resultdb.projects = set()
+        saved = self.resultdb.UPDATE_PROJECTS_TIME
+        self.resultdb.UPDATE_PROJECTS_TIME = 0.1
+        time.sleep(0.2)
+        self.assertIn('drop_project2', self.resultdb.projects)
+        self.assertNotIn('drop_project3', self.resultdb.projects)
+        self.resultdb.UPDATE_PROJECTS_TIME = saved
 
 class TestSqliteTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod

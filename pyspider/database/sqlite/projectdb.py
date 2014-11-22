@@ -8,13 +8,13 @@
 import os
 import re
 import time
-import thread
-import sqlite3
+
+from sqlitebase import SQLiteMixin
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from pyspider.database.basedb import BaseDB
 
 
-class ProjectDB(BaseProjectDB, BaseDB):
+class ProjectDB(SQLiteMixin, BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
     placeholder = '?'
 
@@ -28,14 +28,6 @@ class ProjectDB(BaseProjectDB, BaseDB):
                 status, script, comments,
                 rate, burst, updatetime
                 )''' % self.__tablename__)
-
-    @property
-    def dbcur(self):
-        pid = thread.get_ident()
-        if not (self.conn and pid == self.last_pid):
-            self.last_pid = pid
-            self.conn = sqlite3.connect(self.path, isolation_level=None)
-        return self.conn.cursor()
 
     def insert(self, name, obj={}):
         obj = dict(obj)

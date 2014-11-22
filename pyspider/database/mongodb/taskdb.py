@@ -9,10 +9,11 @@ import json
 import time
 from pymongo import MongoClient
 
+from mongodbbase import SplitTableMixin
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 
 
-class TaskDB(BaseTaskDB):
+class TaskDB(SplitTableMixin, BaseTaskDB):
     collection_prefix = ''
     def __init__(self, url, database='taskdb'):
         self.conn = MongoClient(url)
@@ -23,24 +24,6 @@ class TaskDB(BaseTaskDB):
         for project in self.projects:
             collection_name = self._collection_name(project)
             self.database[collection_name].ensure_index('status')
-
-    def _list_project(self):
-        self.projects = set()
-        if self.collection_prefix:
-            prefix = "%s." % self.collection_prefix
-        else:
-            prefix = ''
-        for each in self.database.collection_names():
-            if each.startswith('system.'):
-                continue
-            if each.startswith(prefix):
-                self.projects.add(each[len(prefix):])
-
-    def _collection_name(self, project):
-        if self.collection_prefix:
-            return "%s.%s" % (self.collection_prefix, project)
-        else:
-            return project
 
     def _parse(self, data):
         if '_id' in data:
@@ -120,12 +103,3 @@ class TaskDB(BaseTaskDB):
         obj['updatetime'] = time.time()
         collection_name = self._collection_name(project)
         return self.database[collection_name].update({'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True)
-
-    def drop(self, project):
-        if project not in self.projects:
-            self._list_project()
-        if project not in self.projects:
-            return
-        collection_name = self._collection_name(project)
-        self.database[collection_name].drop()
-        self._list_project()

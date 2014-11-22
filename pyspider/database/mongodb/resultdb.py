@@ -8,9 +8,10 @@
 import json
 import time
 from pymongo import MongoClient
+from mongodbbase import SplitTableMixin
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 
-class ResultDB(BaseResultDB):
+class ResultDB(SplitTableMixin, BaseResultDB):
     collection_prefix = ''
     def __init__(self, url, database='resultdb'):
         self.conn = MongoClient(url)
@@ -20,24 +21,6 @@ class ResultDB(BaseResultDB):
         self._list_project()
         for project in self.projects:
             collection_name = self._collection_name(project)
-
-    def _list_project(self):
-        self.projects = set()
-        if self.collection_prefix:
-            prefix = "%s." % self.collection_prefix
-        else:
-            prefix = ''
-        for each in self.database.collection_names():
-            if each.startswith('system.'):
-                continue
-            if each.startswith(prefix):
-                self.projects.add(each[len(prefix):])
-
-    def _collection_name(self, project):
-        if self.collection_prefix:
-            return "%s.%s" % (self.collection_prefix, project)
-        else:
-            return project
 
     def _parse(self, data):
         if 'result' in data:
@@ -86,12 +69,3 @@ class ResultDB(BaseResultDB):
         if not ret:
             return ret
         return self._parse(ret)
-
-    def drop(self, project):
-        if project not in self.projects:
-            self._list_project()
-        if project not in self.projects:
-            return
-        collection_name = self._collection_name(project)
-        self.database[collection_name].drop()
-        self._list_project()
