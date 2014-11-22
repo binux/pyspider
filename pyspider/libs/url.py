@@ -104,41 +104,6 @@ def quote_chinese(url, encodeing="utf-8"):
     res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
     return "".join(res)
 
-def xunlei_url_decode(url):
-    url = url.split('&')[0]
-    url = url[10:].decode('base64')
-    assert url.startswith('AA') and url.endswith('ZZ'), 'xunlei url format error'
-    return url[2:-2]
-
-def flashget_url_decode(url):
-    url = url.split('&')[0]
-    url = url[11:].decode('base64')
-    assert url.startswith('[FLASHGET]') and url.endswith('[FLASHGET]'), 'flashget url format error'
-    return url[10:-10]
-
-def flashgetx_url_decode(url):
-    url = url.split('&')[0]
-    name, size, hash, end = url.split('|')[2:]
-    assert end == '/', 'flashgetx url format error'
-    return 'ed2k://|file|'+name.decode('base64')+'|'+size+'|'+hash+'/'
-
-def qqdl_url_decode(url):
-    url = url.split('&')[0]
-    return base64.decodestring(url[7:])
-
-def url_unmask(url):
-    url_lower = url.lower()
-    if url_lower.startswith('thunder://'):
-        url = xunlei_url_decode(url)
-    elif url_lower.startswith('flashget://'):
-        url = flashget_url_decode(url)
-    elif url_lower.startswith('flashgetx://'):
-        url = flashgetx_url_decode(url)
-    elif url_lower.startswith('qqdl://'):
-        url = qqdl_url_decode(url)
-
-    return quote_chinese(url)
-
 if __name__ == "__main__":
     assert _build_url("http://httpbin.org", {'id': 123}) == "http://httpbin.org/?id=123"
     assert _build_url("http://httpbin.org/get", {'id': 123}) == "http://httpbin.org/get?id=123"
