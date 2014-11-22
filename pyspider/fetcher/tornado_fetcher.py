@@ -49,7 +49,7 @@ class Fetcher(object):
             }
     phantomjs_proxy = None
 
-    def __init__(self, inqueue, outqueue, poolsize=10, proxy=None, async=True):
+    def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True):
         self.inqueue = inqueue
         self.outqueue = outqueue
 
