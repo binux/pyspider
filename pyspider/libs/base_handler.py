@@ -88,7 +88,11 @@ def every(minutes=NOTSET, seconds=NOTSET):
     def wrapper(func):
         @functools.wraps(func)
         def on_cronjob(self, response, task):
-            if response.save and 'tick' in response.save and response.save['tick'] % (minutes * 60 + seconds) != 0:
+            if (
+                    response.save and
+                    'tick' in response.save and
+                    response.save['tick'] % (minutes * 60 + seconds) != 0
+            ):
                 return None
             function = func.__get__(self, self.__class__)
             return self._run_func(function, response, task)
@@ -230,7 +234,22 @@ class BaseHandler(object):
             task['schedule'] = schedule
 
         fetch = {}
-        for key in ('method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', 'proxy', 'etag', 'last_modifed', 'save', 'js_run_at', 'js_script', 'load_images', 'fetch_type'):
+        for key in (
+                'method',
+                'headers',
+                'data',
+                'timeout',
+                'allow_redirects',
+                'cookies',
+                'proxy',
+                'etag',
+                'last_modifed',
+                'save',
+                'js_run_at',
+                'js_script',
+                'load_images',
+                'fetch_type'
+        ):
             if key in kwargs and kwargs[key] is not None:
                 fetch[key] = kwargs[key]
         if fetch:

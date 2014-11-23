@@ -69,7 +69,9 @@ class Fetcher(object):
         if async:
             self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize)
         else:
-            self.http_client = tornado.httpclient.HTTPClient(MyCurlAsyncHTTPClient, max_clients=self.poolsize)
+            self.http_client = tornado.httpclient.HTTPClient(
+                MyCurlAsyncHTTPClient, max_clients=self.poolsize
+            )
 
         self._cnt = {
             '5m': counter.CounterManager(

@@ -103,4 +103,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         collection_name = self._collection_name(project)
-        return self.database[collection_name].update({'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True)
+        return self.database[collection_name].update(
+            {'taskid': taskid},
+            {"$set": self._stringify(obj)},
+            upsert=True
+        )

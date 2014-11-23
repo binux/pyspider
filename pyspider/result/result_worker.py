@@ -28,7 +28,12 @@ class ResultWorker(object):
         assert 'taskid' in task, 'need taskid in task'
         assert 'project' in task, 'need project in task'
         assert 'url' in task, 'need url in task'
-        return self.resultdb.save(project=task['project'], taskid=task['taskid'], url=task['url'], result=result)
+        return self.resultdb.save(
+            project=task['project'],
+            taskid=task['taskid'],
+            url=task['url'],
+            result=result
+        )
 
     def quit(self):
         self._quit = True

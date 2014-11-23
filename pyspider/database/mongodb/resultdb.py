@@ -42,7 +42,9 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'result': result,
             'updatetime': time.time(),
         }
-        return self.database[collection_name].update({'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True)
+        return self.database[collection_name].update(
+            {'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True
+        )
 
     def select(self, project, fields=None, offset=0, limit=0):
         if project not in self.projects:

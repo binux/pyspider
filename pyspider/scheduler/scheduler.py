@@ -33,7 +33,8 @@ class Scheduler(object):
     EXCEPTION_LIMIT = 3
     DELETE_TIME = 24 * 60 * 60
 
-    def __init__(self, taskdb, projectdb, newtask_queue, status_queue, out_queue, data_path='./data', resultdb=None):
+    def __init__(self, taskdb, projectdb, newtask_queue, status_queue,
+                 out_queue, data_path='./data', resultdb=None):
         self.taskdb = taskdb
         self.projectdb = projectdb
         self.resultdb = resultdb
@@ -141,10 +142,14 @@ class Scheduler(object):
 
         if project not in self._cnt['all']:
             status_count = self.taskdb.status_count(project)
-            self._cnt['all'].value((project, 'success'),
-                                   status_count.get(self.taskdb.SUCCESS, 0))
-            self._cnt['all'].value((project, 'failed'),
-                                   status_count.get(self.taskdb.FAILED, 0) + status_count.get(self.taskdb.BAD, 0))
+            self._cnt['all'].value(
+                (project, 'success'),
+                status_count.get(self.taskdb.SUCCESS, 0)
+            )
+            self._cnt['all'].value(
+                (project, 'failed'),
+                status_count.get(self.taskdb.FAILED, 0) + status_count.get(self.taskdb.BAD, 0)
+            )
         self._cnt['all'].value((project, 'pending'), len(self.task_queue[project]))
 
     def task_verify(self, task):
@@ -165,9 +170,11 @@ class Scheduler(object):
 
     def put_task(self, task):
         _schedule = task.get('schedule', self.default_schedule)
-        self.task_queue[task['project']].put(task['taskid'],
-                                             priority=_schedule.get('priority', self.default_schedule['priority']),
-                                             exetime=_schedule.get('exetime', self.default_schedule['exetime']))
+        self.task_queue[task['project']].put(
+            task['taskid'],
+            priority=_schedule.get('priority', self.default_schedule['priority']),
+            exetime=_schedule.get('exetime', self.default_schedule['exetime'])
+        )
 
     def send_task(self, task, force=True):
         try:
@@ -266,7 +273,16 @@ class Scheduler(object):
             })
         return True
 
-    request_task_fields = ['taskid', 'project', 'url', 'status', 'fetch', 'process', 'track', 'lastcrawltime']
+    request_task_fields = [
+        'taskid',
+        'project',
+        'url',
+        'status',
+        'fetch',
+        'process',
+        'track',
+        'lastcrawltime'
+    ]
 
     def _check_select(self):
         while self._send_buffer:
@@ -389,7 +405,15 @@ class Scheduler(object):
         server.register_function(update_project, 'update_project')
 
         def get_active_tasks(project=None, limit=100):
-            allowed_keys = set(('taskid', 'project', 'status', 'url', 'lastcrawltime', 'updatetime', 'track', ))
+            allowed_keys = set((
+                'taskid',
+                'project',
+                'status',
+                'url',
+                'lastcrawltime',
+                'updatetime',
+                'track',
+            ))
 
             iters = [iter(x['active_tasks']) for k, x in self.projects.iteritems()
                      if x and (k == project if project else True)]
