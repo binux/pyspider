@@ -22,16 +22,12 @@ from pyspider.libs.pprint import pprint
 
 class ProcessorResult(object):
     def __init__(self, result, follows, messages, logs, exception, extinfo):
-        self.result = unicode_obj(result)
-        #FIXME: unicode_obj will encode non-utf8 bytes to '\\0xaa'
-        #       that make it impossible to post non-utf8 data
-        #       as content data would saved to database and shown on webui
-        #       so every thing must be utf8 after encoding
-        self.follows = unicode_obj(follows)
-        self.messages = unicode_obj(messages)
+        self.result = result
+        self.follows = follows
+        self.messages = messages
         self.logs = logs
-        self.exception = unicode_obj(exception)
-        self.extinfo = unicode_obj(extinfo)
+        self.exception = exception
+        self.extinfo = extinfo
 
     def rethrow(self):
         if self.exception:

@@ -16,8 +16,7 @@ from app import app
 from flask import abort, render_template, request, json
 from flask.ext import login
 
-from pyspider.libs import sample_handler
-from pyspider.libs.utils import hide_me
+from pyspider.libs import utils, sample_handler
 from pyspider.libs.response import rebuild_response
 from pyspider.processor.processor import build_module
 from pyspider.processor.project_module import ProjectFinder, ProjectLoader
@@ -69,7 +68,7 @@ def enable_projects_import():
 
 @app.route('/debug/<project>/run', methods=['POST', ])
 def run(project):
-    task = json.loads(request.form['task'])
+    task = utils.decode_unicode_obj(json.loads(request.form['task']))
     project_info = {
             'name': project,
             'status': 'DEBUG',
@@ -87,7 +86,7 @@ def run(project):
         ret = module['instance'].run(module['module'], task, response)
     except Exception, e:
         type, value, tb = sys.exc_info()
-        tb = hide_me(tb, globals())
+        tb = utils.hide_me(tb, globals())
         logs = ''.join(traceback.format_exception(type, value, tb))
         result = {
                 'fetch_result': fetch_result,
@@ -109,10 +108,13 @@ def run(project):
         result['fetch_result']['content'] = response.text
 
     try:
-        return json.dumps(result), 200, {'Content-Type': 'application/json'}
+        # binary data can't encode to JSON, encode result as unicode obj
+        # before send it to frontend
+        return json.dumps(utils.unicode_obj(result)), 200, \
+                {'Content-Type': 'application/json'}
     except Exception, e:
         type, value, tb = sys.exc_info()
-        tb = hide_me(tb, globals())
+        tb = utils.hide_me(tb, globals())
         logs = ''.join(traceback.format_exception(type, value, tb))
         result = {
                 'fetch_result': "",
@@ -122,7 +124,8 @@ def run(project):
                 'result': None,
                 'time': time.time() - start_time,
                 }
-        return json.dumps(result), 200, {'Content-Type': 'application/json'}
+        return json.dumps(utils.unicode_obj(result)), 200, \
+                {'Content-Type': 'application/json'}
 
 @app.route('/debug/<project>/save', methods=['POST', ])
 def save(project):

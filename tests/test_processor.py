@@ -176,10 +176,12 @@ class TestProjectModule(unittest.TestCase):
             self.assertEqual(each['fetch']['save']['min_tick'] , 10)
 
 import shutil
+import inspect
 from multiprocessing import Queue
 from pyspider.database.sqlite import projectdb
 from pyspider.processor.processor import Processor
 from pyspider.libs.utils import run_in_subprocess, run_in_thread
+from pyspider.libs import sample_handler
 class TestProcessor(unittest.TestCase):
     projectdb_path = './data/tests/project.db'
 
@@ -218,7 +220,7 @@ class TestProcessor(unittest.TestCase):
                 'name': 'test_project',
                 'group': 'group',
                 'status': 'TODO',
-                'script': open('pyspider/libs/sample_handler.py', 'r').read(),
+                'script': inspect.getsource(sample_handler),
                 'comments': 'test project',
                 'rate': 1.0,
                 'burst': 10,
@@ -271,7 +273,10 @@ class TestProcessor(unittest.TestCase):
 
         fetch_result = {
                 "orig_url": task['url'],
-                "content": "<html><body><a href='http://binux.me'>binux</a></body></html>",
+                "content": ("<html><body>"
+                    "<a href='http://binux.me'>binux</a>"
+                    "<a href='http://binux.me/中文'>binux</a>"
+                    "</body></html>"),
                 "headers": {},
                 "status_code": 200,
                 "url": task['url'],
@@ -283,3 +288,5 @@ class TestProcessor(unittest.TestCase):
         self.assertFalse(self.newtask_queue.empty())
         task = self.newtask_queue.get()
         self.assertEqual(task['url'], 'http://binux.me/')
+        task = self.newtask_queue.get()
+        self.assertTrue(task['url'].startswith('http://binux.me/%'), task['url'])

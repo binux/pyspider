@@ -16,7 +16,7 @@ import tornado.httputil
 import tornado.httpclient
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
-from pyspider.libs import dataurl, counter
+from pyspider.libs import utils, dataurl, counter
 logger = logging.getLogger('fetcher')
 
 class MyCurlAsyncHTTPClient(CurlAsyncHTTPClient):
@@ -357,6 +357,9 @@ class Fetcher(object):
                     if self.http_client.free_size() <= 0:
                         break
                     task = self.inqueue.get_nowait()
+                    # FIXME: decode unicode_obj should used after data selete from
+                    # database, it's used here for performance
+                    task = utils.decode_unicode_obj(task)
                     self.fetch(task)
                 except Queue.Empty:
                     break

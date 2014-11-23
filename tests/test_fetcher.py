@@ -106,3 +106,15 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['status_code'], 200)
         self.assertIn('content', result)
         self.assertEqual(result['content'], 'hello')
+
+    def test_50_base64_data(self):
+        request = dict(self.sample_task_http)
+        request['fetch']['method'] = 'POST'
+        request['fetch']['data'] = "[BASE64-DATA]1tDOxA==[/BASE64-DATA]"
+        self.inqueue.put(request)
+        task, result = self.outqueue.get()
+        self.assertEqual(result['status_code'], 200)
+        self.assertIn(' d6 ', result['content'])
+        self.assertIn(' d0 ', result['content'])
+        self.assertIn(' ce ', result['content'])
+        self.assertIn(' c4 ', result['content'])

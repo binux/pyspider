@@ -130,7 +130,7 @@ class Processor(object):
         process_time = time.time() - start_time
 
         if not ret.extinfo.get('not_send_status', False):
-            status_pack = utils.unicode_obj({
+            status_pack = {
                     'taskid': task['taskid'],
                     'project': task['project'],
                     'url': task.get('url'),
@@ -153,11 +153,16 @@ class Processor(object):
                             'exception': ret.exception,
                             },
                         },
-                    })
-            self.status_queue.put(status_pack)
+                    }
+
+            # FIXME: unicode_obj should used in scheduler before store to database
+            # it's used here for performance.
+            self.status_queue.put(utils.unicode_obj(status_pack))
 
         for newtask in ret.follows:
-            self.newtask_queue.put(newtask)
+            # FIXME: unicode_obj should used in scheduler before store to database
+            # it's used here for performance.
+            self.newtask_queue.put(utils.unicode_obj(newtask))
 
         for project, msg, url in ret.messages:
             self.inqueue.put(({
