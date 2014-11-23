@@ -32,7 +32,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    if type(data[each]) is bytearray:
+                    if isinstance(data[each], bytearray):
                         data[each] = str(data[each])
                     data[each] = json.loads(data[each], 'utf8')
                 else:

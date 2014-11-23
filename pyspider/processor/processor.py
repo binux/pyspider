@@ -127,7 +127,7 @@ class Processor(object):
             project_data = self.projects[project]
             ret = project_data['instance'].run(
                 project_data['module'], task, response)
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             return False
         process_time = time.time() - start_time

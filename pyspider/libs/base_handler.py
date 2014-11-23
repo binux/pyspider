@@ -174,7 +174,7 @@ class BaseHandler(object):
             else:
                 result = self._run(task, response)
                 self._run_func(self.on_result, result, response, task)
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             exception = e
         finally:

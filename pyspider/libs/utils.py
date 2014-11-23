@@ -33,7 +33,7 @@ def hide_me(tb, g=globals()):
             tb = tb.tb_next
         while tb and tb.tb_frame.f_globals is g:
             tb = tb.tb_next
-    except Exception, e:
+    except Exception as e:
         logging.exception(e)
         tb = base_tb
     if not tb:

@@ -22,7 +22,7 @@ def _unicode(message):
     for each in ['utf8', 'gb18030']:
         try:
             return message.decode(each)
-        except Exception, e:
+        except Exception as e:
             error = e
     if error is not None:
         raise error
@@ -85,7 +85,7 @@ class LogFormatter(logging.Formatter):
     def format(self, record):
         try:
             record.message = record.getMessage()
-        except Exception, e:
+        except Exception as e:
             record.message = "Bad message (%r): %r" % (e, record.__dict__)
         assert isinstance(record.message, basestring)  # guaranteed by logging
         record.asctime = time.strftime(

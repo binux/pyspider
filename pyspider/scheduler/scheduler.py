@@ -466,7 +466,7 @@ class Scheduler(object):
             if task['taskid'] not in self.task_queue[task['project']].processing:
                 logging.error('not processing pack: %(project)s:%(taskid)s %(url)s', task)
                 return None
-        except KeyError, e:
+        except KeyError as e:
             logger.error("Bad status pack: %s", e)
             return None
 

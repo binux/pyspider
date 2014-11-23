@@ -83,7 +83,7 @@ class Fetcher(object):
         if self.outqueue:
             try:
                 self.outqueue.put((task, result))
-            except Exception, e:
+            except Exception as e:
                 logger.exception(e)
 
     def fetch(self, task, callback=None):
@@ -375,7 +375,7 @@ class Fetcher(object):
                     break
                 except KeyboardInterrupt:
                     break
-                except Exception, e:
+                except Exception as e:
                     logger.exception(e)
                     break
 
