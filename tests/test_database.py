@@ -11,56 +11,56 @@ import unittest2 as unittest
 
 from pyspider import database
 from pyspider.database.base.taskdb import TaskDB
-from pyspider.database.base.projectdb import ProjectDB
+
 
 class TaskDBCase(object):
     sample_task = {
-            'taskid': 'taskid',
-            'project': 'project',
-            'url': 'www.baidu.com/',
-            'status': TaskDB.FAILED,
-            'schedule': {
-                'priority': 1,
-                'retries': 3,
-                'exetime': 0,
-                'age': 3600,
-                'itag': 'itag',
-                'recrawl': 5,
-                },
+        'taskid': 'taskid',
+        'project': 'project',
+        'url': 'www.baidu.com/',
+        'status': TaskDB.FAILED,
+        'schedule': {
+            'priority': 1,
+            'retries': 3,
+            'exetime': 0,
+            'age': 3600,
+            'itag': 'itag',
+            'recrawl': 5,
+        },
+        'fetch': {
+            'method': 'GET',
+            'headers': {
+                'Cookie': 'a=b',
+            },
+            'data': 'a=b&c=d',
+            'timeout': 60,
+        },
+        'process': {
+            'callback': 'callback',
+            'save': [1, 2, 3],
+        },
+        'track': {
             'fetch': {
-                'method': 'GET',
+                'ok': True,
+                'time': 300,
+                'status_code': 200,
                 'headers': {
-                    'Cookie': 'a=b', 
-                    },
-                'data': 'a=b&c=d', 
-                'timeout': 60,
+                    'Content-Type': 'plain/html',
                 },
+                'encoding': 'utf8',
+                # 'content': 'asdfasdfasdfasdf',
+            },
             'process': {
-                'callback': 'callback',
-                'save': [1, 2, 3],
-                },
-            'track': {
-                'fetch': {
-                    'ok': True,
-                    'time': 300,
-                    'status_code': 200,
-                    'headers': {
-                        'Content-Type': 'plain/html', 
-                        },
-                    'encoding': 'utf8',
-                    #'content': 'asdfasdfasdfasdf',
-                    },
-                'process': {
-                    'ok': False,
-                    'time': 10,
-                    'follows': 3,
-                    'outputs': 5,
-                    'exception': u"中文",
-                    },
-                },
-            'lastcrawltime': time.time(),
-            'updatetime': time.time(),
-            }
+                'ok': False,
+                'time': 10,
+                'follows': 3,
+                'outputs': 5,
+                'exception': u"中文",
+            },
+        },
+        'lastcrawltime': time.time(),
+        'updatetime': time.time(),
+    }
 
     @classmethod
     def setUpClass(self):
@@ -71,13 +71,13 @@ class TaskDBCase(object):
         raise NotImplemented()
 
     # this test not works for mongodb
-    #def test_10_create_project(self):
-        #with self.assertRaises(AssertionError):
-            #self.taskdb._create_project('abc.abc')
-        #self.taskdb._create_project('abc')
-        #self.taskdb._list_project()
-        #self.assertEqual(len(self.taskdb.projects), 1)
-        #self.assertIn('abc', self.taskdb.projects)
+    # def test_10_create_project(self):
+        # with self.assertRaises(AssertionError):
+        # self.taskdb._create_project('abc.abc')
+        # self.taskdb._create_project('abc')
+        # self.taskdb._list_project()
+        # self.assertEqual(len(self.taskdb.projects), 1)
+        # self.assertIn('abc', self.taskdb.projects)
 
     def test_20_insert(self):
         self.taskdb.insert('project', 'taskid', self.sample_task)
@@ -126,7 +126,7 @@ class TaskDBCase(object):
         self.assertEqual(task['track'], {})
 
         tasks = list(self.taskdb.load_tasks(self.taskdb.ACTIVE, project='project',
-                fields=['taskid']))
+                                            fields=['taskid']))
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0]['taskid'], 'taskid')
         self.assertNotIn('project', tasks[0])
@@ -155,15 +155,15 @@ class TaskDBCase(object):
 
 class ProjectDBCase(object):
     sample_project = {
-            'name': 'name',
-            'group': 'group',
-            'status': 'TODO',
-            'script': 'import time\nprint time.time()',
-            'comments': 'test project',
-            'rate': 1.0,
-            'burst': 10,
-            'updatetime': time.time(),
-            }
+        'name': 'name',
+        'group': 'group',
+        'status': 'TODO',
+        'script': 'import time\nprint time.time()',
+        'comments': 'test project',
+        'rate': 1.0,
+        'burst': 10,
+        'updatetime': time.time(),
+    }
 
     @classmethod
     def setUpClass(self):
@@ -204,8 +204,10 @@ class ProjectDBCase(object):
         time.sleep(0.1)
         self.projectdb.update('abc', status='RUNNING')
 
-        projects = list(self.projectdb.check_update(now,
-            fields=['name', 'status', 'group', 'updatetime', ]))
+        projects = list(self.projectdb.check_update(
+            now,
+            fields=['name', 'status', 'group', 'updatetime', ]
+        ))
         self.assertEqual(len(projects), 1, repr(projects))
         project = projects[0]
         self.assertEqual(project['name'], 'abc')
@@ -230,7 +232,9 @@ class ProjectDBCase(object):
         self.assertIsNotNone(self.projectdb.get('drop_project2'))
         self.assertIsNone(self.projectdb.get('drop_project3'))
 
+
 class ResultDBCase(object):
+
     @classmethod
     def setUpClass(self):
         raise NotImplemented()
@@ -263,7 +267,7 @@ class ResultDBCase(object):
     def test_30_select(self):
         for i in range(5):
             self.resultdb.save('test_project', 'test_taskid-%d' % i,
-                    'test_url', 'result-%d' % i)
+                               'test_url', 'result-%d' % i)
         ret = list(self.resultdb.select('test_project'))
         self.assertEqual(len(ret), 6)
 
@@ -303,7 +307,9 @@ class ResultDBCase(object):
         self.assertNotIn('drop_project3', self.resultdb.projects)
         self.resultdb.UPDATE_PROJECTS_TIME = saved
 
+
 class TestSqliteTaskDB(TaskDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('sqlite+taskdb://')
@@ -314,6 +320,7 @@ class TestSqliteTaskDB(TaskDBCase, unittest.TestCase):
 
 
 class TestSqliteProjectDB(ProjectDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('sqlite+projectdb://')
@@ -322,7 +329,9 @@ class TestSqliteProjectDB(ProjectDBCase, unittest.TestCase):
     def tearDownClass(self):
         del self.projectdb
 
+
 class TestSqliteResultDB(ResultDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database('sqlite+resultdb://')
@@ -334,6 +343,7 @@ class TestSqliteResultDB(ResultDBCase, unittest.TestCase):
 
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlTaskDB(TaskDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('mysql+taskdb://localhost/pyspider_test_taskdb')
@@ -342,21 +352,29 @@ class TestMysqlTaskDB(TaskDBCase, unittest.TestCase):
     def tearDownClass(self):
         self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
 
+
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlProjectDB(ProjectDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
-        self.projectdb = database.connect_database('mysql+projectdb://localhost/pyspider_test_projectdb')
+        self.projectdb = database.connect_database(
+            'mysql+projectdb://localhost/pyspider_test_projectdb'
+        )
 
     @classmethod
     def tearDownClass(self):
         self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
+
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
 class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
-        self.resultdb = database.connect_database('mysql+resultdb://localhost/pyspider_test_resultdb')
+        self.resultdb = database.connect_database(
+            'mysql+resultdb://localhost/pyspider_test_resultdb'
+        )
 
     @classmethod
     def tearDownClass(self):
@@ -365,29 +383,40 @@ class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
 
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
 class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
-        self.taskdb = database.connect_database('mongodb+taskdb://localhost:27017/pyspider_test_taskdb')
+        self.taskdb = database.connect_database(
+            'mongodb+taskdb://localhost:27017/pyspider_test_taskdb'
+        )
 
     @classmethod
     def tearDownClass(self):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
 
+
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
 class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
-        self.projectdb = database.connect_database('mongodb+projectdb://localhost/pyspider_test_projectdb')
+        self.projectdb = database.connect_database(
+            'mongodb+projectdb://localhost/pyspider_test_projectdb'
+        )
 
     @classmethod
     def tearDownClass(self):
         self.projectdb.conn.drop_database(self.projectdb.database.name)
 
+
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
 class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
-        self.resultdb = database.connect_database('mongodb+resultdb://localhost/pyspider_test_resultdb')
+        self.resultdb = database.connect_database(
+            'mongodb+resultdb://localhost/pyspider_test_resultdb'
+        )
 
     @classmethod
     def tearDownClass(self):

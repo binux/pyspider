@@ -9,9 +9,11 @@
 import UserDict
 import cookielib
 from urlparse import urlparse
-from tornado import httpclient, httputil
+from tornado import httputil
+
 
 class MockRequest(object):
+
     """Wraps a `tornado.httpclient.HTTPRequest` to mimic a `urllib2.Request`.
 
     The code in `cookielib.CookieJar` expects this interface in order to correctly
@@ -61,6 +63,7 @@ class MockRequest(object):
 
 
 class MockResponse(object):
+
     """Wraps a `tornado.httputil.HTTPHeaders` to mimic a `urllib.addinfourl`.
 
     ...what? Basically, expose the parsed HTTP headers from the server response
@@ -79,6 +82,7 @@ class MockResponse(object):
 
     def getheaders(self, name):
         self._headers.get_list(name)
+
 
 def create_cookie(name, value, **kwargs):
     """Make a cookie from underspecified parameters.
@@ -100,7 +104,7 @@ def create_cookie(name, value, **kwargs):
         comment_url=None,
         rest={'HttpOnly': None},
         rfc2109=False,
-        )
+    )
 
     badargs = set(kwargs) - set(result)
     if badargs:
@@ -114,6 +118,7 @@ def create_cookie(name, value, **kwargs):
     result['path_specified'] = bool(result['path'])
 
     return cookielib.Cookie(**result)
+
 
 def remove_cookie_by_name(cookiejar, name, domain=None, path=None):
     """Unsets a cookie by name, by default over all domains and paths.
@@ -130,7 +135,9 @@ def remove_cookie_by_name(cookiejar, name, domain=None, path=None):
     for domain, path, name in clearables:
         cookiejar.clear(domain, path, name)
 
+
 class CookieSession(cookielib.CookieJar, UserDict.DictMixin):
+
     def extract_cookies_to_jar(self, request, response):
         """Extract the cookies from the response into a CookieJar.
 
@@ -183,12 +190,15 @@ class CookieSession(cookielib.CookieJar, UserDict.DictMixin):
             result[key] = self.get(key)
         return result
 
+
 class CookieTracker:
+
     def __init__(self):
         self.headers = httputil.HTTPHeaders()
 
     def get_header_callback(self):
         _self = self
+
         def header_callback(header):
             header = header.strip()
             if header.starswith("HTTP/"):

@@ -11,16 +11,19 @@ try:
 except ImportError:
     import dummy_threading as _threading
 
+
 class Bucket(object):
+
     '''
     traffic flow control with token bucket
     '''
 
     update_interval = 30
+
     def __init__(self, rate=1, burst=None):
         self.rate = float(rate)
         if burst is None:
-            self.burst = float(rate)*10
+            self.burst = float(rate) * 10
         else:
             self.burst = float(burst)
         self.mutex = _threading.Lock()

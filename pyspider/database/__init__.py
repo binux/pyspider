@@ -7,6 +7,7 @@
 
 import urlparse
 
+
 def connect_database(url):
     """
     create database object by url
@@ -27,7 +28,7 @@ def connect_database(url):
         taskdb
         projectdb
         resultdb
-    
+
     """
     parsed = urlparse.urlparse(url)
     engine, dbtype = parsed.scheme.split('+')
@@ -43,7 +44,7 @@ def connect_database(url):
             parames['port'] = parsed.port
         if parsed.path.strip('/'):
             parames['database'] = parsed.path.strip('/')
-        
+
         if dbtype == 'taskdb':
             from .mysql.taskdb import TaskDB
             return TaskDB(**parames)
@@ -57,9 +58,9 @@ def connect_database(url):
             raise Exception('unknow database type: %s' % dbtype)
     elif engine == 'sqlite':
         if parsed.path.startswith('//'):
-            path = '/'+parsed.path.strip('/')
+            path = '/' + parsed.path.strip('/')
         elif parsed.path.startswith('/'):
-            path = './'+parsed.path.strip('/')
+            path = './' + parsed.path.strip('/')
         elif not parsed.path:
             path = ':memory:'
         else:

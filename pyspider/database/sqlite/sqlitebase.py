@@ -9,7 +9,9 @@ import time
 import thread
 import sqlite3
 
+
 class SQLiteMixin(object):
+
     @property
     def dbcur(self):
         pid = thread.get_ident()
@@ -18,8 +20,9 @@ class SQLiteMixin(object):
             self.conn = sqlite3.connect(self.path, isolation_level=None)
         return self.conn.cursor()
 
+
 class SplitTableMixin(object):
-    UPDATE_PROJECTS_TIME = 10*60
+    UPDATE_PROJECTS_TIME = 10 * 60
 
     def _tablename(self, project):
         if self.__tablename__:
@@ -46,7 +49,7 @@ class SplitTableMixin(object):
         else:
             prefix = ''
         for project, in self._select('sqlite_master', what='name',
-                where='type = "table"'):
+                                     where='type = "table"'):
             if project.startswith(prefix):
                 project = project[len(prefix):]
                 self.projects.add(project)

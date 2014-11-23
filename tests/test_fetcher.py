@@ -6,8 +6,6 @@
 # Created on 2014-02-15 22:10:35
 
 import time
-import json
-import logging
 import umsgpack
 import xmlrpclib
 import unittest2 as unittest
@@ -16,25 +14,27 @@ from multiprocessing import Queue
 from pyspider.libs import utils
 from pyspider.fetcher.tornado_fetcher import Fetcher
 
+
 class TestFetcher(unittest.TestCase):
     sample_task_http = {
-            'taskid': 'taskid',
-            'project': 'project',
-            'url': 'http://echo.opera.com/',
-            'fetch': {
-                'method': 'GET',
-                'headers': {
-                    'Cookie': 'a=b', 
-                    'a': 'b'
-                    },
-                'timeout': 60,
-                'save': 'abc',
-                },
-            'process': {
-                'callback': 'callback',
-                'save': [1, 2, 3],
-                },
-            }
+        'taskid': 'taskid',
+        'project': 'project',
+        'url': 'http://echo.opera.com/',
+        'fetch': {
+            'method': 'GET',
+            'headers': {
+                'Cookie': 'a=b',
+                'a': 'b'
+            },
+            'timeout': 60,
+            'save': 'abc',
+        },
+        'process': {
+            'callback': 'callback',
+            'save': [1, 2, 3],
+        },
+    }
+
     @classmethod
     def setUpClass(self):
         self.inqueue = Queue(10)
@@ -84,7 +84,7 @@ class TestFetcher(unittest.TestCase):
 
     def test_20_dataurl_get(self):
         data = dict(self.sample_task_http)
-        data['url'] = 'data:,hello';
+        data['url'] = 'data:,hello'
         result = self.fetcher.sync_fetch(data)
         self.assertEqual(result['status_code'], 200)
         self.assertIn('content', result)
@@ -92,7 +92,7 @@ class TestFetcher(unittest.TestCase):
 
     def test_30_with_queue(self):
         data = dict(self.sample_task_http)
-        data['url'] = 'data:,hello';
+        data['url'] = 'data:,hello'
         self.inqueue.put(data)
         task, result = self.outqueue.get()
         self.assertEqual(result['status_code'], 200)
@@ -101,7 +101,7 @@ class TestFetcher(unittest.TestCase):
 
     def test_40_with_rpc(self):
         data = dict(self.sample_task_http)
-        data['url'] = 'data:,hello';
+        data['url'] = 'data:,hello'
         result = umsgpack.unpackb(self.rpc.fetch(data).data)
         self.assertEqual(result['status_code'], 200)
         self.assertIn('content', result)

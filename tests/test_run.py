@@ -6,8 +6,6 @@
 # Created on 2014-11-21 22:32:35
 
 import os
-import re
-import time
 import json
 import shutil
 import unittest2 as unittest
@@ -15,7 +13,9 @@ import unittest2 as unittest
 import run
 from pyspider.libs.utils import ObjectDict
 
+
 class TestRun(unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         shutil.rmtree('./data/tests', ignore_errors=True)
@@ -32,7 +32,7 @@ class TestRun(unittest.TestCase):
         for db in ('taskdb', 'projectdb', 'resultdb'):
             self.assertIsNotNone(getattr(ctx.obj, db))
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                'fetcher2processor', 'processor2result'):
+                     'fetcher2processor', 'processor2result'):
             self.assertIsNotNone(getattr(ctx.obj, name))
         self.assertEqual(len(ctx.obj.instances), 0)
 
@@ -42,36 +42,39 @@ class TestRun(unittest.TestCase):
                 'debug': True,
                 'taskdb': 'mysql+taskdb://localhost:23456/taskdb',
                 'amqp_url': 'amqp://guest:guest@localhost:23456/%%2F'
-                }, fp)
+            }, fp)
         ctx = run.cli.make_context('test',
-                ['--config', './data/tests/config.json'],
-                None, obj=ObjectDict(testing_mode=True))
+                                   ['--config', './data/tests/config.json'],
+                                   None, obj=ObjectDict(testing_mode=True))
         ctx = run.cli.invoke(ctx)
         self.assertEqual(ctx.obj.debug, True)
 
         import mysql.connector
-        with self.assertRaises(mysql.connector.InterfaceError) as cm:
-            taskdb = ctx.obj.taskdb
+        with self.assertRaises(mysql.connector.InterfaceError):
+            ctx.obj.taskdb
 
         from pika.exceptions import AMQPConnectionError
-        with self.assertRaises(AMQPConnectionError) as cm:
-            newtask_queue = ctx.obj.newtask_queue
+        with self.assertRaises(AMQPConnectionError):
+            ctx.obj.newtask_queue
 
     def test_30_cli_command_line(self):
-        ctx = run.cli.make_context('test',
-                ['--projectdb', 'mongodb+projectdb://localhost:23456/projectdb'],
-                None, obj=ObjectDict(testing_mode=True))
+        ctx = run.cli.make_context(
+            'test',
+            ['--projectdb', 'mongodb+projectdb://localhost:23456/projectdb'],
+            None,
+            obj=ObjectDict(testing_mode=True)
+        )
         ctx = run.cli.invoke(ctx)
 
         from pymongo.errors import ConnectionFailure
-        with self.assertRaises(ConnectionFailure) as cm:
-            projectdb = ctx.obj.projectdb
+        with self.assertRaises(ConnectionFailure):
+            ctx.obj.projectdb
 
     def test_40_cli_env(self):
         try:
             os.environ['RESULTDB'] = 'sqlite+resultdb://'
             ctx = run.cli.make_context('test', [], None,
-                    obj=ObjectDict(testing_mode=True))
+                                       obj=ObjectDict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
 
             from pyspider.database.sqlite import resultdb
@@ -86,7 +89,7 @@ class TestRun(unittest.TestCase):
             os.environ['RABBITMQ_PORT_5672_TCP_ADDR'] = 'localhost'
             os.environ['RABBITMQ_PORT_5672_TCP_PORT'] = '5672'
             ctx = run.cli.make_context('test', [], None,
-                    obj=ObjectDict(testing_mode=True))
+                                       obj=ObjectDict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             queue = ctx.obj.newtask_queue
             queue.put('abc')
@@ -105,9 +108,9 @@ class TestRun(unittest.TestCase):
             os.environ['MONGODB_PORT_27017_TCP_ADDR'] = 'localhost'
             os.environ['MONGODB_PORT_27017_TCP_PORT'] = '27017'
             ctx = run.cli.make_context('test', [], None,
-                    obj=ObjectDict(testing_mode=True))
+                                       obj=ObjectDict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
-            resultdb = ctx.obj.resultdb
+            ctx.obj.resultdb
         except Exception as e:
             self.assertIsNone(e)
         finally:
@@ -122,9 +125,9 @@ class TestRun(unittest.TestCase):
             os.environ['MYSQL_PORT_3306_TCP_ADDR'] = 'localhost'
             os.environ['MYSQL_PORT_3306_TCP_PORT'] = '3306'
             ctx = run.cli.make_context('test', [], None,
-                    obj=ObjectDict(testing_mode=True))
+                                       obj=ObjectDict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
-            resultdb = ctx.obj.resultdb
+            ctx.obj.resultdb
         except Exception as e:
             self.assertIsNone(e)
         finally:
@@ -137,7 +140,7 @@ class TestRun(unittest.TestCase):
             os.environ['PHANTOMJS_NAME'] = 'phantomjs'
             os.environ['PHANTOMJS_PORT'] = 'tpc://binux:25678'
             ctx = run.cli.make_context('test', [], None,
-                    obj=ObjectDict(testing_mode=True))
+                                       obj=ObjectDict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             self.assertEqual(ctx.obj.phantomjs_proxy, 'binux:25678')
         except Exception as e:
@@ -151,7 +154,7 @@ class TestRun(unittest.TestCase):
             os.environ['SCHEDULER_NAME'] = 'scheduler'
             os.environ['SCHEDULER_PORT_23333_TCP'] = 'tpc://binux:25678'
             ctx = run.cli.make_context('test', [], None,
-                    obj=ObjectDict(testing_mode=True))
+                                       obj=ObjectDict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             webui = run.cli.get_command(ctx, 'webui')
             webui_ctx = webui.make_context('webui', [], ctx)

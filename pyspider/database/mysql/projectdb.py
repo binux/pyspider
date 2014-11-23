@@ -5,25 +5,25 @@
 #         http://binux.me
 # Created on 2014-07-17 21:06:43
 
-import re
 import time
-import json
 import mysql.connector
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from pyspider.database.basedb import BaseDB
 from mysqlbase import MySQLMixin
 
+
 class ProjectDB(MySQLMixin, BaseProjectDB, BaseDB):
     __tablename__ = 'projectdb'
+
     def __init__(self, host='localhost', port=3306, database='projectdb',
-            user='root', passwd=None):
+                 user='root', passwd=None):
         self.database_name = database
         self.conn = mysql.connector.connect(user=user, password=passwd,
-                host=host, port=port, autocommit=True)
+                                            host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
             self._execute('CREATE DATABASE %s' % self.escape(database))
-        self.conn.database = database;
+        self.conn.database = database
 
         self._execute('''CREATE TABLE IF NOT EXISTS %s (
             `name` varchar(64) PRIMARY KEY,

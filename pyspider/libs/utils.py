@@ -12,15 +12,19 @@ import base64
 
 md5string = lambda x: hashlib.md5(x).hexdigest()
 
+
 class ReadOnlyDict(dict):
+
     def __setitem__(self, key, value):
         raise "dict is read-only"
+
 
 def getitem(obj, key=0, default=None):
     try:
         return obj[key]
     except:
         return default
+
 
 def hide_me(tb, g=globals()):
     base_tb = tb
@@ -29,12 +33,13 @@ def hide_me(tb, g=globals()):
             tb = tb.tb_next
         while tb and tb.tb_frame.f_globals is g:
             tb = tb.tb_next
-    except Exception, e:
+    except Exception as e:
         logging.exception(e)
         tb = base_tb
     if not tb:
         tb = base_tb
     return tb
+
 
 def run_in_thread(func, *args, **kwargs):
     from threading import Thread
@@ -43,12 +48,14 @@ def run_in_thread(func, *args, **kwargs):
     thread.start()
     return thread
 
+
 def run_in_subprocess(func, *args, **kwargs):
     from multiprocessing import Process
     thread = Process(target=func, args=args, kwargs=kwargs)
     thread.daemon = True
     thread.start()
     return thread
+
 
 def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=False):
     """Formats the given date (which should be GMT).
@@ -87,17 +94,17 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
     if not full_format:
         if relative and days == 0:
             if seconds < 50:
-                return ("1 second ago" if seconds <= 1 else \
+                return ("1 second ago" if seconds <= 1 else
                         "%(seconds)d seconds ago") % {"seconds": seconds}
 
             if seconds < 50 * 60:
                 minutes = round(seconds / 60.0)
-                return ("1 minute ago" if minutes <= 1 else \
+                return ("1 minute ago" if minutes <= 1 else
                         "%(minutes)d minutes ago") % {"minutes": minutes}
 
             hours = round(seconds / (60.0 * 60))
-            return ("1 hour ago" if hours <= 1 else \
-                    "%(hours)d hours ago" ) % {"hours": hours}
+            return ("1 hour ago" if hours <= 1 else
+                    "%(hours)d hours ago") % {"hours": hours}
 
         if days == 0:
             format = "%(time)s"
@@ -124,6 +131,7 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
         "time": str_time
     }
 
+
 class TimeoutError(Exception):
     pass
 
@@ -131,40 +139,51 @@ try:
     import signal
     if not hasattr(signal, 'SIGALRM'):
         raise ImportError('signal')
+
     class timeout:
+
         def __init__(self, seconds=1, error_message='Timeout'):
             self.seconds = seconds
             self.error_message = error_message
+
         def handle_timeout(self, signum, frame):
             raise TimeoutError(self.error_message)
+
         def __enter__(self):
             if self.seconds:
                 signal.signal(signal.SIGALRM, self.handle_timeout)
                 signal.alarm(self.seconds)
+
         def __exit__(self, type, value, traceback):
             if self.seconds:
                 signal.alarm(0)
 except ImportError:
     class timeout:
+
         def __init__(self, seconds=1, error_message='Timeout'):
             pass
+
         def __enter__(self):
             pass
+
         def __exit__(self, type, value, traceback):
             pass
+
 
 def utf8(string):
     if isinstance(string, unicode):
         return string.encode('utf8')
     return string
 
+
 def pretty_unicode(string):
     if isinstance(string, unicode):
         return string
     try:
         return string.decode("utf8")
-    except UnicodeDecodeError as e:
-        return '[BASE64-DATA]'+base64.b64encode(string)+'[/BASE64-DATA]'
+    except UnicodeDecodeError:
+        return '[BASE64-DATA]' + base64.b64encode(string) + '[/BASE64-DATA]'
+
 
 def unicode_dict(_dict):
     r = {}
@@ -172,8 +191,10 @@ def unicode_dict(_dict):
         r[pretty_unicode(k)] = unicode_obj(v)
     return r
 
+
 def unicode_list(_list):
     return [unicode_obj(x) for x in _list]
+
 
 def unicode_obj(obj):
     if isinstance(obj, dict):
@@ -192,10 +213,12 @@ def unicode_obj(obj):
         except:
             return unicode(repr(obj))
 
+
 def decode_pretty_unicode(string):
     if string.startswith('[BASE64-DATA]') and string.endswith('[/BASE64-DATA]'):
         return base64.b64decode(string[len('[BASE64-DATA]'):-len('[/BASE64-DATA]')])
     return string
+
 
 def decode_unicode_obj(obj):
     if isinstance(obj, dict):
@@ -210,14 +233,18 @@ def decode_unicode_obj(obj):
     else:
         return obj
 
+
 class Get(object):
+
     def __init__(self, getter):
         self.getter = getter
- 
+
     def __get__(self, instance, owner):
         return self.getter()
 
+
 class ObjectDict(dict):
+
     def __getattr__(self, name):
         ret = self.__getitem__(name)
         if hasattr(ret, '__get__'):

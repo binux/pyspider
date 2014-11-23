@@ -6,13 +6,14 @@
 # Created on 2014-10-19 16:23:55
 
 from app import app
-from flask import abort, render_template, request, json
-from flask import stream_with_context, Response
+from flask import render_template, request, json
+from flask import Response
 
 import csv
 import itertools
 import cStringIO as StringIO
 from pyspider.libs.utils import utf8
+
 
 def result_formater(results):
     common_fields = None
@@ -40,6 +41,7 @@ def result_formater(results):
             result['others'] = others
     return common_fields or [], results
 
+
 @app.route('/results')
 def result():
     resultdb = app.config['resultdb']
@@ -50,8 +52,11 @@ def result():
     count = resultdb.count(project)
     results = list(resultdb.select(project, offset=offset, limit=limit))
 
-    return render_template("result.html", count=count, results=results, result_formater=result_formater,
-            project=project, offset=offset, limit=limit, json=json)
+    return render_template(
+        "result.html", count=count, results=results, result_formater=result_formater,
+        project=project, offset=offset, limit=limit, json=json
+    )
+
 
 @app.route('/results/dump/<project>.<_format>')
 def dump_result(project, _format):
@@ -64,12 +69,15 @@ def dump_result(project, _format):
     if _format == 'json':
         def generator():
             for result in resultdb.select(project):
-                yield json.dumps(result, ensure_ascii=False)+'\n'
+                yield json.dumps(result, ensure_ascii=False) + '\n'
         return Response(generator(), mimetype='application/json')
     elif _format == 'txt':
         def generator():
             for result in resultdb.select(project):
-                yield result['url']+'\t'+json.dumps(result['result'], ensure_ascii=False)+'\n'
+                yield (
+                    result['url'] + '\t' +
+                    json.dumps(result['result'], ensure_ascii=False) + '\n'
+                )
         return Response(generator(), mimetype='text/plain')
     elif _format == 'csv':
         def toString(obj):
@@ -94,16 +102,18 @@ def dump_result(project, _format):
             common_fields_l = sorted(common_fields)
 
             csv_writer.writerow(['url']
-                    +[utf8(x) for x in common_fields_l]
-                    +['...'])
+                                + [utf8(x) for x in common_fields_l]
+                                + ['...'])
             for result in itertools.chain(first_30, it):
                 other = {}
                 for k, v in result['result'].iteritems():
                     if k not in common_fields:
                         other[k] = v
-                csv_writer.writerow([toString(result['url'])]
-                        +[toString(result['result'].get(k, '')) for k in common_fields_l]
-                        +[toString(other)])
+                csv_writer.writerow(
+                    [toString(result['url'])]
+                    + [toString(result['result'].get(k, '')) for k in common_fields_l]
+                    + [toString(other)]
+                )
                 yield stringio.getvalue()
                 stringio.truncate(0)
         return Response(generator(), mimetype='text/csv')

@@ -14,15 +14,19 @@ try:
 except ImportError:
     curses = None
 
+
 def _unicode(message):
     if isinstance(message, unicode):
         return message
+    error = None
     for each in ['utf8', 'gb18030']:
         try:
             return message.decode(each)
-        except Exception, e:
+        except Exception as e:
             error = e
-    raise e
+    if error is not None:
+        raise error
+
 
 def _stderr_supports_color():
     color = False
@@ -37,6 +41,7 @@ def _stderr_supports_color():
 
 
 class LogFormatter(logging.Formatter):
+
     """Log formatter used in Tornado.
 
     Key features of this formatter are:
@@ -49,6 +54,7 @@ class LogFormatter(logging.Formatter):
     `tornado.options.parse_command_line` (unless ``--logging=none`` is
     used).
     """
+
     def __init__(self, color=True, *args, **kwargs):
         logging.Formatter.__init__(self, *args, **kwargs)
         self._color = color and _stderr_supports_color()
@@ -79,7 +85,7 @@ class LogFormatter(logging.Formatter):
     def format(self, record):
         try:
             record.message = record.getMessage()
-        except Exception, e:
+        except Exception as e:
             record.message = "Bad message (%r): %r" % (e, record.__dict__)
         assert isinstance(record.message, basestring)  # guaranteed by logging
         record.asctime = time.strftime(
@@ -123,7 +129,9 @@ class LogFormatter(logging.Formatter):
             formatted = formatted.rstrip() + "\n" + exc_text
         return formatted.replace("\n", "\n    ")
 
+
 class SaveLogHandler(logging.Handler):
+
     def __init__(self, saveto=None, *args, **kwargs):
         self.saveto = saveto
         logging.Handler.__init__(self, *args, **kwargs)
@@ -133,6 +141,7 @@ class SaveLogHandler(logging.Handler):
             self.saveto.append(record)
 
     handle = emit
+
 
 def enable_pretty_logging(logger=logging.getLogger()):
     channel = logging.StreamHandler()

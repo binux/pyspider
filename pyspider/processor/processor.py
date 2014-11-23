@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2014-02-16 22:59:56
 
-import os
 import sys
 import time
 import Queue
@@ -14,6 +13,7 @@ from pyspider.libs import utils
 from pyspider.libs.response import rebuild_response
 from project_module import ProjectLoader, ProjectFinder
 logger = logging.getLogger("processor")
+
 
 def build_module(project, env={}):
     assert 'name' in project, 'need name of project'
@@ -26,7 +26,7 @@ def build_module(project, env={}):
     env = dict(env)
     env.update({
         'debug': project.get('status', 'DEBUG') == 'DEBUG',
-        })
+    })
 
     loader = ProjectLoader(project)
     module = loader.load_module(project['name'])
@@ -43,11 +43,12 @@ def build_module(project, env={}):
         'class': _class,
         'instance': instance,
         'info': project
-        }
+    }
+
 
 class Processor(object):
     PROCESS_TIME_LIMIT = 30
-    CHECK_PROJECTS_INTERVAL = 5*60
+    CHECK_PROJECTS_INTERVAL = 5 * 60
     EXCEPTION_LIMIT = 3
 
     RESULT_LOGS_LIMIT = 1000
@@ -69,7 +70,9 @@ class Processor(object):
 
     def enable_projects_import(self):
         _self = self
+
         class ProcessProjectFinder(ProjectFinder):
+
             def get_loader(self, name):
                 info = _self.projectdb.get(name)
                 if info:
@@ -83,7 +86,7 @@ class Processor(object):
         for project in self.projectdb.get_all():
             try:
                 self._update_project(project)
-            except Exception, e:
+            except Exception:
                 logger.exception("exception when init projects for %s" % project.get('name', None))
                 continue
         self.last_check_projects = time.time()
@@ -91,7 +94,11 @@ class Processor(object):
     def _need_update(self, task):
         if task['project'] not in self.projects:
             return True
-        if task.get('project_updatetime', 0) > self.projects[task['project']]['info'].get('updatetime', 0):
+        if (
+                task.get('project_updatetime', 0)
+                >
+                self.projects[task['project']]['info'].get('updatetime', 0)
+        ):
             return True
         if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
             return True
@@ -104,7 +111,7 @@ class Processor(object):
             try:
                 logger.debug("project: %s updated." % project['name'])
                 self._update_project(project)
-            except Exception, e:
+            except Exception:
                 logger.exception("exception when check update for %s" % project.get('name', None))
                 continue
         self.last_check_projects = time.time()
@@ -123,37 +130,40 @@ class Processor(object):
                 raise LookupError("no such project: %s" % project)
             project_data = self.projects[project]
             ret = project_data['instance'].run(
-                    project_data['module'], task, response)
-        except Exception, e:
+                project_data['module'], task, response)
+        except Exception as e:
             logger.exception(e)
             return False
         process_time = time.time() - start_time
 
         if not ret.extinfo.get('not_send_status', False):
             status_pack = {
-                    'taskid': task['taskid'],
-                    'project': task['project'],
-                    'url': task.get('url'),
-                    'track': {
-                        'fetch': {
-                            'ok': response.isok(),
-                            'time': response.time,
-                            'status_code': response.status_code,
-                            'headers': dict(response.headers),
-                            'encoding': response.encoding,
-                            'content': response.content[:500] \
-                                    if not response.isok() or ret.exception else None,
-                            },
-                        'process': {
-                            'ok': not ret.exception,
-                            'time': process_time,
-                            'follows': len(ret.follows),
-                            'result': unicode(ret.result)[:self.RESULT_RESULT_LIMIT],
-                            'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
-                            'exception': ret.exception,
-                            },
-                        },
-                    }
+                'taskid': task['taskid'],
+                'project': task['project'],
+                'url': task.get('url'),
+                'track': {
+                    'fetch': {
+                        'ok': response.isok(),
+                        'time': response.time,
+                        'status_code': response.status_code,
+                        'headers': dict(response.headers),
+                        'encoding': response.encoding,
+                        'content': (
+                            response.content[:500]
+                            if not response.isok() or ret.exception else
+                            None
+                        ),
+                    },
+                    'process': {
+                        'ok': not ret.exception,
+                        'time': process_time,
+                        'follows': len(ret.follows),
+                        'result': unicode(ret.result)[:self.RESULT_RESULT_LIMIT],
+                        'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
+                        'exception': ret.exception,
+                    },
+                },
+            }
 
             # FIXME: unicode_obj should used in scheduler before store to database
             # it's used here for performance.
@@ -166,17 +176,17 @@ class Processor(object):
 
         for project, msg, url in ret.messages:
             self.inqueue.put(({
-                    'taskid': utils.md5string(url),
-                    'project': project,
-                    'url': url,
-                    'process': {
-                        'callback': '_on_message',
-                        }
-                }, {
-                    'status_code': 200,
-                    'url': url,
-                    'save': (task['project'], msg),
-                }))
+                'taskid': utils.md5string(url),
+                'project': project,
+                'url': url,
+                'process': {
+                    'callback': '_on_message',
+                }
+            }, {
+                'status_code': 200,
+                'url': url,
+                'save': (task['project'], msg),
+            }))
 
         if response.error or ret.exception:
             logger_func = logger.error

@@ -15,10 +15,12 @@ import shutil
 from multiprocessing import Queue
 from pyspider.database.sqlite import resultdb
 from pyspider.result.result_worker import ResultWorker
-from pyspider.libs.utils import run_in_subprocess, run_in_thread
+from pyspider.libs.utils import run_in_thread
+
+
 class TestProcessor(unittest.TestCase):
     resultdb_path = './data/tests/result.db'
-    
+
     @classmethod
     def setUpClass(self):
         shutil.rmtree('./data/tests/', ignore_errors=True)
@@ -51,13 +53,13 @@ class TestProcessor(unittest.TestCase):
 
     def test_20_insert_result(self):
         data = {
-                'a': 'b'
-                }
+            'a': 'b'
+        }
         self.inqueue.put(({
-            'project': 'test_project', 
+            'project': 'test_project',
             'taskid': 'id1',
             'url': 'url1'
-            }, data))
+        }, data))
         time.sleep(0.5)
         self.resultdb._list_project()
         self.assertEqual(len(self.resultdb.projects), 1)
@@ -68,20 +70,20 @@ class TestProcessor(unittest.TestCase):
 
     def test_30_overwrite(self):
         self.inqueue.put(({
-            'project': 'test_project', 
+            'project': 'test_project',
             'taskid': 'id1',
             'url': 'url1'
-            }, "abc"))
+        }, "abc"))
         time.sleep(0.1)
         result = self.resultdb.get('test_project', 'id1')
         self.assertEqual(result['result'], "abc")
 
     def test_40_insert_list(self):
         self.inqueue.put(({
-            'project': 'test_project', 
+            'project': 'test_project',
             'taskid': 'id2',
             'url': 'url1'
-            }, ['a', 'b']))
+        }, ['a', 'b']))
         time.sleep(0.1)
         result = self.resultdb.get('test_project', 'id2')
         self.assertEqual(result['result'], ['a', 'b'])

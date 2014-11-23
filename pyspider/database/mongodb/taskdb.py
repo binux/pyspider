@@ -15,6 +15,7 @@ from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 
 class TaskDB(SplitTableMixin, BaseTaskDB):
     collection_prefix = ''
+
     def __init__(self, url, database='taskdb'):
         self.conn = MongoClient(url)
         self.database = self.conn[database]
@@ -31,7 +32,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    if type(data[each]) is bytearray:
+                    if isinstance(data[each], bytearray):
                         data[each] = str(data[each])
                     data[each] = json.loads(data[each], 'utf8')
                 else:
@@ -75,14 +76,14 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         if project not in self.projects:
             return {}
         collection_name = self._collection_name(project)
-        ret = self.database[collection_name].aggregate( [
-           { '$group': {
-               '_id': '$status',
-               'total': {
-                   '$sum': 1
-                   }
-               }
-            } ] )
+        ret = self.database[collection_name].aggregate([
+            {'$group': {
+                '_id': '$status',
+                'total': {
+                    '$sum': 1
+                }
+            }
+            }])
         result = {}
         if ret.get('result'):
             for each in ret['result']:
@@ -102,4 +103,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         collection_name = self._collection_name(project)
-        return self.database[collection_name].update({'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True)
+        return self.database[collection_name].update(
+            {'taskid': taskid},
+            {"$set": self._stringify(obj)},
+            upsert=True
+        )

@@ -7,7 +7,9 @@
 
 from libs.base_handler import BaseHandler, catch_status_code_error, every
 
+
 class TestHandler(BaseHandler):
+
     def hello(self):
         return "hello world!"
 

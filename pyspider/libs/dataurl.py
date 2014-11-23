@@ -7,6 +7,7 @@
 
 from urllib import quote, unquote
 
+
 def encode(data, mime_type='', charset='utf-8', base64=True):
     if isinstance(data, unicode):
         data = data.encode(charset)
@@ -29,6 +30,7 @@ def encode(data, mime_type='', charset='utf-8', base64=True):
     result.append(data)
 
     return ''.join(result)
+
 
 def decode(data_url):
     metadata, data = data_url.rsplit(',', 1)

@@ -9,8 +9,10 @@ import mimetypes
 from urllib import urlencode
 from urlparse import urlparse, urlunparse
 
+
 def get_content_type(filename):
     return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
 
 def _encode_params(data):
     """Encode parameters in a piece of data.
@@ -36,11 +38,13 @@ def _encode_params(data):
     else:
         return data
 
+
 def _utf8(key):
     if not isinstance(key, basestring):
         key = str(key)
     return key.encode('utf-8') if isinstance(key, unicode) else key
-    
+
+
 def _encode_multipart_formdata(fields, files):
     """
     fields is a sequence of (name, value) elements for regular form fields.
@@ -57,7 +61,10 @@ def _encode_multipart_formdata(fields, files):
         L.append(_utf8(value))
     for key, (filename, value) in files.iteritems():
         L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (_utf8(key), _utf8(filename)))
+        L.append(
+            'Content-Disposition: form-data; name="%s"; filename="%s"'
+            % (_utf8(key), _utf8(filename))
+        )
         L.append('Content-Type: %s' % get_content_type(filename))
         L.append('')
         L.append(value.read() if hasattr(value, "read") else _utf8(value))
@@ -66,6 +73,7 @@ def _encode_multipart_formdata(fields, files):
     body = CRLF.join(L)
     content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
     return content_type, body
+
 
 def _build_url(url, _params):
     """Build the actual URL to use."""
@@ -97,6 +105,7 @@ def _build_url(url, _params):
             query = enc_params
     url = (urlunparse([scheme, netloc, path, params, query, fragment]))
     return url
+
 
 def quote_chinese(url, encodeing="utf-8"):
     if isinstance(url, unicode):

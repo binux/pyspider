@@ -17,8 +17,8 @@ if os.name == 'nt':
     mimetypes.add_type("text/css", ".css", True)
 
 app = Flask('webui',
-        static_folder=os.path.join(os.path.dirname(__file__), 'static'),
-        template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+            static_folder=os.path.join(os.path.dirname(__file__), 'static'),
+            template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 app.secret_key = os.urandom(24)
 app.jinja_env.line_statement_prefix = '#'
 app.jinja_env.globals.update(__builtin__.__dict__)
@@ -28,14 +28,16 @@ app.config.update({
     'taskdb': None,
     'projectdb': None,
     'scheduler_rpc': None,
-    })
+})
 
 import base64
 from flask.ext import login
 login_manager = login.LoginManager()
 login_manager.init_app(app)
 
+
 class User(login.UserMixin):
+
     def __init__(self, id, password):
         self.id = id
         self.password = password
@@ -51,6 +53,7 @@ class User(login.UserMixin):
     def is_active(self):
         return self.is_authenticated()
 
+
 @login_manager.request_loader
 def load_user_from_request(request):
     api_key = request.headers.get('Authorization')
@@ -62,13 +65,16 @@ def load_user_from_request(request):
             pass
         return User(*api_key.split(":", 1))
     return None
-app.login_response = Response("need auth.", 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+app.login_response = Response(
+    "need auth.", 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}
+)
+
 
 def cdn_url_handler(error, endpoint, kwargs):
     if endpoint == 'cdn':
         path = kwargs.pop('path')
-        #cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
-        #cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
+        # cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
+        # cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
         cdn = app.config.get('cdn', '//cdnjscn.b0.upaiyun.com/libs/')
         return urlparse.urljoin(cdn, path)
     else:

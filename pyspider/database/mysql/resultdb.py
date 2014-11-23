@@ -14,16 +14,18 @@ from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.database.basedb import BaseDB
 from mysqlbase import MySQLMixin, SplitTableMixin
 
+
 class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
     __tablename__ = ''
+
     def __init__(self, host='localhost', port=3306, database='resultdb',
-            user='root', passwd=None):
+                 user='root', passwd=None):
         self.database_name = database
         self.conn = mysql.connector.connect(user=user, password=passwd,
-                host=host, port=port, autocommit=True)
+                                            host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
             self._execute('CREATE DATABASE %s' % self.escape(database))
-        self.conn.database = database;
+        self.conn.database = database
         self._list_project()
 
     def _create_project(self, project):
@@ -56,11 +58,11 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
             self._create_project(project)
             self._list_project()
         obj = {
-                'taskid': taskid,
-                'url': url,
-                'result': result,
-                'updatetime': time.time(),
-                }
+            'taskid': taskid,
+            'url': url,
+            'result': result,
+            'updatetime': time.time(),
+        }
         return self._replace(tablename, **self._stringify(obj))
 
     def select(self, project, fields=None, offset=0, limit=None):
@@ -90,5 +92,5 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
         tablename = self._tablename(project)
         where = "`taskid` = %s" % self.placeholder
         for task in self._select2dic(tablename, what=fields,
-                where=where, where_values=(taskid, )):
+                                     where=where, where_values=(taskid, )):
             return self._parse(task)

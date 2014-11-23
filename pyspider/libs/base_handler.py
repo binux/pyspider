@@ -5,22 +5,20 @@
 #         http://binux.me
 # Created on 2014-02-16 23:12:48
 
-import os
 import sys
-import time
 import inspect
 import functools
-import traceback
 import fractions
-from collections import namedtuple
 from pyspider.libs.log import LogFormatter
 from pyspider.libs.url import quote_chinese, _build_url, _encode_params
-from pyspider.libs.utils import md5string, hide_me, unicode_obj
+from pyspider.libs.utils import md5string, hide_me
 from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
 
+
 class ProcessorResult(object):
+
     def __init__(self, result, follows, messages, logs, exception, extinfo):
         self.result = result
         self.follows = follows
@@ -53,12 +51,14 @@ class ProcessorResult(object):
         else:
             try:
                 return ret.decode('utf8')
-            except UnicodeDecodeError as e:
+            except UnicodeDecodeError:
                 return repr(ret)
+
 
 def catch_status_code_error(func):
     func._catch_status_code_error = True
     return func
+
 
 def not_send_status(func):
     @functools.wraps(func)
@@ -68,22 +68,31 @@ def not_send_status(func):
         return self._run_func(function, response, task)
     return wrapper
 
+
 def config(_config=None, **kwargs):
     if _config is None:
         _config = {}
     _config.update(kwargs)
+
     def wrapper(func):
         func._config = _config
         return func
     return wrapper
 
-class NOTSET(object): pass
+
+class NOTSET(object):
+    pass
+
 
 def every(minutes=NOTSET, seconds=NOTSET):
     def wrapper(func):
         @functools.wraps(func)
         def on_cronjob(self, response, task):
-            if response.save and 'tick' in response.save and response.save['tick'] % (minutes * 60 + seconds) != 0:
+            if (
+                    response.save
+                    and 'tick' in response.save
+                    and response.save['tick'] % (minutes * 60 + seconds) != 0
+            ):
                 return None
             function = func.__get__(self, self.__class__)
             return self._run_func(function, response, task)
@@ -110,6 +119,7 @@ def every(minutes=NOTSET, seconds=NOTSET):
 
 
 class BaseHandlerMeta(type):
+
     def __new__(cls, name, bases, attrs):
         cron_jobs = []
         min_tick = 0
@@ -136,7 +146,7 @@ class BaseHandler(object):
 
     def _run_func(self, function, *arguments):
         args, varargs, keywords, defaults = inspect.getargspec(function)
-        return function(*arguments[:len(args)-1])
+        return function(*arguments[:len(args) - 1])
 
     def _run(self, task, response):
         self._reset()
@@ -151,7 +161,7 @@ class BaseHandler(object):
         if not getattr(function, '_catch_status_code_error', False):
             response.raise_for_status()
         return self._run_func(function, response, task)
-            
+
     def run(self, module, task, response):
         logger = module.logger
         result = None
@@ -168,7 +178,7 @@ class BaseHandler(object):
             else:
                 result = self._run(task, response)
                 self._run_func(self.on_result, result, response, task)
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             exception = e
         finally:
@@ -205,7 +215,8 @@ class BaseHandler(object):
 
         url = quote_chinese(_build_url(url.strip(), kwargs.get('params')))
         if kwargs.get('files'):
-            assert isinstance(kwargs.get('data', {}), dict), "data must be a dict when using with files!"
+            assert isinstance(
+                kwargs.get('data', {}), dict), "data must be a dict when using with files!"
             content_type, data = _encode_multipart_formdata(kwargs.get('data', {}),
                                                             kwargs.get('files', {}))
             kwargs.setdefault('headers', {})
@@ -224,7 +235,22 @@ class BaseHandler(object):
             task['schedule'] = schedule
 
         fetch = {}
-        for key in ('method', 'headers', 'data', 'timeout', 'allow_redirects', 'cookies', 'proxy', 'etag', 'last_modifed', 'save', 'js_run_at', 'js_script', 'load_images', 'fetch_type'):
+        for key in (
+                'method',
+                'headers',
+                'data',
+                'timeout',
+                'allow_redirects',
+                'cookies',
+                'proxy',
+                'etag',
+                'last_modifed',
+                'save',
+                'js_run_at',
+                'js_script',
+                'load_images',
+                'fetch_type'
+        ):
             if key in kwargs and kwargs[key] is not None:
                 fetch[key] = kwargs[key]
         if fetch:
@@ -277,7 +303,6 @@ class BaseHandler(object):
           save
           taskid
         '''
-
 
         if isinstance(url, basestring):
             return self._crawl(url, **kwargs)

@@ -6,31 +6,31 @@
 # Created on 2014-02-09 11:28:52
 
 import re
-import time
 
 {
-'project': {
+    'project': {
         'name': str,
         'group': str,
         'status': str,
         'script': str,
-        #'config': str,
+        # 'config': str,
         'comments': str,
-        #'priority': int,
+        # 'priority': int,
         'rate': int,
         'burst': int,
         'updatetime': int,
-        }
+    }
 }
+
 
 class ProjectDB(object):
     status_str = [
-            'TODO',
-            'STOP',
-            'CHECKING',
-            'DEBUG',
-            'RUNNING',
-            ]
+        'TODO',
+        'STOP',
+        'CHECKING',
+        'DEBUG',
+        'RUNNING',
+    ]
 
     def insert(self, name, obj={}):
         raise NotImplementedError

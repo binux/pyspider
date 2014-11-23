@@ -6,14 +6,13 @@
 # Created on 2014-03-05 00:11:49
 
 import os
-import sys
-import time
 import logging
 import logging.config
 
 import click
 from pyspider.database import connect_database
 from pyspider.libs.utils import run_in_thread, run_in_subprocess, Get, ObjectDict
+
 
 def read_config(ctx, param, value):
     if not value:
@@ -23,10 +22,12 @@ def read_config(ctx, param, value):
     ctx.default_map = config
     return config
 
+
 def connect_db(ctx, param, value):
     if value is None:
         return
-    return Get(lambda : connect_database(value))
+    return Get(lambda: connect_database(value))
+
 
 def connect_rpc(ctx, param, value):
     if value is None:
@@ -34,18 +35,19 @@ def connect_rpc(ctx, param, value):
     import xmlrpclib
     return xmlrpclib.ServerProxy(value)
 
+
 @click.group(invoke_without_command=True)
 @click.option('-c', '--config', callback=read_config, type=click.File('r'),
-        help='a json file with default values for subcommands. {"webui": {"port":5001}}')
+              help='a json file with default values for subcommands. {"webui": {"port":5001}}')
 @click.option('--debug', envvar='DEBUG', is_flag=True, help='debug mode')
 @click.option('--queue-maxsize', envvar='QUEUE_MAXSIZE', default=100,
-        help='maxsize of queue')
+              help='maxsize of queue')
 @click.option('--taskdb', envvar='TASKDB', callback=connect_db,
-        help='database url for taskdb, default: sqlite')
+              help='database url for taskdb, default: sqlite')
 @click.option('--projectdb', envvar='PROJECTDB', callback=connect_db,
-        help='database url for projectdb, default: sqlite')
+              help='database url for projectdb, default: sqlite')
 @click.option('--resultdb', envvar='RESULTDB', callback=connect_db,
-        help='database url for resultdb, default: sqlite')
+              help='database url for resultdb, default: sqlite')
 @click.option('--amqp-url', help='amqp url for rabbitmq, default: built-in Queue')
 @click.option('--phantomjs-proxy', help="phantomjs proxy ip:port")
 @click.pass_context
@@ -75,21 +77,21 @@ def cli(ctx, **kwargs):
     if kwargs.get('amqp_url'):
         from pyspider.libs.rabbitmq import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                'fetcher2processor', 'processor2result'):
+                     'fetcher2processor', 'processor2result'):
             kwargs[name] = Get(lambda name=name: Queue(name, amqp_url=kwargs['amqp_url'],
-                maxsize=kwargs['queue_maxsize']))
+                                                       maxsize=kwargs['queue_maxsize']))
     elif os.environ.get('RABBITMQ_NAME'):
         from pyspider.libs.rabbitmq import Queue
         amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                     ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                'fetcher2processor', 'processor2result'):
+                     'fetcher2processor', 'processor2result'):
             kwargs[name] = Get(lambda name=name: Queue(name, amqp_url=amqp_url,
-                maxsize=kwargs['queue_maxsize']))
+                                                       maxsize=kwargs['queue_maxsize']))
     else:
         from multiprocessing import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                'fetcher2processor', 'processor2result'):
+                     'fetcher2processor', 'processor2result'):
             kwargs[name] = Queue(kwargs['queue_maxsize'])
 
     # phantomjs-proxy
@@ -105,24 +107,25 @@ def cli(ctx, **kwargs):
         ctx.invoke(all)
     return ctx
 
+
 @cli.command()
 @click.option('--xmlrpc/--no-xmlrpc', default=True)
 @click.option('--xmlrpc-host', default='0.0.0.0')
 @click.option('--xmlrpc-port', envvar='SCHEDULER_XMLRPC_PORT', default=23333)
 @click.option('--inqueue-limit', default=0,
-        help='size limit of task queue for each project, '
-        'tasks will been ignored when overflow')
-@click.option('--delete-time', default=24*60*60,
-        help='delete time before marked as delete')
+              help='size limit of task queue for each project, '
+              'tasks will been ignored when overflow')
+@click.option('--delete-time', default=24 * 60 * 60,
+              help='delete time before marked as delete')
 @click.option('--active-tasks', default=100, help='active log size')
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
-        inqueue_limit, delete_time, active_tasks):
+              inqueue_limit, delete_time, active_tasks):
     g = ctx.obj
     from pyspider.scheduler import Scheduler
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
-            newtask_queue=g.newtask_queue, status_queue=g.status_queue,
-            out_queue=g.scheduler2fetcher)
+                          newtask_queue=g.newtask_queue, status_queue=g.status_queue,
+                          out_queue=g.scheduler2fetcher)
     scheduler.INQUEUE_LIMIT = inqueue_limit
     scheduler.DELETE_TIME = delete_time
     scheduler.ACTIVE_TASKS = active_tasks
@@ -134,6 +137,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     if xmlrpc:
         run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     scheduler.run()
+
 
 @cli.command()
 @click.option('--xmlrpc/--no-xmlrpc', default=False)
@@ -148,7 +152,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, 
     g = ctx.obj
     from pyspider.fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
-            poolsize=poolsize, proxy=proxy)
+                      poolsize=poolsize, proxy=proxy)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
     if user_agent:
         fetcher.user_agent = user_agent
@@ -164,20 +168,22 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, 
         run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     fetcher.run()
 
+
 @cli.command()
 @click.pass_context
 def processor(ctx):
     g = ctx.obj
     from pyspider.processor import Processor
     processor = Processor(projectdb=g.projectdb,
-            inqueue=g.fetcher2processor, status_queue=g.status_queue,
-            newtask_queue=g.newtask_queue, result_queue=g.processor2result)
+                          inqueue=g.fetcher2processor, status_queue=g.status_queue,
+                          newtask_queue=g.newtask_queue, result_queue=g.processor2result)
 
     g.instances.append(processor)
     if g.get('testing_mode'):
         return processor
-    
+
     processor.run()
+
 
 @cli.command()
 @click.pass_context
@@ -192,24 +198,25 @@ def result_worker(ctx):
 
     result_worker.run()
 
+
 @cli.command()
 @click.option('--host', default='0.0.0.0', envvar='WEBUI_HOST',
-        help='webui bind to host')
+              help='webui bind to host')
 @click.option('--port', default=5000, envvar='WEBUI_PORT',
-        help='webui bind to host')
-@click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/', 
-        help='js/css cdn server')
+              help='webui bind to host')
+@click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/',
+              help='js/css cdn server')
 @click.option('--scheduler-rpc', callback=connect_rpc, help='xmlrpc path of scheduler')
 @click.option('--fetcher-rpc', callback=connect_rpc, help='xmlrpc path of fetcher')
 @click.option('--max-rate', type=float, help='max rate for each project')
 @click.option('--max-burst', type=float, help='max burst for each project')
 @click.option('--username', envvar='WEBUI_USERNAME',
-        help='username of lock -ed projects')
+              help='username of lock -ed projects')
 @click.option('--password', envvar='WEBUI_PASSWORD',
-        help='password of lock -ed projects')
+              help='password of lock -ed projects')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
-        max_rate, max_burst, username, password):
+          max_rate, max_burst, username, password):
     g = ctx.obj
     from pyspider.webui.app import app
     app.config['taskdb'] = g.taskdb
@@ -254,14 +261,15 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
 
     app.run(host=host, port=port)
 
+
 @cli.command()
 @click.option('--fetcher-num', default=1, help='instance num of fetcher')
 @click.option('--processor-num', default=1, help='instance num of processor')
 @click.option('--result-worker-num', default=1,
-        help='instance num of result worker')
+              help='instance num of result worker')
 @click.option('--run-in', default='subprocess', type=click.Choice(['subprocess', 'thread']),
-        help='run each components in thread or subprocess. '
-        'always using thread for windows.')
+              help='run each components in thread or subprocess. '
+              'always using thread for windows.')
 @click.pass_context
 def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     ctx.obj['debug'] = False
@@ -297,8 +305,8 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
     # running webui in main thread to make it exitable
     webui_config = g.config.get('webui', {})
-    webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'\
-            % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+    webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
+                            % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
     ctx.invoke(webui, **webui_config)
 
     for each in g.instances:

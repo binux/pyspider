@@ -7,39 +7,39 @@
 
 # task schema
 {
-'task': {
-        'taskid': str, # new, not change
-        'project': str, # new, not change
-        'url': str, # new, not change
-        'status': int, # change
+    'task': {
+        'taskid': str,  # new, not change
+        'project': str,  # new, not change
+        'url': str,  # new, not change
+        'status': int,  # change
         'schedule': {
             'priority': int,
             'retries': int,
             'retried': int,
             'exetime': int,
             'age': int,
-            'itag': str, #
-            #'recrawl': int
-            }, # new and restart
+            'itag': str,
+            # 'recrawl': int
+        },  # new and restart
         'fetch': {
             'method': str,
-            'headers': dict, 
-            'data': str, 
+            'headers': dict,
+            'data': str,
             'timeout': int,
             'save': dict,
-            }, # new and restart 
+        },  # new and restart
         'process': {
             'callback': str,
-            }, # new and restart
+        },  # new and restart
         'track': {
             'fetch': {
                 'ok': bool,
                 'time': int,
                 'status_code': int,
-                'headers': dict, 
+                'headers': dict,
                 'encoding': str,
                 'content': str,
-                },
+            },
             'process': {
                 'ok': bool,
                 'time': int,
@@ -47,11 +47,11 @@
                 'outputs': int,
                 'logs': str,
                 'exception': str,
-                },
-            }, # finish
-        'lastcrawltime': int, # keep between request
-        'updatetime': int, # keep between request
-        }
+            },
+        },  # finish
+        'lastcrawltime': int,  # keep between request
+        'updatetime': int,  # keep between request
+    }
 }
 
 
@@ -77,7 +77,7 @@ class TaskDB(object):
 
     def insert(self, project, taskid, obj={}):
         raise NotImplementedError
-        
+
     def update(self, project, taskid, obj={}, **kwargs):
         raise NotImplementedError
 
@@ -91,7 +91,7 @@ class TaskDB(object):
             2: 'SUCCESS',
             3: 'FAILED',
             4: 'BAD',
-            }.get(status, 'UNKNOWN')
+        }.get(status, 'UNKNOWN')
 
     @staticmethod
     def status_to_int(status):
@@ -100,4 +100,4 @@ class TaskDB(object):
             'SUCCESS': 2,
             'FAILED': 3,
             'BAD': 4,
-            }.get(status, 4)
+        }.get(status, 4)

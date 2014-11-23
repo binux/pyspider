@@ -9,7 +9,9 @@ import Queue
 import logging
 logger = logging.getLogger("result")
 
+
 class ResultWorker(object):
+
     """
     do with result
     override this if needed.
@@ -26,7 +28,12 @@ class ResultWorker(object):
         assert 'taskid' in task, 'need taskid in task'
         assert 'project' in task, 'need project in task'
         assert 'url' in task, 'need url in task'
-        return self.resultdb.save(project=task['project'], taskid=task['taskid'], url=task['url'], result=result)
+        return self.resultdb.save(
+            project=task['project'],
+            taskid=task['taskid'],
+            url=task['url'],
+            result=result
+        )
 
     def quit(self):
         self._quit = True
@@ -40,7 +47,7 @@ class ResultWorker(object):
                         task['project'], task['taskid'], task['url'], result))
                 else:
                     logger.warning('result UNKNOW -> %.30r' % result)
-                ret = self.on_result(task, result)
+                self.on_result(task, result)
             except Queue.Empty as e:
                 continue
             except KeyboardInterrupt:

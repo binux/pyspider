@@ -12,7 +12,9 @@ from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers, get_encodings_from_content
 from requests import HTTPError
 
+
 class Response(object):
+
     def __init__(self):
         self.status_code = None
         self.url = None
@@ -25,7 +27,7 @@ class Response(object):
         self.time = 0
 
     def __repr__(self):
-       return '<Response [%d]>' % self.status_code
+        return '<Response [%d]>' % self.status_code
 
     def __bool__(self):
         """Returns true if :attr:`status_code` is 'OK'."""
@@ -39,7 +41,7 @@ class Response(object):
     def ok(self):
         try:
             self.raise_for_status()
-        except RequestException:
+        except HTTPError:
             return False
         return True
 
@@ -150,6 +152,7 @@ class Response(object):
             return True
         except:
             return False
+
 
 def rebuild_response(r):
     response = Response()

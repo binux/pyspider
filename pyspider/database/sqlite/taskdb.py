@@ -34,7 +34,10 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
                 schedule, fetch, process, track,
                 lastcrawltime, updatetime
                 )''' % tablename)
-        self._execute('''CREATE INDEX IF NOT EXISTS `status_index` ON %s (status)''' % self.escape(tablename))
+        self._execute(
+            '''CREATE INDEX IF NOT EXISTS `status_index` ON %s (status)'''
+            % self.escape(tablename)
+        )
 
     def _parse(self, data):
         for each in ('schedule', 'fetch', 'process', 'track'):
@@ -89,8 +92,8 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         if project not in self.projects:
             return result
         tablename = self._tablename(project)
-        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" % \
-                self.escape(tablename)):
+        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" %
+                                           self.escape(tablename)):
             result[status] = count
         return result
 
@@ -104,7 +107,7 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         obj['updatetime'] = time.time()
         tablename = self._tablename(project)
         return self._insert(tablename, **self._stringify(obj))
-        
+
     def update(self, project, taskid, obj={}, **kwargs):
         if project not in self.projects:
             raise LookupError
@@ -112,5 +115,7 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
-                **self._stringify(obj))
+        return self._update(
+            tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
+            **self._stringify(obj)
+        )

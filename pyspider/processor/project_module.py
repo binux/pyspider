@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2014-02-16 22:24:20
 
-import os
 import sys
 import imp
 import logging
@@ -13,9 +12,10 @@ import inspect
 import linecache
 from pyspider.libs import base_handler
 from pyspider.libs.log import SaveLogHandler
-from pyspider.libs.utils import hide_me
+
 
 class ProjectFinder(object):
+
     def find_module(self, fullname, path=None):
         if fullname == 'projects':
             return ProjectsLoader()
@@ -23,7 +23,9 @@ class ProjectFinder(object):
         if len(parts) == 2 and parts[0] == 'projects':
             return self.get_loader(parts[1])
 
+
 class ProjectsLoader(object):
+
     def load_module(self, fullname):
         mod = sys.modules.setdefault('projects', imp.new_module(fullname))
         mod.__file__ = '<projects>'
@@ -32,7 +34,9 @@ class ProjectsLoader(object):
         mod.__package__ = 'projects'
         return mod
 
+
 class ProjectLoader(object):
+
     def __init__(self, project, mod=None):
         self.project = project
         self.name = project['name']

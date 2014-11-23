@@ -7,8 +7,9 @@
 
 import time
 
+
 class SplitTableMixin(object):
-    UPDATE_PROJECTS_TIME = 10*60
+    UPDATE_PROJECTS_TIME = 10 * 60
 
     def _collection_name(self, project):
         if self.collection_prefix:

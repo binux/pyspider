@@ -33,6 +33,7 @@ class InQueueTask(DictMixin):
 
 
 class PriorityTaskQueue(Queue.Queue):
+
     '''
     TaskQueue
     '''
@@ -74,10 +75,12 @@ class PriorityTaskQueue(Queue.Queue):
 
 
 class TaskQueue(object):
+
     '''
     task queue for scheduler, have a priority queue and a time queue for delayed tasks
     '''
-    processing_timeout = 10*60
+    processing_timeout = 10 * 60
+
     def __init__(self, rate=0, burst=0):
         self.mutex = threading.Lock()
         self.priority_queue = PriorityTaskQueue()
@@ -88,6 +91,7 @@ class TaskQueue(object):
     @property
     def rate(self):
         return self.bucket.rate
+
     @rate.setter
     def rate(self, value):
         self.bucket.rate = value
@@ -95,6 +99,7 @@ class TaskQueue(object):
     @property
     def burst(self):
         return self.burst.burst
+
     @burst.setter
     def burst(self, value):
         self.bucket.burst = value
@@ -180,7 +185,7 @@ class TaskQueue(object):
 if __name__ == '__main__':
     task_queue = TaskQueue()
     task_queue.processing_timeout = 0.1
-    task_queue.put('a3', 3, time.time()+0.1)
+    task_queue.put('a3', 3, time.time() + 0.1)
     task_queue.put('a1', 1)
     task_queue.put('a2', 2)
     assert task_queue.get() == 'a2'

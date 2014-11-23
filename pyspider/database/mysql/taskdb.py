@@ -18,14 +18,15 @@ from mysqlbase import MySQLMixin, SplitTableMixin
 
 class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
     __tablename__ = ''
+
     def __init__(self, host='localhost', port=3306, database='taskdb',
-            user='root', passwd=None):
+                 user='root', passwd=None):
         self.database_name = database
         self.conn = mysql.connector.connect(user=user, password=passwd,
-                host=host, port=port, autocommit=True)
+                                            host=host, port=port, autocommit=True)
         if database not in [x[0] for x in self._execute('show databases')]:
             self._execute('CREATE DATABASE %s' % self.escape(database))
-        self.conn.database = database;
+        self.conn.database = database
         self._list_project()
 
     def _create_project(self, project):
@@ -76,7 +77,9 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
 
         for project in projects:
             tablename = self._tablename(project)
-            for each in self._select2dic(tablename, what=fields, where=where, where_values=(status, )):
+            for each in self._select2dic(
+                tablename, what=fields, where=where, where_values=(status, )
+            ):
                 yield self._parse(each)
 
     def get_task(self, project, taskid, fields=None):
@@ -99,8 +102,8 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         if project not in self.projects:
             return result
         tablename = self._tablename(project)
-        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" % \
-                self.escape(tablename)):
+        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" %
+                                           self.escape(tablename)):
             result[status] = count
         return result
 
@@ -124,4 +127,9 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ), **self._stringify(obj))
+        return self._update(
+            tablename,
+            where="`taskid` = %s" % self.placeholder,
+            where_values=(taskid, ),
+            **self._stringify(obj)
+        )

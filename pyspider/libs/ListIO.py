@@ -5,7 +5,9 @@
 #         http://binux.me
 # Created on 2014-02-26 23:41:51
 
+
 class ListO(object):
+
     """A StringO write to list."""
 
     def __init__(self, buffer=None):
@@ -36,4 +38,3 @@ class ListO(object):
 
     def writelines(self, x):
         self._buffer.extend(x)
-
