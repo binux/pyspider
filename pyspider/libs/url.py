@@ -6,7 +6,6 @@
 # Created on 2012-11-09 14:39:57
 
 import mimetypes
-import base64
 from urllib import urlencode
 from urlparse import urlparse, urlunparse
 
