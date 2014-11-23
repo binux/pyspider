@@ -215,7 +215,8 @@ class BaseHandler(object):
 
         url = quote_chinese(_build_url(url.strip(), kwargs.get('params')))
         if kwargs.get('files'):
-            assert isinstance(kwargs.get('data', {}), dict), "data must be a dict when using with files!"
+            assert isinstance(
+                kwargs.get('data', {}), dict), "data must be a dict when using with files!"
             content_type, data = _encode_multipart_formdata(kwargs.get('data', {}),
                                                             kwargs.get('files', {}))
             kwargs.setdefault('headers', {})

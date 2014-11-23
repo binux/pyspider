@@ -115,5 +115,7 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
-                            **self._stringify(obj))
+        return self._update(
+            tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
+            **self._stringify(obj)
+        )

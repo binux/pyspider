@@ -46,7 +46,8 @@ class BaseDB:
         for row in self._execute(sql_query, where_values):
             yield row
 
-    def _select2dic(self, tablename=None, what="*", where="", where_values=[], offset=0, limit=None):
+    def _select2dic(self, tablename=None, what="*", where="", where_values=[],
+                    offset=0, limit=None):
         tablename = self.escape(tablename or self.__tablename__)
         if isinstance(what, list) or isinstance(what, tuple) or what is None:
             what = ','.join(self.escape(f) for f in what) if what else '*'
@@ -98,7 +99,9 @@ class BaseDB:
 
     def _update(self, tablename=None, where="1=0", where_values=[], **values):
         tablename = self.escape(tablename or self.__tablename__)
-        _key_values = ", ".join(["%s = %s" % (self.escape(k), self.placeholder) for k in values.iterkeys()])
+        _key_values = ", ".join([
+            "%s = %s" % (self.escape(k), self.placeholder) for k in values.iterkeys()
+        ])
         sql_query = "UPDATE %s SET %s WHERE %s" % (tablename, _key_values, where)
         logger.debug("<sql: %s>", sql_query)
 
@@ -122,8 +125,10 @@ if __name__ == "__main__":
         def __init__(self):
             self.conn = sqlite3.connect(":memory:")
             cursor = self.conn.cursor()
-            cursor.execute('''CREATE TABLE `%s` (id INTEGER PRIMARY KEY AUTOINCREMENT, name, age)'''
-                           % self.__tablename__)
+            cursor.execute(
+                '''CREATE TABLE `%s` (id INTEGER PRIMARY KEY AUTOINCREMENT, name, age)'''
+                % self.__tablename__
+            )
 
         @property
         def dbcur(self):

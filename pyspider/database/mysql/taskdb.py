@@ -77,7 +77,9 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
 
         for project in projects:
             tablename = self._tablename(project)
-            for each in self._select2dic(tablename, what=fields, where=where, where_values=(status, )):
+            for each in self._select2dic(
+                tablename, what=fields, where=where, where_values=(status, )
+            ):
                 yield self._parse(each)
 
     def get_task(self, project, taskid, fields=None):

@@ -58,9 +58,12 @@ class TestRun(unittest.TestCase):
             ctx.obj.newtask_queue
 
     def test_30_cli_command_line(self):
-        ctx = run.cli.make_context('test',
-                                   ['--projectdb', 'mongodb+projectdb://localhost:23456/projectdb'],
-                                   None, obj=ObjectDict(testing_mode=True))
+        ctx = run.cli.make_context(
+            'test',
+            ['--projectdb', 'mongodb+projectdb://localhost:23456/projectdb'],
+            None,
+            obj=ObjectDict(testing_mode=True)
+        )
         ctx = run.cli.invoke(ctx)
 
         from pymongo.errors import ConnectionFailure

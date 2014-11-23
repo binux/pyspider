@@ -52,8 +52,10 @@ def result():
     count = resultdb.count(project)
     results = list(resultdb.select(project, offset=offset, limit=limit))
 
-    return render_template("result.html", count=count, results=results, result_formater=result_formater,
-                           project=project, offset=offset, limit=limit, json=json)
+    return render_template(
+        "result.html", count=count, results=results, result_formater=result_formater,
+        project=project, offset=offset, limit=limit, json=json
+    )
 
 
 @app.route('/results/dump/<project>.<_format>')
@@ -72,7 +74,10 @@ def dump_result(project, _format):
     elif _format == 'txt':
         def generator():
             for result in resultdb.select(project):
-                yield result['url'] + '\t' + json.dumps(result['result'], ensure_ascii=False) + '\n'
+                yield (
+                    result['url'] + '\t' +
+                    json.dumps(result['result'], ensure_ascii=False) + '\n'
+                )
         return Response(generator(), mimetype='text/plain')
     elif _format == 'csv':
         def toString(obj):
@@ -104,9 +109,11 @@ def dump_result(project, _format):
                 for k, v in result['result'].iteritems():
                     if k not in common_fields:
                         other[k] = v
-                csv_writer.writerow([toString(result['url'])]
-                                    + [toString(result['result'].get(k, '')) for k in common_fields_l]
-                                    + [toString(other)])
+                csv_writer.writerow(
+                    [toString(result['url'])]
+                    + [toString(result['result'].get(k, '')) for k in common_fields_l]
+                    + [toString(other)]
+                )
                 yield stringio.getvalue()
                 stringio.truncate(0)
         return Response(generator(), mimetype='text/csv')

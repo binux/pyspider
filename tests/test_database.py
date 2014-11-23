@@ -204,8 +204,10 @@ class ProjectDBCase(object):
         time.sleep(0.1)
         self.projectdb.update('abc', status='RUNNING')
 
-        projects = list(self.projectdb.check_update(now,
-                                                    fields=['name', 'status', 'group', 'updatetime', ]))
+        projects = list(self.projectdb.check_update(
+            now,
+            fields=['name', 'status', 'group', 'updatetime', ]
+        ))
         self.assertEqual(len(projects), 1, repr(projects))
         project = projects[0]
         self.assertEqual(project['name'], 'abc')
@@ -356,7 +358,9 @@ class TestMysqlProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.projectdb = database.connect_database('mysql+projectdb://localhost/pyspider_test_projectdb')
+        self.projectdb = database.connect_database(
+            'mysql+projectdb://localhost/pyspider_test_projectdb'
+        )
 
     @classmethod
     def tearDownClass(self):
@@ -368,7 +372,9 @@ class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.resultdb = database.connect_database('mysql+resultdb://localhost/pyspider_test_resultdb')
+        self.resultdb = database.connect_database(
+            'mysql+resultdb://localhost/pyspider_test_resultdb'
+        )
 
     @classmethod
     def tearDownClass(self):
@@ -380,7 +386,9 @@ class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.taskdb = database.connect_database('mongodb+taskdb://localhost:27017/pyspider_test_taskdb')
+        self.taskdb = database.connect_database(
+            'mongodb+taskdb://localhost:27017/pyspider_test_taskdb'
+        )
 
     @classmethod
     def tearDownClass(self):
@@ -392,7 +400,9 @@ class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.projectdb = database.connect_database('mongodb+projectdb://localhost/pyspider_test_projectdb')
+        self.projectdb = database.connect_database(
+            'mongodb+projectdb://localhost/pyspider_test_projectdb'
+        )
 
     @classmethod
     def tearDownClass(self):
@@ -404,7 +414,9 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.resultdb = database.connect_database('mongodb+resultdb://localhost/pyspider_test_resultdb')
+        self.resultdb = database.connect_database(
+            'mongodb+resultdb://localhost/pyspider_test_resultdb'
+        )
 
     @classmethod
     def tearDownClass(self):

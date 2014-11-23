@@ -61,7 +61,10 @@ def _encode_multipart_formdata(fields, files):
         L.append(_utf8(value))
     for key, (filename, value) in files.iteritems():
         L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (_utf8(key), _utf8(filename)))
+        L.append(
+            'Content-Disposition: form-data; name="%s"; filename="%s"'
+            % (_utf8(key), _utf8(filename))
+        )
         L.append('Content-Type: %s' % get_content_type(filename))
         L.append('')
         L.append(value.read() if hasattr(value, "read") else _utf8(value))

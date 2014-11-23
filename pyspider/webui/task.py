@@ -42,7 +42,11 @@ def tasks():
         task['updatetime'] = updatetime
         tasks['%(project)s:%(taskid)s' % task] = task
 
-    return render_template("tasks.html", tasks=tasks.values(), status_to_string=taskdb.status_to_string)
+    return render_template(
+        "tasks.html",
+        tasks=tasks.values(),
+        status_to_string=taskdb.status_to_string
+    )
 
 
 @app.route('/active_tasks')

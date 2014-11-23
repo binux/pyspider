@@ -76,7 +76,10 @@ class Scheduler(object):
 
     def _update_projects(self):
         now = time.time()
-        if not self._force_update_project and self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now:
+        if (
+                not self._force_update_project and
+                self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now
+        ):
             return
         for project in self.projectdb.check_update(self._last_update_project):
             self._update_project(project)
@@ -126,7 +129,9 @@ class Scheduler(object):
         loading tasks from database
         """
         self.task_queue[project] = TaskQueue(rate=0, burst=0)
-        for task in self.taskdb.load_tasks(self.taskdb.ACTIVE, project, self.scheduler_task_fields):
+        for task in self.taskdb.load_tasks(
+                self.taskdb.ACTIVE, project, self.scheduler_task_fields
+        ):
             taskid = task['taskid']
             _schedule = task.get('schedule', self.default_schedule)
             priority = _schedule.get('priority', self.default_schedule['priority'])
@@ -213,10 +218,15 @@ class Scheduler(object):
                 # check _on_get_info result here
                 if task['url'] == 'data:,on_get_info':
                     self.projects[task['project']].update(task['fetch'].get('save', {}))
-                    logger.info('%s on_get_info %r', task['project'], task['fetch'].get('save', {}))
+                    logger.info(
+                        '%s on_get_info %r', task['project'], task['fetch'].get('save', {})
+                    )
                     continue
 
-                if self.INQUEUE_LIMIT and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT:
+                if (
+                        self.INQUEUE_LIMIT and
+                        len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT
+                ):
                     logger.debug('overflow task %(project)s:%(taskid)s %(url)s', task)
                     continue
                 if task['taskid'] in self.task_queue[task['project']]:
@@ -457,9 +467,10 @@ class Scheduler(object):
         old_schedule = old_task.get('schedule', {})
 
         restart = False
+        schedule_age = _schedule.get('age', self.default_schedule['age'])
         if _schedule.get('itag') and _schedule['itag'] != old_schedule.get('itag'):
             restart = True
-        elif _schedule.get('age', self.default_schedule['age']) + (old_task['lastcrawltime'] or 0) < now:
+        elif schedule_age + (old_task['lastcrawltime'] or 0) < now:
             restart = True
         elif _schedule.get('force_update'):
             restart = True

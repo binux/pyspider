@@ -132,7 +132,11 @@ class Fetcher(object):
         if len(result['content']) < 70:
             logger.info("[200] %s 0s", url)
         else:
-            logger.info("[200] data:,%s...[content:%d] 0s", result['content'][:70], len(result['content']))
+            logger.info(
+                "[200] data:,%s...[content:%d] 0s",
+                result['content'][:70],
+                len(result['content'])
+            )
 
         callback('data', task, result)
         self.on_result('data', task, result)
@@ -439,7 +443,9 @@ class Fetcher(object):
 
         if type == 'http' and result.get('time'):
             content_len = len(result.get('content', ''))
-            self._cnt['5m'].event((task.get('project'), 'speed'), float(content_len) / result.get('time'))
-            self._cnt['1h'].event((task.get('project'), 'speed'), float(content_len) / result.get('time'))
+            self._cnt['5m'].event((task.get('project'), 'speed'),
+                                  float(content_len) / result.get('time'))
+            self._cnt['1h'].event((task.get('project'), 'speed'),
+                                  float(content_len) / result.get('time'))
             self._cnt['5m'].event((task.get('project'), 'time'), result.get('time'))
             self._cnt['1h'].event((task.get('project'), 'time'), result.get('time'))

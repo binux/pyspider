@@ -94,7 +94,11 @@ class Processor(object):
     def _need_update(self, task):
         if task['project'] not in self.projects:
             return True
-        if task.get('project_updatetime', 0) > self.projects[task['project']]['info'].get('updatetime', 0):
+        if (
+                task.get('project_updatetime', 0)
+                >
+                self.projects[task['project']]['info'].get('updatetime', 0)
+        ):
             return True
         if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
             return True
@@ -144,7 +148,11 @@ class Processor(object):
                         'status_code': response.status_code,
                         'headers': dict(response.headers),
                         'encoding': response.encoding,
-                        'content': response.content[:500] if not response.isok() or ret.exception else None,
+                        'content': (
+                            response.content[:500]
+                            if not response.isok() or ret.exception else
+                            None
+                        ),
                     },
                     'process': {
                         'ok': not ret.exception,

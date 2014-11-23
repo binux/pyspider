@@ -405,7 +405,10 @@ class TestScheduler(unittest.TestCase):
         self.rpc._quit()
         time.sleep(0.2)
         self.assertFalse(self.process.is_alive())
-        self.assertEqual(self.taskdb.get_task('test_project', 'taskid')['status'], self.taskdb.FAILED)
+        self.assertEqual(
+            self.taskdb.get_task('test_project', 'taskid')['status'],
+            self.taskdb.FAILED
+        )
 
 if __name__ == '__main__':
     unittest.main()

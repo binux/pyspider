@@ -65,7 +65,9 @@ def load_user_from_request(request):
             pass
         return User(*api_key.split(":", 1))
     return None
-app.login_response = Response("need auth.", 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+app.login_response = Response(
+    "need auth.", 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}
+)
 
 
 def cdn_url_handler(error, endpoint, kwargs):
