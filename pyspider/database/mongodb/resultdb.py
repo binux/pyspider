@@ -11,8 +11,10 @@ from pymongo import MongoClient
 from mongodbbase import SplitTableMixin
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 
+
 class ResultDB(SplitTableMixin, BaseResultDB):
     collection_prefix = ''
+
     def __init__(self, url, database='resultdb'):
         self.conn = MongoClient(url)
         self.database = self.conn[database]
@@ -20,7 +22,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
         self._list_project()
         for project in self.projects:
-            collection_name = self._collection_name(project)
+            self._collection_name(project)
 
     def _parse(self, data):
         if 'result' in data:
@@ -35,11 +37,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
     def save(self, project, taskid, url, result):
         collection_name = self._collection_name(project)
         obj = {
-                'taskid': taskid,
-                'url': url,
-                'result': result,
-                'updatetime': time.time(),
-                }
+            'taskid': taskid,
+            'url': url,
+            'result': result,
+            'updatetime': time.time(),
+        }
         return self.database[collection_name].update({'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True)
 
     def select(self, project, fields=None, offset=0, limit=0):

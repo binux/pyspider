@@ -5,14 +5,15 @@
 #         http://binux.me
 # Created on 2014-10-12 12:22:42
 
-import json
 import time
 from pymongo import MongoClient
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
+
 class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
+
     def __init__(self, url, database='projectdb'):
         self.conn = MongoClient(url)
         self.database = self.conn[database]

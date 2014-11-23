@@ -11,9 +11,13 @@ import logging
 from collections import deque
 from UserDict import DictMixin
 
-class BaseCounter(object): pass
+
+class BaseCounter(object):
+    pass
+
 
 class TotalCounter(BaseCounter):
+
     def __init__(self):
         self.cnt = 0
 
@@ -34,7 +38,9 @@ class TotalCounter(BaseCounter):
     def empty(self):
         return self.cnt == 0
 
+
 class AverageWindowCounter(BaseCounter):
+
     def __init__(self, window_size=300):
         self.window_size = window_size
         self.values = deque(maxlen=window_size)
@@ -43,7 +49,7 @@ class AverageWindowCounter(BaseCounter):
         self.values.append(value)
 
     value = event
-        
+
     @property
     def avg(self):
         return float(self.sum) / len(self.values)
@@ -56,7 +62,9 @@ class AverageWindowCounter(BaseCounter):
         if not self.values:
             return True
 
+
 class TimebaseAverageWindowCounter(BaseCounter):
+
     def __init__(self, window_size=30, window_interval=10):
         self.max_window_size = window_size
         self.window_size = 0
@@ -115,7 +123,7 @@ class TimebaseAverageWindowCounter(BaseCounter):
     @property
     def sum(self):
         self._trim_window()
-        return sum(self.values)+self.cache_value
+        return sum(self.values) + self.cache_value
 
     def empty(self):
         self._trim_window()
@@ -125,7 +133,9 @@ class TimebaseAverageWindowCounter(BaseCounter):
     def on_append(self, value, time):
         pass
 
+
 class CounterValue(DictMixin):
+
     def __init__(self, manager, keys):
         self.manager = manager
         self._keys = keys
@@ -171,7 +181,9 @@ class CounterValue(DictMixin):
                 result[key] = value.to_dict(get_value)
         return result
 
+
 class CounterManager(DictMixin):
+
     def __init__(self, cls=TimebaseAverageWindowCounter):
         self.cls = cls
         self.counters = {}
@@ -249,4 +261,3 @@ class CounterManager(DictMixin):
             logging.debug("can't load counter from file: %s" % filename)
             return False
         return True
-

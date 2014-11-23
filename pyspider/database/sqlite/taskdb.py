@@ -89,8 +89,8 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         if project not in self.projects:
             return result
         tablename = self._tablename(project)
-        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" % \
-                self.escape(tablename)):
+        for status, count in self._execute("SELECT `status`, count(1) FROM %s GROUP BY `status`" %
+                                           self.escape(tablename)):
             result[status] = count
         return result
 
@@ -104,7 +104,7 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         obj['updatetime'] = time.time()
         tablename = self._tablename(project)
         return self._insert(tablename, **self._stringify(obj))
-        
+
     def update(self, project, taskid, obj={}, **kwargs):
         if project not in self.projects:
             raise LookupError
@@ -113,4 +113,4 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         return self._update(tablename, where="`taskid` = %s" % self.placeholder, where_values=(taskid, ),
-                **self._stringify(obj))
+                            **self._stringify(obj))

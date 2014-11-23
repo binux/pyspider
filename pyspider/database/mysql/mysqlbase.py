@@ -8,20 +8,23 @@
 import time
 import mysql.connector
 
+
 class MySQLMixin(object):
+
     @property
     def dbcur(self):
         try:
             if self.conn.unread_result:
                 self.conn.get_rows()
             return self.conn.cursor()
-        except (mysql.connector.OperationalError, mysql.connector.InterfaceError) as e:
+        except (mysql.connector.OperationalError, mysql.connector.InterfaceError):
             self.conn.ping(reconnect=True)
             self.conn.database = self.database_name
             return self.conn.cursor()
 
+
 class SplitTableMixin(object):
-    UPDATE_PROJECTS_TIME = 10*60
+    UPDATE_PROJECTS_TIME = 10 * 60
 
     def _tablename(self, project):
         if self.__tablename__:

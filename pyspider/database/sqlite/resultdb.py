@@ -13,6 +13,7 @@ from sqlitebase import SQLiteMixin, SplitTableMixin
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.database.basedb import BaseDB
 
+
 class ResultDB(SQLiteMixin, SplitTableMixin, BaseResultDB, BaseDB):
     __tablename__ = 'resultdb'
     placeholder = '?'
@@ -49,11 +50,11 @@ class ResultDB(SQLiteMixin, SplitTableMixin, BaseResultDB, BaseDB):
             self._create_project(project)
             self._list_project()
         obj = {
-                'taskid': taskid,
-                'url': url,
-                'result': result,
-                'updatetime': time.time(),
-                }
+            'taskid': taskid,
+            'url': url,
+            'result': result,
+            'updatetime': time.time(),
+        }
         return self._replace(tablename, **self._stringify(obj))
 
     def select(self, project, fields=None, offset=0, limit=None):
@@ -83,5 +84,5 @@ class ResultDB(SQLiteMixin, SplitTableMixin, BaseResultDB, BaseDB):
         tablename = self._tablename(project)
         where = "`taskid` = %s" % self.placeholder
         for task in self._select2dic(tablename, what=fields,
-                where=where, where_values=(taskid, )):
+                                     where=where, where_values=(taskid, )):
             return self._parse(task)

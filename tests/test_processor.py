@@ -12,60 +12,62 @@ import logging.config
 logging.config.fileConfig("logging.conf")
 
 from pyspider.processor.processor import build_module
+
+
 class TestProjectModule(unittest.TestCase):
     base_task = {
-            'taskid': 'taskid',
-            'project': 'test.project',
-            'url': 'www.baidu.com/',
-            'schedule': {
-                'priority': 1,
-                'retries': 3,
-                'exetime': 0,
-                'age': 3600,
-                'itag': 'itag',
-                'recrawl': 5,
-                },
-            'fetch': {
-                'method': 'GET',
-                'headers': {
-                    'Cookie': 'a=b', 
-                    },
-                'data': 'a=b&c=d', 
-                'timeout': 60,
-                'save': [1, 2, 3],
-                },
-            'process': {
-                'callback': 'callback',
-                },
-            }
-    fetch_result = {
-            'status_code': 200,
-            'orig_url': 'www.baidu.com/',
-            'url': 'http://www.baidu.com/',
+        'taskid': 'taskid',
+        'project': 'test.project',
+        'url': 'www.baidu.com/',
+        'schedule': {
+            'priority': 1,
+            'retries': 3,
+            'exetime': 0,
+            'age': 3600,
+            'itag': 'itag',
+            'recrawl': 5,
+        },
+        'fetch': {
+            'method': 'GET',
             'headers': {
-                'cookie': 'abc',
-                },
-            'content': 'test data',
-            'cookies': {
-                'a': 'b',
-                },
+                'Cookie': 'a=b',
+            },
+            'data': 'a=b&c=d',
+            'timeout': 60,
             'save': [1, 2, 3],
-            }
+        },
+        'process': {
+            'callback': 'callback',
+        },
+    }
+    fetch_result = {
+        'status_code': 200,
+        'orig_url': 'www.baidu.com/',
+        'url': 'http://www.baidu.com/',
+        'headers': {
+            'cookie': 'abc',
+        },
+        'content': 'test data',
+        'cookies': {
+            'a': 'b',
+        },
+        'save': [1, 2, 3],
+    }
 
     def setUp(self):
         self.project = "test.project"
         self.script = open(os.path.join(os.path.dirname(__file__), 'data_handler.py')).read()
         self.env = {
-                'test': True,
-                }
+            'test': True,
+        }
         self.project_info = {
-                'name': self.project,
-                'status': 'DEBUG',
-                }
+            'name': self.project,
+            'status': 'DEBUG',
+        }
         data = build_module({
             'name': self.project,
             'script': self.script
-            }, {'test': True})
+        }, {'test': True})
         self.module = data['module']
         self.instance = data['instance']
 
@@ -125,16 +127,16 @@ class TestProjectModule(unittest.TestCase):
             'fetch': {
                 'save': {
                     'tick': 11,
-                    },
                 },
+            },
             'process': {
                 'callback': '_on_cronjob',
-                },
+            },
         }
         fetch_result = dict(self.fetch_result)
         fetch_result['save'] = {
-                'tick': 11,
-                }
+            'tick': 11,
+        }
         ret = self.instance.run(self.module, task, fetch_result)
         logstr = ret.logstr()
         self.assertNotIn('on_cronjob1', logstr)
@@ -161,10 +163,10 @@ class TestProjectModule(unittest.TestCase):
             'url': 'data:,_on_get_info',
             'fetch': {
                 'save': ['min_tick', ],
-                },
+            },
             'process': {
                 'callback': '_on_get_info',
-                },
+            },
         }
         fetch_result = dict(self.fetch_result)
         fetch_result['save'] = task['fetch']['save']
@@ -173,15 +175,17 @@ class TestProjectModule(unittest.TestCase):
         self.assertEqual(len(ret.follows), 1, ret.logstr())
         for each in ret.follows:
             self.assertEqual(each['url'], 'data:,on_get_info')
-            self.assertEqual(each['fetch']['save']['min_tick'] , 10)
+            self.assertEqual(each['fetch']['save']['min_tick'], 10)
 
 import shutil
 import inspect
 from multiprocessing import Queue
 from pyspider.database.sqlite import projectdb
 from pyspider.processor.processor import Processor
-from pyspider.libs.utils import run_in_subprocess, run_in_thread
+from pyspider.libs.utils import run_in_thread
 from pyspider.libs import sample_handler
+
+
 class TestProcessor(unittest.TestCase):
     projectdb_path = './data/tests/project.db'
 
@@ -200,7 +204,7 @@ class TestProcessor(unittest.TestCase):
 
         def run_processor():
             self.processor = Processor(get_projectdb(), self.in_queue,
-                    self.status_queue, self.newtask_queue, self.result_queue)
+                                       self.status_queue, self.newtask_queue, self.result_queue)
             self.processor.CHECK_PROJECTS_INTERVAL = 0.1
             self.processor.run()
         self.process = run_in_thread(run_processor)
@@ -217,23 +221,23 @@ class TestProcessor(unittest.TestCase):
     def test_10_update_project(self):
         self.assertEqual(len(self.processor.projects), 0)
         self.projectdb.insert('test_project', {
-                'name': 'test_project',
-                'group': 'group',
-                'status': 'TODO',
-                'script': inspect.getsource(sample_handler),
-                'comments': 'test project',
-                'rate': 1.0,
-                'burst': 10,
-            })
+            'name': 'test_project',
+            'group': 'group',
+            'status': 'TODO',
+            'script': inspect.getsource(sample_handler),
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
 
         task = {
-                "process": {
-                    "callback": "on_start"
-                    },
-                "project": "not_exists",
-                "taskid": "data:,on_start",
-                "url": "data:,on_start"
-                }
+            "process": {
+                "callback": "on_start"
+            },
+            "project": "not_exists",
+            "taskid": "data:,on_start",
+            "url": "data:,on_start"
+        }
         self.in_queue.put((task, {}))
         time.sleep(1)
         self.assertTrue(self.status_queue.empty())
@@ -243,21 +247,21 @@ class TestProcessor(unittest.TestCase):
         self.assertTrue(self.status_queue.empty())
         self.assertTrue(self.newtask_queue.empty())
         task = {
-                "process": {
-                    "callback": "on_start"
-                    },
-                "project": "test_project",
-                "taskid": "data:,on_start",
-                "url": "data:,on_start"
-                }
+            "process": {
+                "callback": "on_start"
+            },
+            "project": "test_project",
+            "taskid": "data:,on_start",
+            "url": "data:,on_start"
+        }
         fetch_result = {
-                "orig_url": "data:,on_start",
-                "content": "on_start",
-                "headers": {},
-                "status_code": 200,
-                "url": "data:,on_start",
-                "time": 0,
-                }
+            "orig_url": "data:,on_start",
+            "content": "on_start",
+            "headers": {},
+            "status_code": 200,
+            "url": "data:,on_start",
+            "time": 0,
+        }
         self.in_queue.put((task, fetch_result))
         time.sleep(1)
         self.assertFalse(self.status_queue.empty())
@@ -272,16 +276,18 @@ class TestProcessor(unittest.TestCase):
         self.assertIsNotNone(task)
 
         fetch_result = {
-                "orig_url": task['url'],
-                "content": ("<html><body>"
-                    "<a href='http://binux.me'>binux</a>"
-                    "<a href='http://binux.me/中文'>binux</a>"
-                    "</body></html>"),
-                "headers": {},
-                "status_code": 200,
-                "url": task['url'],
-                "time": 0,
-                }
+            "orig_url": task['url'],
+            "content": (
+                "<html><body>"
+                "<a href='http://binux.me'>binux</a>"
+                "<a href='http://binux.me/中文'>binux</a>"
+                "</body></html>"
+            ),
+            "headers": {},
+            "status_code": 200,
+            "url": task['url'],
+            "time": 0,
+        }
         self.in_queue.put((task, fetch_result))
         time.sleep(1)
         self.assertFalse(self.status_queue.empty())

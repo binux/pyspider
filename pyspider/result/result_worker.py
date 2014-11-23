@@ -9,7 +9,9 @@ import Queue
 import logging
 logger = logging.getLogger("result")
 
+
 class ResultWorker(object):
+
     """
     do with result
     override this if needed.
@@ -40,7 +42,7 @@ class ResultWorker(object):
                         task['project'], task['taskid'], task['url'], result))
                 else:
                     logger.warning('result UNKNOW -> %.30r' % result)
-                ret = self.on_result(task, result)
+                self.on_result(task, result)
             except Queue.Empty as e:
                 continue
             except KeyboardInterrupt:

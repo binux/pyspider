@@ -15,6 +15,7 @@ from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 
 class TaskDB(SplitTableMixin, BaseTaskDB):
     collection_prefix = ''
+
     def __init__(self, url, database='taskdb'):
         self.conn = MongoClient(url)
         self.database = self.conn[database]
@@ -75,14 +76,14 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         if project not in self.projects:
             return {}
         collection_name = self._collection_name(project)
-        ret = self.database[collection_name].aggregate( [
-           { '$group': {
-               '_id': '$status',
-               'total': {
-                   '$sum': 1
-                   }
-               }
-            } ] )
+        ret = self.database[collection_name].aggregate([
+            {'$group': {
+                '_id': '$status',
+                'total': {
+                    '$sum': 1
+                }
+            }
+            }])
         result = {}
         if ret.get('result'):
             for each in ret['result']:

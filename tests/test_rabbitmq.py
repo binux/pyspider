@@ -12,8 +12,10 @@ import unittest2 as unittest
 from pyspider.libs import utils
 from pyspider.libs import rabbitmq
 
+
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
 class TestRabbitMQ(unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         with utils.timeout(3):
@@ -66,9 +68,10 @@ class TestRabbitMQ(unittest.TestCase):
         def put(q):
             for i in range(100):
                 q.put("DATA_%d" % i)
+
         def get(q):
             for i in range(100):
                 q.get()
 
-        thread = utils.run_in_thread(put, self.q3)
+        utils.run_in_thread(put, self.q3)
         get(self.q3)

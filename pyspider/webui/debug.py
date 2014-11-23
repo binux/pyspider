@@ -13,7 +13,7 @@ import inspect
 import datetime
 import traceback
 from app import app
-from flask import abort, render_template, request, json
+from flask import render_template, request, json
 from flask.ext import login
 
 from pyspider.libs import utils, sample_handler
@@ -22,19 +22,21 @@ from pyspider.processor.processor import build_module
 from pyspider.processor.project_module import ProjectFinder, ProjectLoader
 
 default_task = {
-        'taskid': 'data:,on_start',
-        'project': '',
-        'url': 'data:,on_start',
-        'process': {
-            'callback': 'on_start',
-            },
-        }
+    'taskid': 'data:,on_start',
+    'project': '',
+    'url': 'data:,on_start',
+    'process': {
+        'callback': 'on_start',
+    },
+}
 default_script = inspect.getsource(sample_handler)
+
 
 def verify_project_name(project):
     if re.search(r"[^\w]", project):
         return False
     return True
+
 
 @app.route('/debug/<project>')
 def debug(project):
@@ -45,35 +47,40 @@ def debug(project):
     if info:
         script = info['script']
     else:
-        script = default_script.replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        script = default_script.replace(
+            '__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     taskid = request.args.get('taskid')
     if taskid:
         taskdb = app.config['taskdb']
-        task = taskdb.get_task(project, taskid, ['taskid', 'project', 'url', 'fetch', 'process'])
+        task = taskdb.get_task(
+            project, taskid, ['taskid', 'project', 'url', 'fetch', 'process'])
     else:
         task = default_task
 
     default_task['project'] = project
     return render_template("debug.html", task=task, script=script, project_name=project)
 
+
 @app.before_first_request
 def enable_projects_import():
     class DebuggerProjectFinder(ProjectFinder):
+
         def get_loader(self, name):
             info = app.config['projectdb'].get(name)
             if info:
                 return ProjectLoader(info)
     sys.meta_path.append(DebuggerProjectFinder())
 
+
 @app.route('/debug/<project>/run', methods=['POST', ])
 def run(project):
     task = utils.decode_unicode_obj(json.loads(request.form['task']))
     project_info = {
-            'name': project,
-            'status': 'DEBUG',
-            'script': request.form['script'],
-            }
+        'name': project,
+        'status': 'DEBUG',
+        'script': request.form['script'],
+    }
 
     fetch_result = {}
     start_time = time.time()
@@ -82,50 +89,49 @@ def run(project):
         response = rebuild_response(fetch_result)
         module = build_module(project_info, {
             'debugger': True
-            })
+        })
         ret = module['instance'].run(module['module'], task, response)
-    except Exception, e:
+    except Exception:
         type, value, tb = sys.exc_info()
         tb = utils.hide_me(tb, globals())
         logs = ''.join(traceback.format_exception(type, value, tb))
         result = {
-                'fetch_result': fetch_result,
-                'logs': logs,
-                'follows': [],
-                'messages': [],
-                'result': None,
-                'time': time.time() - start_time,
-                }
+            'fetch_result': fetch_result,
+            'logs': logs,
+            'follows': [],
+            'messages': [],
+            'result': None,
+            'time': time.time() - start_time,
+        }
     else:
         result = {
-                'fetch_result': fetch_result,
-                'logs': ret.logstr(),
-                'follows': ret.follows,
-                'messages': ret.messages,
-                'result': ret.result,
-                'time': time.time() - start_time,
-                }
+            'fetch_result': fetch_result,
+            'logs': ret.logstr(),
+            'follows': ret.follows,
+            'messages': ret.messages,
+            'result': ret.result,
+            'time': time.time() - start_time,
+        }
         result['fetch_result']['content'] = response.text
 
     try:
         # binary data can't encode to JSON, encode result as unicode obj
         # before send it to frontend
-        return json.dumps(utils.unicode_obj(result)), 200, \
-                {'Content-Type': 'application/json'}
-    except Exception, e:
+        return json.dumps(utils.unicode_obj(result)), 200, {'Content-Type': 'application/json'}
+    except Exception:
         type, value, tb = sys.exc_info()
         tb = utils.hide_me(tb, globals())
         logs = ''.join(traceback.format_exception(type, value, tb))
         result = {
-                'fetch_result': "",
-                'logs': logs,
-                'follows': [],
-                'messages': [],
-                'result': None,
-                'time': time.time() - start_time,
-                }
-        return json.dumps(utils.unicode_obj(result)), 200, \
-                {'Content-Type': 'application/json'}
+            'fetch_result': "",
+            'logs': logs,
+            'follows': [],
+            'messages': [],
+            'result': None,
+            'time': time.time() - start_time,
+        }
+        return json.dumps(utils.unicode_obj(result)), 200, {'Content-Type': 'application/json'}
+
 
 @app.route('/debug/<project>/save', methods=['POST', ])
 def save(project):
@@ -141,7 +147,7 @@ def save(project):
     if project_info:
         info = {
             'script': script,
-            }
+        }
         if project_info.get('status') in ('DEBUG', 'RUNNING', ):
             info['status'] = 'CHECKING'
         projectdb.update(project, info)
@@ -152,7 +158,7 @@ def save(project):
             'status': 'TODO',
             'rate': app.config.get('max_rate', 1),
             'burst': app.config.get('max_burst', 3),
-            }
+        }
         projectdb.insert(project, info)
 
     rpc = app.config['scheduler_rpc']
@@ -161,10 +167,12 @@ def save(project):
 
     return 'OK', 200
 
+
 @app.route('/helper.js')
 def resizer_js():
     host = request.headers['Host']
     return render_template("helper.js", host=host), 200, {'Content-Type': 'application/javascript'}
+
 
 @app.route('/helper.html')
 def resizer_html():

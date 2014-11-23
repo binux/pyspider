@@ -10,6 +10,7 @@ from flask import abort, render_template, request, json
 
 from pyspider.libs import utils
 
+
 @app.route('/task/<taskid>')
 def task(taskid):
     if ':' not in taskid:
@@ -25,7 +26,8 @@ def task(taskid):
         result = resultdb.get(project, taskid)
 
     return render_template("task.html", task=task, json=json, result=result,
-            status_to_string=app.config['taskdb'].status_to_string)
+                           status_to_string=app.config['taskdb'].status_to_string)
+
 
 @app.route('/tasks')
 def tasks():
@@ -41,6 +43,7 @@ def tasks():
         tasks['%(project)s:%(taskid)s' % task] = task
 
     return render_template("tasks.html", tasks=tasks.values(), status_to_string=taskdb.status_to_string)
+
 
 @app.route('/active_tasks')
 def active_tasks():

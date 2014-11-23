@@ -5,16 +5,18 @@
 #         http://binux.me
 # Created on 2014-02-22 23:20:39
 
-import re
 from app import app
-from flask import abort, render_template, request, json
+from flask import render_template, request, json
 from flask.ext import login
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', ]
+
+
 @app.route('/')
 def index():
     projectdb = app.config['projectdb']
     return render_template("index.html", projects=projectdb.get_all(fields=index_fields))
+
 
 @app.route('/update', methods=['POST', ])
 def project_update():
@@ -39,14 +41,14 @@ def project_update():
         rate = float(value[0])
         burst = float(value[1])
         update = {
-                'rate': min(rate, app.config.get('max_rate', rate)),
-                'burst': min(burst, app.config.get('max_burst', burst)),
-                }
+            'rate': min(rate, app.config.get('max_rate', rate)),
+            'burst': min(burst, app.config.get('max_burst', burst)),
+        }
     else:
         update = {
-                name: value
-                }
-    
+            name: value
+        }
+
     ret = projectdb.update(project, update)
     if ret:
         rpc = app.config['scheduler_rpc']
@@ -55,6 +57,7 @@ def project_update():
         return 'ok', 200
     else:
         return 'update error', 500
+
 
 @app.route('/counter')
 def counter():
@@ -66,6 +69,7 @@ def counter():
     type = request.args.get('type', 'sum')
 
     return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
+
 
 @app.route('/run', methods=['POST', ])
 def runtask():
@@ -88,16 +92,17 @@ def runtask():
         "url": "data:,on_start",
         "process": {
             "callback": "on_start",
-            },
+        },
         "schedule": {
             "age": 0,
             "priority": 9,
             "force_update": True,
-            },
-        }
+        },
+    }
 
     ret = rpc.newtask(newtask)
     return json.dumps({"result": ret}), 200, {'Content-Type': 'application/json'}
+
 
 @app.route('/robots.txt')
 def robots():

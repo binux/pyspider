@@ -7,16 +7,18 @@
 
 # result schema
 {
-'result': {
-    'taskid': str, # new, not changeable
-    'project': str, # new, not changeable
-    'url': str, # new, not changeable
-    'result': str, # json string
-    'updatetime': int,
+    'result': {
+        'taskid': str,  # new, not changeable
+        'project': str,  # new, not changeable
+        'url': str,  # new, not changeable
+        'result': str,  # json string
+        'updatetime': int,
     }
 }
 
+
 class ResultDB(object):
+
     """
     database for result
     """

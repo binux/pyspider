@@ -14,7 +14,10 @@ import logging.config
 logging.config.fileConfig("logging.conf")
 
 from pyspider.scheduler.task_queue import TaskQueue
+
+
 class TestTaskQueue(unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         self.task_queue = TaskQueue()
@@ -22,7 +25,7 @@ class TestTaskQueue(unittest.TestCase):
         self.task_queue.burst = 100000
         self.task_queue.processing_timeout = 0.2
 
-        self.task_queue.put('a3', 2, time.time()+0.1)
+        self.task_queue.put('a3', 2, time.time() + 0.1)
         self.task_queue.put('a1', 1)
         self.task_queue.put('a2', 3)
 
@@ -51,7 +54,10 @@ class TestTaskQueue(unittest.TestCase):
 
 
 from pyspider.scheduler.token_bucket import Bucket
+
+
 class TestBucket(unittest.TestCase):
+
     def test_bucket(self):
         bucket = Bucket(100, 1000)
         self.assertEqual(bucket.get(), 1000)
@@ -69,7 +75,9 @@ import xmlrpclib
 from multiprocessing import Queue
 from pyspider.scheduler.scheduler import Scheduler
 from pyspider.database.sqlite import taskdb, projectdb, resultdb
-from pyspider.libs.utils import run_in_subprocess, run_in_thread
+from pyspider.libs.utils import run_in_thread
+
+
 class TestScheduler(unittest.TestCase):
     taskdb_path = './data/tests/task.db'
     projectdb_path = './data/tests/project.db'
@@ -85,9 +93,11 @@ class TestScheduler(unittest.TestCase):
         def get_taskdb():
             return taskdb.TaskDB(self.taskdb_path)
         self.taskdb = get_taskdb()
+
         def get_projectdb():
             return projectdb.ProjectDB(self.projectdb_path)
         self.projectdb = get_projectdb()
+
         def get_resultdb():
             return resultdb.ResultDB(self.resultdb_path)
         self.resultdb = get_resultdb()
@@ -99,14 +109,14 @@ class TestScheduler(unittest.TestCase):
 
         def run_scheduler():
             scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
-                    newtask_queue=self.newtask_queue, status_queue=self.status_queue,
-                    out_queue=self.scheduler2fetcher, data_path="./data/tests/",
-                    resultdb=get_resultdb())
+                                  newtask_queue=self.newtask_queue, status_queue=self.status_queue,
+                                  out_queue=self.scheduler2fetcher, data_path="./data/tests/",
+                                  resultdb=get_resultdb())
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
             scheduler.INQUEUE_LIMIT = 10
             Scheduler.DELETE_TIME = 0
-            scheduler._last_tick = int(time.time()) # not dispatch cronjob
+            scheduler._last_tick = int(time.time())  # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
 
@@ -127,20 +137,20 @@ class TestScheduler(unittest.TestCase):
             'taskid': 'taskid',
             'project': 'test_project',
             'url': 'url'
-            })
+        })
         self.assertEqual(self.rpc.size(), 0)
         self.assertEqual(len(self.rpc.get_active_tasks()), 0)
 
     def test_20_new_project(self):
         self.projectdb.insert('test_project', {
-                'name': 'test_project',
-                'group': 'group',
-                'status': 'TODO',
-                'script': 'import time\nprint time.time()',
-                'comments': 'test project',
-                'rate': 1.0,
-                'burst': 10,
-            })
+            'name': 'test_project',
+            'group': 'group',
+            'status': 'TODO',
+            'script': 'import time\nprint time.time()',
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
 
     def test_30_update_project(self):
         import Queue
@@ -161,14 +171,14 @@ class TestScheduler(unittest.TestCase):
             'url': 'url',
             'fetch': {
                 'data': 'abc',
-                },
+            },
             'process': {
                 'data': 'abc',
-                },
+            },
             'schedule': {
                 'age': 0,
-                },
-            })
+            },
+        })
         timeout = time.time() + 5
         while self.rpc.size() != 1 and timeout > time.time():
             time.sleep(0.1)
@@ -190,7 +200,7 @@ class TestScheduler(unittest.TestCase):
             'taskid': 'taskid',
             'project': 'no_project',
             'url': 'url'
-            })
+        })
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 0)
 
@@ -199,7 +209,7 @@ class TestScheduler(unittest.TestCase):
             'taskid': 'taskid',
             'project': 'test_project',
             'url': 'url'
-            })
+        })
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 0)
         self.status_queue.put({
@@ -207,7 +217,7 @@ class TestScheduler(unittest.TestCase):
             'project': 'test_project',
             'url': 'url',
             'track': {}
-            })
+        })
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 0)
 
@@ -219,12 +229,12 @@ class TestScheduler(unittest.TestCase):
             'track': {
                 'fetch': {
                     'ok': True
-                    },
+                },
                 'process': {
                     'ok': False
-                    },
-                }
-            })
+                },
+            }
+        })
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
@@ -236,12 +246,12 @@ class TestScheduler(unittest.TestCase):
             'track': {
                 'fetch': {
                     'ok': True
-                    },
+                },
                 'process': {
                     'ok': True
-                    },
-                }
-            })
+                },
+            }
+        })
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 0)
 
@@ -252,14 +262,14 @@ class TestScheduler(unittest.TestCase):
             'url': 'url',
             'fetch': {
                 'data': 'abc',
-                },
+            },
             'process': {
                 'data': 'abc',
-                },
+            },
             'schedule': {
                 'age': 30,
-                },
-            })
+            },
+        })
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 0)
 
@@ -270,14 +280,14 @@ class TestScheduler(unittest.TestCase):
             'url': 'url',
             'fetch': {
                 'data': 'abc',
-                },
+            },
             'process': {
                 'data': 'abc',
-                },
+            },
             'schedule': {
                 'age': 30,
-                },
-            })
+            },
+        })
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 0)
 
@@ -289,15 +299,15 @@ class TestScheduler(unittest.TestCase):
             'url': 'url',
             'fetch': {
                 'data': 'abc',
-                },
+            },
             'process': {
                 'data': 'abc',
-                },
+            },
             'schedule': {
                 'itag': "abc",
                 'retries': 1
-                },
-            })
+            },
+        })
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
@@ -310,15 +320,15 @@ class TestScheduler(unittest.TestCase):
             'url': 'url',
             'fetch': {
                 'data': 'abc',
-                },
+            },
             'process': {
                 'data': 'abc',
-                },
+            },
             'schedule': {
                 'age': 0,
                 'retries': 1
-                },
-            })
+            },
+        })
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
@@ -330,12 +340,12 @@ class TestScheduler(unittest.TestCase):
             'track': {
                 'fetch': {
                     'ok': True
-                    },
+                },
                 'process': {
                     'ok': False
-                    },
-                }
-            })
+                },
+            }
+        })
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
@@ -346,24 +356,24 @@ class TestScheduler(unittest.TestCase):
             'track': {
                 'fetch': {
                     'ok': False
-                    },
+                },
                 'process': {
                     'ok': True
-                    },
-                }
-            })
+                },
+            }
+        })
         time.sleep(0.2)
 
     def test_x10_inqueue_limit(self):
         self.projectdb.insert('test_inqueue_project', {
-                'name': 'test_inqueue_project',
-                'group': 'group',
-                'status': 'DEBUG',
-                'script': 'import time\nprint time.time()',
-                'comments': 'test project',
-                'rate': 0,
-                'burst': 0,
-            })
+            'name': 'test_inqueue_project',
+            'group': 'group',
+            'status': 'DEBUG',
+            'script': 'import time\nprint time.time()',
+            'comments': 'test project',
+            'rate': 0,
+            'burst': 0,
+        })
         time.sleep(0.1)
         self.assertLess(self.rpc.size(), 10)
         for i in range(20):
@@ -374,8 +384,8 @@ class TestScheduler(unittest.TestCase):
                 'schedule': {
                     'age': 3000,
                     'force_update': True,
-                    },
-                })
+                },
+            })
         time.sleep(1)
         self.assertEqual(self.rpc.size(), 10)
 

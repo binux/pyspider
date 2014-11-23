@@ -14,14 +14,16 @@ import threading
 import pika
 import pika.exceptions
 
+
 def catch_error(func):
     def wrap(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
-        except (select.error, socket.error, pika.exceptions.ConnectionClosed, pika.exceptions.AMQPConnectionError) as e:
+        except (select.error, socket.error, pika.exceptions.ConnectionClosed, pika.exceptions.AMQPConnectionError):
             self.reconnect()
             return func(self, *args, **kwargs)
     return wrap
+
 
 class Queue(object):
     Empty = BaseQueue.Empty
@@ -41,7 +43,7 @@ class Queue(object):
         self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
         self.channel = self.connection.channel()
         self.channel.queue_declare(self.name)
-        #self.channel.queue_purge(self.name)
+        # self.channel.queue_purge(self.name)
 
     @catch_error
     def qsize(self):
@@ -70,7 +72,7 @@ class Queue(object):
         while True:
             try:
                 return self.put_nowait(obj)
-            except BaseQueue.Full as e:
+            except BaseQueue.Full:
                 if timeout:
                     lasted = time.time() - start_time
                     if timeout > lasted:
@@ -96,7 +98,7 @@ class Queue(object):
         while True:
             try:
                 return self.get_nowait(ack)
-            except BaseQueue.Empty as e:
+            except BaseQueue.Empty:
                 if timeout:
                     lasted = time.time() - start_time
                     if timeout > lasted:
@@ -132,4 +134,3 @@ class Queue(object):
     def delete(self):
         with self.lock:
             return self.channel.queue_delete(queue=self.name)
-

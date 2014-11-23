@@ -10,14 +10,14 @@ import re
 import time
 import json
 import shutil
-import xmlrpclib
 import unittest2 as unittest
 
 import run
-from pyspider.webui.app import app
 from pyspider.libs.utils import run_in_thread, ObjectDict
 
+
 class TestWebUI(unittest.TestCase):
+
     @classmethod
     def setUpClass(self):
         shutil.rmtree('./data/tests', ignore_errors=True)
@@ -27,7 +27,7 @@ class TestWebUI(unittest.TestCase):
             '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
             '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
             '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
-            ], None, obj=ObjectDict(testing_mode=True))
+        ], None, obj=ObjectDict(testing_mode=True))
         self.ctx = run.cli.invoke(ctx)
 
         ctx = run.scheduler.make_context('scheduler', [], self.ctx)
@@ -49,7 +49,7 @@ class TestWebUI(unittest.TestCase):
 
         ctx = run.webui.make_context('webui', [
             '--scheduler-rpc', 'http://localhost:23333/'
-            ], self.ctx)
+        ], self.ctx)
         app = run.webui.invoke(ctx)
         self.app = app.test_client()
         self.rpc = app.config['scheduler_rpc']
@@ -83,9 +83,9 @@ class TestWebUI(unittest.TestCase):
 
     def test_30_run(self):
         rv = self.app.post('/debug/test_project/run', data={
-            'script': self.script_content, 
+            'script': self.script_content,
             'task': self.task_content
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         data = json.loads(rv.data)
         self.assertIn('follows', rv.data)
@@ -94,7 +94,7 @@ class TestWebUI(unittest.TestCase):
     def test_40_save(self):
         rv = self.app.post('/debug/test_project/save', data={
             'script': self.script_content,
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertIn('OK', rv.data)
 
@@ -108,7 +108,7 @@ class TestWebUI(unittest.TestCase):
             'name': 'status',
             'value': 'RUNNING',
             'pk': 'test_project'
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertIn('ok', rv.data)
 
@@ -120,7 +120,7 @@ class TestWebUI(unittest.TestCase):
     def test_57_resave(self):
         rv = self.app.post('/debug/test_project/save', data={
             'script': self.script_content,
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertIn('OK', rv.data)
 
@@ -134,7 +134,7 @@ class TestWebUI(unittest.TestCase):
             'name': 'rate',
             'value': '1/4',
             'pk': 'test_project'
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertIn('ok', rv.data)
 
@@ -143,7 +143,7 @@ class TestWebUI(unittest.TestCase):
             'name': 'status',
             'value': 'RUNNING',
             'pk': 'test_project'
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertIn('ok', rv.data)
 
@@ -152,7 +152,7 @@ class TestWebUI(unittest.TestCase):
             'name': 'group',
             'value': 'test_binux',
             'pk': 'test_project'
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertIn('ok', rv.data)
 
@@ -164,7 +164,7 @@ class TestWebUI(unittest.TestCase):
         time.sleep(0.5)
         rv = self.app.post('/run', data={
             'project': 'test_project',
-            })
+        })
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(json.loads(rv.data)['result'], True)
 
@@ -172,7 +172,7 @@ class TestWebUI(unittest.TestCase):
         for i in range(30):
             time.sleep(1)
             if self.rpc.counter('5m', 'sum')\
-                    .get('test_project' , {}).get('success', 0) > 3:
+                    .get('test_project', {}).get('success', 0) > 3:
                 break
 
         rv = self.app.get('/counter?time=5m&type=sum')

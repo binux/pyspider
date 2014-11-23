@@ -5,8 +5,6 @@
 #         http://binux.me
 # Created on 2014-02-09 12:05:52
 
-import os
-import re
 import time
 
 from sqlitebase import SQLiteMixin
