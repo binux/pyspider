@@ -77,8 +77,8 @@ class Scheduler(object):
     def _update_projects(self):
         now = time.time()
         if (
-                not self._force_update_project and
-                self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now
+                not self._force_update_project
+                and self._last_update_project + self.UPDATE_PROJECT_INTERVAL > now
         ):
             return
         for project in self.projectdb.check_update(self._last_update_project):
@@ -224,8 +224,8 @@ class Scheduler(object):
                     continue
 
                 if (
-                        self.INQUEUE_LIMIT and
-                        len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT
+                        self.INQUEUE_LIMIT
+                        and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT
                 ):
                     logger.debug('overflow task %(project)s:%(taskid)s %(url)s', task)
                     continue

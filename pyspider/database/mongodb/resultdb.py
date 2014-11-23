@@ -21,8 +21,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.projects = set()
 
         self._list_project()
-        for project in self.projects:
-            self._collection_name(project)
 
     def _parse(self, data):
         if 'result' in data:
