@@ -1,7 +1,7 @@
-pyspider [![Build Status](https://travis-ci.org/binux/pyspider.svg?branch=master)](https://travis-ci.org/binux/pyspider) [![Coverage Status](https://img.shields.io/coveralls/binux/pyspider.svg?branch=master)](https://coveralls.io/r/binux/pyspider)
+pyspider [![Build Status](https://img.shields.io/travis/binux/pyspider/master.svg?style=flat)](https://travis-ci.org/binux/pyspider) [![Coverage Status](https://img.shields.io/coveralls/binux/pyspider.svg?branch=master&style=flat)](https://coveralls.io/r/binux/pyspider)
 ========
 
-A Powerful Spider System in Python. [Try It Now!](http://demo.pyspider.org/)
+A Powerful Spider(Web Crawler) System in Python. [Try It Now!](http://demo.pyspider.org/)
 
 - Write script in python with powerful API
 - Powerful WebUI with script editor, task monitor, project manager and result viewer
@@ -41,22 +41,20 @@ class Handler(BaseHandler):
 Installation
 ============
 
-* python2.6/2.7
+* python2.6/7 (windows is not supported currently)
 * `pip install --allow-all-external -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
 
 if ubuntu: `apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml`
 
-or [Running with Docker](https://github.com/binux/pyspider/wiki/Running-pyspider-with-Docker)
+[Running with Docker](https://github.com/binux/pyspider/wiki/Running-pyspider-with-Docker)
 
 Documents
 =========
 
-* [Wiki](https://github.com/binux/pyspider/wiki)
 * [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
 * [API Reference](https://github.com/binux/pyspider/wiki/API-Reference)
-* [脚本编写指南](https://github.com/binux/pyspider/wiki/%E8%84%9A%E6%9C%AC%E7%BC%96%E5%86%99%E6%8C%87%E5%8D%97)
-* [架构设计](http://blog.binux.me/2014/02/pyspider-architecture/)
+* more documents: [Wiki](https://github.com/binux/pyspider/wiki)
 
 Contribute
 ==========
