@@ -56,7 +56,7 @@ def cli(ctx, **kwargs):
     """
     A powerful spider system in python.
     """
-    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../logging.conf"))
+    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "logging.conf"))
 
     # get db from env
     for db in ('taskdb', 'projectdb', 'resultdb'):

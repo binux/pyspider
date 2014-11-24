@@ -11,7 +11,7 @@ import shutil
 import unittest2 as unittest
 import logging
 import logging.config
-logging.config.fileConfig("logging.conf")
+logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.scheduler.task_queue import TaskQueue
 

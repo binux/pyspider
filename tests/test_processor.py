@@ -9,7 +9,7 @@ import os
 import time
 import unittest2 as unittest
 import logging.config
-logging.config.fileConfig("logging.conf")
+logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.processor.processor import build_module
 
