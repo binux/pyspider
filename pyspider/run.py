@@ -50,6 +50,7 @@ def connect_rpc(ctx, param, value):
               help='database url for resultdb, default: sqlite')
 @click.option('--amqp-url', help='amqp url for rabbitmq, default: built-in Queue')
 @click.option('--phantomjs-proxy', help="phantomjs proxy ip:port")
+@click.option('--data-path', default='./data', help='data dir path')
 @click.pass_context
 def cli(ctx, **kwargs):
     """
@@ -70,8 +71,10 @@ def cli(ctx, **kwargs):
                 db, os.environ['MONGODB_PORT_27017_TCP_ADDR'],
                 os.environ['MONGODB_PORT_27017_TCP_PORT'], db)))
         else:
-            kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///data/%s.db' % (
-                db, db[:-2])))
+            if not os.path.exists(kwargs['data_path']):
+                os.mkdir(kwargs['data_path'])
+            kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
+                db, kwargs['data_path'], db[:-2])))
 
     # queue
     if kwargs.get('amqp_url'):
@@ -125,7 +128,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     from pyspider.scheduler import Scheduler
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
                           newtask_queue=g.newtask_queue, status_queue=g.status_queue,
-                          out_queue=g.scheduler2fetcher)
+                          out_queue=g.scheduler2fetcher, data_path=g.get('data_path', 'data'))
     scheduler.INQUEUE_LIMIT = inqueue_limit
     scheduler.DELETE_TIME = delete_time
     scheduler.ACTIVE_TASKS = active_tasks
