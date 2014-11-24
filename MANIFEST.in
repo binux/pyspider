@@ -1,0 +1,5 @@
+include README.md
+include requirements.txt
+include Dockerfile
+include LICENSE
+include logging.conf
