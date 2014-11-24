@@ -73,6 +73,10 @@ setup(
             ],
         },
 
+        package_data={
+            'pyspider': ['logging.conf', 'webui/static/*', 'webui/templates/*'],
+        },
+
         entry_points={
             'console_scripts': [
                 'pyspider=pyspider.run:main'
