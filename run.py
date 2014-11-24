@@ -315,5 +315,8 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     for each in threads:
         each.join()
 
-if __name__ == '__main__':
+def main():
     cli(obj=ObjectDict(), default_map={})
+
+if __name__ == '__main__':
+    main()
