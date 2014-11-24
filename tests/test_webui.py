@@ -12,7 +12,7 @@ import json
 import shutil
 import unittest2 as unittest
 
-import run
+from pyspider import run
 from pyspider.libs.utils import run_in_thread, ObjectDict
 
 

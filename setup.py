@@ -73,7 +73,7 @@ setup(
 
         entry_points={
             'console_scripts': [
-                'pyspider=run:main'
+                'pyspider=pyspider.run:main'
             ]
         }
 )
