@@ -198,20 +198,10 @@ class Fetcher(object):
             del fetch['cookies']
 
         def handle_response(response):
+            if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
+                return handle_error(response.error)
             response.headers = final_headers
             session.extract_cookies_to_jar(request, cookie_headers)
-            if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
-                result = {
-                    'status_code': 599,
-                    'error': "%r" % response.error,
-                    'content': "",
-                    'time': time.time() - start_time,
-                    'orig_url': url,
-                    'url': url,
-                }
-                callback('http', task, result)
-                self.on_result('http', task, result)
-                return task, result
             result = {}
             result['orig_url'] = url
             result['content'] = response.body or ''
@@ -239,6 +229,20 @@ class Fetcher(object):
             final_headers.parse_line(line)
             cookie_headers.parse_line(line)
 
+        def handle_error(error):
+            result = {
+                'status_code': 599,
+                'error': '%r' % error,
+                'content': "",
+                'time': time.time() - start_time,
+                'orig_url': url,
+                'url': url,
+            }
+            logger.error("[599] %s, %r %.2fs", url, e, result['time'])
+            callback('http', task, result)
+            self.on_result('http', task, result)
+            return task, result
+
         start_time = time.time()
         session = cookie_utils.CookieSession()
         cookie_headers = tornado.httputil.HTTPHeaders()
@@ -255,21 +259,12 @@ class Fetcher(object):
             else:
                 return handle_response(self.http_client.fetch(request))
         except tornado.httpclient.HTTPError as e:
-            return handle_response(e.response)
+            if e.response:
+                return handle_response(e.response)
+            else:
+                return handle_error(e)
         except Exception as e:
-            raise
-            result = {
-                'status_code': 599,
-                'error': '%r' % e,
-                'content': "",
-                'time': time.time() - start_time,
-                'orig_url': url,
-                'url': url,
-            }
-            logger.error("[599] %s, %r %.2fs", url, e, result['time'])
-            callback('http', task, result)
-            self.on_result('http', task, result)
-            return task, result
+            return handle_error(e)
 
     phantomjs_adding_options = ['js_run_at', 'js_script', 'load_images']
 
