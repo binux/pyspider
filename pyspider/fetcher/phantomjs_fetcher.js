@@ -19,6 +19,8 @@ if (system.args.length !== 2) {
   service = server.listen(port, {
     'keepAlive': true
   }, function (request, response) {
+    phantom.clearCookies();
+
     //console.log(JSON.stringify(request, null, 4));
     // check method
     if (request.method == 'GET') {
@@ -29,7 +31,7 @@ if (system.args.length !== 2) {
     }
 
     var fetch = JSON.parse(request.postRaw);
-    console.debug(JSON.stringify(fetch, null, 2));
+    //console.debug(JSON.stringify(fetch, null, 2));
 
     // create and set page
     var page = webpage.create();
@@ -62,21 +64,21 @@ if (system.args.length !== 2) {
       if (fetch.js_script && fetch.js_run_at !== "document-start") {
         page.evaluateJavaScript(fetch.js_script);
       }
-      console.debug("waiting "+wait_before_end+"ms before finished.");
+      //console.debug("waiting "+wait_before_end+"ms before finished.");
       end_time = Date.now() + wait_before_end;
       setTimeout(make_result, wait_before_end+10, page);
     };
     page.onResourceRequested = function(request) {
-      console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
+      //console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
       end_time = null;
     };
     page.onResourceReceived = function(response) {
-      console.debug("Request finished: #"+response.id+" ["+response.statusText+"]"+response.url);
+      //console.debug("Request finished: #"+response.id+" ["+response.statusText+"]"+response.url);
       if (first_response === null) {
         first_response = response;
       }
       if (page_loaded) {
-        console.debug("waiting "+wait_before_end+"ms before finished.");
+        //console.debug("waiting "+wait_before_end+"ms before finished.");
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
@@ -87,11 +89,12 @@ if (system.args.length !== 2) {
         first_response = response;
       }
       if (page_loaded) {
-        console.debug("waiting "+wait_before_end+"ms before finished.");
+        //console.debug("waiting "+wait_before_end+"ms before finished.");
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
     }
+    setTimeout(make_result, page.settings.resourceTimeout, page);
 
     // send request
     page.open(fetch.url, {
@@ -109,29 +112,23 @@ if (system.args.length !== 2) {
         return;
       }
 
-      var cookies = {};
-      page.cookies.forEach(function(e) {
-        cookies[e.name] = e.value;
-      });
-
-      var headers = {};
-      if (first_response.headers) {
-        first_response.headers.forEach(function(e) {
-          headers[e.name] = e.value;
-        });
+      var result = {};
+      try {
+        result = _make_result(page);
+      } catch (e) {
+        result = {
+          orig_url: fetch.url,
+          status_code: 599,
+          error: e.toString(),
+          content:  '',
+          headers: {},
+          url: page.url,
+          cookies: {},
+          time: (Date.now() - start_time) / 1000,
+          save: fetch.save
+        }
       }
 
-      var result = {
-        orig_url: fetch.url,
-        status_code: first_response.status || 599,
-        error: first_response.errorString,
-        content:  page.content,
-        headers: headers,
-        url: page.url,
-        cookies: cookies,
-        time: (Date.now() - start_time) / 1000,
-        save: fetch.save
-      }
       console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
 
       var body = unescape(encodeURIComponent(JSON.stringify(result, null, 2)));
@@ -148,6 +145,32 @@ if (system.args.length !== 2) {
       response.close();
       finished = true;
       page.close();
+    }
+
+    function _make_result(page) {
+      var cookies = {};
+      page.cookies.forEach(function(e) {
+        cookies[e.name] = e.value;
+      });
+
+      var headers = {};
+      if (first_response.headers) {
+        first_response.headers.forEach(function(e) {
+          headers[e.name] = e.value;
+        });
+      }
+
+      return {
+        orig_url: fetch.url,
+        status_code: first_response.status || 599,
+        error: first_response.errorString,
+        content:  page.content,
+        headers: headers,
+        url: page.url,
+        cookies: cookies,
+        time: (Date.now() - start_time) / 1000,
+        save: fetch.save
+      }
     }
   });
 

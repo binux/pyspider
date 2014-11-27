@@ -75,7 +75,20 @@ def enable_projects_import():
 
 @app.route('/debug/<project>/run', methods=['POST', ])
 def run(project):
-    task = utils.decode_unicode_obj(json.loads(request.form['task']))
+    start_time = time.time()
+    try:
+        task = utils.decode_unicode_obj(json.loads(request.form['task']))
+    except Exception:
+        result = {
+            'fetch_result': "",
+            'logs': u'task json error',
+            'follows': [],
+            'messages': [],
+            'result': None,
+            'time': time.time() - start_time,
+        }
+        return json.dumps(utils.unicode_obj(result)), 200, {'Content-Type': 'application/json'}
+
     project_info = {
         'name': project,
         'status': 'DEBUG',
@@ -83,7 +96,6 @@ def run(project):
     }
 
     fetch_result = {}
-    start_time = time.time()
     try:
         fetch_result = app.config['fetch'](task)
         response = rebuild_response(fetch_result)
