@@ -92,12 +92,22 @@ $(function() {
       var $e = $("tr[data-name="+project+"] td.progress-"+type);
       var pending = info.pending || 0,
           success = info.success || 0,
+          retry = info.retry || 0,
           failed = info.failed || 0,
-          sum = info.task || pending + success + failed;
+          sum = info.task || pending + success + retry + failed;
+      $e.attr("title", "in "+type+" tasks:\n"
+              +(type == "all"
+                ? "pending("+(pending/sum*100).toFixed(1)+"%): \t"+pending+"\n"
+                : "new("+(pending/sum*100).toFixed(1)+"%): \t\t"+pending+"\n")
+              +"success("+(success/sum*100).toFixed(1)+"%): \t"+success+"\n"
+              +"retry("+(retry/sum*100).toFixed(1)+"%): \t"+retry+"\n"
+              +"failed("+(failed/sum*100).toFixed(1)+"%): \t"+failed
+             );
       $e.find(".progress-text").text(type+": "+sum);
-      $e.find(".progress-pending").width(""+(pending/sum*100)+"%").attr("title", "pending: "+pending);
-      $e.find(".progress-success").width(""+(success/sum*100)+"%").attr("title", "success: "+success);
-      $e.find(".progress-failed").width(""+(failed/sum*100)+"%").attr("title", "failed: "+failed);
+      $e.find(".progress-pending").width(""+(pending/sum*100)+"%");
+      $e.find(".progress-success").width(""+(success/sum*100)+"%");
+      $e.find(".progress-retry").width(""+(retry/sum*100)+"%");
+      $e.find(".progress-failed").width(""+(failed/sum*100)+"%");
     });
   }
   function update_counters() {

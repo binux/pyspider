@@ -306,6 +306,7 @@ window.Debugger = (function() {
         },
         error: function(xhr, textStatus, errorThrown) {
           console.log(xhr, textStatus, errorThrown);
+          _this.python_log('error: '+textStatus);
           $('#left-area .overlay').hide();
         }
       });
