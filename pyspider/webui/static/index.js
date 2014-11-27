@@ -95,7 +95,7 @@ $(function() {
           retry = info.retry || 0,
           failed = info.failed || 0,
           sum = info.task || pending + success + retry + failed;
-      $e.attr("title", "in "+type+" tasks:\n"
+      $e.attr("title", ""+type+" of "+sum+" tasks:\n"
               +(type == "all"
                 ? "pending("+(pending/sum*100).toFixed(1)+"%): \t"+pending+"\n"
                 : "new("+(pending/sum*100).toFixed(1)+"%): \t\t"+pending+"\n")
