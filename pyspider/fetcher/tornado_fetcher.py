@@ -145,6 +145,8 @@ class Fetcher(object):
     allowed_options = ['method', 'data', 'timeout', 'allow_redirects', 'cookies']
 
     def http_fetch(self, url, task, callback):
+        start_time = time.time()
+
         self.on_fetch('http', task)
         fetch = dict(self.default_options)
         fetch.setdefault('url', url)
@@ -243,7 +245,6 @@ class Fetcher(object):
             self.on_result('http', task, result)
             return task, result
 
-        start_time = time.time()
         session = cookie_utils.CookieSession()
         cookie_headers = tornado.httputil.HTTPHeaders()
         final_headers = tornado.httputil.HTTPHeaders()
@@ -269,6 +270,8 @@ class Fetcher(object):
     phantomjs_adding_options = ['js_run_at', 'js_script', 'load_images']
 
     def phantomjs_fetch(self, url, task, callback):
+        start_time = time.time()
+
         self.on_fetch('phantomjs', task)
         if not self.phantomjs_proxy:
             result = {
@@ -300,7 +303,13 @@ class Fetcher(object):
             request_conf['request_timeout'] = fetch['timeout']
         fetch['headers'].setdefault('User-Agent', self.user_agent)
 
-        start_time = time.time()
+        session = cookie_utils.CookieSession()
+        request = tornado.httpclient.HTTPRequest(url=fetch['url'])
+        if fetch.get('cookies'):
+            session.update(fetch['cookies'])
+            if 'Cookie' in request.headers:
+                del request.headers['Cookie']
+            fetch['headers']['Cookie'] = session.get_cookie_header(request)
 
         def handle_response(response):
             if not response:
