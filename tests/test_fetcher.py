@@ -6,6 +6,7 @@
 # Created on 2014-02-15 22:10:35
 
 import os
+import copy
 import time
 import umsgpack
 import xmlrpclib
@@ -75,7 +76,7 @@ class TestFetcher(unittest.TestCase):
         self.assertIn('c=d</td>', content)
 
     def test_10_http_post(self):
-        request = dict(self.sample_task_http)
+        request = copy.deepcopy(self.sample_task_http)
         request['fetch']['method'] = 'POST'
         request['fetch']['data'] = 'binux'
         request['fetch']['cookies'] = {'c': 'd'}
@@ -95,7 +96,7 @@ class TestFetcher(unittest.TestCase):
         self.assertIn('binux', content)
 
     def test_20_dataurl_get(self):
-        data = dict(self.sample_task_http)
+        data = copy.deepcopy(self.sample_task_http)
         data['url'] = 'data:,hello'
         result = self.fetcher.sync_fetch(data)
         self.assertEqual(result['status_code'], 200)
@@ -103,7 +104,7 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['content'], 'hello')
 
     def test_30_with_queue(self):
-        data = dict(self.sample_task_http)
+        data = copy.deepcopy(self.sample_task_http)
         data['url'] = 'data:,hello'
         self.inqueue.put(data)
         task, result = self.outqueue.get()
@@ -112,7 +113,7 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['content'], 'hello')
 
     def test_40_with_rpc(self):
-        data = dict(self.sample_task_http)
+        data = copy.deepcopy(self.sample_task_http)
         data['url'] = 'data:,hello'
         result = umsgpack.unpackb(self.rpc.fetch(data).data)
         self.assertEqual(result['status_code'], 200)
@@ -120,7 +121,7 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['content'], 'hello')
 
     def test_50_base64_data(self):
-        request = dict(self.sample_task_http)
+        request = copy.deepcopy(self.sample_task_http)
         request['fetch']['method'] = 'POST'
         request['fetch']['data'] = "[BASE64-DATA]1tDOxA==[/BASE64-DATA]"
         self.inqueue.put(request)
@@ -132,7 +133,7 @@ class TestFetcher(unittest.TestCase):
         self.assertIn(' c4 ', result['content'])
 
     def test_60_timeout(self):
-        request = dict(self.sample_task_http)
+        request = copy.deepcopy(self.sample_task_http)
         request['url'] = 'http://httpbin.org/delay/10'
         request['fetch']['timeout'] = 3
         start_time = time.time()
@@ -143,7 +144,7 @@ class TestFetcher(unittest.TestCase):
         self.assertLess(end_time - start_time, 4)
 
     def test_70_phantomjs_url(self):
-        request = dict(self.sample_task_http)
+        request = copy.deepcopy(self.sample_task_http)
         request['fetch']['fetch_type'] = 'js'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
@@ -157,7 +158,7 @@ class TestFetcher(unittest.TestCase):
         self.assertIn('c=d</td>', content)
 
     def test_80_phantomjs_timeout(self):
-        request = dict(self.sample_task_http)
+        request = copy.deepcopy(self.sample_task_http)
         request['url'] = 'http://httpbin.org/delay/10'
         request['fetch']['fetch_type'] = 'js'
         request['fetch']['timeout'] = 3
@@ -168,7 +169,7 @@ class TestFetcher(unittest.TestCase):
         self.assertLess(end_time - start_time, 4)
 
     def test_90_phantomjs_js_script(self):
-        request = dict(self.sample_task_http)
+        request = copy.deepcopy(self.sample_task_http)
         request['fetch']['fetch_type'] = 'js'
         request['fetch']['js_script'] = 'function() { document.write("binux") }'
         result = self.fetcher.sync_fetch(request)

@@ -6,6 +6,7 @@
 # Created on 2014-02-22 14:00:05
 
 import os
+import copy
 import time
 import unittest2 as unittest
 import logging.config
@@ -133,7 +134,7 @@ class TestProjectModule(unittest.TestCase):
                 'callback': '_on_cronjob',
             },
         }
-        fetch_result = dict(self.fetch_result)
+        fetch_result = copy.deepcopy(self.fetch_result)
         fetch_result['save'] = {
             'tick': 11,
         }
@@ -168,7 +169,7 @@ class TestProjectModule(unittest.TestCase):
                 'callback': '_on_get_info',
             },
         }
-        fetch_result = dict(self.fetch_result)
+        fetch_result = copy.deepcopy(self.fetch_result)
         fetch_result['save'] = task['fetch']['save']
 
         ret = self.instance.run(self.module, task, fetch_result)
