@@ -7,6 +7,8 @@
 
 import json
 import chardet
+import lxml.html
+import lxml.etree
 from pyquery import PyQuery
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers, get_encodings_from_content
@@ -125,7 +127,11 @@ class Response(object):
         """Returns a PyQuery object of a request's content"""
         if hasattr(self, '_doc'):
             return self._doc
-        doc = self._doc = PyQuery(self.content)
+        parser = lxml.html.HTMLParser(encoding=self.encoding)
+        elements = lxml.html.fromstring(self.content, parser=parser)
+        if isinstance(elements, lxml.etree._ElementTree):
+            elements = elements.getroot()
+        doc = self._doc = PyQuery(elements)
         doc.make_links_absolute(self.url)
         return doc
 
