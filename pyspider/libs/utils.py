@@ -182,13 +182,22 @@ def pretty_unicode(string):
     try:
         return string.decode("utf8")
     except UnicodeDecodeError:
+        return string.decode('Latin-1').encode('unicode_escape')
+
+
+def unicode_string(string):
+    if isinstance(string, unicode):
+        return string
+    try:
+        return string.decode("utf8")
+    except UnicodeDecodeError:
         return '[BASE64-DATA]' + base64.b64encode(string) + '[/BASE64-DATA]'
 
 
 def unicode_dict(_dict):
     r = {}
     for k, v in _dict.iteritems():
-        r[pretty_unicode(k)] = unicode_obj(v)
+        r[unicode_string(k)] = unicode_obj(v)
     return r
 
 
@@ -202,7 +211,7 @@ def unicode_obj(obj):
     elif isinstance(obj, (list, tuple)):
         return unicode_list(obj)
     elif isinstance(obj, basestring):
-        return pretty_unicode(obj)
+        return unicode_string(obj)
     elif isinstance(obj, (int, float)):
         return obj
     elif obj is None:
@@ -214,7 +223,7 @@ def unicode_obj(obj):
             return unicode(repr(obj))
 
 
-def decode_pretty_unicode(string):
+def decode_unicode_string(string):
     if string.startswith('[BASE64-DATA]') and string.endswith('[/BASE64-DATA]'):
         return base64.b64decode(string[len('[BASE64-DATA]'):-len('[/BASE64-DATA]')])
     return string
@@ -224,10 +233,10 @@ def decode_unicode_obj(obj):
     if isinstance(obj, dict):
         r = {}
         for k, v in obj.iteritems():
-            r[decode_pretty_unicode(k)] = decode_unicode_obj(v)
+            r[decode_unicode_string(k)] = decode_unicode_obj(v)
         return r
     elif isinstance(obj, basestring):
-        return decode_pretty_unicode(obj)
+        return decode_unicode_string(obj)
     elif isinstance(obj, (list, tuple)):
         return [decode_unicode_obj(x) for x in obj]
     else:

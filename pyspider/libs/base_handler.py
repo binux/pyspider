@@ -11,7 +11,7 @@ import functools
 import fractions
 from pyspider.libs.log import LogFormatter
 from pyspider.libs.url import quote_chinese, _build_url, _encode_params
-from pyspider.libs.utils import md5string, hide_me
+from pyspider.libs.utils import md5string, hide_me, pretty_unicode
 from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
@@ -36,23 +36,15 @@ class ProcessorResult(object):
         formater = LogFormatter(color=False)
         for record in self.logs:
             if isinstance(record, basestring):
-                result.append(record)
-                continue
+                result.append(pretty_unicode(record))
             else:
                 if record.exc_info:
                     a, b, tb = record.exc_info
                     tb = hide_me(tb, globals())
                     record.exc_info = a, b, tb
-                result.append(formater.format(record))
-                result.append('\n')
-        ret = ''.join(result)
-        if isinstance(ret, unicode):
-            return ret
-        else:
-            try:
-                return ret.decode('utf8')
-            except UnicodeDecodeError:
-                return repr(ret)
+                result.append(pretty_unicode(formater.format(record)))
+                result.append(u'\n')
+        return u''.join(result)
 
 
 def catch_status_code_error(func):
