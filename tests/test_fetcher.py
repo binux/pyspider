@@ -50,15 +50,19 @@ class TestFetcher(unittest.TestCase):
         self.rpc = xmlrpclib.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
         self.thread = utils.run_in_thread(self.fetcher.run)
-        self.phantomjs = subprocess.Popen(['phantomjs',
-            os.path.join(os.path.dirname(__file__),
-                '../pyspider/fetcher/phantomjs_fetcher.js'),
-            '25555'])
+        try:
+            self.phantomjs = subprocess.Popen(['phantomjs',
+                os.path.join(os.path.dirname(__file__),
+                    '../pyspider/fetcher/phantomjs_fetcher.js'),
+                '25555'])
+        except OSError:
+            self.phantomjs = None
 
     @classmethod
     def tearDownClass(self):
-        self.phantomjs.kill()
-        self.phantomjs.wait()
+        if self.phantomjs:
+            self.phantomjs.kill()
+            self.phantomjs.wait()
         self.rpc._quit()
         self.thread.join()
         time.sleep(1)
@@ -144,6 +148,8 @@ class TestFetcher(unittest.TestCase):
         self.assertLess(end_time - start_time, 4)
 
     def test_70_phantomjs_url(self):
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['fetch']['fetch_type'] = 'js'
         result = self.fetcher.sync_fetch(request)
@@ -158,6 +164,8 @@ class TestFetcher(unittest.TestCase):
         self.assertIn('c=d</td>', content)
 
     def test_80_phantomjs_timeout(self):
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = 'http://httpbin.org/delay/10'
         request['fetch']['fetch_type'] = 'js'
@@ -169,6 +177,8 @@ class TestFetcher(unittest.TestCase):
         self.assertLess(end_time - start_time, 4)
 
     def test_90_phantomjs_js_script(self):
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['fetch']['fetch_type'] = 'js'
         request['fetch']['js_script'] = 'function() { document.write("binux") }'
