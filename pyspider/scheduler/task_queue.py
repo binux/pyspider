@@ -136,12 +136,18 @@ class TaskQueue(object):
             task = self.priority_queue[taskid]
             if priority > task.priority:
                 task.priority = priority
+                self.priority_queue.resort()
         elif taskid in self.time_queue:
             task = self.time_queue[taskid]
             if priority > task.priority:
                 task.priority = priority
             if exetime < task.exetime:
                 task.exetime = exetime
+                self.time_queue.resort()
+        elif taskid in self.processing and self.processing[taskid].taskid:
+            # force update a processing task is not allowed as there are so many
+            # problems may happen
+            return
         else:
             task = InQueueTask(taskid, priority)
             if exetime and exetime > now:
@@ -169,7 +175,9 @@ class TaskQueue(object):
 
     def done(self, taskid):
         if taskid in self.processing:
-            self.processing[taskid].taskid = None
+            self.processing.queue_dict.pop(taskid).taskid = None
+            return True
+        return False
 
     def __len__(self):
         return self.priority_queue.qsize() + self.time_queue.qsize()

@@ -197,8 +197,7 @@ class Scheduler(object):
                 task = self.status_queue.get_nowait()
                 if not self.task_verify(task):
                     continue
-                self.task_queue[task['project']].done(task['taskid'])
-                task = self.on_task_status(task)
+                self.on_task_status(task)
                 cnt += 1
         except Queue.Empty:
             pass
@@ -229,6 +228,7 @@ class Scheduler(object):
                 ):
                     logger.debug('overflow task %(project)s:%(taskid)s %(url)s', task)
                     continue
+
                 if task['taskid'] in self.task_queue[task['project']]:
                     if not task.get('schedule', {}).get('force_update', False):
                         logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
@@ -484,9 +484,10 @@ class Scheduler(object):
         self.put_task(task)
 
         project = task['project']
-        self._cnt['5m'].event((project, 'pending'), +1)
-        self._cnt['1h'].event((project, 'pending'), +1)
-        self._cnt['1d'].event((project, 'pending'), +1)
+        if old_task['status'] != self.taskdb.ACTIVE:
+            self._cnt['5m'].event((project, 'pending'), +1)
+            self._cnt['1h'].event((project, 'pending'), +1)
+            self._cnt['1d'].event((project, 'pending'), +1)
         if old_task['status'] == self.taskdb.SUCCESS:
             self._cnt['all'].event((project, 'success'), -1).event((project, 'pending'), +1)
         elif old_task['status'] == self.taskdb.FAILED:
@@ -498,7 +499,7 @@ class Scheduler(object):
         try:
             fetchok = task['track']['fetch']['ok']
             procesok = task['track']['process']['ok']
-            if task['taskid'] not in self.task_queue[task['project']].processing:
+            if not self.task_queue[task['project']].done(task['taskid']):
                 logging.error('not processing pack: %(project)s:%(taskid)s %(url)s', task)
                 return None
         except KeyError as e:
