@@ -12,6 +12,7 @@ import logging
 import threading
 from UserDict import DictMixin
 from token_bucket import Bucket
+logger = logging.getLogger('scheduler')
 
 
 class InQueueTask(DictMixin):
@@ -73,6 +74,9 @@ class PriorityTaskQueue(Queue.Queue):
         assert item.taskid == taskid
         self.put(item)
 
+    def __delitem__(self, taskid):
+        self.queue_dict.pop(taskid).taskid = None
+
 
 class TaskQueue(object):
 
@@ -82,7 +86,7 @@ class TaskQueue(object):
     processing_timeout = 10 * 60
 
     def __init__(self, rate=0, burst=0):
-        self.mutex = threading.Lock()
+        self.mutex = threading.RLock()
         self.priority_queue = PriorityTaskQueue()
         self.time_queue = PriorityTaskQueue()
         self.processing = PriorityTaskQueue()
@@ -112,7 +116,7 @@ class TaskQueue(object):
         now = time.time()
         self.mutex.acquire()
         while self.time_queue.qsize() and self.time_queue.top.exetime < now:
-            task = self.time_queue.get()
+            task = self.time_queue.get_nowait()
             task.exetime = 0
             self.priority_queue.put(task)
         self.mutex.release()
@@ -121,12 +125,12 @@ class TaskQueue(object):
         now = time.time()
         self.mutex.acquire()
         while self.processing.qsize() and self.processing.top.exetime < now:
-            task = self.processing.get()
+            task = self.processing.get_nowait()
             if task.taskid is None:
                 continue
             task.exetime = 0
             self.priority_queue.put(task)
-            logging.info("[processing: retry] %s" % task.taskid)
+            logger.info("[processing: retry] %s" % task.taskid)
         self.mutex.release()
 
     def put(self, taskid, priority=0, exetime=0):
@@ -147,7 +151,7 @@ class TaskQueue(object):
         elif taskid in self.processing and self.processing[taskid].taskid:
             # force update a processing task is not allowed as there are so many
             # problems may happen
-            return
+            pass
         else:
             task = InQueueTask(taskid, priority)
             if exetime and exetime > now:
@@ -175,7 +179,7 @@ class TaskQueue(object):
 
     def done(self, taskid):
         if taskid in self.processing:
-            self.processing.queue_dict.pop(taskid).taskid = None
+            del self.processing[taskid]
             return True
         return False
 

@@ -38,6 +38,7 @@ class Handler(BaseHandler):
 
 [![demo](http://ww1.sinaimg.cn/large/7d46d69fjw1emavy6e9gij21kw0uldvy.jpg)](http://demo.pyspider.org/)
 
+
 Installation
 ============
 
@@ -49,6 +50,7 @@ if ubuntu: `apt-get install python python-dev python-distribute python-pip libcu
 
 [Running with Docker](https://github.com/binux/pyspider/wiki/Running-pyspider-with-Docker)
 
+
 Documents
 =========
 
@@ -56,11 +58,12 @@ Documents
 * [API Reference](https://github.com/binux/pyspider/wiki/API-Reference)
 * more documents: [Wiki](https://github.com/binux/pyspider/wiki)
 
+
 Contribute
 ==========
 
 * Use It, Open [Issue](https://github.com/binux/pyspider/issues), PR is welcome.
-* [Discuss](https://github.com/binux/pyspider/issues?labels=discussion&state=open), [Document](https://github.com/binux/pyspider/wiki)
+* [User Group](https://groups.google.com/group/pyspider-users)
 
 
 License

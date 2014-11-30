@@ -195,6 +195,19 @@ class TestScheduler(unittest.TestCase):
         self.assertNotIn('schedule', task)
         self.assertEqual(task['fetch']['data'], 'abc')
 
+    def test_37_force_update_processing_task(self):
+        self.newtask_queue.put({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url_force_update',
+            'schedule': {
+                'age': 0,
+                'force_update': True,
+            },
+        })
+        time.sleep(0.2)
+        # it should not block next
+
     def test_40_taskdone_error_no_project(self):
         self.status_queue.put({
             'taskid': 'taskid',
