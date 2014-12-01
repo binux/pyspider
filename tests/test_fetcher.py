@@ -13,6 +13,9 @@ import xmlrpclib
 import subprocess
 import unittest2 as unittest
 from multiprocessing import Queue
+import logging
+import logging.config
+logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.libs import utils
 from pyspider.fetcher.tornado_fetcher import Fetcher
@@ -182,6 +185,17 @@ class TestFetcher(unittest.TestCase):
         request = copy.deepcopy(self.sample_task_http)
         request['fetch']['fetch_type'] = 'js'
         request['fetch']['js_script'] = 'function() { document.write("binux") }'
+        result = self.fetcher.sync_fetch(request)
+        self.assertEqual(result['status_code'], 200)
+        self.assertIn('binux', result['content'])
+
+    def test_a100_phantomjs_sharp_url(self):
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = 'http://bbs.byr.cn/#!article/WWWTechnology/28163'
+        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['headers']['User-Agent'] = 'Mozilla/5.0'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
         self.assertIn('binux', result['content'])

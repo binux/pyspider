@@ -202,6 +202,7 @@ class Fetcher(object):
         def handle_response(response):
             if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
                 return handle_error(response.error)
+
             response.headers = final_headers
             session.extract_cookies_to_jar(request, cookie_headers)
             result = {}
@@ -233,14 +234,14 @@ class Fetcher(object):
 
         def handle_error(error):
             result = {
-                'status_code': 599,
-                'error': '%r' % error,
+                'status_code': getattr(error, 'code', 599),
+                'error': getattr(error, 'message', '%r' % error),
                 'content': "",
                 'time': time.time() - start_time,
                 'orig_url': url,
                 'url': url,
             }
-            logger.error("[599] %s, %r %.2fs", url, e, result['time'])
+            logger.error("[599] %s, %r %.2fs", url, error, result['time'])
             callback('http', task, result)
             self.on_result('http', task, result)
             return task, result
@@ -312,32 +313,33 @@ class Fetcher(object):
             fetch['headers']['Cookie'] = session.get_cookie_header(request)
 
         def handle_response(response):
-            if not response:
-                result = {
-                    'status_code': 599,
-                    'error': "599 Timeout error",
-                    'content': "",
-                    'time': time.time() - start_time,
-                    'orig_url': url,
-                    'url': url,
-                }
-            else:
-                try:
-                    result = json.loads(response.body)
-                except Exception as e:
-                    result = {
-                        'status_code': 599,
-                        'error': '%r' % e,
-                        'content': '',
-                        'time': time.time() - start_time,
-                        'orig_url': url,
-                        'url': url,
-                    }
+            if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
+                return handle_error(response.error)
+
+            try:
+                result = json.loads(response.body)
+            except Exception as e:
+                return handle_error(e)
+
             if result.get('status_code', 200):
                 logger.info("[%d] %s %.2fs", result['status_code'], url, result['time'])
             else:
-                logger.exception("[%d] %s, %r %.2fs", result['status_code'],
+                logger.error("[%d] %s, %r %.2fs", result['status_code'],
                                  url, result['content'], result['time'])
+            callback('phantomjs', task, result)
+            self.on_result('phantomjs', task, result)
+            return task, result
+
+        def handle_error(error):
+            result = {
+                'status_code': getattr(error, 'code', 599),
+                'error': getattr(error, 'message', '%r' % error),
+                'content': "",
+                'time': time.time() - start_time,
+                'orig_url': url,
+                'url': url,
+            }
+            logger.error("[599] %s, %r %.2fs", url, error, result['time'])
             callback('phantomjs', task, result)
             self.on_result('phantomjs', task, result)
             return task, result
@@ -351,20 +353,12 @@ class Fetcher(object):
             else:
                 return handle_response(self.http_client.fetch(request))
         except tornado.httpclient.HTTPError as e:
-            return handle_response(e.response)
+            if e.response:
+                return handle_response(e.response)
+            else:
+                return handle_error(e)
         except Exception as e:
-            result = {
-                'status_code': 599,
-                'error': "%r" % e,
-                'content': '',
-                'time': time.time() - start_time,
-                'orig_url': url,
-                'url': url,
-            }
-            logger.error("[599] %s, %r %.2fs", url, e, result['time'])
-            callback('phantomjs', task, result)
-            self.on_result('phantomjs', task, result)
-            return task, result
+            return handle_error(e)
 
     def run(self):
         def queue_loop():

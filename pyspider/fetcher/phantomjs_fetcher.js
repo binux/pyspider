@@ -8,20 +8,20 @@ var port, server, service,
   system = require('system'),
   webpage = require('webpage');
 
-
 if (system.args.length !== 2) {
   console.log('Usage: simpleserver.js <portnumber>');
   phantom.exit(1);
 } else {
   port = system.args[1];
   server = require('webserver').create();
+  console.debug = function(){};
 
   service = server.listen(port, {
     'keepAlive': true
   }, function (request, response) {
     phantom.clearCookies();
 
-    //console.log(JSON.stringify(request, null, 4));
+    //console.debug(JSON.stringify(request, null, 4));
     // check method
     if (request.method == 'GET') {
       response.statusCode = 403;
@@ -31,7 +31,7 @@ if (system.args.length !== 2) {
     }
 
     var fetch = JSON.parse(request.postRaw);
-    //console.debug(JSON.stringify(fetch, null, 2));
+    console.debug(JSON.stringify(fetch, null, 2));
 
     // create and set page
     var page = webpage.create();
@@ -64,21 +64,21 @@ if (system.args.length !== 2) {
       if (fetch.js_script && fetch.js_run_at !== "document-start") {
         page.evaluateJavaScript(fetch.js_script);
       }
-      //console.debug("waiting "+wait_before_end+"ms before finished.");
+      console.debug("waiting "+wait_before_end+"ms before finished.");
       end_time = Date.now() + wait_before_end;
       setTimeout(make_result, wait_before_end+10, page);
     };
     page.onResourceRequested = function(request) {
-      //console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
+      console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
       end_time = null;
     };
     page.onResourceReceived = function(response) {
-      //console.debug("Request finished: #"+response.id+" ["+response.statusText+"]"+response.url);
+      console.debug("Request finished: #"+response.id+" ["+response.status+"]"+response.url);
       if (first_response === null) {
         first_response = response;
       }
       if (page_loaded) {
-        //console.debug("waiting "+wait_before_end+"ms before finished.");
+        console.debug("waiting "+wait_before_end+"ms before finished.");
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
@@ -89,7 +89,7 @@ if (system.args.length !== 2) {
         first_response = response;
       }
       if (page_loaded) {
-        //console.debug("waiting "+wait_before_end+"ms before finished.");
+        console.debug("waiting "+wait_before_end+"ms before finished.");
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
