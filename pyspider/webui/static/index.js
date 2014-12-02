@@ -3,6 +3,10 @@
 //         http://binux.me
 // Created on 2014-03-02 17:53:23
 
+Sortable.getColumnType = function(table, i) {
+  return Sortable.types.alpha;
+};
+
 $(function() {
   $(".project-group>span").editable({
     name: 'group',
