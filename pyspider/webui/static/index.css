@@ -6,6 +6,9 @@
 /* Author: Binux<i@binux.me> */
 /*         http://binux.me */
 /* Created on 2014-07-16 19:18:30 */
+.projects {
+  border-bottom: 1px solid #ddd;
+}
 .projects .project-group {
   width: 100px;
 }
@@ -53,7 +56,7 @@
   color: white;
 }
 .projects .project-rate {
-  width: 100px;
+  width: 130px;
 }
 .projects .project-progress {
   position: relative;
@@ -81,4 +84,8 @@
 }
 .projects .project-actions {
   width: 400px;
+}
+.global-btn {
+  margin-top: -5px;
+  padding: 0 60px 10px 10px;
 }

@@ -11,26 +11,27 @@
     <meta name="author" content="binux">
     <link href="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('cdn', path='x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css') }}" rel="stylesheet">
+    <link href="{{ url_for('cdn', path='sortable/0.6.0/css/sortable-theme-bootstrap.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='index.css') }}" rel="stylesheet">
 
     <script src="{{ url_for('cdn', path='jquery/1.11.0/jquery.min.js') }}"></script>
-    <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('cdn', path='x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js') }}"></script>
   </head>
 
   <body>
     <section>
-      <table class="table projects">
+      <table class="table sortable-theme-bootstrap projects" data-sortable>
         <thead>
-          <th>group</th>
-          <th>project name</th>
-          <th>status</th>
-          <th>rate/burst</th>
-          <th colspan=4>progress</th>
-          <th>actions</th>
+          <tr>
+            <th>group</th>
+            <th>project name</th>
+            <th>status</th>
+            <th>rate/burst</th>
+            <th colspan=4 data-sortable="false">progress</th>
+            <th>actions</th>
+          </tr>
         </thead>
         <tbody>
-          {% for project in projects %}
+          {% for project in projects | sort(attribute='updatetime') %}
           <tr data-name="{{ project['name'] }}">
             <td class="project-group"><span>{{ project['group'] or '' }}</span></td>
             <td class="project-name"><a href="/debug/{{ project['name'] }}">{{ project['name'] }}</a></td>
@@ -71,7 +72,7 @@
                 <div class="progress-bar progress-bar-danger progress-failed"></div>
               </div>
             </td>
-            <td class="project-actions">
+            <td class="project-actions" data-value="{{ project.updatetime }}">
               # if config.scheduler_rpc is not none:
               <button class="project-run btn btn-default btn-xs">Run</button>
               <a class="btn btn-default btn-xs" href="/tasks?project={{ project.name }}" target=_blank>Active Tasks</a>
@@ -82,19 +83,22 @@
             </td>
           </tr>
           {% endfor %}
-          <tr>
-            <td colspan=8>
-              {% if config.scheduler_rpc is not none %}
-              <a class="btn btn-default btn-info" href='/tasks' target=_blank>Recent Active Tasks</a>
-              {% endif %}
-            </td>
-            <td>
-              <button class="project-create btn btn-default btn-primary">Create</button>
-            </td>
-          </tr>
         </tbody>
       </table>
+      <div class="global-btn clearfix">
+        <div class="pull-left">
+          {% if config.scheduler_rpc is not none %}
+          <a class="btn btn-default btn-info" href='/tasks' target=_blank>Recent Active Tasks</a>
+          {% endif %}
+        </div>
+        <div class="pull-right">
+          <button class="project-create btn btn-default btn-primary">Create</button>
+        </div>
+      </div>
     </section>
+    <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js') }}"></script>
+    <script src="{{ url_for('cdn', path='sortable/0.6.0/js/sortable.min.js') }}"></script>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
   </body>
 </html>

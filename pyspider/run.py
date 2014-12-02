@@ -24,13 +24,13 @@ def read_config(ctx, param, value):
 
 
 def connect_db(ctx, param, value):
-    if value is None:
+    if not value:
         return
     return Get(lambda: connect_database(value))
 
 
 def connect_rpc(ctx, param, value):
-    if value is None:
+    if not value:
         return
     import xmlrpclib
     return xmlrpclib.ServerProxy(value)
