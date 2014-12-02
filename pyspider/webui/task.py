@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-07-16 15:30:57
 
+import socket
 from app import app
 from flask import abort, render_template, request, json
 
@@ -36,15 +37,25 @@ def tasks():
     project = request.args.get('project', "")
     limit = int(request.args.get('limit', 100))
 
+    try:
+        updatetime_tasks = rpc.get_active_tasks(project, limit)
+    except socket.error as e:
+        app.logger.warning('connect to scheduler rpc error: %r', e)
+        return 'connect to scheduler error', 502
+
     tasks = {}
-    for updatetime, task in sorted(
-            rpc.get_active_tasks(project, limit), key=lambda x: x[0]):
+    result = []
+    for updatetime, task in sorted(updatetime_tasks , key=lambda x: x[0]):
+        key = '%(project)s:%(taskid)s' % task
         task['updatetime'] = updatetime
-        tasks['%(project)s:%(taskid)s' % task] = task
+        if key in tasks and tasks[key].get('status', None) != taskdb.ACTIVE:
+            result.append(tasks[key])
+        tasks[key] = task
+    result.extend(tasks.values())
 
     return render_template(
         "tasks.html",
-        tasks=tasks.values(),
+        tasks=result,
         status_to_string=taskdb.status_to_string
     )
 
@@ -53,9 +64,14 @@ def tasks():
 def active_tasks():
     rpc = app.config['scheduler_rpc']
     taskdb = app.config['taskdb']
-
     limit = int(request.args.get('limit', 100))
-    tasks = rpc.get_active_tasks(limit)
+
+    try:
+        tasks = rpc.get_active_tasks(limit)
+    except socket.error as e:
+        app.logger.warning('connect to scheduler rpc error: %r', e)
+        return '{}', 502, {'Content-Type': 'application/json'}
+
     result = []
     for updatetime, task in tasks:
         task['updatetime'] = updatetime

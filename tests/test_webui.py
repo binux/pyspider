@@ -96,7 +96,7 @@ class TestWebUI(unittest.TestCase):
             'script': self.script_content,
         })
         self.assertEqual(rv.status_code, 200)
-        self.assertIn('OK', rv.data)
+        self.assertIn('ok', rv.data)
 
     def test_50_index_page_list(self):
         rv = self.app.get('/')
@@ -122,7 +122,7 @@ class TestWebUI(unittest.TestCase):
             'script': self.script_content,
         })
         self.assertEqual(rv.status_code, 200)
-        self.assertIn('OK', rv.data)
+        self.assertIn('ok', rv.data)
 
     def test_58_index_page_list(self):
         rv = self.app.get('/')
@@ -241,3 +241,43 @@ class TestWebUI(unittest.TestCase):
         rv = self.app.get('/results/dump/test_project.csv')
         self.assertEqual(rv.status_code, 200)
         self.assertIn('url,title,url', rv.data)
+
+    def test_x0_disconnected_scheduler(self):
+        ctx = run.webui.make_context('webui', [
+            '--scheduler-rpc', 'http://localhost:23458/'
+        ], self.ctx)
+        app = run.webui.invoke(ctx)
+        self.app = app.test_client()
+        self.rpc = app.config['scheduler_rpc']
+
+    def test_x10_project_update(self):
+        rv = self.app.post('/update', data={
+            'name': 'status',
+            'value': 'RUNNING',
+            'pk': 'test_project'
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertNotIn('ok', rv.data)
+
+    def test_x20_counter(self):
+        rv = self.app.get('/counter?time=5m&type=sum')
+        self.assertEqual(rv.status_code, 200)
+        self.assertEqual(json.loads(rv.data), {})
+
+    def test_x30_run(self):
+        rv = self.app.post('/run', data={
+            'project': 'test_project',
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertEqual(json.loads(rv.data)['result'], False)
+
+    def test_x40_debug_save(self):
+        rv = self.app.post('/debug/test_project/save', data={
+            'script': self.script_content,
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertNotIn('ok', rv.data)
+
+    def test_x50_tasks(self):
+        rv = self.app.get('/tasks')
+        self.assertEqual(rv.status_code, 502)

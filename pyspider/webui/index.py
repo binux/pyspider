@@ -5,6 +5,8 @@
 #         http://binux.me
 # Created on 2014-02-22 23:20:39
 
+import socket
+
 from app import app
 from flask import render_template, request, json
 from flask.ext import login
@@ -53,7 +55,11 @@ def project_update():
     if ret:
         rpc = app.config['scheduler_rpc']
         if rpc is not None:
-            rpc.update_project()
+            try:
+                rpc.update_project()
+            except socket.error as e:
+                app.logger.warning('connect to scheduler rpc error: %r', e)
+                return 'rpc error', 200
         return 'ok', 200
     else:
         return 'update error', 500
@@ -68,7 +74,11 @@ def counter():
     time = request.args['time']
     type = request.args.get('type', 'sum')
 
-    return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
+    try:
+        return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
+    except socket.error as e:
+        app.logger.warning('connect to scheduler rpc error: %r', e)
+        return json.dumps({}), 200, {'Content-Type': 'application/json'}
 
 
 @app.route('/run', methods=['POST', ])
@@ -100,7 +110,11 @@ def runtask():
         },
     }
 
-    ret = rpc.newtask(newtask)
+    try:
+        ret = rpc.newtask(newtask)
+    except socket.error as e:
+        app.logger.warning('connect to scheduler rpc error: %r', e)
+        return json.dumps({"result": False}), 200, {'Content-Type': 'application/json'}
     return json.dumps({"result": ret}), 200, {'Content-Type': 'application/json'}
 
 

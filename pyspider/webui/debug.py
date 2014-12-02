@@ -9,6 +9,7 @@
 import re
 import sys
 import time
+import socket
 import inspect
 import datetime
 import traceback
@@ -175,9 +176,13 @@ def save(project):
 
     rpc = app.config['scheduler_rpc']
     if rpc is not None:
-        rpc.update_project()
+        try:
+            rpc.update_project()
+        except socket.error as e:
+            app.logger.warning('connect to scheduler rpc error: %r', e)
+            return 'rpc error', 200
 
-    return 'OK', 200
+    return 'ok', 200
 
 
 @app.route('/helper.js')
