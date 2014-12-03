@@ -7,13 +7,13 @@
 /*         http://binux.me */
 /* Created on 2014-07-16 19:18:30 */
 .projects {
+  min-width: 850px;
   border-bottom: 1px solid #ddd;
 }
 .projects .project-group {
-  width: 100px;
+  width: 80px;
 }
 .projects .project-name {
-  width: 300px;
   font-weight: bold;
 }
 .projects .project-status {
@@ -56,21 +56,27 @@
   color: white;
 }
 .projects .project-rate {
-  width: 130px;
+  width: 110px;
 }
-.projects .project-progress {
+.projects th.project-progress {
   position: relative;
-  width: 10%;
 }
-.projects .project-progress.progress-all {
-  width: 20%;
+.projects th.project-progress span {
+  position: absolute;
 }
-.projects .project-progress .progress {
+.projects td.project-progress {
+  position: relative;
+  min-width: 5%;
+}
+.projects td.project-progress.progress-all {
+  min-width: 10%;
+}
+.projects td.project-progress .progress {
   position: relative;
   margin: 0;
   background-color: #aaa;
 }
-.projects .project-progress .progress .progress-text {
+.projects td.project-progress .progress .progress-text {
   width: 100%;
   text-align: center;
   position: absolute;
@@ -78,12 +84,12 @@
   color: #fff;
   pointer-events: none;
 }
-.projects .project-progress .progress .progress-bar {
+.projects td.project-progress .progress .progress-bar {
   -webkit-transition: none;
   transition: none;
 }
 .projects .project-actions {
-  width: 400px;
+  width: 200px;
 }
 .global-btn {
   margin-top: -5px;

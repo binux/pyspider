@@ -103,6 +103,7 @@ $(function() {
               +"retry("+(retry/sum*100).toFixed(1)+"%): \t"+retry+"\n"
               +"failed("+(failed/sum*100).toFixed(1)+"%): \t"+failed
              );
+      $e.attr('data-value', sum);
       $e.find(".progress-text").text(type+": "+sum);
       $e.find(".progress-pending").width(""+(pending/sum*100)+"%");
       $e.find(".progress-success").width(""+(success/sum*100)+"%");
@@ -129,6 +130,12 @@ $(function() {
 
   // table sortable
   Sortable.getColumnType = function(table, i) {
+    var type = $($(table).find('th').get(i)).data('type');
+    if (type == "num") {
+      return Sortable.types.numeric;
+    } else if (type == "date") {
+      return Sortable.types.date;
+    }
     return Sortable.types.alpha;
   };
   $('table.projects').attr('data-sortable', true);

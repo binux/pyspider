@@ -6,12 +6,13 @@
 @import "variable";
 
 .projects {
+  min-width: 850px;
+
   .project-group {
-    width: 100px;
+    width: 80px;
   }
 
   .project-name {
-    width: 300px;
     font-weight: bold;
   }
 
@@ -44,14 +45,21 @@
   }
 
   .project-rate {
-    width: 130px;
+    width: 110px;
   }
   
-  .project-progress {
+  th.project-progress {
     position: relative;
-    width: 10%;
+    span {
+      position: absolute;
+    }
+  }
+
+  td.project-progress {
+    position: relative;
+    min-width: 5%;
     &.progress-all {
-      width: 20%;
+      min-width: 10%;
     }
 
     .progress {
@@ -74,7 +82,7 @@
   }
 
   .project-actions {
-    width: 400px;
+    width: 200px;
   }
 
   border-bottom: 1px solid #ddd;
