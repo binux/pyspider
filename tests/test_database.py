@@ -422,5 +422,18 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
     def tearDownClass(self):
         self.resultdb.conn.drop_database(self.resultdb.database.name)
 
+
+class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database(
+            'sqlalchemy+sqlite+resultdb://'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        del self.resultdb
+
 if __name__ == '__main__':
     unittest.main()

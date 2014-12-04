@@ -23,6 +23,9 @@ def connect_database(url):
         sqlite+type://
     mongodb:
         mongodb+type://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+    sqlalchemy:
+        sqlalchemy+postgresql+type://user:passwd@host:port/database
+        sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database
 
     type:
         taskdb
@@ -31,7 +34,14 @@ def connect_database(url):
 
     """
     parsed = urlparse.urlparse(url)
-    engine, dbtype = parsed.scheme.split('+')
+
+    scheme = parsed.scheme.split('+')
+    if len(scheme) == 1:
+        raise Exception('wrong scheme format: %s' % parsed.scheme)
+    else:
+        engine, dbtype = scheme[0], scheme[-1]
+        other_scheme = "+".join(scheme[1:-1])
+
     if engine == 'mysql':
         parames = {}
         if parsed.username:
@@ -92,6 +102,22 @@ def connect_database(url):
         elif dbtype == 'resultdb':
             from .mongodb.resultdb import ResultDB
             return ResultDB(url, **parames)
+        else:
+            raise Exception('unknow database type: %s' % dbtype)
+    elif engine == 'sqlalchemy':
+        if not other_scheme:
+            raise Exception('wrong scheme format: %s' % parsed.scheme)
+        url = url.replace(parsed.scheme, other_scheme)
+
+        if dbtype == 'taskdb':
+            from .sqlalchemy.taskdb import TaskDB
+            return TaskDB(url)
+        elif dbtype == 'projectdb':
+            from .sqlalchemy.projectdb import ProjectDB
+            return ProjectDB(url)
+        elif dbtype == 'resultdb':
+            from .sqlalchemy.resultdb import ResultDB
+            return ResultDB(url)
         else:
             raise Exception('unknow database type: %s' % dbtype)
     else:
