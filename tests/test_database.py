@@ -423,6 +423,19 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb.conn.drop_database(self.resultdb.database.name)
 
 
+class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database(
+            'sqlalchemy+sqlite+taskdb://'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        del self.taskdb
+
+
 class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod

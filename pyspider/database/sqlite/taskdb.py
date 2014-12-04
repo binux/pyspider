@@ -35,8 +35,8 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
                 lastcrawltime, updatetime
                 )''' % tablename)
         self._execute(
-            '''CREATE INDEX IF NOT EXISTS `status_index` ON %s (status)'''
-            % self.escape(tablename)
+            '''CREATE INDEX `status_%s_index` ON %s (status)'''
+            % (tablename, self.escape(tablename))
         )
 
     def _parse(self, data):

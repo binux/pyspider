@@ -88,8 +88,6 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         if project not in self.projects:
             return None
         where = "`taskid` = %s" % self.placeholder
-        if project not in self.projects:
-            return None
         tablename = self._tablename(project)
         for each in self._select2dic(tablename, what=fields, where=where, where_values=(taskid, )):
             return self._parse(each)
@@ -121,6 +119,8 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         return self._insert(tablename, **self._stringify(obj))
 
     def update(self, project, taskid, obj={}, **kwargs):
+        if project not in self.projects:
+            self._list_project()
         if project not in self.projects:
             raise LookupError
         tablename = self._tablename(project)
