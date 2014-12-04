@@ -24,9 +24,9 @@ class TestWebUI(unittest.TestCase):
         os.makedirs('./data/tests')
 
         ctx = run.cli.make_context('test', [
-            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
-            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
-            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+            '--taskdb', 'sqlalchemy+sqlite+taskdb:///data/tests/task.db',
+            '--projectdb', 'sqlalchemy+sqlite+projectdb:///data/tests/projectdb.db',
+            '--resultdb', 'sqlalchemy+sqlite+resultdb:///data/tests/resultdb.db',
         ], None, obj=ObjectDict(testing_mode=True))
         self.ctx = run.cli.invoke(ctx)
 
@@ -77,8 +77,10 @@ class TestWebUI(unittest.TestCase):
         self.assertIn('var script_content = ', rv.data)
 
         m = re.search(ur'var task_content = (.*);\n', rv.data)
+        self.assertIsNotNone(m)
         self.__class__.task_content = json.loads(m.group(1))
         m = re.search(ur'var script_content = (.*);\n', rv.data)
+        self.assertIsNotNone(m)
         self.__class__.script_content = json.loads(m.group(1))
 
     def test_30_run(self):
@@ -204,8 +206,10 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
         self.assertIn('SUCCESS</span>', rv.data)
         m = re.search('/task/test_project:[^"]+', rv.data)
+        self.assertIsNotNone(m)
         self.__class__.task_url = m.group(0)
         m = re.search('/debug/test_project[^"]+', rv.data)
+        self.assertIsNotNone(m)
         self.__class__.debug_task_url = m.group(0)
 
         rv = self.app.get('/tasks?project=test_project')

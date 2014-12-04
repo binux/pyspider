@@ -23,9 +23,11 @@ def connect_database(url):
         sqlite+type://
     mongodb:
         mongodb+type://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+        more: http://docs.mongodb.org/manual/reference/connection-string/
     sqlalchemy:
         sqlalchemy+postgresql+type://user:passwd@host:port/database
         sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database
+        more: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html
 
     type:
         taskdb

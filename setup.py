@@ -69,7 +69,8 @@ setup(
                 'mysql-connector-python>=1.2.2',
                 'pika>=0.9.14',
                 'pymongo>=2.7.2',
-                'unittest2>=0.5.1'
+                'unittest2>=0.5.1',
+                'SQLAlchemy>=0.9.7'
             ],
         },
 

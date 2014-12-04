@@ -7,6 +7,7 @@
 
 
 import os
+import json
 import time
 import Queue
 import logging
@@ -439,7 +440,8 @@ class Scheduler(object):
                         continue
                     del task[key]
                 result.append(t)
-            return result
+            # fix for "<type 'exceptions.TypeError'>:dictionary key must be string", have no idea why
+            return json.loads(json.dumps(result))
         server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.timeout = 0.5

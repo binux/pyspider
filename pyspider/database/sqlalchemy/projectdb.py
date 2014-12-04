@@ -24,9 +24,9 @@ class ProjectDB(BaseProjectDB):
                            Column('status', String(16)),
                            Column('script', Text),
                            Column('comments', String(1024)),
-                           Column('rate', Float(11, 4)),
-                           Column('burst', Float(11, 4)),
-                           Column('updatetime', Float(16, 4))
+                           Column('rate', Float(11)),
+                           Column('burst', Float(11)),
+                           Column('updatetime', Float(16))
                            )
         self.engine = create_engine(url)
         self.table.create(self.engine, checkfirst=True)

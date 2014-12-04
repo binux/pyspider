@@ -28,8 +28,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                            Column('fetch', LargeBinary),
                            Column('process', LargeBinary),
                            Column('track', LargeBinary),
-                           Column('lastcrawltime', Float(16, 4)),
-                           Column('updatetime', Float(16, 4)),
+                           Column('lastcrawltime', Float(16)),
+                           Column('updatetime', Float(16)),
                            )
         self.engine = create_engine(url)
 

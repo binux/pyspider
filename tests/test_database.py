@@ -86,6 +86,8 @@ class TaskDBCase(object):
     def test_25_get_task(self):
         task = self.taskdb.get_task('project', 'taskid2')
         self.assertEqual(task['taskid'], 'taskid2')
+        self.assertEqual(task['project'], self.sample_task['project'])
+        self.assertEqual(task['url'], self.sample_task['url'])
         self.assertEqual(task['status'], self.taskdb.FAILED)
         self.assertEqual(task['schedule'], self.sample_task['schedule'])
         self.assertEqual(task['fetch'], self.sample_task['fetch'])
@@ -161,7 +163,7 @@ class ProjectDBCase(object):
         'script': 'import time\nprint time.time()',
         'comments': 'test project',
         'rate': 1.0,
-        'burst': 10,
+        'burst': 10.0,
         'updatetime': time.time(),
     }
 
@@ -183,9 +185,15 @@ class ProjectDBCase(object):
         projects = list(self.projectdb.get_all())
         self.assertEqual(len(projects), 2)
         project = projects[0]
+        self.assertEqual(project['name'], u'abc')
+        self.assertEqual(project['group'], self.sample_project['group'])
+        self.assertEqual(project['status'], self.sample_project['status'])
         self.assertEqual(project['script'], self.sample_project['script'])
+        self.assertEqual(project['comments'], self.sample_project['comments'])
         self.assertEqual(project['rate'], self.sample_project['rate'])
+        self.assertEqual(type(project['rate']), float)
         self.assertEqual(project['burst'], self.sample_project['burst'])
+        self.assertEqual(type(project['burst']), float)
 
         projects = list(self.projectdb.get_all(fields=['name', 'script']))
         self.assertEqual(len(projects), 2)
@@ -222,6 +230,7 @@ class ProjectDBCase(object):
         self.assertEqual(project['status'], 'RUNNING')
 
         project = self.projectdb.get(u'name中文', ['group', 'status', 'name'])
+        self.assertEqual(project['name'], u'name中文')
         self.assertIn('status', project)
         self.assertNotIn('gourp', project)
 
@@ -263,6 +272,12 @@ class ResultDBCase(object):
         result = self.resultdb.get('test_project', 'test_taskid', fields=('url', ))
         self.assertIn('url', result)
         self.assertNotIn('result', result)
+
+        result = self.resultdb.get('test_project', 'test_taskid')
+        self.assertEqual(result['taskid'], 'test_taskid')
+        self.assertEqual(result['url'], 'test_url_updated')
+        self.assertEqual(result['result'], 'result_updated')
+        self.assertIn('updatetime', result)
 
     def test_30_select(self):
         for i in range(5):
@@ -434,6 +449,20 @@ class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         del self.taskdb
+
+
+class TestSQLAlchemyProjectDB(ProjectDBCase, unittest.TestCase):
+
+
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'sqlalchemy+sqlite+projectdb://'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        del self.projectdb
 
 
 class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
