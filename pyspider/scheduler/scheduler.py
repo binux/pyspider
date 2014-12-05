@@ -24,7 +24,7 @@ class Scheduler(object):
         'priority': 0,
         'retries': 3,
         'exetime': 0,
-        'age': 30 * 24 * 60 * 60,
+        'age': -1,
         'itag': None,
     }
     LOOP_LIMIT = 1000
@@ -472,7 +472,7 @@ class Scheduler(object):
         schedule_age = _schedule.get('age', self.default_schedule['age'])
         if _schedule.get('itag') and _schedule['itag'] != old_schedule.get('itag'):
             restart = True
-        elif schedule_age + (old_task['lastcrawltime'] or 0) < now:
+        elif schedule_age > 0 and schedule_age + (old_task['lastcrawltime'] or 0) < now:
             restart = True
         elif _schedule.get('force_update'):
             restart = True
