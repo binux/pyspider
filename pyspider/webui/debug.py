@@ -19,8 +19,7 @@ from flask.ext import login
 
 from pyspider.libs import utils, sample_handler
 from pyspider.libs.response import rebuild_response
-from pyspider.processor.processor import build_module
-from pyspider.processor.project_module import ProjectFinder, ProjectLoader
+from pyspider.processor.project_module import ProjectManager, ProjectFinder, ProjectLoader
 
 default_task = {
     'taskid': 'data:,on_start',
@@ -100,7 +99,7 @@ def run(project):
     try:
         fetch_result = app.config['fetch'](task)
         response = rebuild_response(fetch_result)
-        module = build_module(project_info, {
+        module = ProjectManager.build_module(project_info, {
             'debugger': True
         })
         ret = module['instance'].run(module['module'], task, response)

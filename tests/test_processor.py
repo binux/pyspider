@@ -12,7 +12,7 @@ import unittest2 as unittest
 import logging.config
 logging.config.fileConfig("pyspider/logging.conf")
 
-from pyspider.processor.processor import build_module
+from pyspider.processor.project_module import ProjectManager
 
 
 class TestProjectModule(unittest.TestCase):
@@ -65,7 +65,7 @@ class TestProjectModule(unittest.TestCase):
             'name': self.project,
             'status': 'DEBUG',
         }
-        data = build_module({
+        data = ProjectManager.build_module({
             'name': self.project,
             'script': self.script
         }, {'test': True})
@@ -206,7 +206,7 @@ class TestProcessor(unittest.TestCase):
         def run_processor():
             self.processor = Processor(get_projectdb(), self.in_queue,
                                        self.status_queue, self.newtask_queue, self.result_queue)
-            self.processor.CHECK_PROJECTS_INTERVAL = 0.1
+            self.processor.project_manager.CHECK_PROJECTS_INTERVAL = 0.1
             self.processor.run()
         self.process = run_in_thread(run_processor)
         time.sleep(1)
@@ -220,7 +220,7 @@ class TestProcessor(unittest.TestCase):
         shutil.rmtree('./data/tests/', ignore_errors=True)
 
     def test_10_update_project(self):
-        self.assertEqual(len(self.processor.projects), 0)
+        self.assertIsNone(self.processor.project_manager.get('test_project'))
         self.projectdb.insert('test_project', {
             'name': 'test_project',
             'group': 'group',
@@ -230,6 +230,8 @@ class TestProcessor(unittest.TestCase):
             'rate': 1.0,
             'burst': 10,
         })
+        self.assertIsNone(self.processor.project_manager.get('not_exists'))
+        self.assertIsNotNone(self.processor.project_manager.get('test_project'))
 
         task = {
             "process": {
@@ -242,7 +244,7 @@ class TestProcessor(unittest.TestCase):
         self.in_queue.put((task, {}))
         time.sleep(1)
         self.assertTrue(self.status_queue.empty())
-        self.assertEqual(len(self.processor.projects), 1)
+        self.assertIsNone(self.processor.project_manager.get('not_exists'))
 
     def test_30_new_task(self):
         self.assertTrue(self.status_queue.empty())

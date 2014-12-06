@@ -11,44 +11,12 @@ import Queue
 import logging
 from pyspider.libs import utils
 from pyspider.libs.response import rebuild_response
-from project_module import ProjectLoader, ProjectFinder
+from project_module import ProjectManager, ProjectLoader, ProjectFinder
 logger = logging.getLogger("processor")
-
-
-def build_module(project, env={}):
-    assert 'name' in project, 'need name of project'
-    assert 'script' in project, 'need script of project'
-
-    # fix for old non-package version scripts
-    if 'pyspider' not in sys.path:
-        sys.path.insert(1, 'pyspider')
-
-    env = dict(env)
-    env.update({
-        'debug': project.get('status', 'DEBUG') == 'DEBUG',
-    })
-
-    loader = ProjectLoader(project)
-    module = loader.load_module(project['name'])
-    _class = module.__dict__.get('__handler_cls__')
-    assert _class is not None, "need BaseHandler in project module"
-    instance = _class()
-    instance.__env__ = env
-    instance.project_name = project['name']
-    instance.project = project
-
-    return {
-        'loader': loader,
-        'module': module,
-        'class': _class,
-        'instance': instance,
-        'info': project
-    }
 
 
 class Processor(object):
     PROCESS_TIME_LIMIT = 30
-    CHECK_PROJECTS_INTERVAL = 5 * 60
     EXCEPTION_LIMIT = 3
 
     RESULT_LOGS_LIMIT = 1000
@@ -63,8 +31,8 @@ class Processor(object):
 
         self._quit = False
         self._exceptions = 10
-        self.projects = {}
-        self.last_check_projects = 0
+        self.project_manager = ProjectManager(projectdb, dict(
+            result_queue=self.result_queue))
 
         self.enable_projects_import()
 
@@ -82,53 +50,16 @@ class Processor(object):
     def __del__(self):
         reload(__builtin__)
 
-    def _init_projects(self):
-        for project in self.projectdb.get_all():
-            try:
-                self._update_project(project)
-            except Exception:
-                logger.exception("exception when init projects for %s" % project.get('name', None))
-                continue
-        self.last_check_projects = time.time()
-
-    def _need_update(self, task):
-        if task['project'] not in self.projects:
-            return True
-        if (
-                task.get('project_updatetime', 0)
-                >
-                self.projects[task['project']]['info'].get('updatetime', 0)
-        ):
-            return True
-        if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
-            return True
-        return False
-
-    def _check_projects(self, task):
-        if not self._need_update(task):
-            return
-        for project in self.projectdb.check_update(self.last_check_projects):
-            try:
-                logger.debug("project: %s updated." % project['name'])
-                self._update_project(project)
-            except Exception:
-                logger.exception("exception when check update for %s" % project.get('name', None))
-                continue
-        self.last_check_projects = time.time()
-
-    def _update_project(self, project):
-        self.projects[project['name']] = build_module(project, dict(
-            result_queue=self.result_queue))
-
     def on_task(self, task, response):
         start_time = time.time()
         try:
             response = rebuild_response(response)
             assert 'taskid' in task, 'need taskid in task'
             project = task['project']
-            if project not in self.projects:
+            updatetime = task.get('updatetime', None)
+            project_data = self.project_manager.get(project, updatetime)
+            if not project_data:
                 raise LookupError("no such project: %s" % project)
-            project_data = self.projects[project]
             ret = project_data['instance'].run(
                 project_data['module'], task, response)
         except Exception as e:
@@ -205,7 +136,6 @@ class Processor(object):
         while not self._quit:
             try:
                 task, response = self.inqueue.get(timeout=1)
-                self._check_projects(task)
                 self.on_task(task, response)
                 self._exceptions = 0
             except Queue.Empty as e:

@@ -7,11 +7,104 @@
 
 import sys
 import imp
+import time
 import logging
 import inspect
 import linecache
 from pyspider.libs import base_handler
 from pyspider.libs.log import SaveLogHandler
+logger = logging.getLogger("processor")
+
+
+class ProjectManager(object):
+    """
+    load projects from projectdb, update project
+    """
+
+    CHECK_PROJECTS_INTERVAL = 5 * 60
+    RELOAD_PROJECT_INTERVAL = 60 * 60
+
+    @staticmethod
+    def build_module(project, env={}):
+        assert 'name' in project, 'need name of project'
+        assert 'script' in project, 'need script of project'
+
+        # fix for old non-package version scripts
+        if 'pyspider' not in sys.path:
+            sys.path.insert(1, 'pyspider')
+
+        env = dict(env)
+        env.update({
+            'debug': project.get('status', 'DEBUG') == 'DEBUG',
+        })
+
+        loader = ProjectLoader(project)
+        module = loader.load_module(project['name'])
+        _class = module.__dict__.get('__handler_cls__')
+        assert _class is not None, "need BaseHandler in project module"
+        instance = _class()
+        instance.__env__ = env
+        instance.project_name = project['name']
+        instance.project = project
+
+        return {
+            'loader': loader,
+            'module': module,
+            'class': _class,
+            'instance': instance,
+            'info': project,
+            'load_time': time.time(),
+        }
+
+    def __init__(self, projectdb, env):
+        self.projectdb = projectdb
+        self.env = env
+
+        self.projects = {}
+        self.last_check_projects = time.time()
+
+    def _need_update(self, project_name, updatetime=None):
+        if project_name not in self.projects:
+            return True
+        if updatetime > self.projects[project_name]['info'].get('updatetime', 0):
+            return True
+        if time.time() - self.projects[project_name]['load_time'] < self.RELOAD_PROJECT_INTERVAL:
+            return True
+        return False
+
+    def _check_projects(self):
+        for project in self.projectdb.check_update(self.last_check_projects,
+                                                   ['name', 'updatetime']):
+            if project['name'] not in self.projects:
+                continue
+            if project['updatetime'] > self.projects[project['name']]['info'].get('updatetime', 0):
+                self._update_project(project['name'])
+        self.last_check_projects = time.time()
+
+    def _update_project(self, project_name):
+        project = self.projectdb.get(project_name)
+        if not project:
+            return None
+        return self._load_project(project)
+
+    def _load_project(self, project):
+        try:
+            ret = self.build_module(project, self.env)
+            self.projects[project['name']] = ret
+        except Exception:
+            logger.exception("load project %s error" % project.get('name', None))
+            return False
+        return True
+
+    def get(self, project_name, updatetime=None):
+        """
+        get project data object, return None if not exists
+        """
+        if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
+            self._check_projects()
+        if self._need_update(project_name, updatetime):
+            self._update_project(project_name)
+        return self.projects.get(project_name, None)
 
 
 class ProjectFinder(object):
