@@ -315,6 +315,8 @@ class Fetcher(object):
         def handle_response(response):
             if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
                 return handle_error(response.error)
+            if not response.body:
+                return handle_error(Exception('no response from phantomjs'))
 
             try:
                 result = json.loads(response.body)
@@ -333,7 +335,7 @@ class Fetcher(object):
         def handle_error(error):
             result = {
                 'status_code': getattr(error, 'code', 599),
-                'error': getattr(error, 'message', '%r' % error),
+                'error': unicode(error) or repr(error),
                 'content': "",
                 'time': time.time() - start_time,
                 'orig_url': url,

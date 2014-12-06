@@ -11,7 +11,11 @@ import lxml.html
 import lxml.etree
 from pyquery import PyQuery
 from requests.structures import CaseInsensitiveDict
-from requests.utils import get_encoding_from_headers, get_encodings_from_content
+from requests.utils import get_encoding_from_headers
+try:
+    from requests.utils import get_encodings_from_content
+except ImportError:
+    get_encodings_from_content = None
 from requests import HTTPError
 
 
@@ -62,7 +66,7 @@ class Response(object):
             encoding = None
 
         # Try charset from content
-        if not encoding:
+        if not encoding and get_encodings_from_content:
             encoding = get_encodings_from_content(self.content)
             encoding = encoding and encoding[0] or None
 

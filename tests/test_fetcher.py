@@ -193,9 +193,9 @@ class TestFetcher(unittest.TestCase):
         if not self.phantomjs:
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
-        request['url'] = 'http://bbs.byr.cn/#!article/WWWTechnology/28163'
+        request['url'] = 'https://groups.google.com/forum/#!forum/pyspider-users'
         request['fetch']['fetch_type'] = 'js'
         request['fetch']['headers']['User-Agent'] = 'Mozilla/5.0'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
-        self.assertIn('binux', result['content'])
+        self.assertIn('pyspider-users', result['content'])

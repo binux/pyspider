@@ -59,7 +59,8 @@ class Processor(object):
             updatetime = task.get('updatetime', None)
             project_data = self.project_manager.get(project, updatetime)
             if not project_data:
-                raise LookupError("no such project: %s" % project)
+                logger.error("no such project: %s", project)
+                return False
             ret = project_data['instance'].run(
                 project_data['module'], task, response)
         except Exception as e:
