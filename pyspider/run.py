@@ -6,12 +6,20 @@
 # Created on 2014-03-05 00:11:49
 
 import os
+import time
+import shutil
 import logging
 import logging.config
 
 import click
 from pyspider.database import connect_database
 from pyspider.libs.utils import run_in_thread, run_in_subprocess, Get, ObjectDict
+
+from pyspider.scheduler import Scheduler
+from pyspider.fetcher.tornado_fetcher import Fetcher
+from pyspider.processor import Processor
+from pyspider.result import ResultWorker
+from pyspider.webui.app import app
 
 
 def read_config(ctx, param, value):
@@ -70,6 +78,16 @@ def cli(ctx, **kwargs):
             kwargs[db] = Get(lambda db=db: connect_database('mongodb+%s://%s:%s/%s' % (
                 db, os.environ['MONGODB_PORT_27017_TCP_ADDR'],
                 os.environ['MONGODB_PORT_27017_TCP_PORT'], db)))
+        elif ctx.invoked_subcommand == 'bench':
+            if kwargs['data_path'] == './data':
+                kwargs['data_path'] += '/bench'
+                shutil.rmtree(kwargs['data_path'], ignore_errors=True)
+                os.mkdir(kwargs['data_path'])
+            if db in ('taskdb', 'resultdb'):
+                kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s://' % (db)))
+            else:
+                kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
+                    db, kwargs['data_path'], db[:-2])))
         else:
             if not os.path.exists(kwargs['data_path']):
                 os.mkdir(kwargs['data_path'])
@@ -123,9 +141,8 @@ def cli(ctx, **kwargs):
 @click.option('--active-tasks', default=100, help='active log size')
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
-              inqueue_limit, delete_time, active_tasks):
+              inqueue_limit, delete_time, active_tasks, Scheduler=Scheduler):
     g = ctx.obj
-    from pyspider.scheduler import Scheduler
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
                           newtask_queue=g.newtask_queue, status_queue=g.status_queue,
                           out_queue=g.scheduler2fetcher, data_path=g.get('data_path', 'data'))
@@ -146,14 +163,13 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--xmlrpc/--no-xmlrpc', default=False)
 @click.option('--xmlrpc-host', default='0.0.0.0')
 @click.option('--xmlrpc-port', envvar='FETCHER_XMLRPC_PORT', default=24444)
-@click.option('--poolsize', default=10, help="max simultaneous fetches")
+@click.option('--poolsize', default=100, help="max simultaneous fetches")
 @click.option('--proxy', help="proxy host:port")
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
 @click.pass_context
-def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, timeout):
+def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, timeout, Fetcher=Fetcher):
     g = ctx.obj
-    from pyspider.fetcher.tornado_fetcher import Fetcher
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
                       poolsize=poolsize, proxy=proxy)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
@@ -174,9 +190,8 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, 
 
 @cli.command()
 @click.pass_context
-def processor(ctx):
+def processor(ctx, Processor=Processor):
     g = ctx.obj
-    from pyspider.processor import Processor
     processor = Processor(projectdb=g.projectdb,
                           inqueue=g.fetcher2processor, status_queue=g.status_queue,
                           newtask_queue=g.newtask_queue, result_queue=g.processor2result)
@@ -190,9 +205,8 @@ def processor(ctx):
 
 @cli.command()
 @click.pass_context
-def result_worker(ctx):
+def result_worker(ctx, ResultWorker=ResultWorker):
     g = ctx.obj
-    from pyspider.result import ResultWorker
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
     g.instances.append(result_worker)
@@ -219,9 +233,8 @@ def result_worker(ctx):
               help='password of lock -ed projects')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
-          max_rate, max_burst, username, password):
+          max_rate, max_burst, username, password, app=app):
     g = ctx.obj
-    from pyspider.webui.app import app
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
     app.config['resultdb'] = g.resultdb
@@ -240,7 +253,6 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
     if isinstance(fetcher_rpc, basestring):
         fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
     if fetcher_rpc is None:
-        from pyspider.fetcher.tornado_fetcher import Fetcher
         fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
         fetcher.phantomjs_proxy = g.phantomjs_proxy
         app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
@@ -311,6 +323,98 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
                             % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
     ctx.invoke(webui, **webui_config)
+
+    for each in g.instances:
+        each.quit()
+
+    for each in threads:
+        each.join()
+
+
+@cli.command()
+@click.option('--fetcher-num', default=1, help='instance num of fetcher')
+@click.option('--processor-num', default=2, help='instance num of processor')
+@click.option('--result-worker-num', default=1,
+              help='instance num of result worker')
+@click.option('--run-in', default='subprocess', type=click.Choice(['subprocess', 'thread']),
+              help='run each components in thread or subprocess. '
+              'always using thread for windows.')
+@click.option('--total', default=10000, help="total url in test page")
+@click.option('--show', default=20, help="show how many urls in a page")
+@click.pass_context
+def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, show):
+    from pyspider.libs import bench
+    from pyspider.webui import bench_test
+
+    ctx.obj['debug'] = False
+    g = ctx.obj
+    if result_worker_num == 0:
+        g['processor2result'] = None
+
+    if run_in == 'subprocess' and os.name != 'nt':
+        run_in = run_in_subprocess
+    else:
+        run_in = run_in_thread
+
+    g.projectdb.insert('bench', {
+        'name': 'bench',
+        'status': 'RUNNING',
+        'script': bench.bench_script % {'total': total, 'show': show},
+        'rate': 100000000000000,
+        'burst': 10000000000000000,
+        'updatetime': time.time()
+    })
+
+    # disable log
+    logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger('scheduler').setLevel(logging.ERROR)
+    logging.getLogger('fetcher').setLevel(logging.ERROR)
+    logging.getLogger('processor').setLevel(logging.ERROR)
+    logging.getLogger('result').setLevel(logging.ERROR)
+    logging.getLogger('webui').setLevel(logging.ERROR)
+
+    threads = []
+
+    # result worker
+    result_worker_config = g.config.get('result_worker', {})
+    for i in range(result_worker_num):
+        threads.append(run_in(ctx.invoke, result_worker,
+                              ResultWorker=bench.BenchResultWorker, **result_worker_config))
+
+    # processor
+    processor_config = g.config.get('processor', {})
+    for i in range(processor_num):
+        threads.append(run_in(ctx.invoke, processor,
+                              Processor=bench.BenchProcessor, **processor_config))
+
+    # fetcher
+    fetcher_config = g.config.get('fetcher', {})
+    fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
+    for i in range(fetcher_num):
+        threads.append(run_in(ctx.invoke, fetcher,
+                              Fetcher=bench.BenchFetcher, **fetcher_config))
+
+    # scheduler
+    scheduler_config = g.config.get('scheduler', {})
+    scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
+    threads.append(run_in(ctx.invoke, scheduler,
+                          Scheduler=bench.BenchScheduler, **scheduler_config))
+
+    # running webui in main thread to make it exitable
+    webui_config = g.config.get('webui', {})
+    webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
+                            % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+    g['testing_mode'] = True
+    app = ctx.invoke(webui, **webui_config)
+
+    # run project
+    app_client = app.test_client()
+    rv = app_client.post('/run', data={
+        'project': 'bench',
+    })
+    assert rv.status_code == 200, 'run project error'
+
+    app.run('127.0.0.1', 5000)
 
     for each in g.instances:
         each.quit()
