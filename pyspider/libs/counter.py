@@ -116,9 +116,10 @@ class TimebaseAverageWindowCounter(BaseCounter):
 
     @property
     def avg(self):
+        sum = float(self.sum)
         if not self.window_size:
             return 0
-        return float(self.sum) / self.window_size / self.window_interval
+        return sum / self.window_size / self.window_interval
 
     @property
     def sum(self):

@@ -139,9 +139,10 @@ def cli(ctx, **kwargs):
 @click.option('--delete-time', default=24 * 60 * 60,
               help='delete time before marked as delete')
 @click.option('--active-tasks', default=100, help='active log size')
+@click.option('--loop-limit', default=1000, help='maximum number of tasks due with in a loop')
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
-              inqueue_limit, delete_time, active_tasks, Scheduler=Scheduler):
+              inqueue_limit, delete_time, active_tasks, loop_limit, Scheduler=Scheduler):
     g = ctx.obj
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
                           newtask_queue=g.newtask_queue, status_queue=g.status_queue,
@@ -149,6 +150,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     scheduler.INQUEUE_LIMIT = inqueue_limit
     scheduler.DELETE_TIME = delete_time
     scheduler.ACTIVE_TASKS = active_tasks
+    scheduler.LOOP_LIMIT = loop_limit
 
     g.instances.append(scheduler)
     if g.get('testing_mode'):
@@ -334,8 +336,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 @cli.command()
 @click.option('--fetcher-num', default=1, help='instance num of fetcher')
 @click.option('--processor-num', default=2, help='instance num of processor')
-@click.option('--result-worker-num', default=1,
-              help='instance num of result worker')
+@click.option('--result-worker-num', default=1, help='instance num of result worker')
 @click.option('--run-in', default='subprocess', type=click.Choice(['subprocess', 'thread']),
               help='run each components in thread or subprocess. '
               'always using thread for windows.')
@@ -408,13 +409,22 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     app = ctx.invoke(webui, **webui_config)
 
     # run project
-    app_client = app.test_client()
-    rv = app_client.post('/run', data={
-        'project': 'bench',
-    })
-    assert rv.status_code == 200, 'run project error'
+    def start_bench():
+        time.sleep(2)
+        app_client = app.test_client()
+        rv = app_client.post('/run', data={
+            'project': 'bench',
+        })
+        assert rv.status_code == 200, 'run project error'
+    run_in_thread(start_bench)
 
-    app.run('127.0.0.1', 5000)
+    # running flask app in tornado for better performance
+    from tornado.wsgi import WSGIContainer
+    from tornado.httpserver import HTTPServer
+    from tornado.ioloop import IOLoop
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(5000)
+    IOLoop.instance().start()
 
     for each in g.instances:
         each.quit()
