@@ -22,7 +22,7 @@ def bench_test():
     args = dict(request.args)
     for nl in nlist:
         args['n'] = nl
-        argstr = urlencode(args, doseq=True)
+        argstr = urlencode(sorted(args.items()), doseq=True)
         result.append("<a href='/bench?{0}'>follow {1}</a><br>".format(argstr, nl))
     result.append("</body></html>")
     return "".join(result)

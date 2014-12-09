@@ -10,6 +10,7 @@ import time
 import shutil
 import logging
 import logging.config
+import __builtin__
 
 import click
 from pyspider.database import connect_database
@@ -361,8 +362,8 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         'name': 'bench',
         'status': 'RUNNING',
         'script': bench.bench_script % {'total': total, 'show': show},
-        'rate': 100000000000000,
-        'burst': 10000000000000000,
+        'rate': total,
+        'burst': total,
         'updatetime': time.time()
     })
 
@@ -401,36 +402,38 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     threads.append(run_in(ctx.invoke, scheduler,
                           Scheduler=bench.BenchScheduler, **scheduler_config))
 
-    # running webui in main thread to make it exitable
+    # webui
     webui_config = g.config.get('webui', {})
     webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
                             % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
     g['testing_mode'] = True
     app = ctx.invoke(webui, **webui_config)
+    g['testing_mode'] = False
+    threads.append(run_in(app.run, '127.0.0.1', 5000))
 
     # run project
-    def start_bench():
-        time.sleep(2)
-        app_client = app.test_client()
-        rv = app_client.post('/run', data={
-            'project': 'bench',
-        })
-        assert rv.status_code == 200, 'run project error'
-    run_in_thread(start_bench)
+    time.sleep(1)
+    app_client = app.test_client()
+    rv = app_client.post('/run', data={
+        'project': 'bench',
+    })
+    assert rv.status_code == 200, 'run project error'
 
-    # running flask app in tornado for better performance
-    from tornado.wsgi import WSGIContainer
-    from tornado.httpserver import HTTPServer
-    from tornado.ioloop import IOLoop
-    http_server = HTTPServer(WSGIContainer(app))
-    http_server.listen(5000)
-    IOLoop.instance().start()
+    # wait bench test finished
+    while True:
+        time.sleep(1)
+        if __builtin__.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
+                'newtask_queue', 'status_queue', 'scheduler2fetcher',
+                'fetcher2processor', 'processor2result')):
+            break
 
     for each in g.instances:
         each.quit()
 
     for each in threads:
-        each.join()
+        if hasattr(each, 'terminate'):
+            each.terminate()
+        each.join(1)
 
 def main():
     cli(obj=ObjectDict(), default_map={})
