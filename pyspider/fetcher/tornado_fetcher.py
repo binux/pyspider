@@ -65,6 +65,16 @@ class Fetcher(object):
         self._quit = False
         self.proxy = proxy
         self.async = async
+        self.ioloop = tornado.ioloop.IOLoop()
+
+        # binding io_loop to http_client here
+        if self.async:
+            self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
+                                                     io_loop=self.ioloop)
+        else:
+            self.http_client = tornado.httpclient.HTTPClient(
+                MyCurlAsyncHTTPClient, max_clients=self.poolsize
+            )
 
         self._cnt = {
             '5m': counter.CounterManager(
@@ -72,15 +82,6 @@ class Fetcher(object):
             '1h': counter.CounterManager(
                 lambda: counter.TimebaseAverageWindowCounter(60, 60)),
         }
-
-    @property
-    def http_client(self):
-        if self.async:
-            return MyCurlAsyncHTTPClient(max_clients=self.poolsize)
-        else:
-            return tornado.httpclient.HTTPClient(
-                MyCurlAsyncHTTPClient, max_clients=self.poolsize
-            )
 
     def send_result(self, type, task, result):
         """type in ('data', 'http')"""
@@ -381,18 +382,17 @@ class Fetcher(object):
                     self.fetch(task)
                 except Queue.Empty:
                     break
-                except (KeyboardInterrupt, EOFError):
-                    self.quit()
+                except KeyboardInterrupt:
                     break
                 except Exception as e:
                     logger.exception(e)
                     break
 
-        ioloop = tornado.ioloop.IOLoop()
-        tornado.ioloop.PeriodicCallback(queue_loop, 100, io_loop=ioloop).start()
+        tornado.ioloop.PeriodicCallback(queue_loop, 100, io_loop=self.ioloop).start()
         self._running = True
+
         try:
-            ioloop.start()
+            self.ioloop.start()
         except KeyboardInterrupt:
             pass
 
@@ -401,7 +401,7 @@ class Fetcher(object):
     def quit(self):
         self._running = False
         self._quit = True
-        tornado.ioloop.IOLoop.current().stop()
+        self.ioloop.stop()
 
     def size(self):
         return self.http_client.size()

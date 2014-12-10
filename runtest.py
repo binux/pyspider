@@ -14,7 +14,7 @@ if __name__ == '__main__':
         glob = sys.argv[1]
 
     suite = unittest.TestLoader().discover('tests', glob)
-    result = unittest.TextTestRunner(verbosity=1).run(suite)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
     if result.errors or result.failures:
         sys.exit(1)
     sys.exit(0)

@@ -25,13 +25,13 @@ if os.name == 'nt':
 
 class TornadoFlask(Flask):
     def run(self, host='0.0.0.0', port=5000):
-        ioloop = IOLoop()
-        http_server = HTTPServer(WSGIContainer(app), io_loop=ioloop)
+        self.ioloop = IOLoop()
+        http_server = HTTPServer(WSGIContainer(app), io_loop=self.ioloop)
         http_server.listen(port, host)
-        ioloop.start()
+        self.ioloop.start()
 
     def quit(self):
-        IOLoop.current().stop()
+        self.ioloop.stop()
 
 
 app = TornadoFlask('webui',
