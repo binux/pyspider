@@ -122,6 +122,7 @@ def cli(ctx, **kwargs):
     elif os.environ.get('PHANTOMJS_NAME'):
         kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT'][len('tcp://'):]
 
+    ctx.obj = ObjectDict(ctx.obj or {})
     ctx.obj['instances'] = []
     ctx.obj.update(kwargs)
 
@@ -234,9 +235,10 @@ def result_worker(ctx, ResultWorker=ResultWorker):
               help='username of lock -ed projects')
 @click.option('--password', envvar='WEBUI_PASSWORD',
               help='password of lock -ed projects')
+@click.option('--need-auth', default=False, help='need username and password')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
-          max_rate, max_burst, username, password, app=app):
+          max_rate, max_burst, username, password, need_auth, app=app):
     g = ctx.obj
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
@@ -274,6 +276,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
         app.config['scheduler_rpc'] = scheduler_rpc
 
     app.debug = g.debug
+    g.instances.append(app)
     if g.get('testing_mode'):
         return app
 
@@ -327,10 +330,14 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
                             % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
     ctx.invoke(webui, **webui_config)
 
+    # exit components run in threading
     for each in g.instances:
         each.quit()
 
+    # exit components run in subprocess
     for each in threads:
+        if hasattr(each, 'terminate'):
+            each.terminate()
         each.join()
 
 
@@ -406,15 +413,12 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     webui_config = g.config.get('webui', {})
     webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
                             % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
-    g['testing_mode'] = True
-    app = ctx.invoke(webui, **webui_config)
-    g['testing_mode'] = False
-    threads.append(run_in(app.run, '127.0.0.1', 5000))
+    threads.append(run_in(ctx.invoke, webui, **webui_config))
 
     # run project
     time.sleep(1)
-    app_client = app.test_client()
-    rv = app_client.post('/run', data={
+    import requests
+    rv = requests.post('http://localhost:5000/run', data= {
         'project': 'bench',
     })
     assert rv.status_code == 200, 'run project error'
@@ -427,16 +431,18 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                 'fetcher2processor', 'processor2result')):
             break
 
+    # exit components run in threading
     for each in g.instances:
         each.quit()
 
+    # exit components run in subprocess
     for each in threads:
         if hasattr(each, 'terminate'):
             each.terminate()
         each.join(1)
 
 def main():
-    cli(obj=ObjectDict(), default_map={})
+    cli()
 
 if __name__ == '__main__':
     main()

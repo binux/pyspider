@@ -6,6 +6,8 @@
 # Created on 2014-12-08 22:23:10
 
 import time
+import logging
+logger = logging.getLogger('bench')
 
 from pyspider.scheduler import Scheduler
 from pyspider.fetcher.tornado_fetcher import Fetcher
@@ -25,9 +27,11 @@ class BenchMixin(object):
         now = time.time()
         if now - self.last_report >= 1:
             rps = float(self.done_cnt - self.last_cnt) / (now - self.last_report)
+            output = ''
             if prefix:
-                print " "*prefix,
-            print ("%s %s pages (at %d pages/min)" % (name, self.done_cnt, rps*60.0)).rjust(rjust)
+                output += " "*prefix
+            output += ("%s %s pages (at %d pages/min)" % (name, self.done_cnt, rps*60.0)).rjust(rjust)
+            logger.info(output)
             self.last_cnt = self.done_cnt
             self.last_report = now
 

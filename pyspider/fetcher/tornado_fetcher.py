@@ -66,19 +66,21 @@ class Fetcher(object):
         self.proxy = proxy
         self.async = async
 
-        if async:
-            self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize)
-        else:
-            self.http_client = tornado.httpclient.HTTPClient(
-                MyCurlAsyncHTTPClient, max_clients=self.poolsize
-            )
-
         self._cnt = {
             '5m': counter.CounterManager(
                 lambda: counter.TimebaseAverageWindowCounter(30, 10)),
             '1h': counter.CounterManager(
                 lambda: counter.TimebaseAverageWindowCounter(60, 60)),
         }
+
+    @property
+    def http_client(self):
+        if self.async:
+            return MyCurlAsyncHTTPClient(max_clients=self.poolsize)
+        else:
+            return tornado.httpclient.HTTPClient(
+                MyCurlAsyncHTTPClient, max_clients=self.poolsize
+            )
 
     def send_result(self, type, task, result):
         """type in ('data', 'http')"""
@@ -379,28 +381,30 @@ class Fetcher(object):
                     self.fetch(task)
                 except Queue.Empty:
                     break
-                except KeyboardInterrupt:
+                except (KeyboardInterrupt, EOFError):
+                    self.quit()
                     break
                 except Exception as e:
                     logger.exception(e)
                     break
 
-        tornado.ioloop.PeriodicCallback(queue_loop, 100).start()
+        ioloop = tornado.ioloop.IOLoop()
+        tornado.ioloop.PeriodicCallback(queue_loop, 100, io_loop=ioloop).start()
         self._running = True
         try:
-            tornado.ioloop.IOLoop.instance().start()
+            ioloop.start()
         except KeyboardInterrupt:
             pass
 
         logger.info("fetcher exiting...")
 
-    def size(self):
-        return self.http_client.size()
-
     def quit(self):
         self._running = False
         self._quit = True
-        tornado.ioloop.IOLoop.instance().stop()
+        tornado.ioloop.IOLoop.current().stop()
+
+    def size(self):
+        return self.http_client.size()
 
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         import umsgpack
