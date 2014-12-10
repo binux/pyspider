@@ -41,7 +41,6 @@ class Queue(object):
         self.maxsize = maxsize
         self.lock = threading.Lock()
 
-        self._last_ack = None
         self.reconnect()
 
     def reconnect(self):
@@ -95,7 +94,7 @@ class Queue(object):
             return self.channel.basic_publish("", self.name, umsgpack.packb(obj))
 
     @catch_error
-    def get(self, block=True, timeout=None, ack=True):
+    def get(self, block=True, timeout=None, ack=False):
         if not block:
             return self.get_nowait()
 
@@ -114,26 +113,14 @@ class Queue(object):
                     time.sleep(self.max_timeout)
 
     @catch_error
-    def get_nowait(self, ack=True):
+    def get_nowait(self, ack=False):
         with self.lock:
-            method_frame, header_frame, body = self.channel.basic_get(self.name)
+            method_frame, header_frame, body = self.channel.basic_get(self.name, not ack)
             if method_frame is None:
                 raise BaseQueue.Empty
             if ack:
                 self.channel.basic_ack(method_frame.delivery_tag)
-            else:
-                self._last_ack = method_frame.delivery_tag
         return umsgpack.unpackb(body)
-
-    @catch_error
-    def ack(self, id=None):
-        if id is None:
-            id = self._last_ack
-        if id is None:
-            return False
-        with self.lock:
-            self.channel.basic_ack(id)
-        return True
 
     @catch_error
     def delete(self):

@@ -64,10 +64,11 @@ def tasks():
 def active_tasks():
     rpc = app.config['scheduler_rpc']
     taskdb = app.config['taskdb']
+    project = request.args.get('project', "")
     limit = int(request.args.get('limit', 100))
 
     try:
-        tasks = rpc.get_active_tasks(limit)
+        tasks = rpc.get_active_tasks(project, limit)
     except socket.error as e:
         app.logger.warning('connect to scheduler rpc error: %r', e)
         return '{}', 502, {'Content-Type': 'application/json'}
