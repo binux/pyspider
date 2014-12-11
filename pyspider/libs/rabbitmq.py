@@ -35,11 +35,19 @@ class Queue(object):
     Full = BaseQueue.Full
     max_timeout = 0.3
 
-    def __init__(self, name, amqp_url='amqp://guest:guest@localhost:5672/%2F', maxsize=0):
+    def __init__(self, name, amqp_url='amqp://guest:guest@localhost:5672/%2F',
+                 maxsize=0, lazy_limit=True):
         self.name = name
         self.amqp_url = amqp_url
         self.maxsize = maxsize
         self.lock = threading.Lock()
+
+        self.lazy_limit = lazy_limit
+        if self.lazy_limit and self.maxsize:
+            self.qsize_diff_limit = int(self.maxsize * 0.1)
+        else:
+            self.qsize_diff_limit = 0
+        self.qsize_diff = 0
 
         self.reconnect()
 
@@ -47,7 +55,7 @@ class Queue(object):
         self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
         self.channel = self.connection.channel()
         self.channel.queue_declare(self.name)
-        # self.channel.queue_purge(self.name)
+        #self.channel.queue_purge(self.name)
 
     @catch_error
     def qsize(self):
@@ -88,9 +96,14 @@ class Queue(object):
 
     @catch_error
     def put_nowait(self, obj):
-        if self.full():
+        if self.lazy_limit and self.qsize_diff < self.qsize_diff_limit:
+            pass
+        elif self.full():
             raise BaseQueue.Full
+        else:
+            self.qsize_diff = 0
         with self.lock:
+            self.qsize_diff += 1
             return self.channel.basic_publish("", self.name, umsgpack.packb(obj))
 
     @catch_error
