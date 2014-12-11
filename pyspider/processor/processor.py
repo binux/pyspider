@@ -101,10 +101,9 @@ class Processor(object):
             # it's used here for performance.
             self.status_queue.put(utils.unicode_obj(status_pack))
 
-        for newtask in ret.follows:
-            # FIXME: unicode_obj should used in scheduler before store to database
-            # it's used here for performance.
-            self.newtask_queue.put(utils.unicode_obj(newtask))
+        # FIXME: unicode_obj should used in scheduler before store to database
+        # it's used here for performance.
+        self.newtask_queue.put([utils.unicode_obj(newtask) for newtask in ret.follows])
 
         for project, msg, url in ret.messages:
             self.inqueue.put(({

@@ -208,10 +208,19 @@ class Scheduler(object):
 
     def _check_request(self):
         cnt = 0
-        try:
-            processed_task_cache = set()
-            while cnt < self.LOOP_LIMIT:
+        processed_task_cache = set()
+        while cnt < self.LOOP_LIMIT:
+            try:
                 task = self.newtask_queue.get_nowait()
+            except Queue.Empty:
+                return cnt
+
+            if isinstance(task, list):
+                tasks = task
+            else:
+                tasks = (task, )
+
+            for task in tasks:
                 if not self.task_verify(task):
                     continue
 
@@ -247,8 +256,6 @@ class Scheduler(object):
                     task = self.on_new_request(task)
                 processed_task_cache.add(cache_key)
                 cnt += 1
-        except Queue.Empty:
-            pass
         return cnt
 
     def _check_cronjob(self):
