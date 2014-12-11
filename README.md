@@ -7,7 +7,7 @@ A Powerful Spider(Web Crawler) System in Python. [Try It Now!](http://demo.pyspi
 - Powerful WebUI with script editor, task monitor, project manager and result viewer
 - MySQL, MongoDB, SQLite as database backend 
 - Javascript pages supported!
-- Task priority, retry, periodical and recrawl by age or marks in index page (like update time)
+- Task priority, retry, periodical, recrawl by age and more
 - Distributed architecture
 
 
@@ -56,6 +56,7 @@ Documents
 
 * [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
 * [API Reference](https://github.com/binux/pyspider/wiki/API-Reference)
+* [TODO](https://github.com/binux/pyspider/wiki/TODO)
 * more documents: [Wiki](https://github.com/binux/pyspider/wiki)
 
 

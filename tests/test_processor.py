@@ -275,7 +275,7 @@ class TestProcessor(unittest.TestCase):
     def test_40_index_page(self):
         task = None
         while not self.newtask_queue.empty():
-            task = self.newtask_queue.get()
+            task = self.newtask_queue.get()[0]
         self.assertIsNotNone(task)
 
         fetch_result = {
@@ -295,7 +295,7 @@ class TestProcessor(unittest.TestCase):
         time.sleep(1)
         self.assertFalse(self.status_queue.empty())
         self.assertFalse(self.newtask_queue.empty())
-        task = self.newtask_queue.get()
-        self.assertEqual(task['url'], 'http://binux.me/')
-        task = self.newtask_queue.get()
-        self.assertTrue(task['url'].startswith('http://binux.me/%'), task['url'])
+
+        tasks = self.newtask_queue.get()
+        self.assertEqual(tasks[0]['url'], 'http://binux.me/')
+        self.assertTrue(tasks[1]['url'].startswith('http://binux.me/%'), task['url'])
