@@ -33,7 +33,7 @@ class Response(object):
         self.time = 0
 
     def __repr__(self):
-        return '<Response [%d]>' % self.status_code
+        return u'<Response [%d]>' % self.status_code
 
     def __bool__(self):
         """Returns true if :attr:`status_code` is 'OK'."""

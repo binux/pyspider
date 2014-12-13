@@ -9,6 +9,8 @@ import mimetypes
 from urllib import urlencode
 from urlparse import urlparse, urlunparse
 
+import six
+from six import iteritems
 
 def get_content_type(filename):
     return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
@@ -22,13 +24,13 @@ def _encode_params(data):
     if parameters are supplied as a dict.
     """
 
-    if isinstance(data, basestring):
+    if isinstance(data, six.string_types):
         return data
     elif hasattr(data, 'read'):
         return data
     elif hasattr(data, '__iter__'):
         result = []
-        for k, vs in data.iteritems():
+        for k, vs in iteritems(data):
             for v in isinstance(vs, list) and vs or [vs]:
                 if v is not None:
                     result.append(
@@ -40,9 +42,9 @@ def _encode_params(data):
 
 
 def _utf8(key):
-    if not isinstance(key, basestring):
+    if not isinstance(key, six.string_types):
         key = str(key)
-    return key.encode('utf-8') if isinstance(key, unicode) else key
+    return key.encode('utf-8') if isinstance(key, six.text_type) else key
 
 
 def _encode_multipart_formdata(fields, files):
@@ -51,18 +53,18 @@ def _encode_multipart_formdata(fields, files):
     files is a sequence of (name, filename, value) elements for data to be uploaded as files
     Return (content_type, body) ready for httplib.HTTP instance
     """
-    BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
-    CRLF = '\r\n'
+    BOUNDARY = b'----------ThIs_Is_tHe_bouNdaRY_$'
+    CRLF = b'\r\n'
     L = []
-    for key, value in fields.iteritems():
-        L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"' % _utf8(key))
-        L.append('')
+    for key, value in iteritems(fields):
+        L.append(b'--' + BOUNDARY)
+        L.append(b'Content-Disposition: form-data; name="%s"' % _utf8(key))
+        L.append(b'')
         L.append(_utf8(value))
-    for key, (filename, value) in files.iteritems():
-        L.append('--' + BOUNDARY)
+    for key, (filename, value) in iteritems(files):
+        L.append(b'--' + BOUNDARY)
         L.append(
-            'Content-Disposition: form-data; name="%s"; filename="%s"'
+            b'Content-Disposition: form-data; name="%s"; filename="%s"'
             % (_utf8(key), _utf8(filename))
         )
         L.append('Content-Type: %s' % get_content_type(filename))
@@ -112,10 +114,3 @@ def quote_chinese(url, encodeing="utf-8"):
         return quote_chinese(url.encode("utf-8"))
     res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
     return "".join(res)
-
-if __name__ == "__main__":
-    assert _build_url("http://httpbin.org", {'id': 123}) == "http://httpbin.org/?id=123"
-    assert _build_url("http://httpbin.org/get", {'id': 123}) == "http://httpbin.org/get?id=123"
-    assert _encode_params({'id': 123, 'foo': 'fdsa'}) == "foo=fdsa&id=123"
-    assert _encode_params({'id': "中文"}) == "id=%E4%B8%AD%E6%96%87"
-    print _encode_multipart_formdata({'id': 123}, {'key': ('file.name', 'content')})

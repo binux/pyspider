@@ -13,6 +13,8 @@ import Queue
 import logging
 from collections import deque
 
+from six import iteritems, itervalues
+
 from pyspider.libs import counter
 from task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
@@ -267,7 +269,7 @@ class Scheduler(object):
         if now - self._last_tick < 1:
             return False
         self._last_tick += 1
-        for project in self.projects.itervalues():
+        for project in itervalues(self.projects):
             if project['status'] not in ('DEBUG', 'RUNNING'):
                 continue
             if project.get('min_tick', 0) == 0:
@@ -312,7 +314,7 @@ class Scheduler(object):
                 break
 
         cnt_dict = dict()
-        for project, task_queue in self.task_queue.iteritems():
+        for project, task_queue in iteritems(self.task_queue):
             # task queue
             self.task_queue[project].check_update()
             cnt = 0
@@ -364,7 +366,7 @@ class Scheduler(object):
                 self.resultdb.drop(project['name'])
 
     def __len__(self):
-        return sum((len(x) for x in self.task_queue.itervalues()))
+        return sum(len(x) for x in itervalues(self.task_queue))
 
     def quit(self):
         self._quit = True
@@ -433,7 +435,7 @@ class Scheduler(object):
                 'track',
             ))
 
-            iters = [iter(x['active_tasks']) for k, x in self.projects.iteritems()
+            iters = [iter(x['active_tasks']) for k, x in iteritems(self.projects)
                      if x and (k == project if project else True)]
             tasks = [next(x, None) for x in iters]
             result = []

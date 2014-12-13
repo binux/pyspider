@@ -10,13 +10,16 @@ import hashlib
 import datetime
 import base64
 
+import six
+from six import iteritems
+
 md5string = lambda x: hashlib.md5(x).hexdigest()
 
 
 class ReadOnlyDict(dict):
 
     def __setitem__(self, key, value):
-        raise "dict is read-only"
+        raise Exception("dict is read-only")
 
 
 def getitem(obj, key=0, default=None):
@@ -196,7 +199,7 @@ def unicode_string(string):
 
 def unicode_dict(_dict):
     r = {}
-    for k, v in _dict.iteritems():
+    for k, v in iteritems(_dict):
         r[unicode_string(k)] = unicode_obj(v)
     return r
 
@@ -210,7 +213,7 @@ def unicode_obj(obj):
         return unicode_dict(obj)
     elif isinstance(obj, (list, tuple)):
         return unicode_list(obj)
-    elif isinstance(obj, basestring):
+    elif isinstance(obj, six.string_types):
         return unicode_string(obj)
     elif isinstance(obj, (int, float)):
         return obj
@@ -232,10 +235,10 @@ def decode_unicode_string(string):
 def decode_unicode_obj(obj):
     if isinstance(obj, dict):
         r = {}
-        for k, v in obj.iteritems():
+        for k, v in iteritems(obj):
             r[decode_unicode_string(k)] = decode_unicode_obj(v)
         return r
-    elif isinstance(obj, basestring):
+    elif isinstance(obj, string_types):
         return decode_unicode_string(obj)
     elif isinstance(obj, (list, tuple)):
         return [decode_unicode_obj(x) for x in obj]

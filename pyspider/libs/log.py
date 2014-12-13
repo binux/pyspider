@@ -5,9 +5,10 @@
 #         http://binux.me
 # Created on 2012-10-24 16:08:17
 
-import logging
+import six
 import sys
 import time
+import logging
 
 try:
     import curses
@@ -87,7 +88,7 @@ class LogFormatter(logging.Formatter):
             record.message = record.getMessage()
         except Exception as e:
             record.message = "Bad message (%r): %r" % (e, record.__dict__)
-        assert isinstance(record.message, basestring)  # guaranteed by logging
+        assert isinstance(record.message, six.string_types)  # guaranteed by logging
         record.asctime = time.strftime(
             "%y%m%d %H:%M:%S", self.converter(record.created))
         prefix = '[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]' % \

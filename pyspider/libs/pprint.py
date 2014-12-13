@@ -34,10 +34,12 @@ saferepr()
 
 """
 
+from __future__ import print_function
+
 import sys as _sys
 import warnings
 
-from cStringIO import StringIO as _StringIO
+from io import BytesIO
 
 __all__ = ["pprint", "pformat", "isreadable", "isrecursive", "saferepr",
            "PrettyPrinter"]
@@ -122,7 +124,7 @@ class PrettyPrinter:
         self._stream.write("\n")
 
     def pformat(self, object):
-        sio = _StringIO()
+        sio = BytesIO()
         self._format(object, sio, 0, 0, {}, 0)
         return sio.getvalue()
 
@@ -273,7 +275,7 @@ def _safe_repr(object, context, maxlevels, level):
         except:
             pass
         qget = quotes.get
-        sio = _StringIO()
+        sio = BytesIO()
         write = sio.write
         for char in object:
             if char.isalpha():
@@ -373,8 +375,8 @@ def _perfcheck(object=None):
     t2 = time.time()
     p.pformat(object)
     t3 = time.time()
-    print "_safe_repr:", t2 - t1
-    print "pformat:", t3 - t2
+    print("_safe_repr:", t2 - t1)
+    print("pformat:", t3 - t2)
 
 if __name__ == "__main__":
     _perfcheck()

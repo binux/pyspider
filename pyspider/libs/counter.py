@@ -5,11 +5,19 @@
 #         http://binux.me
 # Created on 2012-11-14 17:09:50
 
+from __future__ import unicode_literals, division, absolute_import
+
 import time
 import cPickle
 import logging
 from collections import deque
-from UserDict import DictMixin
+try:
+    from UserDict import DictMixin
+except ImportError:
+    from collections import Mapping as DictMixin
+
+import six
+from six import iteritems
 
 
 class BaseCounter(object):
@@ -52,7 +60,7 @@ class AverageWindowCounter(BaseCounter):
 
     @property
     def avg(self):
-        return float(self.sum) / len(self.values)
+        return self.sum / len(self.values)
 
     @property
     def sum(self):
@@ -163,6 +171,15 @@ class CounterValue(DictMixin):
         else:
             return CounterValue(self.manager, key)
 
+    def __len__(self):
+        return len(self.keys())
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __contains__(self, key):
+        return key in self.keys()
+
     def keys(self):
         result = set()
         for key in self.manager.counters:
@@ -173,7 +190,7 @@ class CounterValue(DictMixin):
 
     def to_dict(self, get_value=None):
         result = {}
-        for key, value in self.iteritems():
+        for key, value in iteritems(self):
             if isinstance(value, BaseCounter):
                 if get_value is not None:
                     value = getattr(value, get_value)
@@ -190,7 +207,7 @@ class CounterManager(DictMixin):
         self.counters = {}
 
     def event(self, key, value=1):
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             key = (key, )
         assert isinstance(key, tuple), "event key type error"
         if key not in self.counters:
@@ -199,7 +216,7 @@ class CounterManager(DictMixin):
         return self
 
     def value(self, key, value=1):
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             key = (key, )
         assert isinstance(key, tuple), "event key type error"
         if key not in self.counters:
@@ -238,7 +255,7 @@ class CounterManager(DictMixin):
     def to_dict(self, get_value=None):
         self.trim()
         result = {}
-        for key, value in self.iteritems():
+        for key, value in iteritems(self):
             if isinstance(value, BaseCounter):
                 if get_value is not None:
                     value = getattr(value, get_value)

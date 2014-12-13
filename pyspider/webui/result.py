@@ -5,13 +5,16 @@
 #         http://binux.me
 # Created on 2014-10-19 16:23:55
 
+from __future__ import unicode_literals
+
 from app import app
 from flask import render_template, request, json
 from flask import Response
+from six import iteritems
 
 import csv
 import itertools
-import cStringIO as StringIO
+from io import BytesIO
 from pyspider.libs.utils import utf8
 
 
@@ -32,7 +35,7 @@ def result_formater(results):
         else:
             result_formated = {}
             others = {}
-            for key, value in result['result'].iteritems():
+            for key, value in iteritems(result['result']):
                 if key in common_fields:
                     result_formated[key] = value
                 else:
@@ -81,15 +84,15 @@ def dump_result(project, _format):
         return Response(generator(), mimetype='text/plain')
     elif _format == 'csv':
         def toString(obj):
-            if isinstance(obj, unicode):
+            if isinstance(obj, six.text_type):
                 return obj.encode('utf8')
-            elif isinstance(obj, basestring):
+            elif isinstance(obj, six.binary_type):
                 return obj
             else:
                 return json.dumps(obj, ensure_ascii=False).encode('utf8')
 
         def generator():
-            stringio = StringIO.StringIO()
+            stringio = BytesIO()
             csv_writer = csv.writer(stringio)
 
             it = iter(resultdb.select(project))
@@ -106,7 +109,7 @@ def dump_result(project, _format):
                                 + ['...'])
             for result in itertools.chain(first_30, it):
                 other = {}
-                for k, v in result['result'].iteritems():
+                for k, v in iteritems(result['result']):
                     if k not in common_fields:
                         other[k] = v
                 csv_writer.writerow(

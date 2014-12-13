@@ -189,6 +189,7 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['status_code'], 200)
         self.assertIn('binux', result['content'])
 
+    @unittest.skipIf(os.environ.get('IGNORE_GOOGLE'), "can't connect to google.")
     def test_a100_phantomjs_sharp_url(self):
         if not self.phantomjs:
             raise unittest.SkipTest('no phantomjs')

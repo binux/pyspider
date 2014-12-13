@@ -11,6 +11,8 @@ import sys
 import base64
 import urlparse
 
+from six import reraise
+
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -59,7 +61,7 @@ def cdn_url_handler(error, endpoint, kwargs):
     else:
         exc_type, exc_value, tb = sys.exc_info()
         if exc_value is error:
-            raise exc_type, exc_value, tb
+            reraise(exc_type, exc_value, tb)
         else:
             raise error
 app.handle_url_build_error = cdn_url_handler

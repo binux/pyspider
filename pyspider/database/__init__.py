@@ -5,7 +5,8 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
-import urlparse
+
+from six.moves.urllib import parse as urlparse
 
 
 def connect_database(url):

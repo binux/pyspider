@@ -5,7 +5,9 @@
 #         http://binux.me
 # Created on 2014-03-05 00:11:49
 
+
 import os
+import six
 import time
 import shutil
 import logging
@@ -255,7 +257,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
         app.config['webui_password'] = password
 
     # fetcher rpc
-    if isinstance(fetcher_rpc, basestring):
+    if isinstance(fetcher_rpc, six.string_types):
         fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
     if fetcher_rpc is None:
         fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
@@ -265,7 +267,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
         import umsgpack
         app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
 
-    if isinstance(scheduler_rpc, basestring):
+    if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
     if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://%s/' % (

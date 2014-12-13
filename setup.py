@@ -62,6 +62,7 @@ setup(
             'Flask-Login>=0.2.11',
             'u-msgpack-python>=1.6',
             'click>=3.3',
+            'six>=1.8.0',
         ],
 
         extras_require={

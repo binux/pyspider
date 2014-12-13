@@ -5,6 +5,9 @@
 #         http://binux.me
 # Created on 2012-12-17 11:07:19
 
+from __future__ import unicode_literals
+
+import six
 import time
 import json
 import Queue
@@ -166,7 +169,7 @@ class Fetcher(object):
         track_headers = task.get('track', {}).get('fetch', {}).get('headers', {})
         # proxy
         if 'proxy' in task_fetch:
-            if isinstance(task_fetch['proxy'], basestring):
+            if isinstance(task_fetch['proxy'], six.string_types):
                 fetch['proxy_host'] = task_fetch['proxy'].split(":")[0]
                 fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
             elif self.proxy and task_fetch.get('proxy', True):
@@ -174,14 +177,14 @@ class Fetcher(object):
                 fetch['proxy_port'] = int(self.proxy.split(":")[1])
         # etag
         if task_fetch.get('etag', True):
-            _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), basestring) \
+            _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), six.string_types) \
                 else track_headers.get('etag')
             if _t:
                 fetch['headers'].setdefault('If-None-Match', _t)
         # last modifed
         if task_fetch.get('last_modified', True):
             _t = task_fetch.get('last_modifed') \
-                if isinstance(task_fetch.get('last_modifed'), basestring) \
+                if isinstance(task_fetch.get('last_modifed'), six.string_types) \
                 else track_headers.get('last-modified')
             if _t:
                 fetch['headers'].setdefault('If-Modifed-Since', _t)

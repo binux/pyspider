@@ -9,8 +9,12 @@ import sys
 import inspect
 import functools
 import fractions
+
+import six
+from six import add_metaclass, iteritems
+
 from pyspider.libs.log import LogFormatter
-from pyspider.libs.url import quote_chinese, _build_url, _encode_params
+from pyspider.libs.url import quote_chinese, _build_url, _encode_params, _encode_multipart_formdata
 from pyspider.libs.utils import md5string, hide_me, pretty_unicode
 from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
@@ -35,7 +39,7 @@ class ProcessorResult(object):
         result = []
         formater = LogFormatter(color=False)
         for record in self.logs:
-            if isinstance(record, basestring):
+            if isinstance(record, six.string_types):
                 result.append(pretty_unicode(record))
             else:
                 if record.exc_info:
@@ -126,10 +130,13 @@ class BaseHandlerMeta(type):
         return newcls
 
 
+@add_metaclass(BaseHandlerMeta)
 class BaseHandler(object):
-    __metaclass__ = BaseHandlerMeta
+    crawl_config = {}
+    project_name = None
     cron_jobs = []
     min_tick = 0
+    __env__ = {'not_inited': True}
 
     def _reset(self):
         self._extinfo = {}
@@ -190,7 +197,7 @@ class BaseHandler(object):
 
         if kwargs.get('callback'):
             callback = kwargs['callback']
-            if isinstance(callback, basestring) and hasattr(self, callback):
+            if isinstance(callback, six.string_types) and hasattr(self, callback):
                 func = getattr(self, callback)
             elif hasattr(callback, 'im_self') and callback.im_self is self:
                 func = callback
@@ -198,12 +205,11 @@ class BaseHandler(object):
             else:
                 raise NotImplementedError("self.%s() not implemented!" % callback)
             if hasattr(func, '_config'):
-                for k, v in func._config.iteritems():
+                for k, v in iteritems(func._config):
                     kwargs.setdefault(k, v)
 
-        if hasattr(self, 'crawl_config'):
-            for k, v in self.crawl_config.iteritems():
-                kwargs.setdefault(k, v)
+        for k, v in iteritems(self.crawl_config):
+            kwargs.setdefault(k, v)
 
         url = quote_chinese(_build_url(url.strip(), kwargs.get('params')))
         if kwargs.get('files'):
@@ -296,7 +302,7 @@ class BaseHandler(object):
           taskid
         '''
 
-        if isinstance(url, basestring):
+        if isinstance(url, six.string_types):
             return self._crawl(url, **kwargs)
         elif hasattr(url, "__iter__"):
             result = []
