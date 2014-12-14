@@ -7,18 +7,28 @@
 
 import time
 import heapq
-import Queue
 import logging
 import threading
-from UserDict import DictMixin
-from token_bucket import Bucket
+from six.moves import queue as Queue
+try:
+    from UserDict import DictMixin
+except ImportError:
+    from collections import Mapping as DictMixin
+from .token_bucket import Bucket
 logger = logging.getLogger('scheduler')
+
+try:
+    cmp
+except NameError:
+    cmp = lambda x, y: (x > y) - (x < y)
 
 
 class InQueueTask(DictMixin):
     __slots__ = ('taskid', 'priority', 'exetime')
     __getitem__ = lambda *x: getattr(*x)
     __setitem__ = lambda *x: setattr(*x)
+    __iter__ = lambda self: iter(self.__slots__)
+    __len__ = lambda self: len(self.__slots__)
     keys = lambda self: self.__slots__
 
     def __init__(self, taskid, priority=0, exetime=0):
@@ -31,6 +41,9 @@ class InQueueTask(DictMixin):
             return -cmp(self.priority, other.priority)
         else:
             return cmp(self.exetime, other.exetime)
+
+    def __lt__(self, other):
+        return self.__cmp__(other) < 0
 
 
 class PriorityTaskQueue(Queue.Queue):

@@ -9,14 +9,14 @@
 import os
 import json
 import time
-import Queue
+from six.moves import queue as Queue
 import logging
 from collections import deque
 
 from six import iteritems, itervalues
 
 from pyspider.libs import counter, utils
-from task_queue import TaskQueue
+from .task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 
 
@@ -346,7 +346,7 @@ class Scheduler(object):
 
     def _check_delete(self):
         now = time.time()
-        for project in self.projects.values():
+        for project in list(itervalues(self.projects)):
             if project['status'] != 'STOP':
                 continue
             if now - project['updatetime'] < self.DELETE_TIME:
@@ -401,7 +401,7 @@ class Scheduler(object):
 
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
         try:
-            from xmlrpc_server import SimpleXMLRPCServer
+            from six.moves.xmlrpc_server import SimpleXMLRPCServer
         except ImportError:
             from SimpleXMLRPCServer import SimpleXMLRPCServer
 
@@ -447,7 +447,7 @@ class Scheduler(object):
                 updatetime, task = t = max(tasks)
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
-                for key in task.keys():
+                for key in list(task):
                     if key == 'track':
                         track = {}
                         if 'fetch' in task['track'] and 'ok' in task['track']['fetch']:

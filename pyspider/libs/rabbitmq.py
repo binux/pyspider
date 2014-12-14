@@ -7,12 +7,12 @@
 
 import time
 import umsgpack
-import Queue as BaseQueue
 import socket
 import select
 import threading
 import pika
 import pika.exceptions
+from six.moves import queue as BaseQueue
 
 
 def catch_error(func):

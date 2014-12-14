@@ -225,7 +225,7 @@ class CounterManager(DictMixin):
         return self
 
     def trim(self):
-        for key, value in self.counters.items():
+        for key, value in list(iteritems(self.counters)):
             if value.empty():
                 del self.counters[key]
 
