@@ -243,7 +243,7 @@ class Fetcher(object):
         def handle_error(error):
             result = {
                 'status_code': getattr(error, 'code', 599),
-                'error': getattr(error, 'message', '%r' % error),
+                'error': utils.text(error),
                 'content': "",
                 'time': time.time() - start_time,
                 'orig_url': url,
@@ -414,8 +414,8 @@ class Fetcher(object):
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         import umsgpack
         try:
-            from six.moves.xmlrpc_server import SimpleXMLRPCServer
-            from six.moves.xmlrpc_client import Binary
+            from xmlrpc_server import SimpleXMLRPCServer
+            from xmlrpc_client import Binary
         except ImportError:
             from SimpleXMLRPCServer import SimpleXMLRPCServer
             from xmlrpclib import Binary

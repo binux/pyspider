@@ -400,7 +400,10 @@ class Scheduler(object):
         self._dump_cnt()
 
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
-        from SimpleXMLRPCServer import SimpleXMLRPCServer
+        try:
+            from xmlrpc_server import SimpleXMLRPCServer
+        except ImportError:
+            from SimpleXMLRPCServer import SimpleXMLRPCServer
 
         server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()
@@ -445,12 +448,20 @@ class Scheduler(object):
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
                 for key in task.keys():
-                    if key in allowed_keys:
+                    if key == 'track':
+                        track = {}
+                        if 'fetch' in task['track'] and 'ok' in task['track']['fetch']:
+                            track['fetch'] = {'ok': task['track']['fetch']['ok']}
+                        if 'process' in task['track'] and 'ok' in task['track']['process']:
+                            track['process'] = {'ok': task['track']['process']['ok']}
+                        task['track'] = track
+                    elif key in allowed_keys:
                         continue
                     del task[key]
                 result.append(t)
-            # fix for "<type 'exceptions.TypeError'>:dictionary key must be string", have no idea why
-            return json.loads(json.dumps(result))
+            # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
+            # have no idea why
+            return utils.unicode_obj(json.loads(json.dumps(result)))
         server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.timeout = 0.5

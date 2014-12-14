@@ -8,7 +8,6 @@
 import __builtin__
 import os
 import sys
-import base64
 import urlparse
 
 from six import reraise
@@ -33,7 +32,8 @@ class TornadoFlask(Flask):
         self.ioloop.start()
 
     def quit(self):
-        self.ioloop.stop()
+        if hasattr(self, 'ioloop'):
+            self.ioloop.stop()
 
 
 app = TornadoFlask('webui',

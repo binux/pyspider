@@ -150,8 +150,8 @@ class TestFetcher(unittest.TestCase):
         self.inqueue.put(request)
         task, result = self.outqueue.get()
         end_time = time.time()
-        self.assertGreater(end_time - start_time, 2)
-        self.assertLess(end_time - start_time, 4)
+        self.assertGreater(end_time - start_time, 1.5)
+        self.assertLess(end_time - start_time, 4.5)
 
     def test_70_phantomjs_url(self):
         if not self.phantomjs:

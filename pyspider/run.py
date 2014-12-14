@@ -43,8 +43,11 @@ def connect_db(ctx, param, value):
 def connect_rpc(ctx, param, value):
     if not value:
         return
-    import xmlrpclib
-    return xmlrpclib.ServerProxy(value)
+    try:
+        from six.moves import xmlrpc_client
+    except ImportError:
+        import xmlrpclib as xmlrpc_client
+    return xmlrpc_client.ServerProxy(value)
 
 
 @click.group(invoke_without_command=True)
@@ -174,7 +177,8 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
 @click.pass_context
-def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, timeout, Fetcher=Fetcher):
+def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
+            timeout, Fetcher=Fetcher):
     g = ctx.obj
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
                       poolsize=poolsize, proxy=proxy)
@@ -356,6 +360,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, show):
     from pyspider.libs import bench
     from pyspider.webui import bench_test
+    bench_test  # make pyflake happy
 
     ctx.obj['debug'] = False
     g = ctx.obj
@@ -420,7 +425,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     # run project
     time.sleep(1)
     import requests
-    rv = requests.post('http://localhost:5000/run', data= {
+    rv = requests.post('http://localhost:5000/run', data={
         'project': 'bench',
     })
     assert rv.status_code == 200, 'run project error'
@@ -442,6 +447,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         if hasattr(each, 'terminate'):
             each.terminate()
         each.join(1)
+
 
 def main():
     cli()
