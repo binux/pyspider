@@ -38,9 +38,8 @@ from __future__ import print_function
 
 import six
 import sys as _sys
-import warnings
 
-from io import BytesIO
+from io import BytesIO, StringIO
 
 __all__ = ["pprint", "pformat", "isreadable", "isrecursive", "saferepr",
            "PrettyPrinter"]
@@ -80,11 +79,7 @@ def isrecursive(object):
 
 
 def _sorted(iterable):
-    with warnings.catch_warnings():
-        if _sys.py3kwarning:
-            warnings.filterwarnings("ignore", "comparing unequal types "
-                                    "not supported", DeprecationWarning)
-        return sorted(iterable)
+    return sorted(iterable)
 
 
 class PrettyPrinter:
@@ -276,7 +271,7 @@ def _safe_repr(object, context, maxlevels, level):
         except:
             pass
         qget = quotes.get
-        sio = BytesIO()
+        sio = StringIO()
         write = sio.write
         for char in object:
             if char.isalpha():

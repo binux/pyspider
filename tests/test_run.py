@@ -6,6 +6,7 @@
 # Created on 2014-11-21 22:32:35
 
 import os
+import six
 import json
 import shutil
 import unittest2 as unittest
@@ -37,6 +38,23 @@ class TestRun(unittest.TestCase):
         self.assertEqual(len(ctx.obj.instances), 0)
 
     def test_20_cli_config(self):
+        with open('./data/tests/config.json', 'w') as fp:
+            json.dump({
+                'debug': True,
+                'taskdb': 'mysql+taskdb://localhost:23456/taskdb',
+            }, fp)
+        ctx = run.cli.make_context('test',
+                                   ['--config', './data/tests/config.json'],
+                                   None, obj=ObjectDict(testing_mode=True))
+        ctx = run.cli.invoke(ctx)
+        self.assertEqual(ctx.obj.debug, True)
+
+        import mysql.connector
+        with self.assertRaises(mysql.connector.InterfaceError):
+            ctx.obj.taskdb
+
+    @unittest.skipIf(six.PY3, 'pika not suport python 3')
+    def test_25_cli_config2(self):
         with open('./data/tests/config.json', 'w') as fp:
             json.dump({
                 'debug': True,
@@ -82,6 +100,7 @@ class TestRun(unittest.TestCase):
         finally:
             del os.environ['RESULTDB']
 
+    @unittest.skipIf(six.PY3, 'pika not suport python 3')
     @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
     def test_50_docker_rabbitmq(self):
         try:

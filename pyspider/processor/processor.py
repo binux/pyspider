@@ -11,7 +11,6 @@ import logging
 logger = logging.getLogger("processor")
 
 from six.moves import queue as Queue
-from six.moves import reload_module, builtins
 from pyspider.libs import utils
 from pyspider.libs.response import rebuild_response
 from .project_module import ProjectManager, ProjectLoader, ProjectFinder
@@ -50,7 +49,7 @@ class Processor(object):
         sys.meta_path.append(ProcessProjectFinder())
 
     def __del__(self):
-        reload_module(builtins)
+        pass
 
     def on_task(self, task, response):
         start_time = time.time()

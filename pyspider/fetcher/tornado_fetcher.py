@@ -414,8 +414,8 @@ class Fetcher(object):
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         import umsgpack
         try:
-            from xmlrpc_server import SimpleXMLRPCServer
-            from xmlrpc_client import Binary
+            from xmlrpc.server import SimpleXMLRPCServer
+            from xmlrpc.client import Binary
         except ImportError:
             from SimpleXMLRPCServer import SimpleXMLRPCServer
             from xmlrpclib import Binary
