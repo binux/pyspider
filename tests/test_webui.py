@@ -203,14 +203,16 @@ class TestWebUI(unittest.TestCase):
 
     def test_a20_tasks(self):
         rv = self.app.get('/tasks')
-        self.assertEqual(rv.status_code, 200)
+        self.assertEqual(rv.status_code, 200, rv.data)
         self.assertIn('SUCCESS</span>', rv.data)
         m = re.search('/task/test_project:[^"]+', rv.data)
         self.assertIsNotNone(m)
         self.__class__.task_url = m.group(0)
+        self.assertIsNotNone(self.task_url)
         m = re.search('/debug/test_project[^"]+', rv.data)
         self.assertIsNotNone(m)
         self.__class__.debug_task_url = m.group(0)
+        self.assertIsNotNone(self.debug_task_url)
 
         rv = self.app.get('/tasks?project=test_project')
         self.assertEqual(rv.status_code, 200)

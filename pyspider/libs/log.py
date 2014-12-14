@@ -15,8 +15,8 @@ except ImportError:
 from tornado.log import LogFormatter as _LogFormatter
 
 
-class LogFormatter(_LogFormatter):
-    def __init__(self, color=True, *args, **kwargs):
+class LogFormatter(_LogFormatter, object):
+    def __init__(self, color=True, fmt=None, *args, **kwargs):
         super(LogFormatter, self).__init__(*args, **kwargs)
 
 
