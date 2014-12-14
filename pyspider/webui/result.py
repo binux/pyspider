@@ -7,14 +7,15 @@
 
 from __future__ import unicode_literals
 
-from app import app
-from flask import render_template, request, json
-from flask import Response
-from six import iteritems
-
+import six
 import csv
 import itertools
 from io import BytesIO
+
+from six import iteritems
+from app import app
+from flask import render_template, request, json
+from flask import Response
 from pyspider.libs.utils import utf8
 
 

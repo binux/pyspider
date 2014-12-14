@@ -81,7 +81,9 @@ from pyspider.libs.base_handler import *
 
 class Handler(BaseHandler):
     def on_start(self):
-        self.crawl('http://localhost:5000/bench', params={'total': %(total)d, 'show': %(show)d}, callback=self.index_page)
+        self.crawl('http://127.0.0.1:5000/bench',
+                   params={'total': %(total)d, 'show': %(show)d},
+                   callback=self.index_page)
 
     def index_page(self, response):
         for each in response.doc('a[href^="http://"]').items():
