@@ -48,9 +48,10 @@ class TestWebUI(unittest.TestCase):
         run_in_thread(result_worker.run)
 
         ctx = run.webui.make_context('webui', [
-            '--scheduler-rpc', 'http://localhost:23333/'
+            '--scheduler-rpc', 'http://127.0.0.1:23333/'
         ], self.ctx)
         app = run.webui.invoke(ctx)
+        app.debug = True
         self.app = app.test_client()
         self.rpc = app.config['scheduler_rpc']
 
