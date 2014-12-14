@@ -5,11 +5,12 @@
 #         http://binux.me
 # Created on 2012-11-16 10:33:20
 
-from urllib import quote, unquote
+import six
+from six.moves.urllib.parse import quote, unquote
 
 
 def encode(data, mime_type='', charset='utf-8', base64=True):
-    if isinstance(data, unicode):
+    if isinstance(data, six.text_type):
         data = data.encode(charset)
     else:
         charset = None

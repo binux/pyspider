@@ -8,7 +8,6 @@
 from __future__ import unicode_literals, division, absolute_import
 
 import time
-import cPickle
 import logging
 from collections import deque
 try:
@@ -18,6 +17,7 @@ except ImportError:
 
 import six
 from six import iteritems
+from six.moves import cPickle
 
 
 class BaseCounter(object):
@@ -245,6 +245,12 @@ class CounterManager(DictMixin):
                 return CounterValue(self, key)
         else:
             return CounterValue(self, key)
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __len__(self):
+        return len(self.keys())
 
     def keys(self):
         result = set()

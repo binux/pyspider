@@ -11,6 +11,7 @@ import json
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
                         Integer, String, Float, LargeBinary, sql, func)
+from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from .sqlalchemybase import SplitTableMixin, result2dict
 
@@ -50,7 +51,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                 if data[each]:
                     if isinstance(data[each], bytearray):
                         data[each] = str(data[each])
-                    data[each] = json.loads(unicode(data[each], 'utf8'))
+                    data[each] = json.loads(utils.text(data[each]))
                 else:
                     data[each] = {}
         return data

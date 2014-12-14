@@ -9,7 +9,6 @@ import os
 import copy
 import time
 import umsgpack
-import xmlrpclib
 import subprocess
 import unittest2 as unittest
 from multiprocessing import Queue
@@ -17,6 +16,10 @@ import logging
 import logging.config
 logging.config.fileConfig("pyspider/logging.conf")
 
+try:
+    from six.moves import xmlrpc_client
+except ImportError:
+    import xmlrpclib as xmlrpc_client
 from pyspider.libs import utils
 from pyspider.fetcher.tornado_fetcher import Fetcher
 
@@ -49,8 +52,8 @@ class TestFetcher(unittest.TestCase):
         self.inqueue = Queue(10)
         self.outqueue = Queue(10)
         self.fetcher = Fetcher(self.inqueue, self.outqueue)
-        self.fetcher.phantomjs_proxy = 'localhost:25555'
-        self.rpc = xmlrpclib.ServerProxy('http://localhost:%d' % 24444)
+        self.fetcher.phantomjs_proxy = '127.0.0.1:25555'
+        self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
         self.thread = utils.run_in_thread(self.fetcher.run)
         try:
@@ -78,9 +81,9 @@ class TestFetcher(unittest.TestCase):
         self.assertIn('content', result)
 
         content = result['content']
-        self.assertIn('<b>A:', content)
-        self.assertIn('<b>Cookie:</b>', content)
-        self.assertIn('c=d</td>', content)
+        self.assertIn(b'<b>A:', content)
+        self.assertIn(b'<b>Cookie:</b>', content)
+        self.assertIn(b'c=d</td>', content)
 
     def test_10_http_post(self):
         request = copy.deepcopy(self.sample_task_http)
@@ -94,13 +97,13 @@ class TestFetcher(unittest.TestCase):
         self.assertIn('content', result)
 
         content = result['content']
-        self.assertIn('<h2>POST', content)
-        self.assertIn('..A:', content)
-        self.assertIn('..Cookie:', content)
+        self.assertIn(b'<h2>POST', content)
+        self.assertIn(b'A:', content)
+        self.assertIn(b'Cookie:', content)
         # FIXME: cookies in headers not supported
-        self.assertNotIn('a=b', content)
-        self.assertIn('c=d', content)
-        self.assertIn('binux', content)
+        self.assertNotIn(b'a=b', content)
+        self.assertIn(b'c=d', content)
+        self.assertIn(b'binux', content)
 
     def test_20_dataurl_get(self):
         data = copy.deepcopy(self.sample_task_http)
@@ -134,10 +137,10 @@ class TestFetcher(unittest.TestCase):
         self.inqueue.put(request)
         task, result = self.outqueue.get()
         self.assertEqual(result['status_code'], 200)
-        self.assertIn(' d6 ', result['content'])
-        self.assertIn(' d0 ', result['content'])
-        self.assertIn(' ce ', result['content'])
-        self.assertIn(' c4 ', result['content'])
+        self.assertIn(b' d6 ', result['content'])
+        self.assertIn(b' d0 ', result['content'])
+        self.assertIn(b' ce ', result['content'])
+        self.assertIn(b' c4 ', result['content'])
 
     def test_60_timeout(self):
         request = copy.deepcopy(self.sample_task_http)

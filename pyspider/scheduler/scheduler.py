@@ -15,7 +15,7 @@ from collections import deque
 
 from six import iteritems, itervalues
 
-from pyspider.libs import counter
+from pyspider.libs import counter, utils
 from task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 
@@ -163,10 +163,10 @@ class Scheduler(object):
     def task_verify(self, task):
         for each in ('taskid', 'project', 'url', ):
             if each not in task or not task[each]:
-                logger.error('%s not in task: %s' % (each, unicode(task)[:200]))
+                logger.error('%s not in task: %s', each, utils.unicode_string(task)[:200])
                 return False
         if task['project'] not in self.task_queue:
-            logger.error('unknow project: %s' % task['project'])
+            logger.error('unknow project: %s', task['project'])
             return False
         return True
 

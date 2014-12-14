@@ -36,6 +36,7 @@ saferepr()
 
 from __future__ import print_function
 
+import six
 import sys as _sys
 import warnings
 
@@ -284,7 +285,7 @@ def _safe_repr(object, context, maxlevels, level):
                 write(qget(char, repr(char)[1:-1]))
         return ("%s%s%s" % (closure, sio.getvalue(), closure)), True, False
 
-    if typ is unicode:
+    if typ is six.text_type:
         string = object.encode("utf8", 'replace')
         string = string.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
         if "'" in object and '"' not in object:

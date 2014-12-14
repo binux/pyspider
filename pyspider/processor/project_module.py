@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-16 22:24:20
 
+import six
 import sys
 import imp
 import time
@@ -171,6 +172,6 @@ class ProjectLoader(object):
 
     def get_source(self, fullname):
         script = self.project['script']
-        if isinstance(script, unicode):
+        if isinstance(script, six.text_type):
             return script.encode('utf8')
         return script

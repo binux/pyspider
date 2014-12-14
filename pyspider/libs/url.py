@@ -34,8 +34,8 @@ def _encode_params(data):
             for v in isinstance(vs, list) and vs or [vs]:
                 if v is not None:
                     result.append(
-                        (k.encode('utf-8') if isinstance(k, unicode) else k,
-                         v.encode('utf-8') if isinstance(v, unicode) else v))
+                        (k.encode('utf-8') if isinstance(k, six.text_type) else k,
+                         v.encode('utf-8') if isinstance(v, six.text_type) else v))
         return urlencode(result, doseq=True)
     else:
         return data
@@ -86,17 +86,17 @@ def _build_url(url, _params):
     if not path:
         path = '/'
 
-    if isinstance(scheme, unicode):
+    if isinstance(scheme, six.text_type):
         scheme = scheme.encode('utf-8')
-    if isinstance(netloc, unicode):
+    if isinstance(netloc, six.text_type):
         netloc = netloc.encode('utf-8')
-    if isinstance(path, unicode):
+    if isinstance(path, six.text_type):
         path = path.encode('utf-8')
-    if isinstance(params, unicode):
+    if isinstance(params, six.text_type):
         params = params.encode('utf-8')
-    if isinstance(query, unicode):
+    if isinstance(query, six.text_type):
         query = query.encode('utf-8')
-    if isinstance(fragment, unicode):
+    if isinstance(fragment, six.text_type):
         fragment = fragment.encode('utf-8')
 
     enc_params = _encode_params(_params)
@@ -110,7 +110,7 @@ def _build_url(url, _params):
 
 
 def quote_chinese(url, encodeing="utf-8"):
-    if isinstance(url, unicode):
+    if isinstance(url, six.text_type):
         return quote_chinese(url.encode("utf-8"))
     res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
     return "".join(res)

@@ -91,7 +91,7 @@ class Processor(object):
                         'ok': not ret.exception,
                         'time': process_time,
                         'follows': len(ret.follows),
-                        'result': unicode(ret.result)[:self.RESULT_RESULT_LIMIT],
+                        'result': utils.unicode_obj(ret.result)[:self.RESULT_RESULT_LIMIT],
                         'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
                         'exception': ret.exception,
                     },

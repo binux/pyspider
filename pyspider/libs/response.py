@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2012-11-02 11:16:02
 
+import six
 import json
 import chardet
 import lxml.html
@@ -57,7 +58,7 @@ class Response(object):
             return self._encoding
 
         # content is unicode
-        if isinstance(self.content, unicode):
+        if isinstance(self.content, six.text_type):
             return 'unicode'
 
         # Try charset from content-type
@@ -96,7 +97,7 @@ class Response(object):
             return self._text
         if not self.content:
             return u''
-        if isinstance(self.content, unicode):
+        if isinstance(self.content, six.text_type):
             return self.content
 
         content = None
