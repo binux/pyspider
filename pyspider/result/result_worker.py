@@ -5,7 +5,7 @@
 #         http://binux.me
 # Created on 2014-10-19 15:37:46
 
-import Queue
+from six.moves import queue as Queue
 import logging
 logger = logging.getLogger("result")
 
