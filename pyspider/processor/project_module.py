@@ -67,7 +67,7 @@ class ProjectManager(object):
     def _need_update(self, project_name, updatetime=None):
         if project_name not in self.projects:
             return True
-        if updatetime > self.projects[project_name]['info'].get('updatetime', 0):
+        if updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
             return True
         if time.time() - self.projects[project_name]['load_time'] < self.RELOAD_PROJECT_INTERVAL:
             return True
@@ -152,12 +152,12 @@ class ProjectLoader(object):
         mod.__package__ = ''
 
         code = self.get_code(fullname)
-        exec code in mod.__dict__
+        six.exec_(code, mod.__dict__)
         linecache.clearcache()
 
         if '__handler_cls__' not in mod.__dict__:
             BaseHandler = mod.__dict__.get('BaseHandler', base_handler.BaseHandler)
-            for each in mod.__dict__.values():
+            for each in list(six.itervalues(mod.__dict__)):
                 if inspect.isclass(each) and each is not BaseHandler \
                         and issubclass(each, BaseHandler):
                     mod.__dict__['__handler_cls__'] = each

@@ -6,9 +6,9 @@
 # Created on 2012-11-09 14:39:57
 
 import mimetypes
-from urlparse import urlparse, urlunparse
 
 import six
+from six.moves.urllib.parse import urlparse, urlunparse
 from requests.models import RequestEncodingMixin
 
 
@@ -33,18 +33,19 @@ def _build_url(url, _params):
     if not path:
         path = '/'
 
-    if isinstance(scheme, six.text_type):
-        scheme = scheme.encode('utf-8')
-    if isinstance(netloc, six.text_type):
-        netloc = netloc.encode('utf-8')
-    if isinstance(path, six.text_type):
-        path = path.encode('utf-8')
-    if isinstance(params, six.text_type):
-        params = params.encode('utf-8')
-    if isinstance(query, six.text_type):
-        query = query.encode('utf-8')
-    if isinstance(fragment, six.text_type):
-        fragment = fragment.encode('utf-8')
+    if six.PY2:
+        if isinstance(scheme, six.text_type):
+            scheme = scheme.encode('utf-8')
+        if isinstance(netloc, six.text_type):
+            netloc = netloc.encode('utf-8')
+        if isinstance(path, six.text_type):
+            path = path.encode('utf-8')
+        if isinstance(params, six.text_type):
+            params = params.encode('utf-8')
+        if isinstance(query, six.text_type):
+            query = query.encode('utf-8')
+        if isinstance(fragment, six.text_type):
+            fragment = fragment.encode('utf-8')
 
     enc_params = _encode_params(_params)
     if enc_params:
@@ -59,5 +60,5 @@ def _build_url(url, _params):
 def quote_chinese(url, encodeing="utf-8"):
     if isinstance(url, six.text_type):
         return quote_chinese(url.encode(encodeing))
-    res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
+    res = [six.int2byte(b).decode('latin-1') if b < 128 else '%%%02X' % b for b in url]
     return "".join(res)

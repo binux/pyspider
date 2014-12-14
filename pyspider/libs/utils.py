@@ -11,10 +11,9 @@ import datetime
 import base64
 
 import six
-from six import text_type
 from six import iteritems
 
-md5string = lambda x: hashlib.md5(x).hexdigest()
+md5string = lambda x: hashlib.md5(utf8(x)).hexdigest()
 
 
 class ReadOnlyDict(dict):

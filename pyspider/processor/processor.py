@@ -7,13 +7,14 @@
 
 import sys
 import time
-import Queue
 import logging
+logger = logging.getLogger("processor")
+
+from six.moves import queue as Queue
 from six.moves import reload_module, builtins
 from pyspider.libs import utils
 from pyspider.libs.response import rebuild_response
-from project_module import ProjectManager, ProjectLoader, ProjectFinder
-logger = logging.getLogger("processor")
+from .project_module import ProjectManager, ProjectLoader, ProjectFinder
 
 
 class Processor(object):
