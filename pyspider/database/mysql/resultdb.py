@@ -10,9 +10,10 @@ import time
 import json
 import mysql.connector
 
+from pyspider.libs import utils
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.database.basedb import BaseDB
-from mysqlbase import MySQLMixin, SplitTableMixin
+from .mysqlbase import MySQLMixin, SplitTableMixin
 
 
 class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
@@ -42,9 +43,7 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
 
     def _parse(self, data):
         if 'result' in data:
-            if isinstance(data['result'], bytearray):
-                data['result'] = str(data['result'])
-            data['result'] = json.loads(data['result'])
+            data['result'] = json.loads(utils.text(data['result']))
         return data
 
     def _stringify(self, data):

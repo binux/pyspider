@@ -162,7 +162,7 @@ class TestScheduler(unittest.TestCase):
         self.projectdb.update('test_project', status="DEBUG")
         self.rpc.update_project()
 
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
         self.assertEqual(task['url'], 'data:,_on_get_info')
 
@@ -189,7 +189,7 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['pending'], 1)
 
         time.sleep(0.5)
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=10)
         self.assertGreater(len(self.rpc.get_active_tasks()), 0)
         self.assertIsNotNone(task)
         self.assertEqual(task['project'], 'test_project')
@@ -251,7 +251,7 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
 
     def test_70_taskdone_ok(self):
@@ -324,7 +324,7 @@ class TestScheduler(unittest.TestCase):
                 'retries': 1
             },
         })
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
 
         self.test_70_taskdone_ok()
@@ -345,7 +345,7 @@ class TestScheduler(unittest.TestCase):
                 'retries': 1
             },
         })
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
 
     def test_a20_failed_retry(self):
@@ -362,7 +362,7 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
 
         self.status_queue.put({

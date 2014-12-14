@@ -11,9 +11,10 @@ import time
 import json
 import mysql.connector
 
+from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
-from mysqlbase import MySQLMixin, SplitTableMixin
+from .mysqlbase import MySQLMixin, SplitTableMixin
 
 
 class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
@@ -52,9 +53,7 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    if isinstance(data[each], bytearray):
-                        data[each] = str(data[each])
-                    data[each] = json.loads(unicode(data[each], 'utf8'))
+                    data[each] = json.loads(utils.text(data[each]))
                 else:
                     data[each] = {}
         return data

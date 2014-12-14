@@ -6,6 +6,7 @@
 # Created on 2014-10-07 10:33:38
 
 import os
+import six
 import time
 import unittest2 as unittest
 
@@ -13,7 +14,8 @@ from pyspider.libs import utils
 from pyspider.libs import rabbitmq
 
 
-@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
+@unittest.skipIf(six.PY3, 'pika not suport python 3')
+@unittest.skipIf(six.PY3 or os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
 class TestRabbitMQ(unittest.TestCase):
 
     @classmethod

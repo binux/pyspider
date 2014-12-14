@@ -470,7 +470,7 @@ class TestSQLAlchemyProjectDB(ProjectDBCase, unittest.TestCase):
         del self.projectdb
 
 
-@unittest.skipIf(six.PY3, "can't make it work")
+#@unittest.skipIf(six.PY3, "can't make it work")
 class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
