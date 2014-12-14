@@ -9,6 +9,7 @@ A Powerful Spider(Web Crawler) System in Python. [Try It Now!](http://demo.pyspi
 - Javascript pages supported!
 - Task priority, retry, periodical, recrawl by age and more
 - Distributed architecture
+- Python 3 supported!
 
 
 Sample Code:
@@ -42,7 +43,7 @@ class Handler(BaseHandler):
 Installation
 ============
 
-* python2.6/7 (windows is not supported currently)
+* python 2.6, 2.7, 3.3, 3.4
 * `pip install --allow-all-external -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
 
