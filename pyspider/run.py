@@ -12,7 +12,7 @@ import time
 import shutil
 import logging
 import logging.config
-import __builtin__
+from six.moves import builtins
 
 import click
 from pyspider.database import connect_database
@@ -433,7 +433,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     # wait bench test finished
     while True:
         time.sleep(1)
-        if __builtin__.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
+        if builtins.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
                 'newtask_queue', 'status_queue', 'scheduler2fetcher',
                 'fetcher2processor', 'processor2result')):
             break

@@ -60,5 +60,8 @@ def _build_url(url, _params):
 def quote_chinese(url, encodeing="utf-8"):
     if isinstance(url, six.text_type):
         return quote_chinese(url.encode(encodeing))
-    res = [six.int2byte(b).decode('latin-1') if b < 128 else '%%%02X' % b for b in url]
+    if six.PY3:
+        res = [six.int2byte(b).decode('latin-1') if b < 128 else '%%%02X' % b for b in url]
+    else:
+        res = [b if ord(b) < 128 else '%%%02X' % ord(b) for b in url]
     return "".join(res)

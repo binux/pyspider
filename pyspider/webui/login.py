@@ -5,9 +5,10 @@
 #         http://binux.me
 # Created on 2014-12-10 20:36:27
 
+import base64
 from flask import Response
 from flask.ext import login
-from app import app
+from .app import app
 
 login_manager = login.LoginManager()
 login_manager.init_app(app)
@@ -45,6 +46,7 @@ def load_user_from_request(request):
 app.login_response = Response(
     "need auth.", 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}
 )
+
 
 @app.before_request
 def before_request():
