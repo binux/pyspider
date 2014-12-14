@@ -31,8 +31,10 @@ setup(
 
         classifiers=[
             'Development Status :: 3 - Alpha',
+            'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
 
@@ -71,6 +73,7 @@ setup(
             'all': [
                 'mysql-connector-python>=1.2.2',
                 'pika>=0.9.14',
+                'amqp>=1.3.0',
                 'pymongo>=2.7.2',
                 'unittest2>=0.5.1',
                 'SQLAlchemy>=0.9.7'

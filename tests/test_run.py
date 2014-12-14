@@ -42,23 +42,6 @@ class TestRun(unittest.TestCase):
             json.dump({
                 'debug': True,
                 'taskdb': 'mysql+taskdb://localhost:23456/taskdb',
-            }, fp)
-        ctx = run.cli.make_context('test',
-                                   ['--config', './data/tests/config.json'],
-                                   None, obj=ObjectDict(testing_mode=True))
-        ctx = run.cli.invoke(ctx)
-        self.assertEqual(ctx.obj.debug, True)
-
-        import mysql.connector
-        with self.assertRaises(mysql.connector.InterfaceError):
-            ctx.obj.taskdb
-
-    @unittest.skipIf(six.PY3, 'pika not suport python 3')
-    def test_25_cli_config2(self):
-        with open('./data/tests/config.json', 'w') as fp:
-            json.dump({
-                'debug': True,
-                'taskdb': 'mysql+taskdb://localhost:23456/taskdb',
                 'amqp_url': 'amqp://guest:guest@localhost:23456/%%2F'
             }, fp)
         ctx = run.cli.make_context('test',
@@ -71,8 +54,7 @@ class TestRun(unittest.TestCase):
         with self.assertRaises(mysql.connector.InterfaceError):
             ctx.obj.taskdb
 
-        from pika.exceptions import AMQPConnectionError
-        with self.assertRaises(AMQPConnectionError):
+        with self.assertRaisesRegexp(Exception, 'Connection refused'):
             ctx.obj.newtask_queue
 
     def test_30_cli_command_line(self):
@@ -100,7 +82,6 @@ class TestRun(unittest.TestCase):
         finally:
             del os.environ['RESULTDB']
 
-    @unittest.skipIf(six.PY3, 'pika not suport python 3')
     @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
     def test_50_docker_rabbitmq(self):
         try:

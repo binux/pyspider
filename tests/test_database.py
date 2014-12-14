@@ -441,7 +441,6 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb.conn.drop_database(self.resultdb.database.name)
 
 
-@unittest.skipIf(six.PY3, "can't make it work")
 class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -455,7 +454,6 @@ class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
         del self.taskdb
 
 
-@unittest.skipIf(six.PY3, "can't make it work")
 class TestSQLAlchemyProjectDB(ProjectDBCase, unittest.TestCase):
 
 
@@ -470,7 +468,6 @@ class TestSQLAlchemyProjectDB(ProjectDBCase, unittest.TestCase):
         del self.projectdb
 
 
-@unittest.skipIf(six.PY3, "can't make it work")
 class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod

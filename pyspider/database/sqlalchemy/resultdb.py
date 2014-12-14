@@ -6,13 +6,20 @@
 # Created on 2014-12-04 18:48:15
 
 import re
+import six
 import time
 import json
 
 from sqlalchemy import (create_engine, MetaData, Table, Column,
-                        Integer, String, Float, LargeBinary, sql)
+                        String, Float, LargeBinary)
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
+from pyspider.libs import utils
 from .sqlalchemybase import SplitTableMixin, result2dict
+
+if six.PY3:
+    where_type = utils.utf8
+else:
+    where_type = utils.text
 
 
 class ResultDB(SplitTableMixin, BaseResultDB):
@@ -25,7 +32,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
                            Column('result', LargeBinary),
                            Column('updatetime', Float(16))
                            )
-        self.engine = create_engine(url)
+        self.engine = create_engine(url, convert_unicode=True)
 
         self._list_project()
 
@@ -36,16 +43,25 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.table.name = self._tablename(project)
         self.table.create(self.engine)
 
-    def _parse(self, data):
+    @staticmethod
+    def _parse(data):
+        for key, value in list(six.iteritems(data)):
+            if isinstance(value, six.binary_type):
+                data[key] = utils.text(value)
         if 'result' in data:
             if isinstance(data['result'], bytearray):
                 data['result'] = str(data['result'])
             data['result'] = json.loads(data['result'])
         return data
 
-    def _stringify(self, data):
+    @staticmethod
+    def _stringify(data):
         if 'result' in data:
             data['result'] = json.dumps(data['result'])
+        if six.PY3:
+            for key, value in list(six.iteritems(data)):
+                if isinstance(value, six.string_types):
+                    data[key] = utils.utf8(value)
         return data
 
     def save(self, project, taskid, url, result):
@@ -62,7 +78,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if self.get(project, taskid, ('taskid', )):
             del obj['taskid']
             return self.engine.execute(self.table.update()
-                                       .where(self.table.c.taskid==taskid)
+                                       .where(self.table.c.taskid == where_type(taskid))
                                        .values(**self._stringify(obj)))
         else:
             return self.engine.execute(self.table.insert()
@@ -102,6 +118,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
                                         .with_only_columns(columns=columns)
-                                        .where(self.table.c.taskid == taskid)
+                                        .where(self.table.c.taskid == where_type(taskid))
                                         .limit(1)):
             return self._parse(result2dict(columns, task))
