@@ -7,6 +7,7 @@
 
 
 import re
+import six
 import time
 import json
 import mysql.connector
@@ -50,10 +51,13 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
             ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
 
     def _parse(self, data):
+        for key, value in list(six.iteritems(data)):
+            if isinstance(value, (bytearray, six.binary_type)):
+                data[key] = utils.text(value)
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    data[each] = json.loads(utils.text(data[each]))
+                    data[each] = json.loads(data[each])
                 else:
                     data[each] = {}
         return data

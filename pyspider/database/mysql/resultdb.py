@@ -6,6 +6,7 @@
 # Created on 2014-10-13 22:02:57
 
 import re
+import six
 import time
 import json
 import mysql.connector
@@ -42,8 +43,11 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
             ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
 
     def _parse(self, data):
+        for key, value in list(six.iteritems(data)):
+            if isinstance(value, (bytearray, six.binary_type)):
+                data[key] = utils.text(value)
         if 'result' in data:
-            data['result'] = json.loads(utils.text(data['result']))
+            data['result'] = json.loads(data['result'])
         return data
 
     def _stringify(self, data):
