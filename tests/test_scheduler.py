@@ -160,6 +160,7 @@ class TestScheduler(unittest.TestCase):
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=0.1)
         self.projectdb.update('test_project', status="DEBUG")
+        time.sleep(1)
         self.rpc.update_project()
 
         task = self.scheduler2fetcher.get(timeout=10)
