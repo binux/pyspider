@@ -9,8 +9,8 @@ import json
 import time
 from pymongo import MongoClient
 
-from mongodbbase import SplitTableMixin
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
+from .mongodbbase import SplitTableMixin
 
 
 class TaskDB(SplitTableMixin, BaseTaskDB):

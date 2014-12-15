@@ -6,6 +6,7 @@
 # Created on 2014-11-21 22:32:35
 
 import os
+import six
 import json
 import shutil
 import unittest2 as unittest
@@ -53,8 +54,7 @@ class TestRun(unittest.TestCase):
         with self.assertRaises(mysql.connector.InterfaceError):
             ctx.obj.taskdb
 
-        from pika.exceptions import AMQPConnectionError
-        with self.assertRaises(AMQPConnectionError):
+        with self.assertRaisesRegexp(Exception, 'Connection refused'):
             ctx.obj.newtask_queue
 
     def test_30_cli_command_line(self):

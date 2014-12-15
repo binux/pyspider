@@ -5,14 +5,17 @@
 #         http://binux.me
 # Created on 2014-10-19 16:23:55
 
-from app import app
-from flask import render_template, request, json
-from flask import Response
+from __future__ import unicode_literals
 
+import six
 import csv
 import itertools
-import cStringIO as StringIO
-from pyspider.libs.utils import utf8
+from io import StringIO, BytesIO
+
+from six import iteritems
+from flask import render_template, request, json
+from flask import Response
+from .app import app
 
 
 def result_formater(results):
@@ -32,7 +35,7 @@ def result_formater(results):
         else:
             result_formated = {}
             others = {}
-            for key, value in result['result'].iteritems():
+            for key, value in iteritems(result['result']):
                 if key in common_fields:
                     result_formated[key] = value
                 else:
@@ -81,15 +84,28 @@ def dump_result(project, _format):
         return Response(generator(), mimetype='text/plain')
     elif _format == 'csv':
         def toString(obj):
-            if isinstance(obj, unicode):
-                return obj.encode('utf8')
-            elif isinstance(obj, basestring):
-                return obj
+            if isinstance(obj, six.binary_type):
+                if six.PY2:
+                    return obj
+                else:
+                    return obj.decode('utf8')
+            elif isinstance(obj, six.text_type):
+                if six.PY2:
+                    return obj.encode('utf8')
+                else:
+                    return obj
             else:
-                return json.dumps(obj, ensure_ascii=False).encode('utf8')
+                if six.PY2:
+                    return json.dumps(obj, ensure_ascii=False).encode('utf8')
+                else:
+                    return json.dumps(obj, ensure_ascii=False)
 
         def generator():
-            stringio = StringIO.StringIO()
+            # python2 needs byes when python3 needs unicode
+            if six.PY2:
+                stringio = BytesIO()
+            else:
+                stringio = StringIO()
             csv_writer = csv.writer(stringio)
 
             it = iter(resultdb.select(project))
@@ -101,12 +117,12 @@ def dump_result(project, _format):
             common_fields, _ = result_formater(first_30)
             common_fields_l = sorted(common_fields)
 
-            csv_writer.writerow(['url']
-                                + [utf8(x) for x in common_fields_l]
-                                + ['...'])
+            csv_writer.writerow([toString('url')]
+                                + [toString(x) for x in common_fields_l]
+                                + [toString('...')])
             for result in itertools.chain(first_30, it):
                 other = {}
-                for k, v in result['result'].iteritems():
+                for k, v in iteritems(result['result']):
                     if k not in common_fields:
                         other[k] = v
                 csv_writer.writerow(

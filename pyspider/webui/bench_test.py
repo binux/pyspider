@@ -6,10 +6,13 @@
 # Created on 2014-12-08 22:31:17
 
 import random
-from urllib import urlencode
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
-from app import app
-from flask import request, json
+from flask import request
+from .app import app
 
 
 @app.route('/bench')

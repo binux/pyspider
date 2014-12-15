@@ -5,12 +5,11 @@
 #         http://binux.me
 # Created on 2014-02-22 23:17:13
 
-import __builtin__
 import os
 import sys
-import base64
-import urlparse
 
+from six import reraise
+from six.moves import builtins, urllib
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
@@ -31,7 +30,8 @@ class TornadoFlask(Flask):
         self.ioloop.start()
 
     def quit(self):
-        self.ioloop.stop()
+        if hasattr(self, 'ioloop'):
+            self.ioloop.stop()
 
 
 app = TornadoFlask('webui',
@@ -39,7 +39,7 @@ app = TornadoFlask('webui',
                    template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 app.secret_key = os.urandom(24)
 app.jinja_env.line_statement_prefix = '#'
-app.jinja_env.globals.update(__builtin__.__dict__)
+app.jinja_env.globals.update(builtins.__dict__)
 
 app.config.update({
     'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(x)[1],
@@ -55,11 +55,11 @@ def cdn_url_handler(error, endpoint, kwargs):
         # cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
         # cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
         cdn = app.config.get('cdn', '//cdnjscn.b0.upaiyun.com/libs/')
-        return urlparse.urljoin(cdn, path)
+        return urllib.parse.urljoin(cdn, path)
     else:
         exc_type, exc_value, tb = sys.exc_info()
         if exc_value is error:
-            raise exc_type, exc_value, tb
+            reraise(exc_type, exc_value, tb)
         else:
             raise error
 app.handle_url_build_error = cdn_url_handler

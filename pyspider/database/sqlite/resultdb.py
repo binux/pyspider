@@ -9,7 +9,7 @@ import re
 import time
 import json
 
-from sqlitebase import SQLiteMixin, SplitTableMixin
+from .sqlitebase import SQLiteMixin, SplitTableMixin
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.database.basedb import BaseDB
 

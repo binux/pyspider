@@ -23,4 +23,4 @@ class TestBench(unittest.TestCase):
         self.assertIn('Fetched', result.output)
         self.assertIn('Processed', result.output)
         self.assertIn('Saved', result.output)
-        print result.output
+        print(result.output)

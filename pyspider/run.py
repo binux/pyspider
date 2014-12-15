@@ -5,12 +5,14 @@
 #         http://binux.me
 # Created on 2014-03-05 00:11:49
 
+
 import os
+import six
 import time
 import shutil
 import logging
 import logging.config
-import __builtin__
+from six.moves import builtins
 
 import click
 from pyspider.database import connect_database
@@ -41,8 +43,11 @@ def connect_db(ctx, param, value):
 def connect_rpc(ctx, param, value):
     if not value:
         return
-    import xmlrpclib
-    return xmlrpclib.ServerProxy(value)
+    try:
+        from six.moves import xmlrpc_client
+    except ImportError:
+        import xmlrpclib as xmlrpc_client
+    return xmlrpc_client.ServerProxy(value)
 
 
 @click.group(invoke_without_command=True)
@@ -172,7 +177,8 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
 @click.pass_context
-def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent, timeout, Fetcher=Fetcher):
+def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
+            timeout, Fetcher=Fetcher):
     g = ctx.obj
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
                       poolsize=poolsize, proxy=proxy)
@@ -255,7 +261,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
         app.config['webui_password'] = password
 
     # fetcher rpc
-    if isinstance(fetcher_rpc, basestring):
+    if isinstance(fetcher_rpc, six.string_types):
         fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
     if fetcher_rpc is None:
         fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
@@ -265,7 +271,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
         import umsgpack
         app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
 
-    if isinstance(scheduler_rpc, basestring):
+    if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
     if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://%s/' % (
@@ -354,6 +360,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, show):
     from pyspider.libs import bench
     from pyspider.webui import bench_test
+    bench_test  # make pyflake happy
 
     ctx.obj['debug'] = False
     g = ctx.obj
@@ -418,7 +425,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     # run project
     time.sleep(1)
     import requests
-    rv = requests.post('http://localhost:5000/run', data= {
+    rv = requests.post('http://localhost:5000/run', data={
         'project': 'bench',
     })
     assert rv.status_code == 200, 'run project error'
@@ -426,7 +433,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     # wait bench test finished
     while True:
         time.sleep(1)
-        if __builtin__.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
+        if builtins.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
                 'newtask_queue', 'status_queue', 'scheduler2fetcher',
                 'fetcher2processor', 'processor2result')):
             break
@@ -440,6 +447,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         if hasattr(each, 'terminate'):
             each.terminate()
         each.join(1)
+
 
 def main():
     cli()

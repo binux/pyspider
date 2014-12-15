@@ -5,18 +5,23 @@
 #         http://binux.me
 # Created on 2012-12-17 11:07:19
 
+from __future__ import unicode_literals
+
+import six
 import time
 import json
-import Queue
 import logging
 import threading
-import cookie_utils
 import tornado.ioloop
 import tornado.httputil
 import tornado.httpclient
+
+from six.moves import queue
+from requests import cookies
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from pyspider.libs import utils, dataurl, counter
+from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
 
@@ -113,9 +118,9 @@ class Fetcher(object):
             _result['result'] = result
             wait_result.notify()
             wait_result.release()
-        self.fetch(task, callback=callback)
 
         wait_result.acquire()
+        self.fetch(task, callback=callback)
         while 'result' not in _result:
             wait_result.wait()
         wait_result.release()
@@ -166,7 +171,7 @@ class Fetcher(object):
         track_headers = task.get('track', {}).get('fetch', {}).get('headers', {})
         # proxy
         if 'proxy' in task_fetch:
-            if isinstance(task_fetch['proxy'], basestring):
+            if isinstance(task_fetch['proxy'], six.string_types):
                 fetch['proxy_host'] = task_fetch['proxy'].split(":")[0]
                 fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
             elif self.proxy and task_fetch.get('proxy', True):
@@ -174,14 +179,14 @@ class Fetcher(object):
                 fetch['proxy_port'] = int(self.proxy.split(":")[1])
         # etag
         if task_fetch.get('etag', True):
-            _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), basestring) \
+            _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), six.string_types) \
                 else track_headers.get('etag')
             if _t:
                 fetch['headers'].setdefault('If-None-Match', _t)
         # last modifed
         if task_fetch.get('last_modified', True):
             _t = task_fetch.get('last_modifed') \
-                if isinstance(task_fetch.get('last_modifed'), basestring) \
+                if isinstance(task_fetch.get('last_modifed'), six.string_types) \
                 else track_headers.get('last-modified')
             if _t:
                 fetch['headers'].setdefault('If-Modifed-Since', _t)
@@ -203,18 +208,18 @@ class Fetcher(object):
             del fetch['cookies']
 
         def handle_response(response):
-            if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
+            if response.error is not None:
                 return handle_error(response.error)
 
             response.headers = final_headers
-            session.extract_cookies_to_jar(request, cookie_headers)
+            extract_cookies_to_jar(session, request, cookie_headers)
             result = {}
             result['orig_url'] = url
             result['content'] = response.body or ''
             result['headers'] = dict(response.headers)
             result['status_code'] = response.code
             result['url'] = response.effective_url or url
-            result['cookies'] = session.to_dict()
+            result['cookies'] = session.get_dict()
             result['time'] = time.time() - start_time
             result['save'] = task_fetch.get('save')
             if 200 <= response.code < 300:
@@ -238,7 +243,7 @@ class Fetcher(object):
         def handle_error(error):
             result = {
                 'status_code': getattr(error, 'code', 599),
-                'error': getattr(error, 'message', '%r' % error),
+                'error': utils.text(error),
                 'content': "",
                 'time': time.time() - start_time,
                 'orig_url': url,
@@ -249,7 +254,7 @@ class Fetcher(object):
             self.on_result('http', task, result)
             return task, result
 
-        session = cookie_utils.CookieSession()
+        session = cookies.RequestsCookieJar()
         cookie_headers = tornado.httputil.HTTPHeaders()
         final_headers = tornado.httputil.HTTPHeaders()
         try:
@@ -258,7 +263,7 @@ class Fetcher(object):
                 session.update(cookie)
                 if 'Cookie' in request.headers:
                     del request.headers['Cookie']
-                request.headers['Cookie'] = session.get_cookie_header(request)
+                request.headers['Cookie'] = cookies.get_cookie_header(session, request)
             if self.async:
                 self.http_client.fetch(request, handle_response)
             else:
@@ -307,22 +312,22 @@ class Fetcher(object):
             request_conf['request_timeout'] = fetch['timeout']
         fetch['headers'].setdefault('User-Agent', self.user_agent)
 
-        session = cookie_utils.CookieSession()
+        session = cookies.RequestsCookieJar()
         request = tornado.httpclient.HTTPRequest(url=fetch['url'])
         if fetch.get('cookies'):
             session.update(fetch['cookies'])
             if 'Cookie' in request.headers:
                 del request.headers['Cookie']
-            fetch['headers']['Cookie'] = session.get_cookie_header(request)
+            fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
 
         def handle_response(response):
-            if response.error and not isinstance(response.error, tornado.httpclient.HTTPError):
+            if response.error is not None:
                 return handle_error(response.error)
             if not response.body:
                 return handle_error(Exception('no response from phantomjs'))
 
             try:
-                result = json.loads(response.body)
+                result = json.loads(utils.text(response.body))
             except Exception as e:
                 return handle_error(e)
 
@@ -330,7 +335,7 @@ class Fetcher(object):
                 logger.info("[%d] %s %.2fs", result['status_code'], url, result['time'])
             else:
                 logger.error("[%d] %s, %r %.2fs", result['status_code'],
-                                 url, result['content'], result['time'])
+                             url, result['content'], result['time'])
             callback('phantomjs', task, result)
             self.on_result('phantomjs', task, result)
             return task, result
@@ -338,7 +343,7 @@ class Fetcher(object):
         def handle_error(error):
             result = {
                 'status_code': getattr(error, 'code', 599),
-                'error': unicode(error) or repr(error),
+                'error': utils.unicode_obj(error),
                 'content': "",
                 'time': time.time() - start_time,
                 'orig_url': url,
@@ -380,7 +385,7 @@ class Fetcher(object):
                     # database, it's used here for performance
                     task = utils.decode_unicode_obj(task)
                     self.fetch(task)
-                except Queue.Empty:
+                except queue.Empty:
                     break
                 except KeyboardInterrupt:
                     break
@@ -408,8 +413,12 @@ class Fetcher(object):
 
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         import umsgpack
-        from SimpleXMLRPCServer import SimpleXMLRPCServer
-        from xmlrpclib import Binary
+        try:
+            from xmlrpc.server import SimpleXMLRPCServer
+            from xmlrpc.client import Binary
+        except ImportError:
+            from SimpleXMLRPCServer import SimpleXMLRPCServer
+            from xmlrpclib import Binary
 
         server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()

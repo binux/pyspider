@@ -116,7 +116,7 @@ class TestProjectModule(unittest.TestCase):
     def test_8_add_task(self):
         self.base_task['process']['callback'] = 'add_task'
         ret = self.instance.run(self.module, self.base_task, self.fetch_result)
-        self.assertIsNone(ret.exception)
+        self.assertIsNone(ret.exception, ret.logstr())
         self.assertEqual(len(ret.follows), 1)
         self.assertEqual(len(ret.messages), 1)
 

@@ -5,9 +5,4 @@
 #         http://binux.me
 # Created on 2014-02-22 23:20:40
 
-import app
-import index
-import debug
-import task
-import result
-import login
+from . import app, index, debug, task, result, login

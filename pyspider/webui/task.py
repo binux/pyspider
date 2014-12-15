@@ -6,10 +6,10 @@
 # Created on 2014-07-16 15:30:57
 
 import socket
-from app import app
 from flask import abort, render_template, request, json
 
 from pyspider.libs import utils
+from .app import app
 
 
 @app.route('/task/<taskid>')

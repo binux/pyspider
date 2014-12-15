@@ -13,13 +13,13 @@ import socket
 import inspect
 import datetime
 import traceback
-from app import app
 from flask import render_template, request, json
 from flask.ext import login
 
 from pyspider.libs import utils, sample_handler
 from pyspider.libs.response import rebuild_response
 from pyspider.processor.project_module import ProjectManager, ProjectFinder, ProjectLoader
+from .app import app
 
 default_task = {
     'taskid': 'data:,on_start',

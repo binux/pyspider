@@ -9,12 +9,14 @@
 import os
 import json
 import time
-import Queue
+from six.moves import queue as Queue
 import logging
 from collections import deque
 
-from pyspider.libs import counter
-from task_queue import TaskQueue
+from six import iteritems, itervalues
+
+from pyspider.libs import counter, utils
+from .task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 
 
@@ -161,10 +163,10 @@ class Scheduler(object):
     def task_verify(self, task):
         for each in ('taskid', 'project', 'url', ):
             if each not in task or not task[each]:
-                logger.error('%s not in task: %s' % (each, unicode(task)[:200]))
+                logger.error('%s not in task: %s', each, utils.unicode_string(task)[:200])
                 return False
         if task['project'] not in self.task_queue:
-            logger.error('unknow project: %s' % task['project'])
+            logger.error('unknow project: %s', task['project'])
             return False
         return True
 
@@ -267,7 +269,7 @@ class Scheduler(object):
         if now - self._last_tick < 1:
             return False
         self._last_tick += 1
-        for project in self.projects.itervalues():
+        for project in itervalues(self.projects):
             if project['status'] not in ('DEBUG', 'RUNNING'):
                 continue
             if project.get('min_tick', 0) == 0:
@@ -312,7 +314,7 @@ class Scheduler(object):
                 break
 
         cnt_dict = dict()
-        for project, task_queue in self.task_queue.iteritems():
+        for project, task_queue in iteritems(self.task_queue):
             # task queue
             self.task_queue[project].check_update()
             cnt = 0
@@ -344,7 +346,7 @@ class Scheduler(object):
 
     def _check_delete(self):
         now = time.time()
-        for project in self.projects.values():
+        for project in list(itervalues(self.projects)):
             if project['status'] != 'STOP':
                 continue
             if now - project['updatetime'] < self.DELETE_TIME:
@@ -364,7 +366,7 @@ class Scheduler(object):
                 self.resultdb.drop(project['name'])
 
     def __len__(self):
-        return sum((len(x) for x in self.task_queue.itervalues()))
+        return sum(len(x) for x in itervalues(self.task_queue))
 
     def quit(self):
         self._quit = True
@@ -398,7 +400,10 @@ class Scheduler(object):
         self._dump_cnt()
 
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
-        from SimpleXMLRPCServer import SimpleXMLRPCServer
+        try:
+            from six.moves.xmlrpc_server import SimpleXMLRPCServer
+        except ImportError:
+            from SimpleXMLRPCServer import SimpleXMLRPCServer
 
         server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
         server.register_introspection_functions()
@@ -433,7 +438,7 @@ class Scheduler(object):
                 'track',
             ))
 
-            iters = [iter(x['active_tasks']) for k, x in self.projects.iteritems()
+            iters = [iter(x['active_tasks']) for k, x in iteritems(self.projects)
                      if x and (k == project if project else True)]
             tasks = [next(x, None) for x in iters]
             result = []
@@ -442,13 +447,21 @@ class Scheduler(object):
                 updatetime, task = t = max(tasks)
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
-                for key in task.keys():
-                    if key in allowed_keys:
+                for key in list(task):
+                    if key == 'track':
+                        track = {}
+                        if 'fetch' in task['track'] and 'ok' in task['track']['fetch']:
+                            track['fetch'] = {'ok': task['track']['fetch']['ok']}
+                        if 'process' in task['track'] and 'ok' in task['track']['process']:
+                            track['process'] = {'ok': task['track']['process']['ok']}
+                        task['track'] = track
+                    elif key in allowed_keys:
                         continue
                     del task[key]
                 result.append(t)
-            # fix for "<type 'exceptions.TypeError'>:dictionary key must be string", have no idea why
-            return json.loads(json.dumps(result))
+            # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
+            # have no idea why
+            return utils.unicode_obj(json.loads(json.dumps(result)))
         server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.timeout = 0.5

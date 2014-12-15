@@ -7,13 +7,15 @@
 
 
 import re
+import six
 import time
 import json
 import mysql.connector
 
+from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
-from mysqlbase import MySQLMixin, SplitTableMixin
+from .mysqlbase import MySQLMixin, SplitTableMixin
 
 
 class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
@@ -49,12 +51,13 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
             ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
 
     def _parse(self, data):
+        for key, value in list(six.iteritems(data)):
+            if isinstance(value, (bytearray, six.binary_type)):
+                data[key] = utils.text(value)
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    if isinstance(data[each], bytearray):
-                        data[each] = str(data[each])
-                    data[each] = json.loads(unicode(data[each], 'utf8'))
+                    data[each] = json.loads(data[each])
                 else:
                     data[each] = {}
         return data

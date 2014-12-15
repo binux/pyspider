@@ -63,7 +63,7 @@
         </dl>
         <dl>
           {%- set not_shown_keys = ('status', 'url', 'project', 'taskid', 'lastcrawltime', 'updatetime', 'track', ) %}
-          {%- for key, value in task.iteritems() if key not in not_shown_keys %}
+          {%- for key, value in task.items() if key not in not_shown_keys %}
           <dt>{{ key }}</dt>
           <dd>{{ json.dumps(value, indent=2, ensure_ascii=False) if value is mapping else value }}</dd>
           {%- endfor %}

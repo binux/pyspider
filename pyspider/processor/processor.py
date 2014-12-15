@@ -7,12 +7,13 @@
 
 import sys
 import time
-import Queue
 import logging
+logger = logging.getLogger("processor")
+
+from six.moves import queue as Queue
 from pyspider.libs import utils
 from pyspider.libs.response import rebuild_response
-from project_module import ProjectManager, ProjectLoader, ProjectFinder
-logger = logging.getLogger("processor")
+from .project_module import ProjectManager, ProjectLoader, ProjectFinder
 
 
 class Processor(object):
@@ -48,7 +49,7 @@ class Processor(object):
         sys.meta_path.append(ProcessProjectFinder())
 
     def __del__(self):
-        reload(__builtin__)
+        pass
 
     def on_task(self, task, response):
         start_time = time.time()
@@ -90,7 +91,7 @@ class Processor(object):
                         'ok': not ret.exception,
                         'time': process_time,
                         'follows': len(ret.follows),
-                        'result': unicode(ret.result)[:self.RESULT_RESULT_LIMIT],
+                        'result': utils.text(ret.result)[:self.RESULT_RESULT_LIMIT],
                         'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
                         'exception': ret.exception,
                     },

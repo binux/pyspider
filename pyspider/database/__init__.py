@@ -5,7 +5,10 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
-import urlparse
+try:
+    from urllib import parse as urlparse
+except ImportError:
+    import urlparse
 
 
 def connect_database(url):

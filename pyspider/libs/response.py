@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2012-11-02 11:16:02
 
+import six
 import json
 import chardet
 import lxml.html
@@ -33,7 +34,7 @@ class Response(object):
         self.time = 0
 
     def __repr__(self):
-        return '<Response [%d]>' % self.status_code
+        return u'<Response [%d]>' % self.status_code
 
     def __bool__(self):
         """Returns true if :attr:`status_code` is 'OK'."""
@@ -57,7 +58,7 @@ class Response(object):
             return self._encoding
 
         # content is unicode
-        if isinstance(self.content, unicode):
+        if isinstance(self.content, six.text_type):
             return 'unicode'
 
         # Try charset from content-type
@@ -96,7 +97,7 @@ class Response(object):
             return self._text
         if not self.content:
             return u''
-        if isinstance(self.content, unicode):
+        if isinstance(self.content, six.text_type):
             return self.content
 
         content = None

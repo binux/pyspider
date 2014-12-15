@@ -34,10 +34,12 @@ saferepr()
 
 """
 
-import sys as _sys
-import warnings
+from __future__ import print_function
 
-from cStringIO import StringIO as _StringIO
+import six
+import sys as _sys
+
+from io import BytesIO, StringIO
 
 __all__ = ["pprint", "pformat", "isreadable", "isrecursive", "saferepr",
            "PrettyPrinter"]
@@ -77,11 +79,7 @@ def isrecursive(object):
 
 
 def _sorted(iterable):
-    with warnings.catch_warnings():
-        if _sys.py3kwarning:
-            warnings.filterwarnings("ignore", "comparing unequal types "
-                                    "not supported", DeprecationWarning)
-        return sorted(iterable)
+    return sorted(iterable)
 
 
 class PrettyPrinter:
@@ -122,7 +120,7 @@ class PrettyPrinter:
         self._stream.write("\n")
 
     def pformat(self, object):
-        sio = _StringIO()
+        sio = BytesIO()
         self._format(object, sio, 0, 0, {}, 0)
         return sio.getvalue()
 
@@ -273,7 +271,7 @@ def _safe_repr(object, context, maxlevels, level):
         except:
             pass
         qget = quotes.get
-        sio = _StringIO()
+        sio = StringIO()
         write = sio.write
         for char in object:
             if char.isalpha():
@@ -282,7 +280,7 @@ def _safe_repr(object, context, maxlevels, level):
                 write(qget(char, repr(char)[1:-1]))
         return ("%s%s%s" % (closure, sio.getvalue(), closure)), True, False
 
-    if typ is unicode:
+    if typ is six.text_type:
         string = object.encode("utf8", 'replace')
         string = string.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
         if "'" in object and '"' not in object:
@@ -373,8 +371,8 @@ def _perfcheck(object=None):
     t2 = time.time()
     p.pformat(object)
     t3 = time.time()
-    print "_safe_repr:", t2 - t1
-    print "pformat:", t3 - t2
+    print("_safe_repr:", t2 - t1)
+    print("pformat:", t3 - t2)
 
 if __name__ == "__main__":
     _perfcheck()
