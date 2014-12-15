@@ -160,7 +160,7 @@ class TestScheduler(unittest.TestCase):
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=0.1)
         self.projectdb.update('test_project', status="DEBUG")
-        time.sleep(1)
+        time.sleep(0.1)
         self.rpc.update_project()
 
         task = self.scheduler2fetcher.get(timeout=10)
@@ -183,11 +183,6 @@ class TestScheduler(unittest.TestCase):
                 'age': 0,
             },
         })
-        timeout = time.time() + 5
-        while self.rpc.size() != 1 and timeout > time.time():
-            time.sleep(0.1)
-        self.assertEqual(self.rpc.size(), 1)
-        self.assertEqual(self.rpc.counter('all', 'sum')['test_project']['pending'], 1)
 
         time.sleep(0.5)
         task = self.scheduler2fetcher.get(timeout=10)
