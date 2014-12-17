@@ -21,7 +21,7 @@
       {% for task in tasks | sort(reverse=True, attribute='updatetime') %}
       <li class=task>
         {% if task.status %}
-          <span class="status status-{{ task.status | default(3) }}">{{ status_to_string(task.status) if task.status else 'ERROR' }}</span>
+          <span class="status status-{{ task.status }}">{{ status_to_string(task.status) }}</span>
         {% elif task.track %}
         <span class="status status-3">
           {%- if task.track.fetch and not task.track.fetch.ok -%}
@@ -31,7 +31,7 @@
           {%- endif -%}
         </span>
         {% else %}
-          <span class="status status-2 }}">ERROR</span>
+          <span class="status status-4 }}">ERROR</span>
         {% endif %}
 
         <a class=callback href="/debug/{{ task.project }}?taskid={{ task.taskid }}" target=_blank>{{ task.project }}</a>

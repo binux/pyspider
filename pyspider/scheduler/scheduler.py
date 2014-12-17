@@ -448,20 +448,13 @@ class Scheduler(object):
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
                 for key in list(task):
-                    if key == 'track':
-                        track = {}
-                        if 'fetch' in task['track'] and 'ok' in task['track']['fetch']:
-                            track['fetch'] = {'ok': task['track']['fetch']['ok']}
-                        if 'process' in task['track'] and 'ok' in task['track']['process']:
-                            track['process'] = {'ok': task['track']['process']['ok']}
-                        task['track'] = track
-                    elif key in allowed_keys:
+                    if key in allowed_keys:
                         continue
                     del task[key]
                 result.append(t)
             # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
             # have no idea why
-            return utils.unicode_obj(json.loads(json.dumps(result)))
+            return json.loads(json.dumps(utils.unicode_obj(result)))
         server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.timeout = 0.5
