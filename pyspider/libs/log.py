@@ -17,7 +17,9 @@ from tornado.log import LogFormatter as _LogFormatter
 
 class LogFormatter(_LogFormatter, object):
     def __init__(self, color=True, fmt=None, *args, **kwargs):
-        super(LogFormatter, self).__init__(*args, **kwargs)
+        if fmt is None:
+            fmt = _LogFormatter.DEFAULT_FORMAT
+        super(LogFormatter, self).__init__(color=color, fmt=fmt, *args, **kwargs)
 
 
 class SaveLogHandler(logging.Handler):

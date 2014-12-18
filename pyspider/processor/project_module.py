@@ -13,7 +13,7 @@ import logging
 import inspect
 import linecache
 from pyspider.libs import base_handler
-from pyspider.libs.log import SaveLogHandler
+from pyspider.libs.log import SaveLogHandler, LogFormatter
 logger = logging.getLogger("processor")
 
 
@@ -144,7 +144,9 @@ class ProjectLoader(object):
 
         log_buffer = []
         mod.logging = mod.logger = logging.Logger(self.name)
-        mod.logger.addHandler(SaveLogHandler(log_buffer))
+        handler = SaveLogHandler(log_buffer)
+        handler.setFormatter(LogFormatter(color=False))
+        mod.logger.addHandler(handler)
         mod.log_buffer = log_buffer
         mod.__file__ = '<%s>' % self.name
         mod.__loader__ = self

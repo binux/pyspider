@@ -437,6 +437,12 @@ class Scheduler(object):
                 'updatetime',
                 'track',
             ))
+            track_allowed_keys = set((
+                'ok',
+                'time',
+                'follows',
+                'status_code',
+            ))
 
             iters = [iter(x['active_tasks']) for k, x in iteritems(self.projects)
                      if x and (k == project if project else True)]
@@ -448,13 +454,17 @@ class Scheduler(object):
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
                 for key in list(task):
+                    if key == 'track':
+                        for k in list(task[key]):
+                            if k not in track_allowed_keys:
+                                del task[key][k]
                     if key in allowed_keys:
                         continue
                     del task[key]
                 result.append(t)
             # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
             # have no idea why
-            return json.loads(json.dumps(utils.unicode_obj(result)))
+            return json.loads(json.dumps(result))
         server.register_function(get_active_tasks, 'get_active_tasks')
 
         server.timeout = 0.5
