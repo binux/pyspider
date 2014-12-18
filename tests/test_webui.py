@@ -207,6 +207,7 @@ class TestWebUI(unittest.TestCase):
         rv = self.app.get('/tasks')
         self.assertEqual(rv.status_code, 200, rv.data)
         self.assertIn(b'SUCCESS</span>', rv.data)
+        self.assertNotIn(b'ERROR</span>', rv.data)
         m = re.search(r'/task/test_project:[^"]+', utils.text(rv.data))
         self.assertIsNotNone(m)
         self.__class__.task_url = m.group(0)
@@ -219,6 +220,26 @@ class TestWebUI(unittest.TestCase):
         rv = self.app.get('/tasks?project=test_project')
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'SUCCESS</span>', rv.data)
+        self.assertNotIn(b'ERROR</span>', rv.data)
+
+    def test_a22_active_tasks(self):
+        rv = self.app.get('/active_tasks')
+        data = json.loads(utils.text(rv.data))
+        track = False
+        self.assertGreater(len(data), 0)
+        for task in data:
+            for k in ('taskid', 'project', 'status', 'status_text', 'url', 'updatetime'):
+                self.assertIn(k, task)
+            if task.get('track'):
+                track = True
+                self.assertIn('fetch', task['track'])
+                self.assertIn('ok', task['track']['fetch'])
+                self.assertIn('time', task['track']['fetch'])
+                self.assertIn('process', task['track'])
+                self.assertIn('ok', task['track']['process'])
+                self.assertIn('time', task['track']['process'])
+        self.assertTrue(track)
+                    
 
     def test_a24_task(self):
         rv = self.app.get(self.task_url)

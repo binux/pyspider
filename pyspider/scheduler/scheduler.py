@@ -455,9 +455,12 @@ class Scheduler(object):
                 tasks[i] = next(iters[i], None)
                 for key in list(task):
                     if key == 'track':
-                        for k in list(task[key]):
+                        for k in list(task[key].get('fetch', [])):
                             if k not in track_allowed_keys:
-                                del task[key][k]
+                                del task[key]['fetch'][k]
+                        for k in list(task[key].get('process', [])):
+                            if k not in track_allowed_keys:
+                                del task[key]['process'][k]
                     if key in allowed_keys:
                         continue
                     del task[key]
