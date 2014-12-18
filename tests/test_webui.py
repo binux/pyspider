@@ -220,7 +220,7 @@ class TestWebUI(unittest.TestCase):
         rv = self.app.get('/tasks?project=test_project')
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'SUCCESS</span>', rv.data)
-        self.assertNotIn(b'ERROR</span>', rv.data)
+        self.assertNotIn(b'>ERROR</span>', rv.data)
 
     def test_a22_active_tasks(self):
         rv = self.app.get('/active_tasks')
@@ -228,7 +228,7 @@ class TestWebUI(unittest.TestCase):
         track = False
         self.assertGreater(len(data), 0)
         for task in data:
-            for k in ('taskid', 'project', 'status', 'status_text', 'url', 'updatetime'):
+            for k in ('taskid', 'project', 'status_text', 'url', 'updatetime'):
                 self.assertIn(k, task)
             if task.get('track'):
                 track = True
