@@ -54,8 +54,6 @@ apt-get install python python-dev python-distribute python-pip libcurl4-openssl-
 ```
 ro install binary packages first.
 
-[Full Deployment](Deployment)
-
 
 Documents
 ---------

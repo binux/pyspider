@@ -16,5 +16,6 @@ pages:
     - [apis/@catch_status_code_error.md, 'API Reference', '@catch_status_code_error']
     - [apis/@every.md, 'API Reference', '@every']
     - [Deployment.md, '', 'Deployment']
-    - [Frequently-Asked-Questions.md, '', 'Frequently Asked Questions']
+    - [Running-pyspider-with-Docker.md]
+    - [Frequently-Asked-Questions.md]
 theme: readthedocs
