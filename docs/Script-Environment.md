@@ -1,3 +1,6 @@
+Script Environment
+==================
+
 Variables
 ---------
 * `self.project_name`

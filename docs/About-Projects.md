@@ -1,3 +1,6 @@
+About Projects
+==============
+
 In most case, a project is one script you write for one website.
 
 * Projects are independent, but you can import other project as module with `from projects import other_project`

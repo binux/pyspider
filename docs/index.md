@@ -61,7 +61,7 @@ Documents
 ---------
 
 * [Quickstart](Quickstart)
-* [API Reference](apis)
+* [API Reference](apis/)
 
 Contribute
 ----------

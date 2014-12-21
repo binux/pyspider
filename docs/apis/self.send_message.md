@@ -1,3 +1,6 @@
+self.send_message
+=================
+
 self.send_message(project, msg, [url])
 --------------------------------------
 send messages to other project. can been received by `def on_message(self, project, message)` callback.

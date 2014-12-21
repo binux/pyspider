@@ -48,17 +48,20 @@ Installation
 * `pip install --allow-all-external -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
 
-if ubuntu: `apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml`
+if you are using ubuntu, try:
+```
+apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
+```
+ro install binary packages first.
 
-[Running with Docker](https://github.com/binux/pyspider/wiki/Running-pyspider-with-Docker)
-
+[Full Deployment](http://pyspider.readthedocs.org/en/latest/Deployment/)
 
 Documents
 ---------
 
-* [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
-* [API Reference](https://github.com/binux/pyspider/wiki/API-Reference)
-* more documents: [Wiki](https://github.com/binux/pyspider/wiki)
+* [Quickstart](http://pyspider.readthedocs.org/en/latest/Quickstart/)
+* [API Reference](http://pyspider.readthedocs.org/en/latest/apis/)
+* [docs](http://pyspider.readthedocs.org/)
 
 
 TODO

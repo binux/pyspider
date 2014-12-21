@@ -1,3 +1,6 @@
+Deployment
+===========
+
 Since pyspider supplies various databases and components can be replaced, you can just `./run.py` to start a standalone and no serive dependent instance. Or you can deploy a distributed crawl cluster with mongodb and rabbitmq. Make your choice according to your needs.
 
 Installation
