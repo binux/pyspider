@@ -48,48 +48,20 @@ Installation
 * `pip install --allow-all-external -r requirements.txt`
 * `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
 
-if ubuntu: `apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml`
+if you are using ubuntu, try:
+```
+apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
+```
+ro install binary packages first.
 
-[Running with Docker](https://github.com/binux/pyspider/wiki/Running-pyspider-with-Docker)
+[Full Deployment](Deployment)
 
 
 Documents
 ---------
 
-* [Quickstart](https://github.com/binux/pyspider/wiki/Quickstart)
-* [API Reference](https://github.com/binux/pyspider/wiki/API-Reference)
-* more documents: [Wiki](https://github.com/binux/pyspider/wiki)
-
-
-TODO
-----
-
-### v0.3.0 (current)
-
-- [x] as a package
-- [x] run.py parameters
-- [x] sortable projects list #12
-- [x] Postgresql Supported via SQLAlchemy (with the power of SQLAlchemy, pyspider also support Oracle, SQL Server, etc)
-- [x] benchmarking
-- [x] python3 support
-- [ ] documents
-- [ ] pypi release version
-
-### v0.4.0
-
-- [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
-
-
-### more
-
-- [ ] local mode, loading scripts from file.
-- [ ] edit script with local vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
-- [ ] in-browser debugger like [Werkzeug](http://werkzeug.pocoo.org/)
-
-### ???
-- [ ] works as a framework (all components running in one process, no threads)
-- [ ] shell mode like `scrapy shell` 
-
+* [Quickstart](Quickstart)
+* [API Reference](apis)
 
 Contribute
 ----------
@@ -110,6 +82,6 @@ Licensed under the Apache License, Version 2.0
 [Coverage]:             https://coveralls.io/r/binux/pyspider
 [Try]:                  https://img.shields.io/badge/try-pyspider-blue.svg?style=flat
 [Demo]:                 http://demo.pyspider.org/
-[Demo Img]:             https://github.com/binux/pyspider/blob/master/docs/imgs/demo.png
+[Demo Img]:             imgs/demo.png
 [Issue]:                https://github.com/binux/pyspider/issues
 [User Group]:           https://groups.google.com/group/pyspider-users
