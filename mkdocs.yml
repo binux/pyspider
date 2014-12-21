@@ -1,0 +1,20 @@
+site_name: pyspider
+site_description: A Powerful Spider(Web Crawler) System in Python.
+site_author: binux
+repo_url: https://github.com/binux/pyspider
+pages:
+    - [index.md, 'Introduction']
+    - [Quickstart.md, 'Quickstart']
+    - [Architecture.md, 'About pyspider', 'Architecture']
+    - [About-Tasks.md, 'About pyspider', 'About Tasks']
+    - [About-Projects.md, 'About pyspider', 'About Projects']
+    - [Script-Environment.md, 'About pyspider', 'Script Environment']
+    - [apis/index.md, 'API Reference']
+    - [apis/self.crawl.md, 'API Reference', 'self.crawl']
+    - [apis/Response.md, 'API Reference', 'Response']
+    - [apis/self.send_message.md, 'API Reference', 'self.send_message']
+    - [apis/@catch_status_code_error.md, 'API Reference', '@catch_status_code_error']
+    - [apis/@every.md, 'API Reference', '@every']
+    - [Deployment.md, '', 'Deployment']
+    - [Frequently-Asked-Questions.md, '', 'Frequently Asked Questions']
+theme: readthedocs
