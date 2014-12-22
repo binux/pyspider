@@ -37,23 +37,30 @@ class Response(object):
         return u'<Response [%d]>' % self.status_code
 
     def __bool__(self):
-        """Returns true if :attr:`status_code` is 'OK'."""
+        """Returns true if `status_code` is 200 and no error"""
         return self.ok
 
     def __nonzero__(self):
-        """Returns true if :attr:`status_code` is 'OK'."""
+        """Returns true if `status_code` is 200 and no error."""
         return self.ok
 
     @property
     def ok(self):
+        """Return true if `status_code` is 200 and no error."""
         try:
             self.raise_for_status()
-        except HTTPError:
+        except:
             return False
         return True
 
     @property
     def encoding(self):
+        """
+        encoding of Response.content.
+
+        if Response.encoding is None, encoding will be guessed
+        by header or content or chardet if avaibable.
+        """
         if hasattr(self, '_encoding'):
             return self._encoding
 
@@ -83,12 +90,17 @@ class Response(object):
 
     @encoding.setter
     def encoding(self, value):
+        """
+        set encoding of content manually
+        it will overwrite the guessed encoding
+        """
         self._encoding = value
         self._text = None
 
     @property
     def text(self):
-        """Content of the response, in unicode.
+        """
+        Content of the response, in unicode.
 
         if Response.encoding is None and chardet module is available, encoding
         will be guessed.

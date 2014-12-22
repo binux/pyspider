@@ -22,6 +22,7 @@ from pyspider.libs.pprint import pprint
 
 
 class ProcessorResult(object):
+    """The result and logs producted by a callback"""
 
     def __init__(self, result, follows, messages, logs, exception, extinfo):
         self.result = result
@@ -32,10 +33,14 @@ class ProcessorResult(object):
         self.extinfo = extinfo
 
     def rethrow(self):
+        """rethrow the exception"""
+
         if self.exception:
             raise self.exception
 
     def logstr(self):
+        """handler the log records to formatted string"""
+
         result = []
         formater = LogFormatter(color=False)
         for record in self.logs:
@@ -52,11 +57,20 @@ class ProcessorResult(object):
 
 
 def catch_status_code_error(func):
+    """
+    Non-200 response will been regarded as fetch failed and will not pass to callback.
+    Use this decorator to override this feature.
+    """
     func._catch_status_code_error = True
     return func
 
 
 def not_send_status(func):
+    """
+    Do not send process status package back to scheduler.
+
+    It's used by callbacks like on_message, on_result etc...
+    """
     @functools.wraps(func)
     def wrapper(self, response, task):
         self._extinfo['not_send_status'] = True
@@ -66,6 +80,10 @@ def not_send_status(func):
 
 
 def config(_config=None, **kwargs):
+    """
+    A decorator for setting the default kwargs of `BaseHandler.crawl`.
+    Any self.crawl with this callback will use this config.
+    """
     if _config is None:
         _config = {}
     _config.update(kwargs)
@@ -81,6 +99,9 @@ class NOTSET(object):
 
 
 def every(minutes=NOTSET, seconds=NOTSET):
+    """
+    method will been called every minutes or seconds
+    """
     def wrapper(func):
         @functools.wraps(func)
         def on_cronjob(self, response, task):
@@ -125,29 +146,44 @@ class BaseHandlerMeta(type):
                 cron_jobs.append(each)
                 min_tick = fractions.gcd(min_tick, each.tick)
         newcls = type.__new__(cls, name, bases, attrs)
-        newcls.cron_jobs = cron_jobs
-        newcls.min_tick = min_tick
+        newcls._cron_jobs = cron_jobs
+        newcls._min_tick = min_tick
         return newcls
 
 
 @add_metaclass(BaseHandlerMeta)
 class BaseHandler(object):
+    """
+    BaseHandler for all scripts.
+
+    `BaseHandler.run` is the main method to handler the task.
+    """
     crawl_config = {}
     project_name = None
-    cron_jobs = []
-    min_tick = 0
+    _cron_jobs = []
+    _min_tick = 0
     __env__ = {'not_inited': True}
 
     def _reset(self):
+        """
+        reset before each task
+        """
         self._extinfo = {}
         self._messages = []
         self._follows = []
 
     def _run_func(self, function, *arguments):
+        """
+        Running callback function with requested number of arguments
+        """
         args, varargs, keywords, defaults = inspect.getargspec(function)
         return function(*arguments[:len(args) - 1])
 
     def _run(self, task, response):
+        """
+        Finding callback specified by `task['callback']`
+        raising status error for it if needed.
+        """
         self._reset()
         if isinstance(response, dict):
             response = rebuild_response(response)
@@ -162,6 +198,9 @@ class BaseHandler(object):
         return self._run_func(function, response, task)
 
     def run(self, module, task, response):
+        """
+        Processing the task, catching exceptions and logs, return a `ProcessorResult` object
+        """
         logger = module.logger
         result = None
         exception = None
@@ -193,6 +232,11 @@ class BaseHandler(object):
         return ProcessorResult(result, follows, messages, logs, exception, extinfo)
 
     def _crawl(self, url, **kwargs):
+        """
+        real crawl API
+
+        checking kwargs, and repack them to each sub-dict
+        """
         task = {}
 
         if kwargs.get('callback'):
@@ -271,7 +315,7 @@ class BaseHandler(object):
     # apis
     def crawl(self, url, **kwargs):
         '''
-        params:
+        avalable params:
           url
           callback
 
@@ -300,6 +344,8 @@ class BaseHandler(object):
 
           save
           taskid
+
+          full documents: http://pyspider.readthedocs.org/en/latest/apis/self.crawl/
         '''
 
         if isinstance(url, six.string_types):
@@ -311,15 +357,19 @@ class BaseHandler(object):
             return result
 
     def is_debugger(self):
+        """Return true if running in debugger"""
         return self.__env__.get('debugger')
 
     def send_message(self, project, msg, url='data:,on_message'):
+        """Send messages to other project."""
         self._messages.append((project, msg, url))
 
     def on_message(self, project, msg):
+        """Receive message from other project, override me."""
         pass
 
     def on_result(self, result):
+        """Receiving returns from other callback, override me."""
         if not result:
             return
         assert self.task, "on_result can't outside a callback."
@@ -335,15 +385,16 @@ class BaseHandler(object):
 
     @not_send_status
     def _on_cronjob(self, response, task):
-        for cronjob in self.cron_jobs:
+        for cronjob in self._cron_jobs:
             function = cronjob.__get__(self, self.__class__)
             self._run_func(function, response, task)
 
     @not_send_status
     def _on_get_info(self, response, task):
+        """Sending runtime infomation about this script."""
         result = {}
         assert response.save
         for each in response.save:
             if each == 'min_tick':
-                result[each] = self.min_tick
+                result[each] = self._min_tick
         self.crawl('data:,on_get_info', save=result)
