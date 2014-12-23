@@ -21,15 +21,40 @@ from six.moves import cPickle
 
 
 class BaseCounter(object):
-    pass
+
+    def __init__(self):
+        raise NotImplementedError
+
+    def event(self, value=1):
+        """Fire a event."""
+        raise NotImplementedError
+
+    def value(self, value):
+        """Set counter value."""
+        raise NotImplementedError
+
+    @property
+    def avg(self):
+        """Get average value"""
+        raise NotImplementedError
+
+    @property
+    def sum(self):
+        """Get sum of counter"""
+        raise NotImplementedError
+
+    def empty(self):
+        """Clear counter"""
+        raise NotImplementedError
 
 
 class TotalCounter(BaseCounter):
+    """Total counter"""
 
     def __init__(self):
         self.cnt = 0
 
-    def event(self, value):
+    def event(self, value=1):
         self.cnt += value
 
     def value(self, value):
@@ -48,6 +73,9 @@ class TotalCounter(BaseCounter):
 
 
 class AverageWindowCounter(BaseCounter):
+    """
+    Record last N(window) value
+    """
 
     def __init__(self, window_size=300):
         self.window_size = window_size
@@ -72,6 +100,11 @@ class AverageWindowCounter(BaseCounter):
 
 
 class TimebaseAverageWindowCounter(BaseCounter):
+    """
+    Record last window_size * window_interval seconds values.
+
+    records will trim evert window_interval seconds
+    """
 
     def __init__(self, window_size=30, window_interval=10):
         self.max_window_size = window_size
@@ -144,6 +177,9 @@ class TimebaseAverageWindowCounter(BaseCounter):
 
 
 class CounterValue(DictMixin):
+    """
+    A dict like value item for CounterManager.
+    """
 
     def __init__(self, manager, keys):
         self.manager = manager
@@ -189,6 +225,7 @@ class CounterValue(DictMixin):
         return result
 
     def to_dict(self, get_value=None):
+        """Dump counters as a dict"""
         result = {}
         for key, value in iteritems(self):
             if isinstance(value, BaseCounter):
@@ -201,12 +238,23 @@ class CounterValue(DictMixin):
 
 
 class CounterManager(DictMixin):
+    """
+    A dict like counter manager.
+
+    When using a tuple as event key, say: ('foo', 'bar'), You can visite counter
+    with manager['foo']['bar'].  Or get all counters which first element is 'foo'
+    by manager['foo'].
+
+    It's useful for a group of counters.
+    """
 
     def __init__(self, cls=TimebaseAverageWindowCounter):
+        """init manager with Counter cls"""
         self.cls = cls
         self.counters = {}
 
     def event(self, key, value=1):
+        """Fire a event of a counter by counter key"""
         if isinstance(key, six.string_types):
             key = (key, )
         assert isinstance(key, tuple), "event key type error"
@@ -216,6 +264,7 @@ class CounterManager(DictMixin):
         return self
 
     def value(self, key, value=1):
+        """Set value of a counter by counter key"""
         if isinstance(key, six.string_types):
             key = (key, )
         assert isinstance(key, tuple), "event key type error"
@@ -225,6 +274,7 @@ class CounterManager(DictMixin):
         return self
 
     def trim(self):
+        """Clear not used counters"""
         for key, value in list(iteritems(self.counters)):
             if value.empty():
                 del self.counters[key]
@@ -259,6 +309,7 @@ class CounterManager(DictMixin):
         return result
 
     def to_dict(self, get_value=None):
+        """Dump counters as a dict"""
         self.trim()
         result = {}
         for key, value in iteritems(self):
@@ -271,6 +322,7 @@ class CounterManager(DictMixin):
         return result
 
     def dump(self, filename):
+        """Dump counters to file"""
         try:
             cPickle.dump(self.counters, open(filename, 'wb'))
         except:
@@ -279,6 +331,7 @@ class CounterManager(DictMixin):
         return True
 
     def load(self, filename):
+        """Load counters to file"""
         try:
             self.counters = cPickle.load(open(filename))
         except:

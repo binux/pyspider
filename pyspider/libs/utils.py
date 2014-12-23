@@ -17,12 +17,14 @@ md5string = lambda x: hashlib.md5(utf8(x)).hexdigest()
 
 
 class ReadOnlyDict(dict):
+    """A Read Only Dict"""
 
     def __setitem__(self, key, value):
         raise Exception("dict is read-only")
 
 
 def getitem(obj, key=0, default=None):
+    """Get first element of list or return default"""
     try:
         return obj[key]
     except:
@@ -30,6 +32,7 @@ def getitem(obj, key=0, default=None):
 
 
 def hide_me(tb, g=globals()):
+    """Hide stack traceback of given stack"""
     base_tb = tb
     try:
         while tb and tb.tb_frame.f_globals is not g:
@@ -45,6 +48,7 @@ def hide_me(tb, g=globals()):
 
 
 def run_in_thread(func, *args, **kwargs):
+    """Run function in thread, return a Thread object"""
     from threading import Thread
     thread = Thread(target=func, args=args, kwargs=kwargs)
     thread.daemon = True
@@ -53,6 +57,7 @@ def run_in_thread(func, *args, **kwargs):
 
 
 def run_in_subprocess(func, *args, **kwargs):
+    """Run function in subprocess, return a Process object"""
     from multiprocessing import Process
     thread = Process(target=func, args=args, kwargs=kwargs)
     thread.daemon = True
@@ -71,6 +76,8 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
 
     This method is primarily intended for dates in the past.
     For dates in the future, we fall back to full format.
+
+    From tornado
     """
     if not date:
         return '-'
@@ -144,6 +151,12 @@ try:
         raise ImportError('signal')
 
     class timeout:
+        """
+        Time limit of command
+
+        with timeout(3):
+            time.sleep(10)
+        """
 
         def __init__(self, seconds=1, error_message='Timeout'):
             self.seconds = seconds
@@ -162,6 +175,9 @@ try:
                 signal.alarm(0)
 except ImportError:
     class timeout:
+        """
+        Time limit of command (for windows)
+        """
 
         def __init__(self, seconds=1, error_message='Timeout'):
             pass
@@ -174,6 +190,11 @@ except ImportError:
 
 
 def utf8(string):
+    """
+    Make sure string is utf8 encoded bytes.
+
+    If parameter is a object, object.__str__ will been called before encode as bytes
+    """
     if isinstance(string, six.text_type):
         return string.encode('utf8')
     elif isinstance(string, six.binary_type):
@@ -183,15 +204,23 @@ def utf8(string):
 
 
 def text(string, encoding='utf8'):
+    """
+    Make sure string is unicode type, decode with given encoding if it's not.
+
+    If parameter is a object, object.__str__ will been called
+    """
     if isinstance(string, six.text_type):
         return string
     elif isinstance(string, six.binary_type):
-        return string.decode('utf8')
+        return string.decode(encoding)
     else:
         return six.text_type(string)
 
 
 def pretty_unicode(string):
+    """
+    Make sure string is unicode, try to decode with utf8, or unicode escaped string if failed.
+    """
     if isinstance(string, six.text_type):
         return string
     try:
@@ -201,6 +230,11 @@ def pretty_unicode(string):
 
 
 def unicode_string(string):
+    """
+    Make sure string is unicode, try to default with utf8, or base64 if failed.
+
+    can been decode by `decode_unicode_string`
+    """
     if isinstance(string, six.text_type):
         return string
     try:
@@ -210,6 +244,9 @@ def unicode_string(string):
 
 
 def unicode_dict(_dict):
+    """
+    Make sure keys and values of dict is unicode.
+    """
     r = {}
     for k, v in iteritems(_dict):
         r[unicode_string(k)] = unicode_obj(v)
@@ -217,10 +254,18 @@ def unicode_dict(_dict):
 
 
 def unicode_list(_list):
+    """
+    Make sure every element in list is unicode. bytes will encode in base64
+    """
     return [unicode_obj(x) for x in _list]
 
 
 def unicode_obj(obj):
+    """
+    Make sure keys and values of dict/list/tuple is unicode. bytes will encode in base64.
+
+    Can been decode by `decode_unicode_obj`
+    """
     if isinstance(obj, dict):
         return unicode_dict(obj)
     elif isinstance(obj, (list, tuple)):
@@ -239,12 +284,18 @@ def unicode_obj(obj):
 
 
 def decode_unicode_string(string):
+    """
+    Decode string encoded by `unicode_string`
+    """
     if string.startswith('[BASE64-DATA]') and string.endswith('[/BASE64-DATA]'):
         return base64.b64decode(string[len('[BASE64-DATA]'):-len('[/BASE64-DATA]')])
     return string
 
 
 def decode_unicode_obj(obj):
+    """
+    Decode unicoded dict/list/tuple encoded by `unicode_obj`
+    """
     if isinstance(obj, dict):
         r = {}
         for k, v in iteritems(obj):
@@ -259,6 +310,9 @@ def decode_unicode_obj(obj):
 
 
 class Get(object):
+    """
+    Lazy value calculate for object
+    """
 
     def __init__(self, getter):
         self.getter = getter
@@ -268,6 +322,11 @@ class Get(object):
 
 
 class ObjectDict(dict):
+    """
+    Object like dict, every dict[key] can visite by dict.key
+
+    If dict[key] is `Get`, calculate it's value.
+    """
 
     def __getattr__(self, name):
         ret = self.__getitem__(name)

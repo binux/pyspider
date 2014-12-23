@@ -10,6 +10,9 @@ from six.moves.urllib.parse import quote, unquote
 
 
 def encode(data, mime_type='', charset='utf-8', base64=True):
+    """
+    Encode data to DataURL
+    """
     if isinstance(data, six.text_type):
         data = data.encode(charset)
     else:
@@ -34,6 +37,9 @@ def encode(data, mime_type='', charset='utf-8', base64=True):
 
 
 def decode(data_url):
+    """
+    Decode DataURL data
+    """
     metadata, data = data_url.rsplit(',', 1)
     _, metadata = metadata.split('data:', 1)
     parts = metadata.split(';')
@@ -46,6 +52,3 @@ def decode(data_url):
         if part.startswith("charset="):
             data = data.decode(part[8:])
     return data
-
-if __name__ == '__main__':
-    pass
