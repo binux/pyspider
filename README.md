@@ -11,6 +11,7 @@ A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
 - Task priority, retry, periodical, recrawl by age and more
 - Distributed architecture
 
+Documentation: [http://docs.python-requests.org/](http://docs.python-requests.org/)
 
 Sample Code 
 -----------
@@ -52,14 +53,14 @@ if you are using ubuntu, try:
 ```
 apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
 ```
-ro install binary packages first.
 
-Documents
----------
 
-* [Quickstart](http://pyspider.readthedocs.org/en/latest/Quickstart/)
-* [API Reference](http://pyspider.readthedocs.org/en/latest/apis/)
-* [docs](http://pyspider.readthedocs.org/)
+Contribute
+----------
+
+* Use It
+* Open [Issue], send PR
+* [User Group]
 
 
 TODO
@@ -90,14 +91,6 @@ TODO
 ### ???
 - [ ] works as a framework (all components running in one process, no threads)
 - [ ] shell mode like `scrapy shell` 
-
-
-Contribute
-----------
-
-* Use It
-* Open [Issue], send PR
-* [User Group]
 
 
 License

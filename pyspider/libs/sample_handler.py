@@ -7,12 +7,16 @@ from pyspider.libs.base_handler import *
 
 
 class Handler(BaseHandler):
+    """
+    A Sample Handler
+    """
+    crawl_config = {
+    }
 
-    '''
-    this is a sample handler
-    '''
     @every(minutes=24 * 60, seconds=0)
     def on_start(self):
+        """Called when click the `run` button on dashboard, re-execute every 24 hours"""
+
         self.crawl('http://scrapy.org/', callback=self.index_page)
 
     @config(age=10 * 24 * 60 * 60)

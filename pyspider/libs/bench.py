@@ -16,6 +16,7 @@ from pyspider.result import ResultWorker
 
 
 class BenchMixin(object):
+    """Report to logger for bench test"""
     def _bench_init(self):
         self.done_cnt = 0
         self.start_time = time.time()
@@ -29,8 +30,9 @@ class BenchMixin(object):
             rps = float(self.done_cnt - self.last_cnt) / (now - self.last_report)
             output = ''
             if prefix:
-                output += " "*prefix
-            output += ("%s %s pages (at %d pages/min)" % (name, self.done_cnt, rps*60.0)).rjust(rjust)
+                output += " " * prefix
+            output += ("%s %s pages (at %d pages/min)" % (
+                name, self.done_cnt, rps * 60.0)).rjust(rjust)
             logger.info(output)
             self.last_cnt = self.done_cnt
             self.last_report = now
@@ -44,7 +46,7 @@ class BenchScheduler(Scheduler, BenchMixin):
     def on_task_status(self, task):
         self._bench_report('Crawled')
         return super(BenchScheduler, self).on_task_status(task)
-    
+
 
 class BenchFetcher(Fetcher, BenchMixin):
     def __init__(self, *args, **kwargs):

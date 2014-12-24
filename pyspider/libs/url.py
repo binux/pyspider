@@ -13,6 +13,7 @@ from requests.models import RequestEncodingMixin
 
 
 def get_content_type(filename):
+    """Guessing file type by filename"""
     return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
 
@@ -58,6 +59,7 @@ def _build_url(url, _params):
 
 
 def quote_chinese(url, encodeing="utf-8"):
+    """Quote non-ascii characters"""
     if isinstance(url, six.text_type):
         return quote_chinese(url.encode(encodeing))
     if six.PY3:

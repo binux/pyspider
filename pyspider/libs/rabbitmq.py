@@ -7,9 +7,10 @@
 
 import six
 import time
-import umsgpack
 import socket
 import select
+import logging
+import umsgpack
 import threading
 
 import amqp
@@ -24,6 +25,7 @@ except ImportError:
 
 
 def catch_error(func):
+    """Catch errors of rabbitmq then reconnect"""
     def wrap(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
@@ -33,19 +35,38 @@ def catch_error(func):
                 pika.exceptions.ConnectionClosed,
                 pika.exceptions.AMQPConnectionError,
                 amqp.ConnectionError
-        ):
+        ) as e:
+            logging.error('RabbitMQ error: %r, reconnect.', e)
             self.reconnect()
             return func(self, *args, **kwargs)
     return wrap
 
 
 class PikaQueue(object):
+    """
+    A Queue like rabbitmq connector
+    """
+
     Empty = BaseQueue.Empty
     Full = BaseQueue.Full
     max_timeout = 0.3
 
     def __init__(self, name, amqp_url='amqp://guest:guest@localhost:5672/%2F',
                  maxsize=0, lazy_limit=True):
+        """
+        Constructor for a PikaQueue.
+
+        Not works with python 3. Default for python 2.
+
+        amqp_url:   https://www.rabbitmq.com/uri-spec.html
+        maxsize:    an integer that sets the upperbound limit on the number of
+                    items that can be placed in the queue.
+        lazy_limit: as rabbitmq is shared between multipul instance, for a strict
+                    limit on the number of items in the queue. PikaQueue have to
+                    update current queue size before every put operation. When
+                    `lazy_limit` is enabled, PikaQueue will check queue size every
+                    max_size / 10 put operation for better performace.
+        """
         self.name = name
         self.amqp_url = amqp_url
         self.maxsize = maxsize
@@ -61,6 +82,7 @@ class PikaQueue(object):
         self.reconnect()
 
     def reconnect(self):
+        """Reconnect to rabbitmq server"""
         self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
         self.channel = self.connection.channel()
         self.channel.queue_declare(self.name)
@@ -157,6 +179,20 @@ class AmqpQueue(PikaQueue):
 
     def __init__(self, name, amqp_url='amqp://guest:guest@localhost:5672/%2F',
                  maxsize=0, lazy_limit=True):
+        """
+        Constructor for a AmqpQueue.
+
+        Default for python 3.
+
+        amqp_url:   https://www.rabbitmq.com/uri-spec.html
+        maxsize:    an integer that sets the upperbound limit on the number of
+                    items that can be placed in the queue.
+        lazy_limit: as rabbitmq is shared between multipul instance, for a strict
+                    limit on the number of items in the queue. PikaQueue have to
+                    update current queue size before every put operation. When
+                    `lazy_limit` is enabled, PikaQueue will check queue size every
+                    max_size / 10 put operation for better performace.
+        """
         self.name = name
         self.amqp_url = amqp_url
         self.maxsize = maxsize
@@ -172,6 +208,7 @@ class AmqpQueue(PikaQueue):
         self.reconnect()
 
     def reconnect(self):
+        """Reconnect to rabbitmq server"""
         parsed = urlparse.urlparse(self.amqp_url)
         port = parsed.port or 5672
         self.connection = amqp.Connection(host="%s:%s" % (parsed.hostname, port),
