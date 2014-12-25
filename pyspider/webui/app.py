@@ -7,6 +7,8 @@
 
 import os
 import sys
+import logging
+logger = logging.getLogger("webui")
 
 from six import reraise
 from six.moves import builtins, urllib
@@ -23,7 +25,14 @@ if os.name == 'nt':
 
 
 class TornadoFlask(Flask):
+    """Flask object running with tornado ioloop"""
+
+    @property
+    def logger(self):
+        return logger
+
     def run(self, host='0.0.0.0', port=5000):
+        self.logger.info('webui starting on %s:%s', host, port)
         self.ioloop = IOLoop()
         http_server = HTTPServer(WSGIContainer(app), io_loop=self.ioloop)
         http_server.listen(port, host)
@@ -32,6 +41,7 @@ class TornadoFlask(Flask):
     def quit(self):
         if hasattr(self, 'ioloop'):
             self.ioloop.stop()
+        self.logger.info('webui exiting...')
 
 
 app = TornadoFlask('webui',

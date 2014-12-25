@@ -371,6 +371,8 @@ class Fetcher(object):
             return handle_error(e)
 
     def run(self):
+        logger.info("fetcher starting...")
+
         def queue_loop():
             if not self.outqueue or not self.inqueue:
                 return

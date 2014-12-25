@@ -39,6 +39,8 @@ class ResultWorker(object):
         self._quit = True
 
     def run(self):
+        logger.info("result_worker starting...")
+
         while not self._quit:
             try:
                 task, result = self.inqueue.get(timeout=1)

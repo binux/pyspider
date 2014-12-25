@@ -134,6 +134,8 @@ class Processor(object):
         self._quit = True
 
     def run(self):
+        logger.info("processor starting...")
+
         while not self._quit:
             try:
                 task, response = self.inqueue.get(timeout=1)

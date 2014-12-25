@@ -333,3 +333,17 @@ class ObjectDict(dict):
         if hasattr(ret, '__get__'):
             return ret.__get__(self, ObjectDict)
         return ret
+
+
+def load_object(name):
+    """Load object from module"""
+
+    if "." not in name:
+        raise Exception('load object need module.object')
+
+    module_name, object_name = name.rsplit('.', 1)
+    if six.PY2:
+        module = __import__(module_name, globals(), locals(), [utf8(object_name)], -1)
+    else:
+        module = __import__(module_name, globals(), locals(), [object_name])
+    return getattr(module, object_name)

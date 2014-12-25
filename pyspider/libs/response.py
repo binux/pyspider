@@ -18,6 +18,7 @@ try:
 except ImportError:
     get_encodings_from_content = None
 from requests import HTTPError
+from pyspider.libs import utils
 
 
 class Response(object):
@@ -75,7 +76,10 @@ class Response(object):
 
         # Try charset from content
         if not encoding and get_encodings_from_content:
-            encoding = get_encodings_from_content(self.content)
+            if six.PY3:
+                encoding = get_encodings_from_content(utils.pretty_unicode(self.content[:100]))
+            else:
+                encoding = get_encodings_from_content(self.content)
             encoding = encoding and encoding[0] or None
 
         # Fallback to auto-detected encoding.

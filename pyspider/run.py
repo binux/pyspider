@@ -16,13 +16,7 @@ from six.moves import builtins
 
 import click
 from pyspider.database import connect_database
-from pyspider.libs.utils import run_in_thread, run_in_subprocess, Get, ObjectDict
-
-from pyspider.scheduler import Scheduler
-from pyspider.fetcher.tornado_fetcher import Fetcher
-from pyspider.processor import Processor
-from pyspider.result import ResultWorker
-from pyspider.webui.app import app
+from pyspider.libs import utils
 
 
 def read_config(ctx, param, value):
@@ -37,7 +31,13 @@ def read_config(ctx, param, value):
 def connect_db(ctx, param, value):
     if not value:
         return
-    return Get(lambda: connect_database(value))
+    return utils.Get(lambda: connect_database(value))
+
+
+def load_cls(ctx, param, value):
+    if isinstance(value, six.string_types):
+        return utils.load_object(value)
+    return value
 
 
 def connect_rpc(ctx, param, value):
@@ -77,11 +77,11 @@ def cli(ctx, **kwargs):
         if kwargs[db] is not None:
             continue
         if os.environ.get('MYSQL_NAME'):
-            kwargs[db] = Get(lambda db=db: connect_database('mysql+%s://%s:%s/%s' % (
+            kwargs[db] = utils.Get(lambda db=db: connect_database('mysql+%s://%s:%s/%s' % (
                 db, os.environ['MYSQL_PORT_3306_TCP_ADDR'],
                 os.environ['MYSQL_PORT_3306_TCP_PORT'], db)))
         elif os.environ.get('MONGODB_NAME'):
-            kwargs[db] = Get(lambda db=db: connect_database('mongodb+%s://%s:%s/%s' % (
+            kwargs[db] = utils.Get(lambda db=db: connect_database('mongodb+%s://%s:%s/%s' % (
                 db, os.environ['MONGODB_PORT_27017_TCP_ADDR'],
                 os.environ['MONGODB_PORT_27017_TCP_PORT'], db)))
         elif ctx.invoked_subcommand == 'bench':
@@ -90,14 +90,14 @@ def cli(ctx, **kwargs):
                 shutil.rmtree(kwargs['data_path'], ignore_errors=True)
                 os.mkdir(kwargs['data_path'])
             if db in ('taskdb', 'resultdb'):
-                kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s://' % (db)))
+                kwargs[db] = utils.Get(lambda db=db: connect_database('sqlite+%s://' % (db)))
             else:
-                kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
+                kwargs[db] = utils.Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
                     db, kwargs['data_path'], db[:-2])))
         else:
             if not os.path.exists(kwargs['data_path']):
                 os.mkdir(kwargs['data_path'])
-            kwargs[db] = Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
+            kwargs[db] = utils.Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
                 db, kwargs['data_path'], db[:-2])))
 
     # queue
@@ -105,16 +105,16 @@ def cli(ctx, **kwargs):
         from pyspider.libs.rabbitmq import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
                      'fetcher2processor', 'processor2result'):
-            kwargs[name] = Get(lambda name=name: Queue(name, amqp_url=kwargs['amqp_url'],
-                                                       maxsize=kwargs['queue_maxsize']))
+            kwargs[name] = utils.Get(lambda name=name: Queue(name, amqp_url=kwargs['amqp_url'],
+                                                             maxsize=kwargs['queue_maxsize']))
     elif os.environ.get('RABBITMQ_NAME'):
         from pyspider.libs.rabbitmq import Queue
         amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                     ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
                      'fetcher2processor', 'processor2result'):
-            kwargs[name] = Get(lambda name=name: Queue(name, amqp_url=amqp_url,
-                                                       maxsize=kwargs['queue_maxsize']))
+            kwargs[name] = utils.Get(lambda name=name: Queue(name, amqp_url=amqp_url,
+                                                             maxsize=kwargs['queue_maxsize']))
     else:
         from multiprocessing import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
@@ -127,7 +127,7 @@ def cli(ctx, **kwargs):
     elif os.environ.get('PHANTOMJS_NAME'):
         kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT'][len('tcp://'):]
 
-    ctx.obj = ObjectDict(ctx.obj or {})
+    ctx.obj = utils.ObjectDict(ctx.obj or {})
     ctx.obj['instances'] = []
     ctx.obj.update(kwargs)
 
@@ -147,10 +147,14 @@ def cli(ctx, **kwargs):
               help='delete time before marked as delete')
 @click.option('--active-tasks', default=100, help='active log size')
 @click.option('--loop-limit', default=1000, help='maximum number of tasks due with in a loop')
+@click.option('--scheduler-cls', default='pyspider.scheduler.Scheduler', callback=load_cls,
+              help='scheduler class to be used.')
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
-              inqueue_limit, delete_time, active_tasks, loop_limit, Scheduler=Scheduler):
+              inqueue_limit, delete_time, active_tasks, loop_limit, scheduler_cls):
     g = ctx.obj
+    Scheduler = load_cls(None, None, scheduler_cls)
+
     scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
                           newtask_queue=g.newtask_queue, status_queue=g.status_queue,
                           out_queue=g.scheduler2fetcher, data_path=g.get('data_path', 'data'))
@@ -164,7 +168,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
         return scheduler
 
     if xmlrpc:
-        run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
+        utils.run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     scheduler.run()
 
 
@@ -176,10 +180,14 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--proxy', help="proxy host:port")
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
+@click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
+              help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, Fetcher=Fetcher):
+            timeout, fetcher_cls):
     g = ctx.obj
+    Fetcher = load_cls(None, None, fetcher_cls)
+
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
                       poolsize=poolsize, proxy=proxy)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
@@ -194,14 +202,18 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
         return fetcher
 
     if xmlrpc:
-        run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
+        utils.run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
     fetcher.run()
 
 
 @cli.command()
+@click.option('--processor-cls', default='pyspider.processor.Processor', callback=load_cls,
+              help='Processor class to be used.')
 @click.pass_context
-def processor(ctx, Processor=Processor):
+def processor(ctx, processor_cls):
     g = ctx.obj
+    Processor = load_cls(None, None, processor_cls)
+
     processor = Processor(projectdb=g.projectdb,
                           inqueue=g.fetcher2processor, status_queue=g.status_queue,
                           newtask_queue=g.newtask_queue, result_queue=g.processor2result)
@@ -214,9 +226,13 @@ def processor(ctx, Processor=Processor):
 
 
 @cli.command()
+@click.option('--result-cls', default='pyspider.result.ResultWorker', callback=load_cls,
+              help='ResultWorker class to be used.')
 @click.pass_context
-def result_worker(ctx, ResultWorker=ResultWorker):
+def result_worker(ctx, result_cls):
     g = ctx.obj
+    ResultWorker = load_cls(None, None, result_cls)
+
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
     g.instances.append(result_worker)
@@ -242,9 +258,16 @@ def result_worker(ctx, ResultWorker=ResultWorker):
 @click.option('--password', envvar='WEBUI_PASSWORD',
               help='password of lock -ed projects')
 @click.option('--need-auth', default=False, help='need username and password')
+@click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
+              help='Fetcher class to be used.')
+@click.option('--webui-instance', default='pyspider.webui.app.app', callback=load_cls,
+              help='webui Flask Application instance to be used.')
 @click.pass_context
-def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc,
-          max_rate, max_burst, username, password, need_auth, app=app):
+def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
+          username, password, need_auth, fetcher_cls, webui_instance):
+    app = load_cls(None, None, webui_instance)
+    Fetcher = load_cls(None, None, fetcher_cls)
+
     g = ctx.obj
     app.config['taskdb'] = g.taskdb
     app.config['projectdb'] = g.projectdb
@@ -303,9 +326,9 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     g = ctx.obj
 
     if run_in == 'subprocess' and os.name != 'nt':
-        run_in = run_in_subprocess
+        run_in = utils.run_in_subprocess
     else:
-        run_in = run_in_thread
+        run_in = utils.run_in_thread
 
     threads = []
 
@@ -368,9 +391,9 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         g['processor2result'] = None
 
     if run_in == 'subprocess' and os.name != 'nt':
-        run_in = run_in_subprocess
+        run_in = utils.run_in_subprocess
     else:
-        run_in = run_in_thread
+        run_in = utils.run_in_thread
 
     g.projectdb.insert('bench', {
         'name': 'bench',
@@ -395,26 +418,30 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     result_worker_config = g.config.get('result_worker', {})
     for i in range(result_worker_num):
         threads.append(run_in(ctx.invoke, result_worker,
-                              ResultWorker=bench.BenchResultWorker, **result_worker_config))
+                              result_cls='pyspider.libs.bench.BenchResultWorker',
+                              **result_worker_config))
 
     # processor
     processor_config = g.config.get('processor', {})
     for i in range(processor_num):
         threads.append(run_in(ctx.invoke, processor,
-                              Processor=bench.BenchProcessor, **processor_config))
+                              processor_cls='pyspider.libs.bench.BenchProcessor',
+                              **processor_config))
 
     # fetcher
     fetcher_config = g.config.get('fetcher', {})
     fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
     for i in range(fetcher_num):
         threads.append(run_in(ctx.invoke, fetcher,
-                              Fetcher=bench.BenchFetcher, **fetcher_config))
+                              fetcher_cls='pyspider.libs.bench.BenchFetcher',
+                              **fetcher_config))
 
     # scheduler
     scheduler_config = g.config.get('scheduler', {})
     scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
     threads.append(run_in(ctx.invoke, scheduler,
-                          Scheduler=bench.BenchScheduler, **scheduler_config))
+                          scheduler_cls='pyspider.libs.bench.BenchScheduler',
+                          **scheduler_config))
 
     # webui
     webui_config = g.config.get('webui', {})
