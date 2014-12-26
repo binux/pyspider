@@ -31,25 +31,25 @@ phantomjs:
     - .:/mnt/test
   command: /usr/bin/phantomjs /mnt/test/pyspider/fetcher/phantomjs_fetcher.js 25555
 scheduler:
-  image: pyspider:latest
+  image: binux/pyspider:latest
   links:
     - mysql
     - rabbitmq
   command: scheduler
 fetcher:
-  image: pyspider:latest
+  image: binux/pyspider:latest
   links:
     - rabbitmq
     - phantomjs
   command : fetcher
 processor:
-  image: pyspider:latest
+  image: binux/pyspider:latest
   links:
     - mysql
     - rabbitmq
   command: processor
 webui:
-  image: pyspider:latest
+  image: binux/pyspider:latest
   links:
     - mysql
     - rabbitmq
