@@ -9,7 +9,7 @@ You can get command help via `pyspider --help`.
 global options works for all subcommands.
 
 ```
-Usage: run.py [OPTIONS] COMMAND [ARGS]...
+Usage: pyspider [OPTIONS] COMMAND [ARGS]...
 
   A powerful spider system in python.
 
@@ -75,7 +75,7 @@ all
 running components in subprocess or threads
 
 ```
-Usage: run.py all [OPTIONS]
+Usage: pyspider all [OPTIONS]
 
 Options:
   --fetcher-num INTEGER         instance num of fetcher
@@ -93,7 +93,7 @@ bench
 do bench test
 
 ```
-Usage: run.py bench [OPTIONS]
+Usage: pyspider bench [OPTIONS]
 
 Options:
   --fetcher-num INTEGER         instance num of fetcher
@@ -113,7 +113,7 @@ scheduler
 run scheduler
 
 ```
-Usage: run.py scheduler [OPTIONS]
+Usage: pyspider scheduler [OPTIONS]
 
 Options:
   --xmlrpc / --no-xmlrpc
@@ -137,7 +137,7 @@ fetcher
 -------
 
 ```
-Usage: run.py fetcher [OPTIONS]
+Usage: pyspider fetcher [OPTIONS]
 
 Options:
   --xmlrpc / --no-xmlrpc
@@ -160,7 +160,7 @@ processor
 ---------
 
 ```
-Usage: run.py processor [OPTIONS]
+Usage: pyspider processor [OPTIONS]
 
 Options:
   --processor-cls TEXT  Processor class to be used.
@@ -171,7 +171,7 @@ result_worker
 -------------
 
 ```
-Usage: run.py result_worker [OPTIONS]
+Usage: pyspider result_worker [OPTIONS]
 
 Options:
   --result-cls TEXT  ResultWorker class to be used.
@@ -183,7 +183,7 @@ webui
 -----
 
 ```
-Usage: run.py webui [OPTIONS]
+Usage: pyspider webui [OPTIONS]
 
 Options:
   --host TEXT            webui bind to host

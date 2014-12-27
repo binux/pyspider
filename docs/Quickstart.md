@@ -4,9 +4,8 @@ Quickstart
 Installation
 ------------
 
-* python 2.6,2.7,3.3,3.4
-* `pip install --allow-all-external -r requirements.txt`
-* `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
+* `pip install pyspider`
+* run command `pyspider`, visit [http://localhost:5000/](http://localhost:5000/)
 
 if you are using ubuntu, try:
 ```

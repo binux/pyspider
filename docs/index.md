@@ -44,16 +44,8 @@ class Handler(BaseHandler):
 Installation
 ------------
 
-* python 2.6, 2.7, 3.3, 3.4
-* `pip install --allow-all-external -r requirements.txt`
-* `./run.py` , visit [http://localhost:5000/](http://localhost:5000/)
-
-if you are using ubuntu, try:
-```
-apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
-```
-ro install binary packages first.
-
+* `pip install pyspider`
+* run command `pyspider`, visit [http://localhost:5000/](http://localhost:5000/)
 
 Documents
 ---------
