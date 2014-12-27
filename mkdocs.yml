@@ -4,7 +4,8 @@ site_author: binux
 repo_url: https://github.com/binux/pyspider
 pages:
     - [index.md, 'Introduction']
-    - [Quickstart.md, 'Quickstart']
+    - [Quickstart.md, '', 'Quickstart']
+    - [Command-Line.md, '', 'Command Line']
     - [Architecture.md, 'About pyspider', 'Architecture']
     - [About-Tasks.md, 'About pyspider', 'About Tasks']
     - [About-Projects.md, 'About pyspider', 'About Projects']
@@ -16,6 +17,6 @@ pages:
     - [apis/@catch_status_code_error.md, 'API Reference', '@catch_status_code_error']
     - [apis/@every.md, 'API Reference', '@every']
     - [Deployment.md, '', 'Deployment']
-    - [Running-pyspider-with-Docker.md]
-    - [Frequently-Asked-Questions.md]
+    - [Running-pyspider-with-Docker.md, '', 'Running pyspider with Docker']
+    - [Frequently-Asked-Questions.md, '', 'Frequently Asked Questions']
 theme: readthedocs

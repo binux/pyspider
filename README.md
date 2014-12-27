@@ -79,18 +79,16 @@ TODO
 
 ### v0.4.0
 
+- [ ] local mode, load script from file.
+- [ ] works as a framework (all components running in one process, no threads)
+- [ ] shell mode like `scrapy shell` 
 - [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
 
 
 ### more
 
-- [ ] local mode, loading scripts from file.
 - [ ] edit script with local vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
 - [ ] in-browser debugger like [Werkzeug](http://werkzeug.pocoo.org/)
-
-### ???
-- [ ] works as a framework (all components running in one process, no threads)
-- [ ] shell mode like `scrapy shell` 
 
 
 License
