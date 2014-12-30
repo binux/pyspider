@@ -307,10 +307,14 @@ class BaseHandler(object):
 
         task['project'] = self.project_name
         task['url'] = url
-        task['taskid'] = task.get('taskid') or md5string(url)
+        task['taskid'] = task.get('taskid') or self.get_taskid(task)
 
         self._follows.append(task)
         return task
+
+    def get_taskid(self, task):
+        '''generate taskid by information of task md5(url) by default, override me'''
+        return md5string(task['url'])
 
     # apis
     def crawl(self, url, **kwargs):

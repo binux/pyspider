@@ -43,7 +43,7 @@ self.crawl(url, **kwargs)
 * `save` - anything json-able object pass to next response. _can been get from `response.save`_
 
 ### other
-* `taskid` - uniq id for each task. _default: md5(url)_ 
+* `taskid` - uniq id for each task. _default: md5(url)_ , can be overrided by define your own `def get_taskid(self, task)`
 * `force_update` - force update task params when task is in `ACTIVE` status.
 
 @config(**kwargs)

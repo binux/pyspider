@@ -69,7 +69,8 @@ TODO
 - [x] Postgresql Supported via SQLAlchemy (with the power of SQLAlchemy, pyspider also support Oracle, SQL Server, etc)
 - [x] benchmarking
 - [x] python3 support
-- [ ] documents
+- [x] documents
+- [ ] tutorial
 - [ ] pypi release version
 
 ### v0.4.0
@@ -82,7 +83,7 @@ TODO
 
 ### more
 
-- [ ] edit script with local vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
+- [ ] edit script with vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
 - [ ] in-browser debugger like [Werkzeug](http://werkzeug.pocoo.org/)
 
 
