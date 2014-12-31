@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-16 22:24:20
 
+import os
 import six
 import sys
 import imp
@@ -31,8 +32,10 @@ class ProjectManager(object):
         assert 'script' in project, 'need script of project'
 
         # fix for old non-package version scripts
-        if 'pyspider' not in sys.path:
-            sys.path.insert(1, 'pyspider')
+        pyspider_path = os.path.join(os.path.dirname(__file__), "..")
+        print(pyspider_path)
+        if pyspider_path not in sys.path:
+            sys.path.insert(1, pyspider_path)
 
         env = dict(env)
         env.update({
