@@ -370,7 +370,7 @@ class TestScheduler(unittest.TestCase):
                     'ok': False
                 },
                 'process': {
-                    'ok': True
+                    'ok': False
                 },
             }
         })

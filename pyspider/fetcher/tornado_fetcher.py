@@ -208,9 +208,6 @@ class Fetcher(object):
             del fetch['cookies']
 
         def handle_response(response):
-            if response.error is not None:
-                return handle_error(response.error)
-
             response.headers = final_headers
             extract_cookies_to_jar(session, request, cookie_headers)
             result = {}
@@ -249,7 +246,8 @@ class Fetcher(object):
                 'orig_url': url,
                 'url': url,
             }
-            logger.error("[599] %s, %r %.2fs", url, error, result['time'])
+            logger.error("[%d] %s, %r %.2fs",
+                         result['status_code'], url, error, result['time'])
             callback('http', task, result)
             self.on_result('http', task, result)
             return task, result
@@ -321,8 +319,6 @@ class Fetcher(object):
             fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
 
         def handle_response(response):
-            if response.error is not None:
-                return handle_error(response.error)
             if not response.body:
                 return handle_error(Exception('no response from phantomjs'))
 
@@ -349,7 +345,8 @@ class Fetcher(object):
                 'orig_url': url,
                 'url': url,
             }
-            logger.error("[599] %s, %r %.2fs", url, error, result['time'])
+            logger.error("[%d] %s, %r %.2fs",
+                         result['status_code'], url, error, result['time'])
             callback('phantomjs', task, result)
             self.on_result('phantomjs', task, result)
             return task, result

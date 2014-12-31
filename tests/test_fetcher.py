@@ -153,6 +153,14 @@ class TestFetcher(unittest.TestCase):
         self.assertGreater(end_time - start_time, 1.5)
         self.assertLess(end_time - start_time, 4.5)
 
+    def test_65_404(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = 'http://httpbin.org/status/418'
+        self.inqueue.put(request)
+        task, result = self.outqueue.get()
+        self.assertEqual(result['status_code'], 418)
+        self.assertIn(b'teapot', result['content'])
+
     def test_70_phantomjs_url(self):
         if not self.phantomjs:
             raise unittest.SkipTest('no phantomjs')

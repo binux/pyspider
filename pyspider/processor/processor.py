@@ -82,9 +82,7 @@ class Processor(object):
                         'headers': dict(response.headers),
                         'encoding': response.encoding,
                         'content': (
-                            response.content[:500]
-                            if not response.isok() or ret.exception else
-                            None
+                            response.content[:500] if ret.exception else None
                         ),
                     },
                     'process': {

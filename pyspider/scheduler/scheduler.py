@@ -525,7 +525,6 @@ class Scheduler(object):
 
     def on_task_status(self, task):
         try:
-            fetchok = task['track']['fetch']['ok']
             procesok = task['track']['process']['ok']
             if not self.task_queue[task['project']].done(task['taskid']):
                 logging.error('not processing pack: %(project)s:%(taskid)s %(url)s', task)
@@ -534,7 +533,7 @@ class Scheduler(object):
             logger.error("Bad status pack: %s", e)
             return None
 
-        if fetchok and procesok:
+        if procesok:
             ret = self.on_task_done(task)
         else:
             ret = self.on_task_failed(task)

@@ -24,9 +24,11 @@
           <span class="status status-{{ task.status }}">{{ status_to_string(task.status) }}</span>
         {% elif task.track %}
         <span class="status status-3">
-          {%- if task.track.fetch and not task.track.fetch.ok -%}
+          {% set fetchok = task.track.fetch and task.track.fetch.ok %}
+          {% set processok = task.track.process and task.track.process.ok %}
+          {%- if not fetchok -%}
           FETCH_ERROR
-          {%- elif task.track.process and not task.track.process.ok -%}
+          {%- elif not processok -%}
           PROCESS_ERROR
           {%- endif -%}
         </span>
