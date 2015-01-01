@@ -219,6 +219,8 @@ class Fetcher(object):
             result['cookies'] = session.get_dict()
             result['time'] = time.time() - start_time
             result['save'] = task_fetch.get('save')
+            if response.error:
+                result['error'] = utils.text(response.error)
             if 200 <= response.code < 300:
                 logger.info("[%d] %s %.2fs", response.code, url, result['time'])
             else:
@@ -324,6 +326,8 @@ class Fetcher(object):
 
             try:
                 result = json.loads(utils.text(response.body))
+                if response.error:
+                    result['error'] = utils.text(response.error)
             except Exception as e:
                 return handle_error(e)
 

@@ -153,7 +153,7 @@ class TestFetcher(unittest.TestCase):
         self.assertGreater(end_time - start_time, 1.5)
         self.assertLess(end_time - start_time, 4.5)
 
-    def test_65_404(self):
+    def test_65_418(self):
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = 'http://httpbin.org/status/418'
         self.inqueue.put(request)
@@ -211,3 +211,17 @@ class TestFetcher(unittest.TestCase):
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
         self.assertIn('pyspider-users', result['content'])
+
+    def test_a110_dns_error(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = 'http://www.not-exists-site.com/'
+        result = self.fetcher.sync_fetch(request)
+        self.assertEqual(result['status_code'], 599)
+        self.assertIn('error', result)
+        self.assertIn('resolve', result['error'])
+
+        self.inqueue.put(request)
+        task, result = self.outqueue.get()
+        self.assertEqual(result['status_code'], 599)
+        self.assertIn('error', result)
+        self.assertIn('resolve', result['error'])
