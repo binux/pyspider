@@ -47,8 +47,9 @@ def debug(project):
     if info:
         script = info['script']
     else:
-        script = default_script.replace(
-            '__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        script = (default_script
+                  .replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                  .replace('__PROJECT_NAME__', project))
 
     taskid = request.args.get('taskid')
     if taskid:
