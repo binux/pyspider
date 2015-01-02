@@ -18,4 +18,8 @@
       css_helper_enabled = true;
     }
   }, false);
+
+  document.addEventListener('click', function(ev) {
+    ev.preventDefault();
+  });
 })();
