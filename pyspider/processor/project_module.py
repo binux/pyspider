@@ -33,7 +33,6 @@ class ProjectManager(object):
 
         # fix for old non-package version scripts
         pyspider_path = os.path.join(os.path.dirname(__file__), "..")
-        print(pyspider_path)
         if pyspider_path not in sys.path:
             sys.path.insert(1, pyspider_path)
 

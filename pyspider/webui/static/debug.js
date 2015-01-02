@@ -207,7 +207,7 @@ window.Debugger = (function() {
       });
     },
 
-    render_html: function(html, block_script, resizer, selector_helper) {
+    render_html: function(html, base_url, block_script, resizer, selector_helper) {
       if (html === undefined) {
         html = '';
       }
@@ -223,6 +223,17 @@ window.Debugger = (function() {
       if (selector_helper) {
         $(dom).find('body').append('<script src="http://'+location.host+'/static/css_selector_helper.js">');
       }
+      $(dom).find('base').remove();
+      $(dom).find('head').append('<base>');
+      $(dom).find('base').attr('href', base_url);
+      $(dom).find('link[href]').each(function(i, e) {
+        e = $(e);
+        e.attr('href', URI(e.attr('href')).absoluteTo(base_url).toString());
+      });
+      $(dom).find('img[____src____]').each(function(i, e) {
+        e = $(e);
+        e.attr('____src____', URI(e.attr('____src____')).absoluteTo(base_url).toString());
+      });
       html = dom.innerHTML;
       html = html.replace(/(\s)____src____=/g, "$1src=");
       return "data:text/html;charset=utf-8,"+html;
@@ -258,7 +269,8 @@ window.Debugger = (function() {
           if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'].indexOf("text") !== 0) {
             iframe.src = "data:,Content-Type:"+(data.fetch_result.headers && data.fetch_result.headers['Content-Type'] || "unknow");
           } else {
-            iframe.src = _this.render_html(data.fetch_result.content, true, true, false);
+            iframe.src = _this.render_html(data.fetch_result.content,
+                                           data.fetch_result.url, true, true, false);
           }
 
           //html
