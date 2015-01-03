@@ -8,6 +8,8 @@ pages:
     - [Command-Line.md, '', 'Command Line']
     - [tutorial/index.md, 'Tutorial', 'Index']
     - [tutorial/HTML-and-CSS-Selector.md, 'Tutorial', 'Level 1: HTML and CSS Selector']
+    - [tutorial/AJAX-and-more-HTTP.md, 'Tutorial', 'Level 2: AJAX and More HTTP']
+    - [tutorial/Render-with-PhantomJS.md, 'Tutorial', 'Level 3: Render with PhantomJS']
     - [Architecture.md, 'About pyspider', 'Architecture']
     - [About-Tasks.md, 'About pyspider', 'About Tasks']
     - [About-Projects.md, 'About pyspider', 'About Projects']
