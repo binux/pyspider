@@ -32,6 +32,7 @@ class Response(object):
         self.cookies = {}
         self.error = None
         self.save = None
+        self.js_script_result = None
         self.time = 0
 
     def __repr__(self):
@@ -191,5 +192,6 @@ def rebuild_response(r):
     response.error = r.get('error')
     response.time = r.get('time', 0)
     response.orig_url = r.get('orig_url', response.url)
+    response.js_script_result = r.get('js_script_result')
     response.save = r.get('save')
     return response

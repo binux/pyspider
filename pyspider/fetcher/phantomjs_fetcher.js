@@ -53,16 +53,19 @@ if (system.args.length !== 2) {
         finished = false,
         page_loaded = false,
         start_time = Date.now(),
-        end_time = null;
+        end_time = null,
+        script_executed = false,
+        script_result = null;
     page.onInitialized = function() {
-      if (fetch.js_script && fetch.js_run_at === "document-start") {
-        page.evaluateJavaScript(fetch.js_script);
+      if (!script_executed && fetch.js_script && fetch.js_run_at === "document-start") {
+        script_result = page.evaluateJavaScript(fetch.js_script);
       }
     };
     page.onLoadFinished = function(status) {
       page_loaded = true;
-      if (fetch.js_script && fetch.js_run_at !== "document-start") {
-        page.evaluateJavaScript(fetch.js_script);
+      if (!script_executed && fetch.js_script && fetch.js_run_at !== "document-start") {
+        script_executed = true;
+        script_result = page.evaluateJavaScript(fetch.js_script);
       }
       console.debug("waiting "+wait_before_end+"ms before finished.");
       end_time = Date.now() + wait_before_end;
@@ -169,6 +172,7 @@ if (system.args.length !== 2) {
         url: page.url,
         cookies: cookies,
         time: (Date.now() - start_time) / 1000,
+        js_script_result: script_result,
         save: fetch.save
       }
     }
