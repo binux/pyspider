@@ -4,7 +4,7 @@
 // Created on 2014-10-29 22:12:14
 
 var port, server, service,
-  wait_before_end = 300,
+  wait_before_end = 1000,
   system = require('system'),
   webpage = require('webpage');
 
@@ -58,6 +58,8 @@ if (system.args.length !== 2) {
         script_result = null;
     page.onInitialized = function() {
       if (!script_executed && fetch.js_script && fetch.js_run_at === "document-start") {
+        script_executed = true;
+        console.log('running document-start script.');
         script_result = page.evaluateJavaScript(fetch.js_script);
       }
     };
@@ -65,6 +67,7 @@ if (system.args.length !== 2) {
       page_loaded = true;
       if (!script_executed && fetch.js_script && fetch.js_run_at !== "document-start") {
         script_executed = true;
+        console.log('running document-end script.');
         script_result = page.evaluateJavaScript(fetch.js_script);
       }
       console.debug("waiting "+wait_before_end+"ms before finished.");
