@@ -81,7 +81,12 @@ setup(
     },
 
     package_data={
-        'pyspider': ['logging.conf', 'webui/static/*', 'webui/templates/*'],
+        'pyspider': [
+            'logging.conf',
+            'fetcher/phantomjs_fetcher.js',
+            'webui/static/*',
+            'webui/templates/*'
+        ],
     },
 
     entry_points={

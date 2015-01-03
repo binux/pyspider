@@ -132,6 +132,17 @@ Options:
 
 set this option to use customized Scheduler class
 
+phantomjs
+---------
+
+```
+Usage: pyspider phantomjs [OPTIONS]
+
+Options:
+  --phantomjs-path TEXT  phantomjs path
+  --port INTEGER         phantomjs port
+  --help                 Show this message and exit.
+```
 
 fetcher
 -------

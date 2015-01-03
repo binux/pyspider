@@ -75,7 +75,7 @@ refer to: [https://www.rabbitmq.com/uri-spec.html](https://www.rabbitmq.com/uri-
 
 ```
 # phantomjs
-phantomjs pyspider/fetcher/phantomjs_fetcher.js 25555
+pyspider -c config.json phantomjs
 # start **only one** scheduler instance
 pyspider -c config.json scheduler
 # start fetcher / processor / result_worker instances as many as your needs

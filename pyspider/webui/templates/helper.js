@@ -4,10 +4,21 @@
 // Created on 2014-03-16 11:05:05
 
 (function() {
+  var loaded = false;
+  var start_time = (new Date()).getTime();
+  function resize() {
+    if (!loaded)
+      parent.postMessage({type: 'resize', height: document.body.scrollHeight}, '*');
+  }
+
   window.addEventListener('load', function() {
-    var height = document.body.scrollHeight;
-    parent.postMessage({type: 'resize', height: height}, '*');
+    resize();
+    loaded = true;
   });
+  setTimeout(resize, 5000);
+  setTimeout(resize, 10000);
+  setTimeout(resize, 20000);
+  setTimeout(resize, 30000);
 
   var css_helper_enabled = false;
   window.addEventListener("message", function(ev) {

@@ -15,6 +15,7 @@ import logging.config
 from six.moves import builtins
 
 import click
+import pyspider
 from pyspider.database import connect_database
 from pyspider.libs import utils
 
@@ -313,6 +314,36 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 
 
 @cli.command()
+@click.option('--phantomjs-path', default='phantomjs', help='phantomjs path')
+@click.option('--port', default=25555, help='phantomjs port')
+@click.pass_context
+def phantomjs(ctx, phantomjs_path, port):
+    import subprocess
+    g = ctx.obj
+
+    phantomjs_fetcher = os.path.join(
+        os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
+    try:
+        _phantomjs = subprocess.Popen([phantomjs_path,
+                                      phantomjs_fetcher,
+                                      str(port)])
+    except OSError:
+        return None
+
+    def quit(*args, **kwargs):
+        _phantomjs.kill()
+        _phantomjs.wait()
+        logging.info('phantomjs existed.')
+
+    phantomjs = utils.ObjectDict(port=port, quit=quit)
+    g.instances.append(phantomjs)
+    if g.get('testing_mode'):
+        return phantomjs
+
+    _phantomjs.wait()
+
+
+@cli.command()
 @click.option('--fetcher-num', default=1, help='instance num of fetcher')
 @click.option('--processor-num', default=1, help='instance num of processor')
 @click.option('--result-worker-num', default=1,
@@ -331,6 +362,14 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         run_in = utils.run_in_thread
 
     threads = []
+
+    # phantomjs
+    g['testing_mode'] = True
+    phantomjs_config = g.config.get('phantomjs', {})
+    phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
+    if phantomjs_obj and not g.get('phantomjs_proxy'):
+        g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_obj.port
+    g['testing_mode'] = False
 
     # result worker
     result_worker_config = g.config.get('result_worker', {})
@@ -365,6 +404,8 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
     # exit components run in subprocess
     for each in threads:
+        if not each.is_alive():
+            continue
         if hasattr(each, 'terminate'):
             each.terminate()
         each.join()
