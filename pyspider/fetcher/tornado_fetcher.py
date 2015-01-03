@@ -310,7 +310,7 @@ class Fetcher(object):
         fetch.update(task_fetch)
         if 'timeout' in fetch:
             request_conf['connect_timeout'] = fetch['timeout']
-            request_conf['request_timeout'] = fetch['timeout']
+            request_conf['request_timeout'] = fetch['timeout'] + 1
         fetch['headers'].setdefault('User-Agent', self.user_agent)
 
         session = cookies.RequestsCookieJar()

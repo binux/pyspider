@@ -80,7 +80,7 @@ if (system.args.length !== 2) {
     };
     page.onResourceReceived = function(response) {
       console.debug("Request finished: #"+response.id+" ["+response.status+"]"+response.url);
-      if (first_response === null) {
+      if (first_response === null && response.status != 301 && response.status != 302) {
         first_response = response;
       }
       if (page_loaded) {
@@ -100,7 +100,12 @@ if (system.args.length !== 2) {
         setTimeout(make_result, wait_before_end+10, page);
       }
     }
-    setTimeout(make_result, page.settings.resourceTimeout, page);
+    setTimeout(function(page) {
+      if (first_response) {
+        end_time = Date.now()-1;
+        make_result(page);
+      }
+    }, page.settings.resourceTimeout, page);
 
     // send request
     page.open(fetch.url, {
