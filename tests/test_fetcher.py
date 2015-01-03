@@ -188,7 +188,7 @@ class TestFetcher(unittest.TestCase):
         result = self.fetcher.sync_fetch(request)
         end_time = time.time()
         self.assertGreater(end_time - start_time, 2)
-        self.assertLess(end_time - start_time, 4)
+        self.assertLess(end_time - start_time, 5)
 
     def test_90_phantomjs_js_script(self):
         if not self.phantomjs:

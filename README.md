@@ -70,7 +70,7 @@ TODO
 - [x] benchmarking
 - [x] python3 support
 - [x] documents
-- [ ] tutorial
+- [x] tutorial
 - [ ] pypi release version
 
 ### v0.4.0
