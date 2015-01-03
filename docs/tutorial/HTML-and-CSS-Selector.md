@@ -53,8 +53,8 @@ Changing the crawl URL in `on_start` callback:
         self.crawl('http://www.imdb.com/search/title?count=100&title_type=feature,tv_series,tv_movie&ref_=nv_ch_mm_1', callback=self.index_page)
 ```
 
-> *`self.crawl` would do everything needed to fetch the page for you and call the `callback` method to parse the response.  
-> The [`@every` decorator](http://docs.pyspider.org/en/latest/apis/@every/) represents it would executed every day, make sure not missing any new movies.*
+> * *`self.crawl` would do everything needed to fetch the page for you and call the `callback` method to parse the response.  
+> * The [`@every` decorator](http://docs.pyspider.org/en/latest/apis/@every/) represents it would executed every day, make sure not missing any new movies.*
 
 Click the green `run` button, you should find a red 1 above follows, switch to follows panel, click the green play button:
 
@@ -70,7 +70,7 @@ From [index page](http://www.imdb.com/search/title?count=100&title_type=feature,
 
 ### Find Movies
 
-As you can see, the sample handler has already extracted 1900+ links from this page. A idea of extracting detail pages is filtering links with regular expression:
+As you can see, the sample handler has already extracted 1900+ links from this page. A measure of extracting detail pages is filtering links with regular expression:
 
 ```
 import re
@@ -82,7 +82,7 @@ import re
                 self.crawl(each.attr.href, callback=self.detail_page)
 ```
 
-> *`callback` is `self.detail_page` here for they have different template, we use another callback method to parse.*
+> * *`callback` is `self.detail_page` here for they have different template, we use another callback method to parse.*
 
 Remember you can always use the power of python or anything you are familiar with to extract information. But using tools like CSS selector is recommended.
 

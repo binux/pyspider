@@ -15,6 +15,7 @@ import threading
 import tornado.ioloop
 import tornado.httputil
 import tornado.httpclient
+import pyspider
 
 from six.moves import queue
 from requests import cookies
@@ -53,7 +54,7 @@ fetcher_output = {
 
 
 class Fetcher(object):
-    user_agent = "pyspider/master (+http://pyspider.org/)"
+    user_agent = "pyspider/%s (+http://pyspider.org/)" % pyspider.__version__
     default_options = {
         'method': 'GET',
         'headers': {},
