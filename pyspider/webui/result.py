@@ -26,6 +26,8 @@ def result_formater(results):
                 common_fields = set(result['result'].keys())
             else:
                 common_fields &= set(result['result'].keys())
+        else:
+            common_fields = set()
     for result in results:
         result['result_formated'] = {}
         if not common_fields:

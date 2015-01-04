@@ -55,6 +55,7 @@ class Handler(BaseHandler):
 > * You can use `response.json` to convert content to a python `dict` object.
 > * As channel list is changing frequently, we update it every 10 minutes and use [`@config(age=10*60)`](/apis/self.crawl/#configkwargs) to set the age. Otherwise, it will be ignored as scheduler think it's new enough and refuse to update the content.
 
+Here is an online demo for twitch as well as a measure using [PhantomJS] which will be discussed in next level: [http://demo.pyspider.org/debug/tutorial_twitch](http://demo.pyspider.org/debug/tutorial_twitch)
 
 HTTP
 ----
@@ -122,6 +123,7 @@ You can use [`self.crawl(cookie={"key": value})`](/apis/self.crawl/#fetch) to se
 
 TODO: need example here.
 
+[PhantomJS]:           http://phantomjs.org/
 [AJAX]:          http://en.wikipedia.org/wiki/Ajax_%28programming%29
 [JSON]:          http://en.wikipedia.org/wiki/JSON
 [HTTP]:          http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol

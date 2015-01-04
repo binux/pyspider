@@ -8,6 +8,7 @@
 from __future__ import unicode_literals
 
 import six
+import copy
 import time
 import json
 import logging
@@ -57,7 +58,10 @@ class Fetcher(object):
     user_agent = "pyspider/%s (+http://pyspider.org/)" % pyspider.__version__
     default_options = {
         'method': 'GET',
-        'headers': {},
+        'headers': {
+        },
+        'allow_redirects': True,
+        'use_gzip': True,
         'timeout': 120,
     }
     phantomjs_proxy = None
@@ -157,12 +161,9 @@ class Fetcher(object):
         start_time = time.time()
 
         self.on_fetch('http', task)
-        fetch = dict(self.default_options)
-        fetch.setdefault('url', url)
-        fetch.setdefault('headers', {})
-        fetch.setdefault('allow_redirects', True)
-        fetch.setdefault('use_gzip', True)
-        fetch['headers'].setdefault('User-Agent', self.user_agent)
+        fetch = copy.deepcopy(self.default_options)
+        fetch['url'] = url
+        fetch['headers']['User-Agent'] = self.user_agent
         task_fetch = task.get('fetch', {})
         for each in self.allowed_options:
             if each in task_fetch:
@@ -303,15 +304,18 @@ class Fetcher(object):
             'follow_redirects': False
         }
 
-        fetch = dict(self.default_options)
-        fetch.setdefault('url', url)
-        fetch.setdefault('headers', {})
+        fetch = copy.deepcopy(self.default_options)
+        fetch['url'] = url
+        fetch['headers']['User-Agent'] = self.user_agent
         task_fetch = task.get('fetch', {})
-        fetch.update(task_fetch)
+        for each in task_fetch:
+            if each != 'headers':
+                fetch[each] = task_fetch[each]
+        fetch['headers'].update(task_fetch.get('headers', {}))
+
         if 'timeout' in fetch:
             request_conf['connect_timeout'] = fetch['timeout']
             request_conf['request_timeout'] = fetch['timeout'] + 1
-        fetch['headers'].setdefault('User-Agent', self.user_agent)
 
         session = cookies.RequestsCookieJar()
         request = tornado.httpclient.HTTPRequest(url=fetch['url'])

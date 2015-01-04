@@ -3,6 +3,8 @@ Level 1: HTML and CSS Selector
 
 In this tutorial, we will scrape information of movies and TV from [IMDb].
 
+An online demo with completed code is: [http://demo.pyspider.org/debug/tutorial_imdb](http://demo.pyspider.org/debug/tutorial_imdb) .
+
 
 Before Start
 ------------
@@ -82,7 +84,8 @@ import re
                 self.crawl(each.attr.href, callback=self.detail_page)
 ```
 
-> `callback` is `self.detail_page` here to use another callback method to parse.
+> * `callback` is `self.detail_page` here to use another callback method to parse.
+> * you may find duplicate urls in the follows list, it doesn't matter as they will be filtered by scheduler. 
 
 Remember you can always use the power of python or anything you are familiar with to extract information. But using tools like CSS selector is recommended.
 
@@ -117,6 +120,12 @@ click "Next »", selector pattern should have been added to your code:
             if re.match("http://www.imdb.com/title/tt\d+/$", each.attr.href):
                 self.crawl(each.attr.href, callback=self.detail_page)
         self.crawl(response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#main>DIV.leftright>DIV#right>SPAN.pagination>A').attr.href, callback=self.index_page)
+```
+
+Click `run` again and move to next page, we found that "« Prev" has the same selector pattern as "Next »". When using above code you may find pyspider selected the link of "« Prev", not "Next »". A solution for this is select both of them:
+
+```
+        self.crawl([x.attr.href for x in response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#main>DIV.leftright>DIV#right>SPAN.pagination>A').items()], callback=self.index_page)
 ```
 
 Extracting Information

@@ -59,6 +59,8 @@ class Handler(BaseHandler):
 > * Script would been executed after page loaded(can been changed via [`js_run_at` parameter](/apis/self.crawl/#enable-javascript-fetcher-need-support-by-fetcher))
 > * We scroll once after page loaded, you can scroll multiple times using [`setTimeout`](https://developer.mozilla.org/en-US/docs/Web/API/WindowTimers.setTimeout). PhantomJS will fetch as many items as posible before timeout arrived.
 
+Online demo: [http://demo.pyspider.org/debug/tutorial_pinterest](http://demo.pyspider.org/debug/tutorial_pinterest)
+
 
 
 [PhantomJS]:           http://phantomjs.org/
