@@ -236,7 +236,7 @@ window.Debugger = (function() {
       });
       html = dom.innerHTML;
       html = html.replace(/(\s)____src____=/g, "$1src=");
-      return "data:text/html;charset=utf-8,"+html;
+      return encodeURI("data:text/html;charset=utf-8,"+html);
     },
 
     run: function() {
@@ -266,16 +266,33 @@ window.Debugger = (function() {
           //web
           $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
           var iframe = $("#tab-web iframe")[0];
-          if (data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'].indexOf("text") !== 0) {
-            iframe.src = "data:,Content-Type:"+(data.fetch_result.headers && data.fetch_result.headers['Content-Type'] || "unknow");
-          } else {
-            iframe.src = _this.render_html(data.fetch_result.content,
-                                           data.fetch_result.url, true, true, false);
-          }
+          var content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
 
           //html
           $("#tab-html pre").text(data.fetch_result.content);
-          $("#tab-html").data("format", false);
+          $("#tab-html").data("format", true);
+
+          if (content_type.indexOf('application/json') == 0) {
+            try {
+              var content = JSON.parse(data.fetch_result.content);
+              content = JSON.stringify(content, null, '  ');
+              content = "<html><pre>"+content+"</pre></html>";
+              iframe.src = _this.render_html(content,
+                                             data.fetch_result.url, true, true, false);
+            } catch (e) {
+              iframe.src = "data:,Content-Type:"+content_type+" parse error.";
+            }
+          } else if (content_type.indexOf("text/html") == 0) {
+            iframe.src = _this.render_html(data.fetch_result.content,
+                                           data.fetch_result.url, true, true, false);
+            $("#tab-html").data("format", false);
+          } else if (content_type.indexOf("text") == 0) {
+            iframe.src = "data:"+content_type+","+data.fetch_result.content;
+          } else if (data.fetch_result.dataurl) {
+            iframe.src = data.fetch_result.dataurl
+          } else {
+            iframe.src = "data:,Content-Type:"+content_type;
+          }
 
           //follows
           $('#tab-follows').html('');
