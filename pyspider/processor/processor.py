@@ -77,19 +77,22 @@ class Processor(object):
                 'track': {
                     'fetch': {
                         'ok': response.isok(),
+                        'redirect_url': response.url if response.url != response.orig_url else None,
                         'time': response.time,
+                        'error': response.error,
                         'status_code': response.status_code,
-                        'headers': dict(response.headers),
                         'encoding': response.encoding,
-                        'content': (
-                            response.content[:500] if ret.exception else None
-                        ),
+                        'headers': dict(response.headers) if ret.exception else None,
+                        'content': response.content[:500] if ret.exception else None,
                     },
                     'process': {
                         'ok': not ret.exception,
                         'time': process_time,
                         'follows': len(ret.follows),
-                        'result': utils.text(ret.result)[:self.RESULT_RESULT_LIMIT],
+                        'result': (
+                            None if ret.result is None
+                            else utils.text(ret.result)[:self.RESULT_RESULT_LIMIT]
+                        ),
                         'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
                         'exception': ret.exception,
                     },
@@ -102,7 +105,8 @@ class Processor(object):
 
         # FIXME: unicode_obj should used in scheduler before store to database
         # it's used here for performance.
-        self.newtask_queue.put([utils.unicode_obj(newtask) for newtask in ret.follows])
+        if ret.follows:
+            self.newtask_queue.put([utils.unicode_obj(newtask) for newtask in ret.follows])
 
         for project, msg, url in ret.messages:
             self.inqueue.put(({

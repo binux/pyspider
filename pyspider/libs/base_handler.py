@@ -171,6 +171,7 @@ class BaseHandler(object):
         self._extinfo = {}
         self._messages = []
         self._follows = []
+        self._follows_keys = set()
 
     def _run_func(self, function, *arguments):
         """
@@ -309,7 +310,10 @@ class BaseHandler(object):
         task['url'] = url
         task['taskid'] = task.get('taskid') or self.get_taskid(task)
 
-        self._follows.append(task)
+        cache_key = "%(project)s:%(taskid)s" % task
+        if cache_key not in self._follows_keys:
+            self._follows_keys.add(cache_key)
+            self._follows.append(task)
         return task
 
     def get_taskid(self, task):

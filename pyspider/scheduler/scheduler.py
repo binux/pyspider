@@ -210,7 +210,6 @@ class Scheduler(object):
 
     def _check_request(self):
         cnt = 0
-        processed_task_cache = set()
         while cnt < self.LOOP_LIMIT:
             try:
                 task = self.newtask_queue.get_nowait()
@@ -245,10 +244,6 @@ class Scheduler(object):
                     if not task.get('schedule', {}).get('force_update', False):
                         logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
                         continue
-                cache_key = "%(project)s:%(taskid)s" % task
-                if cache_key in processed_task_cache:
-                    logger.debug('processed newtask %(project)s:%(taskid)s %(url)s', task)
-                    continue
 
                 oldtask = self.taskdb.get_task(task['project'], task['taskid'],
                                                fields=self.merge_task_fields)
@@ -256,7 +251,6 @@ class Scheduler(object):
                     task = self.on_old_request(task, oldtask)
                 else:
                     task = self.on_new_request(task)
-                processed_task_cache.add(cache_key)
                 cnt += 1
         return cnt
 

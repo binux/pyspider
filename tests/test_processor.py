@@ -284,9 +284,11 @@ class TestProcessor(unittest.TestCase):
                 "<html><body>"
                 "<a href='http://binux.me'>binux</a>"
                 "<a href='http://binux.me/中文'>binux</a>"
+                "<a href='http://binux.me/1'>1</a>"
+                "<a href='http://binux.me/1'>2</a>"
                 "</body></html>"
             ),
-            "headers": {},
+            "headers": {'a': 'b'},
             "status_code": 200,
             "url": task['url'],
             "time": 0,
@@ -296,6 +298,65 @@ class TestProcessor(unittest.TestCase):
         self.assertFalse(self.status_queue.empty())
         self.assertFalse(self.newtask_queue.empty())
 
+        status = self.status_queue.get()
+        self.assertEqual(status['track']['fetch']['ok'], True)
+        self.assertEqual(status['track']['fetch']['time'], 0)
+        self.assertEqual(status['track']['fetch']['status_code'], 200)
+        self.assertIsNone(status['track']['fetch']['headers'])
+        self.assertIsNone(status['track']['fetch']['content'])
+        self.assertEqual(status['track']['process']['ok'], True)
+        self.assertGreater(status['track']['process']['time'], 0)
+        self.assertEqual(status['track']['process']['follows'], 3)
+        self.assertIsNone(status['track']['process']['result'])
+        self.assertEqual(status['track']['process']['logs'], '')
+        self.assertIsNone(status['track']['process']['exception'])
+
         tasks = self.newtask_queue.get()
+        self.assertEqual(len(tasks), 3)
         self.assertEqual(tasks[0]['url'], 'http://binux.me/')
         self.assertTrue(tasks[1]['url'].startswith('http://binux.me/%'), task['url'])
+
+    def test_50_fetch_error(self):
+        # clear new task queue
+        while not self.newtask_queue.empty():
+            self.newtask_queue.get()
+        # clear status queue
+        while not self.status_queue.empty():
+            self.status_queue.get()
+
+        task = {
+            "process": {
+                "callback": "index_page"
+            },
+            "project": "test_project",
+            "taskid": "data:,test_fetch_error",
+            "url": "data:,test_fetch_error"
+        }
+
+        fetch_result = {
+            "orig_url": task['url'],
+            "content": "test_fetch_error",
+            "error": "test_fetch_error",
+            "headers": {'a': 'b'},
+            "status_code": 598,
+            "url": task['url'],
+            "time": 0,
+        }
+
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        self.assertTrue(self.newtask_queue.empty())
+
+        status = self.status_queue.get()
+        self.assertEqual(status['track']['fetch']['ok'], False)
+        self.assertEqual(status['track']['fetch']['time'], 0)
+        self.assertEqual(status['track']['fetch']['status_code'], 598)
+        self.assertIsNotNone(status['track']['fetch']['headers'])
+        self.assertIsNotNone(status['track']['fetch']['content'])
+        self.assertEqual(status['track']['process']['ok'], False)
+        self.assertGreater(status['track']['process']['time'], 0)
+        self.assertEqual(status['track']['process']['follows'], 0)
+        self.assertIsNone(status['track']['process']['result'])
+        self.assertGreater(len(status['track']['process']['logs']), 0)
+        self.assertIsNotNone(status['track']['process']['exception'])

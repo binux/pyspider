@@ -9,7 +9,7 @@ An online demo with completed code is: [http://demo.pyspider.org/debug/tutorial_
 Before Start
 ------------
 
-You should have pyspider installed. You can refer to the documentation [QuickStart](QuickStart). Or test your code on [demo.pyspider.org](http://demo.pyspider.org).
+You should have pyspider installed. You can refer to the documentation [QuickStart](Quickstart). Or test your code on [demo.pyspider.org](http://demo.pyspider.org).
 
 Some basic knowledges you should know before scraping:
 
