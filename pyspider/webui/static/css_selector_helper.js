@@ -19,6 +19,10 @@
     need_tagName = need_tagName === undefined ? true : false;
     var _getSelector = function(element, need_tagName) {
       var result = '';
+      // fix tbody
+      if (element.tagName == 'TBODY') {
+        return 'TBODY';
+      }
       if (need_tagName) {
         result += element.tagName;
       } else if (ballowed_tag.indexOf(element.tagName.toLowerCase()) != -1) {
@@ -47,7 +51,7 @@
         result.push('*');
     }
     result.reverse();
-    return result.join('>');
+    return result.join('>').replace(/>TBODY>/g, " ");
   };
  
   var overlay = document.createElement("div");
