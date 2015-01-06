@@ -66,6 +66,7 @@ def connect_rpc(ctx, param, value):
 @click.option('--amqp-url', help='amqp url for rabbitmq, default: built-in Queue')
 @click.option('--phantomjs-proxy', help="phantomjs proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
+@click.version_option(version=pyspider.__version__, prog_name=pyspider.__name__)
 @click.pass_context
 def cli(ctx, **kwargs):
     """
@@ -258,7 +259,7 @@ def result_worker(ctx, result_cls):
               help='username of lock -ed projects')
 @click.option('--password', envvar='WEBUI_PASSWORD',
               help='password of lock -ed projects')
-@click.option('--need-auth', default=False, help='need username and password')
+@click.option('--need-auth', is_flag=True, default=False, help='need username and password')
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.option('--webui-instance', default='pyspider.webui.app.app', callback=load_cls,
@@ -283,6 +284,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
         app.config['webui_username'] = username
     if password:
         app.config['webui_password'] = password
+    app.config['need_auth'] = need_auth
 
     # fetcher rpc
     if isinstance(fetcher_rpc, six.string_types):
