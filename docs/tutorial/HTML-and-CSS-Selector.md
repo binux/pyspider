@@ -85,7 +85,6 @@ import re
 ```
 
 > * `callback` is `self.detail_page` here to use another callback method to parse.
-> * you may find duplicate urls in the follows list, it doesn't matter as they will be filtered by scheduler. 
 
 Remember you can always use the power of python or anything you are familiar with to extract information. But using tools like CSS selector is recommended.
 

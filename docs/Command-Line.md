@@ -24,6 +24,7 @@ Options:
   --amqp-url TEXT          amqp url for rabbitmq, default: built-in Queue
   --phantomjs-proxy TEXT   phantomjs proxy ip:port
   --data-path TEXT         data dir path
+  --version                Show the version and exit.
   --help                   Show this message and exit.
 ```
 
@@ -206,7 +207,7 @@ Options:
   --max-burst FLOAT      max burst for each project
   --username TEXT        username of lock -ed projects
   --password TEXT        password of lock -ed projects
-  --need-auth TEXT       need username and password
+  --need-auth            need username and password
   --fetcher-cls TEXT     Fetcher class to be used.
   --webui-instance TEXT  webui Flask Application instance to be used.
   --help                 Show this message and exit.
