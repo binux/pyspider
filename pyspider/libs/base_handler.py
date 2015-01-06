@@ -274,8 +274,7 @@ class BaseHandler(object):
         for key in ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update'):
             if key in kwargs and kwargs[key] is not None:
                 schedule[key] = kwargs[key]
-        if schedule:
-            task['schedule'] = schedule
+        task['schedule'] = schedule
 
         fetch = {}
         for key in (
@@ -296,15 +295,13 @@ class BaseHandler(object):
         ):
             if key in kwargs and kwargs[key] is not None:
                 fetch[key] = kwargs[key]
-        if fetch:
-            task['fetch'] = fetch
+        task['fetch'] = fetch
 
         process = {}
         for key in ('callback', ):
             if key in kwargs and kwargs[key] is not None:
                 process[key] = kwargs[key]
-        if process:
-            task['process'] = process
+        task['process'] = process
 
         task['project'] = self.project_name
         task['url'] = url
