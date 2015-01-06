@@ -222,4 +222,4 @@ XML-RPC path uri for fetcher XMLRPC server. If not set, use a Fetcher instance.
 
 #### --need-auth
 
-If ture, all pages of webui need a basic auth with the `--username` and `--password`.
+If true, all pages of webui need a basic auth with the `--username` and `--password`.
