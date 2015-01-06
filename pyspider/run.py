@@ -365,52 +365,54 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
     threads = []
 
-    # phantomjs
-    g['testing_mode'] = True
-    phantomjs_config = g.config.get('phantomjs', {})
-    phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
-    if phantomjs_obj and not g.get('phantomjs_proxy'):
-        g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_obj.port
-    g['testing_mode'] = False
+    try:
+        # phantomjs
+        g['testing_mode'] = True
+        phantomjs_config = g.config.get('phantomjs', {})
+        phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
+        if phantomjs_obj and not g.get('phantomjs_proxy'):
+            g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_obj.port
+        g['testing_mode'] = False
 
-    # result worker
-    result_worker_config = g.config.get('result_worker', {})
-    for i in range(result_worker_num):
-        threads.append(run_in(ctx.invoke, result_worker, **result_worker_config))
+        # result worker
+        result_worker_config = g.config.get('result_worker', {})
+        for i in range(result_worker_num):
+            threads.append(run_in(ctx.invoke, result_worker, **result_worker_config))
 
-    # processor
-    processor_config = g.config.get('processor', {})
-    for i in range(processor_num):
-        threads.append(run_in(ctx.invoke, processor, **processor_config))
+        # processor
+        processor_config = g.config.get('processor', {})
+        for i in range(processor_num):
+            threads.append(run_in(ctx.invoke, processor, **processor_config))
 
-    # fetcher
-    fetcher_config = g.config.get('fetcher', {})
-    fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-    for i in range(fetcher_num):
-        threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
+        # fetcher
+        fetcher_config = g.config.get('fetcher', {})
+        fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
+        for i in range(fetcher_num):
+            threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
 
-    # scheduler
-    scheduler_config = g.config.get('scheduler', {})
-    scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
-    threads.append(run_in(ctx.invoke, scheduler, **scheduler_config))
+        # scheduler
+        scheduler_config = g.config.get('scheduler', {})
+        scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
+        threads.append(run_in(ctx.invoke, scheduler, **scheduler_config))
 
-    # running webui in main thread to make it exitable
-    webui_config = g.config.get('webui', {})
-    webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
-                            % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
-    ctx.invoke(webui, **webui_config)
+        # running webui in main thread to make it exitable
+        webui_config = g.config.get('webui', {})
+        webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
+                                % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+        ctx.invoke(webui, **webui_config)
 
-    # exit components run in threading
-    for each in g.instances:
-        each.quit()
+    finally:
+        # exit components run in threading
+        for each in g.instances:
+            each.quit()
 
-    # exit components run in subprocess
-    for each in threads:
-        if not each.is_alive():
-            continue
-        if hasattr(each, 'terminate'):
-            each.terminate()
-        each.join()
+        # exit components run in subprocess
+        for each in threads:
+            if not each.is_alive():
+                continue
+            if hasattr(each, 'terminate'):
+                each.terminate()
+            each.join()
 
 
 @cli.command()
