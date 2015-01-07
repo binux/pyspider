@@ -72,9 +72,24 @@ def dump_result(project, _format):
         return "no such project.", 404
 
     if _format == 'json':
+        valid = request.args.get('style', 'rows') == 'full'
         def generator():
+            first = True
+            if valid:
+                yield '['
+
             for result in resultdb.select(project):
+                if valid:
+                    if first:
+                        first = False
+                    else:
+                        yield ', '
+
                 yield json.dumps(result, ensure_ascii=False) + '\n'
+
+            if valid:
+                yield ']'
+
         return Response(generator(), mimetype='application/json')
     elif _format == 'txt':
         def generator():
@@ -133,5 +148,5 @@ def dump_result(project, _format):
                     + [toString(other)]
                 )
                 yield stringio.getvalue()
-                stringio.truncate(0)
+                stringio.truncate(0); stringio.seek(0)
         return Response(generator(), mimetype='text/csv')
