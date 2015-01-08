@@ -6,6 +6,7 @@
 # Created on 2014-02-16 22:59:56
 
 import sys
+import six
 import time
 import logging
 logger = logging.getLogger("processor")
@@ -21,7 +22,7 @@ class Processor(object):
     EXCEPTION_LIMIT = 3
 
     RESULT_LOGS_LIMIT = 1000
-    RESULT_RESULT_LIMIT = 100
+    RESULT_RESULT_LIMIT = 10
 
     def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue):
         self.inqueue = inqueue
@@ -70,6 +71,15 @@ class Processor(object):
         process_time = time.time() - start_time
 
         if not ret.extinfo.get('not_send_status', False):
+            if ret.exception:
+                track_headers = dict(response.headers)
+            else:
+                track_headers = {}
+                for name in ('etag', 'last-modified'):
+                    if name not in response.headers:
+                        continue
+                    track_headers[name] = response.headers[name]
+
             status_pack = {
                 'taskid': task['taskid'],
                 'project': task['project'],
@@ -82,7 +92,7 @@ class Processor(object):
                         'error': response.error,
                         'status_code': response.status_code,
                         'encoding': response.encoding,
-                        'headers': dict(response.headers) if ret.exception else None,
+                        'headers': track_headers,
                         'content': response.content[:500] if ret.exception else None,
                     },
                     'process': {

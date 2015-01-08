@@ -288,7 +288,7 @@ class TestProcessor(unittest.TestCase):
                 "<a href='http://binux.me/1'>2</a>"
                 "</body></html>"
             ),
-            "headers": {'a': 'b'},
+            "headers": {'a': 'b', 'etag': 'tag'},
             "status_code": 200,
             "url": task['url'],
             "time": 0,
@@ -302,7 +302,7 @@ class TestProcessor(unittest.TestCase):
         self.assertEqual(status['track']['fetch']['ok'], True)
         self.assertEqual(status['track']['fetch']['time'], 0)
         self.assertEqual(status['track']['fetch']['status_code'], 200)
-        self.assertIsNone(status['track']['fetch']['headers'])
+        self.assertEqual('tag', status['track']['fetch']['headers']['etag'])
         self.assertIsNone(status['track']['fetch']['content'])
         self.assertEqual(status['track']['process']['ok'], True)
         self.assertGreater(status['track']['process']['time'], 0)
@@ -337,7 +337,7 @@ class TestProcessor(unittest.TestCase):
             "orig_url": task['url'],
             "content": "test_fetch_error",
             "error": "test_fetch_error",
-            "headers": {'a': 'b'},
+            "headers": {'a': 'b', 'last-modified': '123'},
             "status_code": 598,
             "url": task['url'],
             "time": 0,
@@ -352,7 +352,7 @@ class TestProcessor(unittest.TestCase):
         self.assertEqual(status['track']['fetch']['ok'], False)
         self.assertEqual(status['track']['fetch']['time'], 0)
         self.assertEqual(status['track']['fetch']['status_code'], 598)
-        self.assertIsNotNone(status['track']['fetch']['headers'])
+        self.assertEqual('123', status['track']['fetch']['headers']['last-modified'])
         self.assertIsNotNone(status['track']['fetch']['content'])
         self.assertEqual(status['track']['process']['ok'], False)
         self.assertGreater(status['track']['process']['time'], 0)

@@ -170,7 +170,8 @@ class Fetcher(object):
                 fetch[each] = task_fetch[each]
         fetch['headers'].update(task_fetch.get('headers', {}))
 
-        track_headers = task.get('track', {}).get('fetch', {}).get('headers') or {}
+        track_headers = tornado.httputil.HTTPHeaders(
+            task.get('track', {}).get('fetch', {}).get('headers') or {})
         # proxy
         if 'proxy' in task_fetch:
             if isinstance(task_fetch['proxy'], six.string_types):
