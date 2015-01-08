@@ -8,6 +8,7 @@
 
 import os
 import six
+import copy
 import time
 import shutil
 import logging
@@ -196,7 +197,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     if user_agent:
         fetcher.user_agent = user_agent
     if timeout:
-        fetcher.default_options = dict(fetcher.default_options)
+        fetcher.default_options = copy.deepcopy(fetcher.default_options)
         fetcher.default_options['timeout'] = timeout
 
     g.instances.append(fetcher)
