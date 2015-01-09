@@ -42,7 +42,7 @@ class TestRun(unittest.TestCase):
             json.dump({
                 'debug': True,
                 'taskdb': 'mysql+taskdb://localhost:23456/taskdb',
-                'amqp_url': 'amqp://guest:guest@localhost:23456/%%2F'
+                'amqp-url': 'amqp://guest:guest@localhost:23456/%%2F'
             }, fp)
         ctx = run.cli.make_context('test',
                                    ['--config', './data/tests/config.json'],

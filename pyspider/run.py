@@ -25,7 +25,13 @@ def read_config(ctx, param, value):
     if not value:
         return {}
     import json
-    config = json.load(value)
+
+    def underline_dict(d):
+        if not isinstance(d, dict):
+            return d
+        return dict((k.replace('-', '_'), underline_dict(v)) for k, v in six.iteritems(d))
+
+    config = underline_dict(json.load(value))
     ctx.default_map = config
     return config
 
