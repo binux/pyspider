@@ -93,7 +93,7 @@ class Processor(object):
                         'status_code': response.status_code,
                         'encoding': response.encoding,
                         'headers': track_headers,
-                        'content': response.content[:500] if ret.exception else None,
+                        'content': response.text[:500] if ret.exception else None,
                     },
                     'process': {
                         'ok': not ret.exception,

@@ -148,7 +148,7 @@ Note that, `CSS Selector helper` may not always work (directors and starts have 
 
 ![inspect element](imgs/inspect_element.png)
 
-You doesn't need to write every ancestral elements in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator.
+You doesn't need to write every ancestral elements in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator. You can also test CSS Selector in the JavaScript Console by using `$$` like `$$('div[itemprop="director"] span[itemprop="name"]')`
 
 Running
 -------
