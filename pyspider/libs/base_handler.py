@@ -314,7 +314,7 @@ class BaseHandler(object):
         return task
 
     def get_taskid(self, task):
-        '''generate taskid by information of task md5(url) by default, override me'''
+        '''Generate taskid by information of task md5(url) by default, override me'''
         return md5string(task['url'])
 
     # apis

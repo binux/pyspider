@@ -39,6 +39,11 @@ class Processor(object):
         self.enable_projects_import()
 
     def enable_projects_import(self):
+        '''
+        Enable import other project as module
+
+        `from project import project_name`
+        '''
         _self = self
 
         class ProcessProjectFinder(ProjectFinder):
@@ -53,6 +58,7 @@ class Processor(object):
         pass
 
     def on_task(self, task, response):
+        '''Deal one task'''
         start_time = time.time()
         try:
             response = rebuild_response(response)
@@ -143,9 +149,11 @@ class Processor(object):
         return True
 
     def quit(self):
+        '''Set quit signal'''
         self._quit = True
 
     def run(self):
+        '''Run loop'''
         logger.info("processor starting...")
 
         while not self._quit:

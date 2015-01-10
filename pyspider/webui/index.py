@@ -122,4 +122,7 @@ def runtask():
 def robots():
     return """User-agent: *
 Disallow: /
+Allow: /$
+Allow: /debug
+Disallow: /debug/*?taskid=*
 """, 200, {'Content-Type': 'text/plain'}

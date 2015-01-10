@@ -23,6 +23,7 @@ class ResultWorker(object):
         self._quit = False
 
     def on_result(self, task, result):
+        '''Called every result'''
         if not result:
             return
         assert 'taskid' in task, 'need taskid in task'
@@ -39,6 +40,7 @@ class ResultWorker(object):
         self._quit = True
 
     def run(self):
+        '''Run loop'''
         logger.info("result_worker starting...")
 
         while not self._quit:

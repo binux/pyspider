@@ -94,7 +94,7 @@ class Fetcher(object):
         }
 
     def send_result(self, type, task, result):
-        """type in ('data', 'http')"""
+        '''Send fetch result to processor'''
         if self.outqueue:
             try:
                 self.outqueue.put((task, result))
@@ -102,6 +102,7 @@ class Fetcher(object):
                 logger.exception(e)
 
     def fetch(self, task, callback=None):
+        '''Do one fetch'''
         url = task.get('url', 'data:,')
         if callback is None:
             callback = self.send_result
@@ -113,6 +114,7 @@ class Fetcher(object):
             return self.http_fetch(url, task, callback)
 
     def sync_fetch(self, task):
+        '''Synchronization fetch'''
         wait_result = threading.Condition()
         _result = {}
 
@@ -132,6 +134,7 @@ class Fetcher(object):
         return _result['result']
 
     def data_fetch(self, url, task, callback):
+        '''A fake fetcher for dataurl'''
         self.on_fetch('data', task)
         result = {}
         result['orig_url'] = url
@@ -158,6 +161,7 @@ class Fetcher(object):
     allowed_options = ['method', 'data', 'timeout', 'allow_redirects', 'cookies']
 
     def http_fetch(self, url, task, callback):
+        '''HTTP fetcher'''
         start_time = time.time()
 
         self.on_fetch('http', task)
@@ -282,6 +286,7 @@ class Fetcher(object):
     phantomjs_adding_options = ['js_run_at', 'js_script', 'load_images']
 
     def phantomjs_fetch(self, url, task, callback):
+        '''Fetch with phantomjs proxy'''
         start_time = time.time()
 
         self.on_fetch('phantomjs', task)
@@ -378,6 +383,7 @@ class Fetcher(object):
             return handle_error(e)
 
     def run(self):
+        '''Run loop'''
         logger.info("fetcher starting...")
 
         def queue_loop():
@@ -413,6 +419,7 @@ class Fetcher(object):
         logger.info("fetcher exiting...")
 
     def quit(self):
+        '''Quit fetcher'''
         self._running = False
         self._quit = True
         self.ioloop.stop()
@@ -421,6 +428,7 @@ class Fetcher(object):
         return self.http_client.size()
 
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
+        '''Run xmlrpc server'''
         import umsgpack
         try:
             from xmlrpc.server import SimpleXMLRPCServer
@@ -452,11 +460,11 @@ class Fetcher(object):
         server.server_close()
 
     def on_fetch(self, type, task):
-        """type in ('data', 'http')"""
+        '''Called before task fetch'''
         pass
 
     def on_result(self, type, task, result):
-        """type in ('data', 'http')"""
+        '''Called after task fetched'''
         status_code = result.get('status_code', 599)
         if status_code != 599:
             status_code = (int(status_code) / 100 * 100)

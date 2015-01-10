@@ -122,6 +122,11 @@ class TaskQueue(object):
         self.bucket.burst = value
 
     def check_update(self):
+        '''
+        Check time queue and processing queue
+
+        put tasks to priority queue when execute time arrived or process timeout
+        '''
         self._check_time_queue()
         self._check_processing()
 
@@ -147,6 +152,7 @@ class TaskQueue(object):
         self.mutex.release()
 
     def put(self, taskid, priority=0, exetime=0):
+        '''Put a task into task queue'''
         now = time.time()
         self.mutex.acquire()
         if taskid in self.priority_queue:
@@ -175,6 +181,7 @@ class TaskQueue(object):
         self.mutex.release()
 
     def get(self):
+        '''Get a task from queue when bucket available'''
         if self.bucket.get() < 1:
             return None
         now = time.time()
@@ -191,6 +198,7 @@ class TaskQueue(object):
         return task.taskid
 
     def done(self, taskid):
+        '''Mark task done'''
         if taskid in self.processing:
             del self.processing[taskid]
             return True

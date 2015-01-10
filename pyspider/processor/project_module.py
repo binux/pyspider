@@ -28,6 +28,7 @@ class ProjectManager(object):
 
     @staticmethod
     def build_module(project, env={}):
+        '''Build project script as module'''
         assert 'name' in project, 'need name of project'
         assert 'script' in project, 'need script of project'
 
@@ -67,6 +68,7 @@ class ProjectManager(object):
         self.last_check_projects = time.time()
 
     def _need_update(self, project_name, updatetime=None):
+        '''Check if project_name need update'''
         if project_name not in self.projects:
             return True
         if updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
@@ -76,6 +78,7 @@ class ProjectManager(object):
         return False
 
     def _check_projects(self):
+        '''Check projects by last update time'''
         for project in self.projectdb.check_update(self.last_check_projects,
                                                    ['name', 'updatetime']):
             if project['name'] not in self.projects:
@@ -85,12 +88,14 @@ class ProjectManager(object):
         self.last_check_projects = time.time()
 
     def _update_project(self, project_name):
+        '''Update one project from database'''
         project = self.projectdb.get(project_name)
         if not project:
             return None
         return self._load_project(project)
 
     def _load_project(self, project):
+        '''Load project into self.projects from project info dict'''
         try:
             ret = self.build_module(project, self.env)
             self.projects[project['name']] = ret
@@ -100,9 +105,7 @@ class ProjectManager(object):
         return True
 
     def get(self, project_name, updatetime=None):
-        """
-        get project data object, return None if not exists
-        """
+        '''get project data object, return None if not exists'''
         if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
             self._check_projects()
         if self._need_update(project_name, updatetime):
@@ -111,6 +114,7 @@ class ProjectManager(object):
 
 
 class ProjectFinder(object):
+    '''ProjectFinder class for sys.meta_path'''
 
     def find_module(self, fullname, path=None):
         if fullname == 'projects':
@@ -121,6 +125,7 @@ class ProjectFinder(object):
 
 
 class ProjectsLoader(object):
+    '''ProjectsLoader class for sys.meta_path package'''
 
     def load_module(self, fullname):
         mod = sys.modules.setdefault('projects', imp.new_module(fullname))
@@ -132,6 +137,7 @@ class ProjectsLoader(object):
 
 
 class ProjectLoader(object):
+    '''ProjectLoader class for sys.meta_path'''
 
     def __init__(self, project, mod=None):
         self.project = project

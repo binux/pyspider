@@ -31,6 +31,7 @@ class Bucket(object):
         self.last_update = time.time()
 
     def get(self):
+        '''Get the number of tokens in bucket'''
         now = time.time()
         if self.bucket >= self.burst:
             self.last_update = now
@@ -46,7 +47,9 @@ class Bucket(object):
         return self.bucket
 
     def set(self, value):
+        '''Set number of tokens in bucket'''
         self.bucket = value
 
     def desc(self, value=1):
+        '''Use value tokens'''
         self.bucket -= value

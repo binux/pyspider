@@ -71,6 +71,7 @@ class Scheduler(object):
         self._last_dump_cnt = 0
 
     def _load_projects(self):
+        '''init projects'''
         self.projects = dict()
         for project in self.projectdb.get_all():
             self._update_project(project)
@@ -78,6 +79,7 @@ class Scheduler(object):
         self._last_update_project = time.time()
 
     def _update_projects(self):
+        '''Check project update'''
         now = time.time()
         if (
                 not self._force_update_project
@@ -91,6 +93,7 @@ class Scheduler(object):
         self._last_update_project = now
 
     def _update_project(self, project):
+        '''update one project'''
         if project['name'] not in self.projects:
             self.projects[project['name']] = {}
         self.projects[project['name']].update(project)
@@ -128,9 +131,7 @@ class Scheduler(object):
     scheduler_task_fields = ['taskid', 'project', 'schedule', ]
 
     def _load_tasks(self, project):
-        """
-        loading tasks from database
-        """
+        '''load tasks from database'''
         self.task_queue[project] = TaskQueue(rate=0, burst=0)
         for task in self.taskdb.load_tasks(
                 self.taskdb.ACTIVE, project, self.scheduler_task_fields
@@ -161,6 +162,10 @@ class Scheduler(object):
         self._cnt['all'].value((project, 'pending'), len(self.task_queue[project]))
 
     def task_verify(self, task):
+        '''
+        return False if any of 'taskid', 'project', 'url' is not in task dict
+                        or project in not in task_queue
+        '''
         for each in ('taskid', 'project', 'url', ):
             if each not in task or not task[each]:
                 logger.error('%s not in task: %s', each, utils.unicode_string(task)[:200])
@@ -171,12 +176,15 @@ class Scheduler(object):
         return True
 
     def insert_task(self, task):
+        '''insert task into database'''
         return self.taskdb.insert(task['project'], task['taskid'], task)
 
     def update_task(self, task):
+        '''update task in database'''
         return self.taskdb.update(task['project'], task['taskid'], task)
 
     def put_task(self, task):
+        '''put task to task queue'''
         _schedule = task.get('schedule', self.default_schedule)
         self.task_queue[task['project']].put(
             task['taskid'],
@@ -185,6 +193,11 @@ class Scheduler(object):
         )
 
     def send_task(self, task, force=True):
+        '''
+        dispatch task to fetcher
+
+        out queue may have size limit to prevent block, a send_buffer is used
+        '''
         try:
             self.out_queue.put_nowait(task)
         except Queue.Full:
@@ -194,6 +207,7 @@ class Scheduler(object):
                 raise
 
     def _check_task_done(self):
+        '''Check status queue'''
         cnt = 0
         try:
             while cnt < self.LOOP_LIMIT:
@@ -209,6 +223,7 @@ class Scheduler(object):
     merge_task_fields = ['taskid', 'project', 'url', 'status', 'schedule', 'lastcrawltime']
 
     def _check_request(self):
+        '''Check new task queue'''
         cnt = 0
         while cnt < self.LOOP_LIMIT:
             try:
@@ -255,9 +270,7 @@ class Scheduler(object):
         return cnt
 
     def _check_cronjob(self):
-        """
-        check projects cronjob tick, return True when a new tick is sended
-        """
+        """Check projects cronjob tick, return True when a new tick is sended"""
         now = time.time()
         self._last_tick = int(self._last_tick)
         if now - self._last_tick < 1:
@@ -299,6 +312,7 @@ class Scheduler(object):
     ]
 
     def _check_select(self):
+        '''Select task to fetch & process'''
         while self._send_buffer:
             _task = self._send_buffer.pop()
             try:
@@ -328,17 +342,20 @@ class Scheduler(object):
         return cnt_dict
 
     def _dump_cnt(self):
+        '''Dump counters to file'''
         self._cnt['1h'].dump(os.path.join(self.data_path, 'scheduler.1h'))
         self._cnt['1d'].dump(os.path.join(self.data_path, 'scheduler.1d'))
         self._cnt['all'].dump(os.path.join(self.data_path, 'scheduler.all'))
 
     def _try_dump_cnt(self):
+        '''Dump counters every 60 seconds'''
         now = time.time()
         if now - self._last_dump_cnt > 60:
             self._last_dump_cnt = now
             self._dump_cnt()
 
     def _check_delete(self):
+        '''Check project delete'''
         now = time.time()
         for project in list(itervalues(self.projects)):
             if project['status'] != 'STOP':
@@ -363,9 +380,11 @@ class Scheduler(object):
         return sum(len(x) for x in itervalues(self.task_queue))
 
     def quit(self):
+        '''Set quit signal'''
         self._quit = True
 
     def run(self):
+        '''Start scheduler loop'''
         logger.info("loading projects")
         self._load_projects()
 
@@ -394,6 +413,7 @@ class Scheduler(object):
         self._dump_cnt()
 
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
+        '''Start xmlrpc interface'''
         try:
             from six.moves.xmlrpc_server import SimpleXMLRPCServer
         except ImportError:
@@ -470,6 +490,7 @@ class Scheduler(object):
         server.server_close()
 
     def on_new_request(self, task):
+        '''Called when a new request is arrived'''
         task['status'] = self.taskdb.ACTIVE
         self.insert_task(task)
         self.put_task(task)
@@ -483,6 +504,7 @@ class Scheduler(object):
         return task
 
     def on_old_request(self, task, old_task):
+        '''Called when a crawled task is arrived'''
         now = time.time()
 
         _schedule = task.get('schedule', self.default_schedule)
@@ -518,6 +540,7 @@ class Scheduler(object):
         return task
 
     def on_task_status(self, task):
+        '''Called when a status pack is arrived'''
         try:
             procesok = task['track']['process']['ok']
             if not self.task_queue[task['project']].done(task['taskid']):
@@ -535,9 +558,7 @@ class Scheduler(object):
         return ret
 
     def on_task_done(self, task):
-        '''
-        called by task_status
-        '''
+        '''Called when a task is done and success, called by `on_task_status`'''
         task['status'] = self.taskdb.SUCCESS
         task['lastcrawltime'] = time.time()
         self.update_task(task)
@@ -551,9 +572,7 @@ class Scheduler(object):
         return task
 
     def on_task_failed(self, task):
-        '''
-        called by task_status
-        '''
+        '''Called when a task is failed, called by `on_task_status`'''
         old_task = self.taskdb.get_task(task['project'], task['taskid'], fields=['schedule'])
         if old_task is None:
             logging.error('unknow status pack: %s' % task)
@@ -599,6 +618,7 @@ class Scheduler(object):
             return task
 
     def on_select_task(self, task):
+        '''Called when a task is selected to fetch & process'''
         logger.debug('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
         self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
