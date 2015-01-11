@@ -62,7 +62,7 @@ Contribute
 TODO
 ----
 
-### v0.3.0 (current)
+### v0.3.0 (released)
 
 - [x] as a package
 - [x] run.py parameters
@@ -72,7 +72,7 @@ TODO
 - [x] python3 support
 - [x] documents
 - [x] tutorial
-- [ ] pypi release version
+- [x] pypi release version
 
 ### v0.4.0
 
