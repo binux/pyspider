@@ -100,8 +100,9 @@ class ProjectManager(object):
             ret = self.build_module(project, self.env)
             self.projects[project['name']] = ret
         except Exception:
-            logger.exception("load project %s error" % project.get('name', None))
+            logger.exception("load project %s error", project.get('name', None))
             return False
+        logger.debug('project: %s updated.', project.get('name', None))
         return True
 
     def get(self, project_name, updatetime=None):
