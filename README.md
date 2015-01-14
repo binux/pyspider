@@ -1,4 +1,4 @@
-pyspider [![Build Status][Build Status]][Travis CI] [![Coverage Status][Coverage Status]][Coverage] [![Try It Now!][Try]][Demo]
+pyspider [![Build Status]][Travis CI] [![Coverage Status]][Coverage] [![Try]][Demo]
 ========
 
 A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
@@ -7,11 +7,12 @@ A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
 - Python 2&3
 - Powerful WebUI with script editor, task monitor, project manager and result viewer
 - Javascript pages supported!
-- MySQL, MongoDB, SQLite as database backend 
+- MySQL, MongoDB, SQLite, Postgresql as database backend 
 - Task priority, retry, periodical, recrawl by age and more
 - Distributed architecture
 
 Documentation: [http://docs.pyspider.org/](http://docs.pyspider.org/)
+Tutorial: [http://docs.pyspider.org/en/latest/tutorial/](http://docs.pyspider.org/en/latest/tutorial/)
 
 Sample Code 
 -----------
@@ -49,7 +50,7 @@ Installation
 * `pip install pyspider`
 * run command `pyspider`, visit [http://localhost:5000/](http://localhost:5000/)
 
-[Quickstart](http://docs.pyspider.org/en/latest/Quickstart/)
+Quickstart: [http://docs.pyspider.org/en/latest/Quickstart/](http://docs.pyspider.org/en/latest/Quickstart/)
 
 Contribute
 ----------
@@ -61,18 +62,6 @@ Contribute
 
 TODO
 ----
-
-### v0.3.0 (released)
-
-- [x] as a package
-- [x] run.py parameters
-- [x] sortable projects list #12
-- [x] Postgresql Supported via SQLAlchemy (with the power of SQLAlchemy, pyspider also support Oracle, SQL Server, etc)
-- [x] benchmarking
-- [x] python3 support
-- [x] documents
-- [x] tutorial
-- [x] pypi release version
 
 ### v0.4.0
 

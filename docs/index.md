@@ -1,4 +1,4 @@
-pyspider [![Build Status][Build Status]][Travis CI] [![Coverage Status][Coverage Status]][Coverage] [![Try It Now!][Try]][Demo]
+pyspider [![Build Status]][Travis CI] [![Coverage Status]][Coverage] [![Try]][Demo]
 ========
 
 A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
@@ -7,7 +7,7 @@ A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
 - Python 2&3
 - Powerful WebUI with script editor, task monitor, project manager and result viewer
 - Javascript pages supported!
-- MySQL, MongoDB, SQLite as database backend 
+- MySQL, MongoDB, SQLite, Postgresql as database backend 
 - Task priority, retry, periodical, recrawl by age and more
 - Distributed architecture
 
@@ -47,12 +47,6 @@ Installation
 
 * `pip install pyspider`
 * run command `pyspider`, visit [http://localhost:5000/](http://localhost:5000/)
-
-Documents
----------
-
-* [Quickstart](Quickstart)
-* [API Reference](apis/)
 
 Contribute
 ----------
