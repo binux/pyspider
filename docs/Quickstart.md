@@ -13,54 +13,52 @@ apt-get install python python-dev python-distribute python-pip libcurl4-openssl-
 ```
 to install binary packages first.
 
-[Full Deployment](Deployment)
+**Note:** `pyspider` command is running pyspider in `all` mode, which running components in threads or subprocesses. For production environment, please refer to [Deployment](Deployment).
 
 Your First Script
 -----------------
 
 ```python
-from libs.base_handler import *
+from pyspider.libs.base_handler import *
 
 class Handler(BaseHandler):
-    '''
-    this is a sample handler
-    '''
-    @every(minutes=24*60, seconds=0)
+    crawl_config = {
+    }
+
+    @every(minutes=24 * 60)
     def on_start(self):
         self.crawl('http://scrapy.org/', callback=self.index_page)
 
-    @config(age=10*24*60*60)
+    @config(age=10 * 24 * 60 * 60)
     def index_page(self, response):
-        for each in response.doc('a[href^="http://"]').items():
+        for each in response.doc('a[href^="http"]').items():
             self.crawl(each.attr.href, callback=self.detail_page)
 
     def detail_page(self, response):
         return {
-                "url": response.url,
-                "title": response.doc('title').text(),
-                }
+            "url": response.url,
+            "title": response.doc('title').text(),
+        }
 ```
 
-* `def on_start(self)` is where your spider start. It will been called when you press the `run` button on dashboard.
-* [`self.crawl(url, callback=self.index_page)`](self.crawl) is the most important API here. It add a new task to crawl, and the `response` will been parsed by the function `index_page`.
-* `def index_page(self, response)` now get [`response`](Response). `response.doc` is a [pyquery](https://pythonhosted.org/pyquery/) object that you can locate the elements by a jquery-like API.
-* `def detail_page(self, response)` return a `dict` as it's result. It will captured by a result collector called result_worker. You can override `on_result(self, result)` method to deal with results by yourself.
+> * `def on_start(self)` is the entry point of the script. It will be called when you click the `run` button on dashboard.
+> * [`@every(minutes=24*60, seconds=0)`*](/apis/@every/) is a helper to tell the scheduler that `on_start` method should be called every 24*60 minutes = 1 day
+> * [`self.crawl(url, callback=self.index_page)`*](/apis/self.crawl) is the most important API here. It will add a new task to be crawled. `callback` is the method to parse the [`response`*](/apis/Response).
+> * parameters of [`self.crawl`*](/apis/self.crawl) can also be set via `crawl_config` and `@config`.
+> * `def index_page(self, response)` will get a [`Response`*](/apis/Response) object. [`response.doc`*](/apis/Response/#responsedoc) is a [pyquery](https://pythonhosted.org/pyquery/) object which has jquery-like API to select elements to be extracted.
+> * `def detail_page(self, response)` return a `dict` object as result. The result will be captured into `resultdb` by default. You can override `on_result(self, result)` method to manage the result yourself.
 
-You can run your script step by step by green `run` button. Try it!
+You can test your script step by step by click the green `run` button. Switch to `follows` panel, click the play button to move on.
 
-* `@every(minutes=24*60, seconds=0)` is a helper to tell the scheduler that this method should been called every 24*60 minutes = 1 day
-* `@config(age=10*24*60*60)` is a helper to tell pages parsed by `index_page` callback should considered as expired after age. This params can also set via [`self.crawl(age=10*24*60*60)`](apis/self.crawl/#schedule)
-* [API Reference](apis)
+![run one step](imgs/run_one_step.png)
 
 Start Running
 -------------
 
-Now save your script. It is very important, so I repeat. SAVE YOUR SCRIPT first.
-
-1. Back to dashboard find your project.
-2. Make sure the `status` is `DEBUG` or `RUNNING`.
-3. Make sure `rate/burst` is not 0.
-4. Press the `run` button.
+1. Save your script.
+2. Back to dashboard find your project.
+3. Changing the `status` to `DEBUG` or `RUNNING`.
+4. Click the `run` button.
 
 ![index demo](imgs/index_page.png)
 
