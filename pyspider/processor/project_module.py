@@ -151,16 +151,17 @@ class ProjectLoader(object):
         else:
             mod = self.mod
 
+        mod.__file__ = '<%s>' % self.name
+        mod.__loader__ = self
+        mod.__project__ = self.project
+        mod.__package__ = ''
+        # logger inject
         log_buffer = []
         mod.logging = mod.logger = logging.Logger(self.name)
         handler = SaveLogHandler(log_buffer)
         handler.setFormatter(LogFormatter(color=False))
         mod.logger.addHandler(handler)
         mod.log_buffer = log_buffer
-        mod.__file__ = '<%s>' % self.name
-        mod.__loader__ = self
-        mod.__project__ = self.project
-        mod.__package__ = ''
 
         code = self.get_code(fullname)
         six.exec_(code, mod.__dict__)

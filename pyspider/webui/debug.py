@@ -103,7 +103,7 @@ def run(project):
         module = ProjectManager.build_module(project_info, {
             'debugger': True
         })
-        ret = module['instance'].run(module['module'], task, response)
+        ret = module['instance'].run_task(module['module'], task, response)
     except Exception:
         type, value, tb = sys.exc_info()
         tb = utils.hide_me(tb, globals())

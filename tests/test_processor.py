@@ -74,39 +74,39 @@ class TestProjectModule(unittest.TestCase):
 
     def test_2_hello(self):
         self.base_task['process']['callback'] = 'hello'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, "hello world!")
 
     def test_3_echo(self):
         self.base_task['process']['callback'] = 'echo'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, "test data")
 
     def test_4_saved(self):
         self.base_task['process']['callback'] = 'saved'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, self.base_task['fetch']['save'])
 
     def test_5_echo_task(self):
         self.base_task['process']['callback'] = 'echo_task'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, self.project)
 
     def test_6_catch_status_code(self):
         self.fetch_result['status_code'] = 403
         self.base_task['process']['callback'] = 'catch_status_code'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, 403)
         self.fetch_result['status_code'] = 200
 
     def test_7_raise_exception(self):
         self.base_task['process']['callback'] = 'raise_exception'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNotNone(ret.exception)
         logstr = ret.logstr()
         self.assertIn('info', logstr)
@@ -115,7 +115,7 @@ class TestProjectModule(unittest.TestCase):
 
     def test_8_add_task(self):
         self.base_task['process']['callback'] = 'add_task'
-        ret = self.instance.run(self.module, self.base_task, self.fetch_result)
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
         self.assertIsNone(ret.exception, ret.logstr())
         self.assertEqual(len(ret.follows), 1)
         self.assertEqual(len(ret.messages), 1)
@@ -138,21 +138,21 @@ class TestProjectModule(unittest.TestCase):
         fetch_result['save'] = {
             'tick': 11,
         }
-        ret = self.instance.run(self.module, task, fetch_result)
+        ret = self.instance.run_task(self.module, task, fetch_result)
         logstr = ret.logstr()
         self.assertNotIn('on_cronjob1', logstr)
         self.assertNotIn('on_cronjob2', logstr)
 
         task['fetch']['save']['tick'] = 10
         fetch_result['save'] = task['fetch']['save']
-        ret = self.instance.run(self.module, task, fetch_result)
+        ret = self.instance.run_task(self.module, task, fetch_result)
         logstr = ret.logstr()
         self.assertNotIn('on_cronjob1', logstr)
         self.assertIn('on_cronjob2', logstr)
 
         task['fetch']['save']['tick'] = 60
         fetch_result['save'] = task['fetch']['save']
-        ret = self.instance.run(self.module, task, fetch_result)
+        ret = self.instance.run_task(self.module, task, fetch_result)
         logstr = ret.logstr()
         self.assertIn('on_cronjob1', logstr)
         self.assertIn('on_cronjob2', logstr)
@@ -172,11 +172,17 @@ class TestProjectModule(unittest.TestCase):
         fetch_result = copy.deepcopy(self.fetch_result)
         fetch_result['save'] = task['fetch']['save']
 
-        ret = self.instance.run(self.module, task, fetch_result)
+        ret = self.instance.run_task(self.module, task, fetch_result)
         self.assertEqual(len(ret.follows), 1, ret.logstr())
         for each in ret.follows:
             self.assertEqual(each['url'], 'data:,on_get_info')
             self.assertEqual(each['fetch']['save']['min_tick'], 10)
+
+    def test_30_generator(self):
+        self.base_task['process']['callback'] = 'generator'
+        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        self.assertIsNone(ret.exception)
+        self.assertIn('generator object', repr(ret.result))
 
 import shutil
 import inspect

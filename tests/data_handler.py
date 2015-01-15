@@ -43,3 +43,7 @@ class TestHandler(BaseHandler):
     @every(seconds=10)
     def on_cronjob2(self, response):
         logger.info('on_cronjob2')
+
+    def generator(self, response):
+        yield "a"
+        yield "b"

@@ -180,7 +180,7 @@ class BaseHandler(object):
         args, varargs, keywords, defaults = inspect.getargspec(function)
         return function(*arguments[:len(args) - 1])
 
-    def _run(self, task, response):
+    def _run_task(self, task, response):
         """
         Finding callback specified by `task['callback']`
         raising status error for it if needed.
@@ -198,7 +198,7 @@ class BaseHandler(object):
             response.raise_for_status()
         return self._run_func(function, response, task)
 
-    def run(self, module, task, response):
+    def run_task(self, module, task, response):
         """
         Processing the task, catching exceptions and logs, return a `ProcessorResult` object
         """
@@ -211,11 +211,11 @@ class BaseHandler(object):
 
         try:
             sys.stdout = ListO(module.log_buffer)
-            if inspect.isgeneratorfunction(self._run):
-                for result in self._run(task, response):
-                    self._run_func(self.on_result, result, response, task)
+            result = self._run_task(task, response)
+            if inspect.isgenerator(result):
+                for r in result:
+                    self._run_func(self.on_result, r, response, task)
             else:
-                result = self._run(task, response)
                 self._run_func(self.on_result, result, response, task)
         except Exception as e:
             logger.exception(e)
