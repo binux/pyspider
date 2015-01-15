@@ -124,6 +124,7 @@ def connect_database(url):
             from .sqlalchemy.resultdb import ResultDB
             return ResultDB(url)
         else:
-            raise Exception('unknow database type: %s' % dbtype)
+            raise Exception('unknow database type: %s, '
+                            'type should be one of ["taskdb", "projectdb", "resultdb"]' % dbtype)
     else:
         raise Exception('unknow engine: %s' % engine)
