@@ -161,6 +161,9 @@ def cli(ctx, **kwargs):
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
               inqueue_limit, delete_time, active_tasks, loop_limit, scheduler_cls):
+    """
+    Run Scheduler, only one scheduler is allowed.
+    """
     g = ctx.obj
     Scheduler = load_cls(None, None, scheduler_cls)
 
@@ -194,6 +197,9 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
             timeout, fetcher_cls):
+    """
+    Run Fetcher.
+    """
     g = ctx.obj
     Fetcher = load_cls(None, None, fetcher_cls)
 
@@ -220,6 +226,9 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
               help='Processor class to be used.')
 @click.pass_context
 def processor(ctx, processor_cls):
+    """
+    Run Processor.
+    """
     g = ctx.obj
     Processor = load_cls(None, None, processor_cls)
 
@@ -239,6 +248,9 @@ def processor(ctx, processor_cls):
               help='ResultWorker class to be used.')
 @click.pass_context
 def result_worker(ctx, result_cls):
+    """
+    Run result worker.
+    """
     g = ctx.obj
     ResultWorker = load_cls(None, None, result_cls)
 
@@ -274,6 +286,9 @@ def result_worker(ctx, result_cls):
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
           username, password, need_auth, fetcher_cls, webui_instance):
+    """
+    Run WebUI
+    """
     app = load_cls(None, None, webui_instance)
     Fetcher = load_cls(None, None, fetcher_cls)
 
@@ -327,6 +342,9 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 @click.option('--port', default=25555, help='phantomjs port')
 @click.pass_context
 def phantomjs(ctx, phantomjs_path, port):
+    """
+    Run phantomjs fetcher if phantomjs is installed.
+    """
     import subprocess
     g = ctx.obj
 
@@ -362,6 +380,10 @@ def phantomjs(ctx, phantomjs_path, port):
               'always using thread for windows.')
 @click.pass_context
 def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
+    """
+    Run all the components in subprocess or thread
+    """
+
     ctx.obj['debug'] = False
     g = ctx.obj
 
@@ -433,6 +455,10 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 @click.option('--show', default=20, help="show how many urls in a page")
 @click.pass_context
 def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, show):
+    """
+    Run Benchmark test.
+    In bench mode, in-memory sqlite database is used instead of on-disk sqlite database.
+    """
     from pyspider.libs import bench
     from pyspider.webui import bench_test
     bench_test  # make pyflake happy
@@ -526,6 +552,48 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         if hasattr(each, 'terminate'):
             each.terminate()
         each.join(1)
+
+
+@cli.command()
+@click.pass_context
+def one(ctx):
+    """
+    One mode not only means all-in-one,
+    it runs every thing in one process over tornado.ioloop
+
+    Note: one mode not running phantomjs by default.
+    """
+
+    ctx.obj['debug'] = False
+    g = ctx.obj
+    g['testing_mode'] = True
+
+    #phantomjs_config = g.config.get('phantomjs', {})
+    #phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
+    #if phantomjs_obj and not g.get('phantomjs_proxy'):
+        #g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_obj.port
+
+    result_worker_config = g.config.get('result_worker', {})
+    result_worker_obj = ctx.invoke(result_worker, **result_worker_config)
+
+    processor_config = g.config.get('processor', {})
+    processor_obj = ctx.invoke(processor, **processor_config)
+
+    fetcher_config = g.config.get('fetcher', {})
+    fetcher_config.setdefault('xmlrpc', False)
+    fetcher_obj = ctx.invoke(fetcher, **fetcher_config)
+
+    scheduler_config = g.config.get('scheduler', {})
+    scheduler_config.setdefault('xmlrpc', False)
+    scheduler_config.setdefault('scheduler_cls',
+                                'pyspider.scheduler.scheduler.OneScheduler')
+    scheduler_obj = ctx.invoke(scheduler, **scheduler_config)
+
+    scheduler_obj.init_one(ioloop=fetcher_obj.ioloop,
+                           fetcher=fetcher_obj,
+                           processor=processor_obj,
+                           result_worker=result_worker_obj)
+    scheduler_obj.run()
 
 
 def main():

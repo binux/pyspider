@@ -499,7 +499,7 @@ class Scheduler(object):
         self._cnt['1h'].event((project, 'pending'), +1)
         self._cnt['1d'].event((project, 'pending'), +1)
         self._cnt['all'].event((project, 'pending'), +1)
-        logger.debug('new task %(project)s:%(taskid)s %(url)s', task)
+        logger.info('new task %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_old_request(self, task, old_task):
@@ -535,7 +535,7 @@ class Scheduler(object):
             self._cnt['all'].event((project, 'success'), -1).event((project, 'pending'), +1)
         elif old_task['status'] == self.taskdb.FAILED:
             self._cnt['all'].event((project, 'failed'), -1).event((project, 'pending'), +1)
-        logger.debug('restart task %(project)s:%(taskid)s %(url)s', task)
+        logger.info('restart task %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_task_status(self, task):
@@ -567,7 +567,7 @@ class Scheduler(object):
         self._cnt['1h'].event((project, 'success'), +1)
         self._cnt['1d'].event((project, 'success'), +1)
         self._cnt['all'].event((project, 'success'), +1).event((project, 'pending'), -1)
-        logger.debug('task done %(project)s:%(taskid)s %(url)s', task)
+        logger.info('task done %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_task_failed(self, task):
@@ -618,7 +618,56 @@ class Scheduler(object):
 
     def on_select_task(self, task):
         '''Called when a task is selected to fetch & process'''
-        logger.debug('select %(project)s:%(taskid)s %(url)s', task)
+        logger.info('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
         self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return task
+
+
+from tornado import gen
+
+
+class OneScheduler(Scheduler):
+    """
+    Scheduler Mixin class for one mode
+
+    overwirte send_task method
+    call processor.on_task(fetcher.fetch(task)) instead of consuming queue
+    """
+    def init_one(self, ioloop, fetcher, processor, result_worker=None):
+        self.ioloop = ioloop
+        self.fetcher = fetcher
+        self.processor = processor
+        self.result_worker = result_worker
+
+    @gen.coroutine
+    def do_task(self, task):
+        result = yield gen.Task(self.fetcher.fetch, task)
+        type, task, response = result.args
+        self.processor.on_task(task, response)
+        # do with message
+        while not self.processor.inqueue.empty():
+            _task, _response = self.processor.inqueue.get()
+            self.processor.on_task(_task, _response)
+        # do with results
+        while not self.processor.result_queue.empty():
+            _task, _result = self.processor.result_queue.get()
+            if self.result_worker:
+                self.result_worker.on_result(_task, _result)
+
+    def send_task(self, task, force=True):
+        if self.fetcher.http_client.free_size() <= 0:
+            if force:
+                self._send_buffer.appendleft(task)
+            else:
+                raise self.outqueue.Full
+        self.ioloop.add_future(self.do_task(task), lambda x: x.result())
+
+    def run(self):
+        import tornado.ioloop
+        tornado.ioloop.PeriodicCallback(self.run_once, 100,
+                                        io_loop=self.ioloop).start()
+        self.ioloop.start()
+
+    def quit(self):
+        self.ioloop.stop()

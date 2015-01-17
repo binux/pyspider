@@ -26,15 +26,18 @@ class ResultWorker(object):
         '''Called every result'''
         if not result:
             return
-        assert 'taskid' in task, 'need taskid in task'
-        assert 'project' in task, 'need project in task'
-        assert 'url' in task, 'need url in task'
-        return self.resultdb.save(
-            project=task['project'],
-            taskid=task['taskid'],
-            url=task['url'],
-            result=result
-        )
+        if 'taskid' in task and 'project' in task and 'url' in task:
+            logger.info('result %s:%s %s -> %.30r' % (
+                task['project'], task['taskid'], task['url'], result))
+            return self.resultdb.save(
+                project=task['project'],
+                taskid=task['taskid'],
+                url=task['url'],
+                result=result
+            )
+        else:
+            logger.warning('result UNKNOW -> %.30r' % result)
+            return
 
     def quit(self):
         self._quit = True
@@ -46,11 +49,6 @@ class ResultWorker(object):
         while not self._quit:
             try:
                 task, result = self.inqueue.get(timeout=1)
-                if 'taskid' in task and 'project' in task and 'url' in task:
-                    logger.info('result %s:%s %s -> %.30r' % (
-                        task['project'], task['taskid'], task['url'], result))
-                else:
-                    logger.warning('result UNKNOW -> %.30r' % result)
                 self.on_result(task, result)
             except Queue.Empty as e:
                 continue
