@@ -57,6 +57,8 @@ sqlalchemy:
     more: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html
 ```
 
+**type** should be one of `taskdb`, `projectdb`, `resultdb`.
+
 #### --amqp-url
 
 See [https://www.rabbitmq.com/uri-spec.html](https://www.rabbitmq.com/uri-spec.html)
