@@ -308,7 +308,8 @@ class Scheduler(object):
         while self._send_buffer:
             _task = self._send_buffer.pop()
             try:
-                self.out_queue.put_nowait(_task)
+                # use force=False here to prevent automatic send_buffer append and get exception
+                self.send_task(_task, False)
             except Queue.Full:
                 self._send_buffer.append(_task)
                 break
@@ -318,6 +319,8 @@ class Scheduler(object):
             # task queue
             self.task_queue[project].check_update()
             cnt = 0
+
+            # check send_buffer here. when not empty, out_queue may blocked. Not sending tasks
             while cnt < self.LOOP_LIMIT / 10 and not self._send_buffer:
                 taskid = task_queue.get()
                 if not taskid:
