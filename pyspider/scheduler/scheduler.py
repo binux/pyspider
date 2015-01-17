@@ -70,14 +70,6 @@ class Scheduler(object):
         self._cnt['all'].load(os.path.join(self.data_path, 'scheduler.all'))
         self._last_dump_cnt = 0
 
-    def _load_projects(self):
-        '''init projects'''
-        self.projects = dict()
-        for project in self.projectdb.get_all():
-            self._update_project(project)
-            logger.debug("project: %s loaded.", project['name'])
-        self._last_update_project = time.time()
-
     def _update_projects(self):
         '''Check project update'''
         now = time.time()
@@ -383,22 +375,26 @@ class Scheduler(object):
         '''Set quit signal'''
         self._quit = True
 
+    def run_once(self):
+        '''comsume queues and feed tasks to fetcher, once'''
+
+        self._update_projects()
+        self._check_task_done()
+        self._check_request()
+        while self._check_cronjob():
+            pass
+        self._check_select()
+        self._check_delete()
+        self._try_dump_cnt()
+
     def run(self):
         '''Start scheduler loop'''
         logger.info("loading projects")
-        self._load_projects()
 
         while not self._quit:
             try:
                 time.sleep(self.LOOP_INTERVAL)
-                self._update_projects()
-                self._check_task_done()
-                self._check_request()
-                while self._check_cronjob():
-                    pass
-                self._check_select()
-                self._check_delete()
-                self._try_dump_cnt()
+                self.run_once()
                 self._exceptions = 0
             except KeyboardInterrupt:
                 break
