@@ -411,6 +411,17 @@ class Scheduler(object):
         logger.info("scheduler exiting...")
         self._dump_cnt()
 
+    def trigger_on_start(self, project):
+        '''trigger an on_start callback of project'''
+        self.newtask_queue.put({
+            "project": project,
+            "taskid": "on_start",
+            "url": "data:,on_start",
+            "process": {
+                "callback": "on_start",
+            },
+        })
+
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
         '''Start xmlrpc interface'''
         try:
@@ -631,7 +642,7 @@ class OneScheduler(Scheduler):
     """
     Scheduler Mixin class for one mode
 
-    overwirte send_task method
+    overwirted send_task method
     call processor.on_task(fetcher.fetch(task)) instead of consuming queue
     """
     def init_one(self, ioloop, fetcher, processor, result_worker=None):

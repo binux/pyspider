@@ -61,7 +61,7 @@ def connect_rpc(ctx, param, value):
 @click.group(invoke_without_command=True)
 @click.option('-c', '--config', callback=read_config, type=click.File('r'),
               help='a json file with default values for subcommands. {"webui": {"port":5001}}')
-@click.option('--debug', envvar='DEBUG', is_flag=True, help='debug mode')
+@click.option('--debug', envvar='DEBUG', default=False, is_flag=True, help='debug mode')
 @click.option('--queue-maxsize', envvar='QUEUE_MAXSIZE', default=100,
               help='maxsize of queue')
 @click.option('--taskdb', envvar='TASKDB', callback=connect_db,
@@ -108,6 +108,7 @@ def cli(ctx, **kwargs):
                 os.mkdir(kwargs['data_path'])
             kwargs[db] = utils.Get(lambda db=db: connect_database('sqlite+%s:///%s/%s.db' % (
                 db, kwargs['data_path'], db[:-2])))
+            kwargs['is_%s_default' % db] = True
 
     # queue
     if kwargs.get('amqp_url'):
@@ -555,23 +556,44 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 
 
 @cli.command()
+@click.option('--phantomjs', 'enable_phantomjs', default=False, is_flag=True,
+              help='enable phantomjs, will spawn a subprocess for phantomjs')
+@click.argument('scripts', nargs=-1)
 @click.pass_context
-def one(ctx):
+def one(ctx, enable_phantomjs, scripts):
     """
-    One mode not only means all-in-one,
-    it runs every thing in one process over tornado.ioloop
+    One mode not only means all-in-one, it runs every thing in one process over
+    tornado.ioloop, for debug purpose
 
-    Note: one mode not running phantomjs by default.
+    * webui is not running in one mode.
+    * SCRIPTS is the script file path of project
+        - when set, taskdb and resultdb will use a in-memery sqlite db by default
+        - when set, on_start callback will be triggered on start
+    * the status of project is always RUNNING.
+    * rate and burst can be set in script with comments like:
+        # rate: 1.0
+        # burst: 3
     """
 
     ctx.obj['debug'] = False
     g = ctx.obj
     g['testing_mode'] = True
 
-    #phantomjs_config = g.config.get('phantomjs', {})
-    #phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
-    #if phantomjs_obj and not g.get('phantomjs_proxy'):
-        #g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_obj.port
+    if scripts:
+        from pyspider.database.local.projectdb import ProjectDB
+        g['projectdb'] = ProjectDB(scripts)
+        if g.get('is_taskdb_default'):
+            g['taskdb'] = connect_database('sqlite+taskdb://')
+        if g.get('is_resultdb_default'):
+            g['resultdb'] = connect_database('sqlite+resultdb://')
+
+    if enable_phantomjs:
+        phantomjs_config = g.config.get('phantomjs', {})
+        phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
+        if phantomjs_obj:
+            g.setdefault('phantomjs_proxy', 'localhost:%s' % phantomjs_obj.port)
+    else:
+        phantomjs_obj = None
 
     result_worker_config = g.config.get('result_worker', {})
     result_worker_obj = ctx.invoke(result_worker, **result_worker_config)
@@ -593,7 +615,16 @@ def one(ctx):
                            fetcher=fetcher_obj,
                            processor=processor_obj,
                            result_worker=result_worker_obj)
-    scheduler_obj.run()
+    if scripts:
+        for project in g.projectdb.projects:
+            scheduler_obj.trigger_on_start(project)
+    try:
+        scheduler_obj.run()
+    except KeyboardInterrupt:
+        scheduler_obj.quit()
+        if phantomjs_obj:
+            phantomjs_obj.quit()
+        raise
 
 
 def main():
