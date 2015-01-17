@@ -556,11 +556,13 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 
 
 @cli.command()
+@click.option('-i', '--interactive', default=False, is_flag=True,
+              help='enable interactive mode, you can choose crawl url.')
 @click.option('--phantomjs', 'enable_phantomjs', default=False, is_flag=True,
               help='enable phantomjs, will spawn a subprocess for phantomjs')
 @click.argument('scripts', nargs=-1)
 @click.pass_context
-def one(ctx, enable_phantomjs, scripts):
+def one(ctx, interactive, enable_phantomjs, scripts):
     """
     One mode not only means all-in-one, it runs every thing in one process over
     tornado.ioloop, for debug purpose
@@ -614,7 +616,8 @@ def one(ctx, enable_phantomjs, scripts):
     scheduler_obj.init_one(ioloop=fetcher_obj.ioloop,
                            fetcher=fetcher_obj,
                            processor=processor_obj,
-                           result_worker=result_worker_obj)
+                           result_worker=result_worker_obj,
+                           interactive=interactive)
     if scripts:
         for project in g.projectdb.projects:
             scheduler_obj.trigger_on_start(project)

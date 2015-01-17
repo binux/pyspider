@@ -645,14 +645,106 @@ class OneScheduler(Scheduler):
     overwirted send_task method
     call processor.on_task(fetcher.fetch(task)) instead of consuming queue
     """
-    def init_one(self, ioloop, fetcher, processor, result_worker=None):
+
+    def _check_select(self):
+        """
+        interactive mode of select tasks
+        """
+        if not self.interactive:
+            return super(OneScheduler, self)._check_select()
+
+        # waiting for running tasks
+        if self.running_task > 0:
+            return
+
+        is_crawled = []
+
+        def crawl(url, project=None, **kwargs):
+            """
+            Crawl given url, same parameters as BaseHandler.crawl
+
+            url - url or taskid, parameters will be used if in taskdb
+            project - can be ignored if only one project exists.
+            """
+
+            # looking up the project instance
+            if project is None:
+                if len(self.projects) == 1:
+                    project = list(self.projects.keys())[0]
+                else:
+                    raise LookupError('You need specify the project: %r'
+                                      % list(self.projects.keys()))
+            project_data = self.processor.project_manager.get(project)
+            if not project_data:
+                raise LookupError('no such project: %s' % project)
+
+            # get task package
+            instance = project_data['instance']
+            task = instance.crawl(url, **kwargs)
+            if isinstance(task, list):
+                raise Exception('url list is not allowed in interactive mode')
+
+            # check task in taskdb
+            if not kwargs:
+                dbtask = self.taskdb.get_task(task['project'], task['taskid'],
+                                              fields=self.request_task_fields)
+                if not dbtask:
+                    dbtask = self.taskdb.get_task(task['project'], task['url'],
+                                                  fields=self.request_task_fields)
+                if dbtask:
+                    task = dbtask
+
+            # select the task
+            task['project_updatetime'] = self.projects[project].get('updatetime', 0)
+            self.on_select_task(task)
+            is_crawled.append(True)
+
+            shell.ask_exit()
+
+        shell = utils.get_python_console()
+        shell.interact(
+            'pyspider shell - Select task\n'
+            'crawl(url, **kwargs) - same parameters as BaseHandler.crawl'
+        )
+        if not is_crawled:
+            self.quit()
+
+    def __getattr__(self, name):
+        """patch for crawl(url, callback=self.index_page) API"""
+        if self.interactive:
+            return name
+        raise AttributeError(name)
+
+    def on_task_status(self, task):
+        """Ignore not processing error in interactive mode"""
+        if not self.interactive:
+            super(OneScheduler, self).on_task_status(task)
+
+        try:
+            procesok = task['track']['process']['ok']
+        except KeyError as e:
+            logger.error("Bad status pack: %s", e)
+            return None
+
+        if procesok:
+            ret = self.on_task_done(task)
+        else:
+            ret = self.on_task_failed(task)
+        self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
+        return ret
+
+    def init_one(self, ioloop, fetcher, processor,
+                 result_worker=None, interactive=False):
         self.ioloop = ioloop
         self.fetcher = fetcher
         self.processor = processor
         self.result_worker = result_worker
+        self.interactive = interactive
+        self.running_task = 0
 
     @gen.coroutine
     def do_task(self, task):
+        self.running_task += 1
         result = yield gen.Task(self.fetcher.fetch, task)
         type, task, response = result.args
         self.processor.on_task(task, response)
@@ -665,6 +757,7 @@ class OneScheduler(Scheduler):
             _task, _result = self.processor.result_queue.get()
             if self.result_worker:
                 self.result_worker.on_result(_task, _result)
+        self.running_task -= 1
 
     def send_task(self, task, force=True):
         if self.fetcher.http_client.free_size() <= 0:
