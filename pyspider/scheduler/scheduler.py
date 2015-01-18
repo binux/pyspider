@@ -70,14 +70,6 @@ class Scheduler(object):
         self._cnt['all'].load(os.path.join(self.data_path, 'scheduler.all'))
         self._last_dump_cnt = 0
 
-    def _load_projects(self):
-        '''init projects'''
-        self.projects = dict()
-        for project in self.projectdb.get_all():
-            self._update_project(project)
-            logger.debug("project: %s loaded.", project['name'])
-        self._last_update_project = time.time()
-
     def _update_projects(self):
         '''Check project update'''
         now = time.time()
@@ -316,7 +308,8 @@ class Scheduler(object):
         while self._send_buffer:
             _task = self._send_buffer.pop()
             try:
-                self.out_queue.put_nowait(_task)
+                # use force=False here to prevent automatic send_buffer append and get exception
+                self.send_task(_task, False)
             except Queue.Full:
                 self._send_buffer.append(_task)
                 break
@@ -326,6 +319,8 @@ class Scheduler(object):
             # task queue
             self.task_queue[project].check_update()
             cnt = 0
+
+            # check send_buffer here. when not empty, out_queue may blocked. Not sending tasks
             while cnt < self.LOOP_LIMIT / 10 and not self._send_buffer:
                 taskid = task_queue.get()
                 if not taskid:
@@ -383,22 +378,26 @@ class Scheduler(object):
         '''Set quit signal'''
         self._quit = True
 
+    def run_once(self):
+        '''comsume queues and feed tasks to fetcher, once'''
+
+        self._update_projects()
+        self._check_task_done()
+        self._check_request()
+        while self._check_cronjob():
+            pass
+        self._check_select()
+        self._check_delete()
+        self._try_dump_cnt()
+
     def run(self):
         '''Start scheduler loop'''
         logger.info("loading projects")
-        self._load_projects()
 
         while not self._quit:
             try:
                 time.sleep(self.LOOP_INTERVAL)
-                self._update_projects()
-                self._check_task_done()
-                self._check_request()
-                while self._check_cronjob():
-                    pass
-                self._check_select()
-                self._check_delete()
-                self._try_dump_cnt()
+                self.run_once()
                 self._exceptions = 0
             except KeyboardInterrupt:
                 break
@@ -411,6 +410,17 @@ class Scheduler(object):
 
         logger.info("scheduler exiting...")
         self._dump_cnt()
+
+    def trigger_on_start(self, project):
+        '''trigger an on_start callback of project'''
+        self.newtask_queue.put({
+            "project": project,
+            "taskid": "on_start",
+            "url": "data:,on_start",
+            "process": {
+                "callback": "on_start",
+            },
+        })
 
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
         '''Start xmlrpc interface'''
@@ -500,7 +510,7 @@ class Scheduler(object):
         self._cnt['1h'].event((project, 'pending'), +1)
         self._cnt['1d'].event((project, 'pending'), +1)
         self._cnt['all'].event((project, 'pending'), +1)
-        logger.debug('new task %(project)s:%(taskid)s %(url)s', task)
+        logger.info('new task %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_old_request(self, task, old_task):
@@ -536,7 +546,7 @@ class Scheduler(object):
             self._cnt['all'].event((project, 'success'), -1).event((project, 'pending'), +1)
         elif old_task['status'] == self.taskdb.FAILED:
             self._cnt['all'].event((project, 'failed'), -1).event((project, 'pending'), +1)
-        logger.debug('restart task %(project)s:%(taskid)s %(url)s', task)
+        logger.info('restart task %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_task_status(self, task):
@@ -568,7 +578,7 @@ class Scheduler(object):
         self._cnt['1h'].event((project, 'success'), +1)
         self._cnt['1d'].event((project, 'success'), +1)
         self._cnt['all'].event((project, 'success'), +1).event((project, 'pending'), -1)
-        logger.debug('task done %(project)s:%(taskid)s %(url)s', task)
+        logger.info('task done %(project)s:%(taskid)s %(url)s', task)
         return task
 
     def on_task_failed(self, task):
@@ -619,7 +629,152 @@ class Scheduler(object):
 
     def on_select_task(self, task):
         '''Called when a task is selected to fetch & process'''
-        logger.debug('select %(project)s:%(taskid)s %(url)s', task)
+        logger.info('select %(project)s:%(taskid)s %(url)s', task)
         self.send_task(task)
         self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return task
+
+
+from tornado import gen
+
+
+class OneScheduler(Scheduler):
+    """
+    Scheduler Mixin class for one mode
+
+    overwirted send_task method
+    call processor.on_task(fetcher.fetch(task)) instead of consuming queue
+    """
+
+    def _check_select(self):
+        """
+        interactive mode of select tasks
+        """
+        if not self.interactive:
+            return super(OneScheduler, self)._check_select()
+
+        # waiting for running tasks
+        if self.running_task > 0:
+            return
+
+        is_crawled = []
+
+        def run(project=None):
+            return crawl('on_start', project=project)
+
+        def crawl(url, project=None, **kwargs):
+            """
+            Crawl given url, same parameters as BaseHandler.crawl
+
+            url - url or taskid, parameters will be used if in taskdb
+            project - can be ignored if only one project exists.
+            """
+
+            # looking up the project instance
+            if project is None:
+                if len(self.projects) == 1:
+                    project = list(self.projects.keys())[0]
+                else:
+                    raise LookupError('You need specify the project: %r'
+                                      % list(self.projects.keys()))
+            project_data = self.processor.project_manager.get(project)
+            if not project_data:
+                raise LookupError('no such project: %s' % project)
+
+            # get task package
+            instance = project_data['instance']
+            task = instance.crawl(url, **kwargs)
+            if isinstance(task, list):
+                raise Exception('url list is not allowed in interactive mode')
+
+            # check task in taskdb
+            if not kwargs:
+                dbtask = self.taskdb.get_task(task['project'], task['taskid'],
+                                              fields=self.request_task_fields)
+                if not dbtask:
+                    dbtask = self.taskdb.get_task(task['project'], task['url'],
+                                                  fields=self.request_task_fields)
+                if dbtask:
+                    task = dbtask
+
+            # select the task
+            task['project_updatetime'] = self.projects[project].get('updatetime', 0)
+            self.on_select_task(task)
+            is_crawled.append(True)
+
+            shell.ask_exit()
+
+        shell = utils.get_python_console()
+        shell.interact(
+            'pyspider shell - Select task\n'
+            'crawl(url, **kwargs) - same parameters as BaseHandler.crawl'
+        )
+        if not is_crawled:
+            self.quit()
+
+    def __getattr__(self, name):
+        """patch for crawl(url, callback=self.index_page) API"""
+        if self.interactive:
+            return name
+        raise AttributeError(name)
+
+    def on_task_status(self, task):
+        """Ignore not processing error in interactive mode"""
+        if not self.interactive:
+            super(OneScheduler, self).on_task_status(task)
+
+        try:
+            procesok = task['track']['process']['ok']
+        except KeyError as e:
+            logger.error("Bad status pack: %s", e)
+            return None
+
+        if procesok:
+            ret = self.on_task_done(task)
+        else:
+            ret = self.on_task_failed(task)
+        self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
+        return ret
+
+    def init_one(self, ioloop, fetcher, processor,
+                 result_worker=None, interactive=False):
+        self.ioloop = ioloop
+        self.fetcher = fetcher
+        self.processor = processor
+        self.result_worker = result_worker
+        self.interactive = interactive
+        self.running_task = 0
+
+    @gen.coroutine
+    def do_task(self, task):
+        self.running_task += 1
+        result = yield gen.Task(self.fetcher.fetch, task)
+        type, task, response = result.args
+        self.processor.on_task(task, response)
+        # do with message
+        while not self.processor.inqueue.empty():
+            _task, _response = self.processor.inqueue.get()
+            self.processor.on_task(_task, _response)
+        # do with results
+        while not self.processor.result_queue.empty():
+            _task, _result = self.processor.result_queue.get()
+            if self.result_worker:
+                self.result_worker.on_result(_task, _result)
+        self.running_task -= 1
+
+    def send_task(self, task, force=True):
+        if self.fetcher.http_client.free_size() <= 0:
+            if force:
+                self._send_buffer.appendleft(task)
+            else:
+                raise self.outqueue.Full
+        self.ioloop.add_future(self.do_task(task), lambda x: x.result())
+
+    def run(self):
+        import tornado.ioloop
+        tornado.ioloop.PeriodicCallback(self.run_once, 100,
+                                        io_loop=self.ioloop).start()
+        self.ioloop.start()
+
+    def quit(self):
+        self.ioloop.stop()

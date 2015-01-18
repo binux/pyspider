@@ -347,3 +347,64 @@ def load_object(name):
     else:
         module = __import__(module_name, globals(), locals(), [object_name])
     return getattr(module, object_name)
+
+
+def get_python_console(namespace=None):
+    """
+    Return a interactive python console instance with caller's stack
+    """
+
+    if namespace is None:
+        import inspect
+        frame = inspect.currentframe()
+        caller = frame.f_back
+        if not caller:
+            logging.error("can't find caller who start this console.")
+            caller = frame
+        namespace = dict(caller.f_globals)
+        namespace.update(caller.f_locals)
+
+    try:
+        from IPython.terminal.interactiveshell import TerminalInteractiveShell
+        shell = TerminalInteractiveShell(user_ns=namespace)
+    except ImportError:
+        try:
+            import readline
+            import rlcompleter
+            readline.set_completer(rlcompleter.Completer(namespace).complete)
+            readline.parse_and_bind("tab: complete")
+        except ImportError:
+            pass
+        import code
+        shell = code.InteractiveConsole(namespace)
+        shell._quit = False
+
+        def exit():
+            shell._quit = True
+
+        def readfunc(prompt=""):
+            if shell._quit:
+                raise EOFError
+            return six.moves.input(prompt)
+
+        # inject exit method
+        shell.ask_exit = exit
+        shell.raw_input = readfunc
+
+    return shell
+
+
+def python_console(namespace=None):
+    """Start a interactive python console with caller's stack"""
+
+    if namespace is None:
+        import inspect
+        frame = inspect.currentframe()
+        caller = frame.f_back
+        if not caller:
+            logging.error("can't find caller who start this console.")
+            caller = frame
+        namespace = dict(caller.f_globals)
+        namespace.update(caller.f_locals)
+
+    return get_python_console(namespace=namespace).interact()

@@ -324,7 +324,8 @@ class CounterManager(DictMixin):
     def dump(self, filename):
         """Dump counters to file"""
         try:
-            cPickle.dump(self.counters, open(filename, 'wb'))
+            with open(filename, 'wb') as fp:
+                cPickle.dump(self.counters, fp)
         except:
             logging.error("can't dump counter to file: %s" % filename)
             return False
@@ -333,7 +334,8 @@ class CounterManager(DictMixin):
     def load(self, filename):
         """Load counters to file"""
         try:
-            self.counters = cPickle.load(open(filename))
+            with open(filename) as fp:
+                self.counters = cPickle.load(fp)
         except:
             logging.debug("can't load counter from file: %s" % filename)
             return False

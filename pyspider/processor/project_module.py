@@ -73,7 +73,7 @@ class ProjectManager(object):
             return True
         if updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
             return True
-        if time.time() - self.projects[project_name]['load_time'] < self.RELOAD_PROJECT_INTERVAL:
+        if time.time() - self.projects[project_name]['load_time'] > self.RELOAD_PROJECT_INTERVAL:
             return True
         return False
 
