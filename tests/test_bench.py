@@ -26,6 +26,7 @@ class TestBench(unittest.TestCase):
         shutil.rmtree('./data/bench', ignore_errors=True)
 
     def not_test_10_bench(self):
+        self.setUpClass()
         runner = CliRunner()
         result = runner.invoke(run.cli, ['--queue-maxsize=0',
                                          'bench', '--run-in=thread', '--total=500'])
@@ -36,3 +37,4 @@ class TestBench(unittest.TestCase):
         self.assertIn('Processed', result.output)
         self.assertIn('Saved', result.output)
         print(result.output)
+        self.tearDownClass()

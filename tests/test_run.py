@@ -176,6 +176,8 @@ class TestRun(unittest.TestCase):
             del os.environ['SCHEDULER_PORT_23333_TCP']
 
     def not_test_a100_all(self):
+        self.setUpClass()
+
         try:
             thread = utils.run_in_subprocess(run.cli.main, [
                 '--taskdb', 'sqlite+taskdb:///data/tests/all_test_task.db',
@@ -208,6 +210,7 @@ class TestRun(unittest.TestCase):
             # FIXME: it's the only way to exit it nicely
             os.kill(thread.pid, signal.SIGINT)
             thread.join()
+            self.tearDownClass()
 
     def not_test_a110_one(self):
         import select
@@ -242,19 +245,19 @@ class TestRun(unittest.TestCase):
                 self.assertIn('new task sample_handler:on_start', text)
                 self.assertIn('pyspider shell', text)
 
-                os.write(fd, 'run()\n')
+                os.write(fd, b'run()\n')
                 text = wait_text()
                 self.assertIn('task done sample_handler:on_start', text)
 
-                os.write(fd, 'crawl("http://scrapy.org/")\n')
+                os.write(fd, b'crawl("http://scrapy.org/")\n')
                 text = wait_text(10)
                 self.assertIn('//github.com/scrapy/scrapy', text)
 
-                os.write(fd, 'crawl("http://www.baidu.com/", callback=self.detail_page)\n')
+                os.write(fd, b'crawl("http://www.baidu.com/", callback=self.detail_page)\n')
                 text = wait_text(10)
                 self.assertIn('task done sample_handler', text)
 
-                #os.write(fd, '\x04y\n')
+                #os.write(fd, b'\x04y\n')
                 #text = wait_text()
                 #self.assertIn('scheduler exiting...', text)
             finally:
