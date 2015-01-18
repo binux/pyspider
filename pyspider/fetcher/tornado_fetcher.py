@@ -196,7 +196,7 @@ class Fetcher(object):
                 if isinstance(task_fetch.get('last_modifed'), six.string_types) \
                 else track_headers.get('last-modified')
             if _t:
-                fetch['headers'].setdefault('If-Modifed-Since', _t)
+                fetch['headers'].setdefault('If-Modified-Since', _t)
 
         # fix for tornado request obj
         if 'allow_redirects' in fetch:

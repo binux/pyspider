@@ -77,6 +77,7 @@ class TestFetcher(unittest.TestCase):
             self.phantomjs.kill()
             self.phantomjs.wait()
         self.httpbin_thread.terminate()
+        self.httpbin_thread.join()
         self.rpc._quit()
         self.thread.join()
         time.sleep(1)

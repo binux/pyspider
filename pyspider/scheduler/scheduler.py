@@ -683,6 +683,7 @@ class OneScheduler(Scheduler):
 
             # get task package
             instance = project_data['instance']
+            instance._reset()
             task = instance.crawl(url, **kwargs)
             if isinstance(task, list):
                 raise Exception('url list is not allowed in interactive mode')

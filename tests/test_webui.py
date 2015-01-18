@@ -176,7 +176,7 @@ class TestWebUI(unittest.TestCase):
         for i in range(30):
             time.sleep(1)
             if self.rpc.counter('5m', 'sum')\
-                    .get('test_project', {}).get('success', 0) > 3:
+                    .get('test_project', {}).get('success', 0) > 5:
                 break
 
         rv = self.app.get('/counter?time=5m&type=sum')

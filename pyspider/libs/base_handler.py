@@ -194,6 +194,9 @@ class BaseHandler(object):
             raise NotImplementedError("self.%s() not implemented!" % callback)
 
         function = getattr(self, callback)
+        # do not run_func when 304
+        if response.status_code == 304 and not getattr(function, '_catch_status_code_error', False):
+            return None
         if not getattr(function, '_catch_status_code_error', False):
             response.raise_for_status()
         return self._run_func(function, response, task)
@@ -305,7 +308,7 @@ class BaseHandler(object):
 
         task['project'] = self.project_name
         task['url'] = url
-        task['taskid'] = task.get('taskid') or self.get_taskid(task)
+        task['taskid'] = kwargs.get('taskid') or self.get_taskid(task)
 
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:

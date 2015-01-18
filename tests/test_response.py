@@ -46,21 +46,45 @@ class TestResponse(unittest.TestCase):
         request.update(kwargs)
         task, result = self.fetcher.fetch(request)
         response = rebuild_response(result)
-        self.assertEqual(response.status_code, 200, result)
         return response
 
     def test_10_html(self):
         response = self.get('/html')
+        self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.doc('h1'))
 
     def test_20_xml(self):
         response = self.get('/xml')
+        self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.doc('item'))
 
     def test_30_gzip(self):
         response = self.get('/gzip')
+        self.assertEqual(response.status_code, 200)
         self.assertIn('gzipped', response.text)
 
     def test_40_deflate(self):
         response = self.get('/deflate')
+        self.assertEqual(response.status_code, 200)
         self.assertIn('deflated', response.text)
+
+    def test_50_ok(self):
+        response = self.get('/status/200')
+        self.assertTrue(response.ok)
+        self.assertTrue(response)
+        response = self.get('/status/302')
+        self.assertTrue(response.ok)
+        self.assertTrue(response)
+        with self.assertRaises(Exception):
+            self.raise_for_status(allow_redirects=False)
+
+    def test_60_not_ok(self):
+        response = self.get('/status/400')
+        self.assertFalse(response.ok)
+        self.assertFalse(response)
+        response = self.get('/status/500')
+        self.assertFalse(response.ok)
+        self.assertFalse(response)
+        response = self.get('/status/600')
+        self.assertFalse(response.ok)
+        self.assertFalse(response)

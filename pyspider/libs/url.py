@@ -21,7 +21,7 @@ _encode_params = RequestEncodingMixin._encode_params
 
 
 def _encode_multipart_formdata(fields, files):
-    body, content_type = RequestEncodingMixin._encode_files(fields, fields)
+    body, content_type = RequestEncodingMixin._encode_files(files, fields)
     return content_type, body
 
 

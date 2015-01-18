@@ -137,7 +137,7 @@ class Processor(object):
                 'save': (task['project'], msg),
             }))
 
-        if response.error or ret.exception:
+        if ret.exception:
             logger_func = logger.error
         else:
             logger_func = logger.info
