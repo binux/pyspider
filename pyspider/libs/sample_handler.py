@@ -19,6 +19,7 @@ class Handler(BaseHandler):
         for each in response.doc('a[href^="http"]').items():
             self.crawl(each.attr.href, callback=self.detail_page)
 
+    @config(priority=2)
     def detail_page(self, response):
         return {
             "url": response.url,

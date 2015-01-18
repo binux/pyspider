@@ -5,14 +5,22 @@
 #         http://binux.me
 # Created on 2014-11-21 22:32:35
 
+from __future__ import print_function
+
 import os
+import sys
 import six
+import time
 import json
+import signal
 import shutil
+import inspect
+import requests
 import unittest2 as unittest
 
+from pyspider.libs import sample_handler
 from pyspider import run
-from pyspider.libs.utils import ObjectDict
+from pyspider.libs import utils
 
 
 class TestRun(unittest.TestCase):
@@ -27,7 +35,7 @@ class TestRun(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_cli(self):
-        ctx = run.cli.make_context('test', [], None, obj=ObjectDict(testing_mode=True))
+        ctx = run.cli.make_context('test', [], None, obj=dict(testing_mode=True))
         ctx = run.cli.invoke(ctx)
         self.assertEqual(ctx.obj.debug, False)
         for db in ('taskdb', 'projectdb', 'resultdb'):
@@ -46,7 +54,7 @@ class TestRun(unittest.TestCase):
             }, fp)
         ctx = run.cli.make_context('test',
                                    ['--config', './data/tests/config.json'],
-                                   None, obj=ObjectDict(testing_mode=True))
+                                   None, obj=dict(testing_mode=True))
         ctx = run.cli.invoke(ctx)
         self.assertEqual(ctx.obj.debug, True)
 
@@ -62,7 +70,7 @@ class TestRun(unittest.TestCase):
             'test',
             ['--projectdb', 'mongodb+projectdb://localhost:23456/projectdb'],
             None,
-            obj=ObjectDict(testing_mode=True)
+            obj=dict(testing_mode=True)
         )
         ctx = run.cli.invoke(ctx)
 
@@ -74,7 +82,7 @@ class TestRun(unittest.TestCase):
         try:
             os.environ['RESULTDB'] = 'sqlite+resultdb://'
             ctx = run.cli.make_context('test', [], None,
-                                       obj=ObjectDict(testing_mode=True))
+                                       obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
 
             from pyspider.database.sqlite import resultdb
@@ -89,7 +97,7 @@ class TestRun(unittest.TestCase):
             os.environ['RABBITMQ_PORT_5672_TCP_ADDR'] = 'localhost'
             os.environ['RABBITMQ_PORT_5672_TCP_PORT'] = '5672'
             ctx = run.cli.make_context('test', [], None,
-                                       obj=ObjectDict(testing_mode=True))
+                                       obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             queue = ctx.obj.newtask_queue
             queue.put('abc')
@@ -108,7 +116,7 @@ class TestRun(unittest.TestCase):
             os.environ['MONGODB_PORT_27017_TCP_ADDR'] = 'localhost'
             os.environ['MONGODB_PORT_27017_TCP_PORT'] = '27017'
             ctx = run.cli.make_context('test', [], None,
-                                       obj=ObjectDict(testing_mode=True))
+                                       obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             ctx.obj.resultdb
         except Exception as e:
@@ -125,7 +133,7 @@ class TestRun(unittest.TestCase):
             os.environ['MYSQL_PORT_3306_TCP_ADDR'] = 'localhost'
             os.environ['MYSQL_PORT_3306_TCP_PORT'] = '3306'
             ctx = run.cli.make_context('test', [], None,
-                                       obj=ObjectDict(testing_mode=True))
+                                       obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             ctx.obj.resultdb
         except Exception as e:
@@ -140,7 +148,7 @@ class TestRun(unittest.TestCase):
             os.environ['PHANTOMJS_NAME'] = 'phantomjs'
             os.environ['PHANTOMJS_PORT'] = 'tpc://binux:25678'
             ctx = run.cli.make_context('test', [], None,
-                                       obj=ObjectDict(testing_mode=True))
+                                       obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             self.assertEqual(ctx.obj.phantomjs_proxy, 'binux:25678')
         except Exception as e:
@@ -154,7 +162,7 @@ class TestRun(unittest.TestCase):
             os.environ['SCHEDULER_NAME'] = 'scheduler'
             os.environ['SCHEDULER_PORT_23333_TCP'] = 'tpc://binux:25678'
             ctx = run.cli.make_context('test', [], None,
-                                       obj=ObjectDict(testing_mode=True))
+                                       obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
             webui = run.cli.get_command(ctx, 'webui')
             webui_ctx = webui.make_context('webui', [], ctx)
@@ -167,5 +175,87 @@ class TestRun(unittest.TestCase):
             del os.environ['SCHEDULER_NAME']
             del os.environ['SCHEDULER_PORT_23333_TCP']
 
-    def test_a10_all(self):
-        pass
+    def not_test_a100_all(self):
+        try:
+            thread = utils.run_in_subprocess(run.cli.main, [
+                '--taskdb', 'sqlite+taskdb:///data/tests/all_test_task.db',
+                '--resultdb', 'sqlite+resultdb:///data/tests/all_test_result.db',
+                '--projectdb', 'local+projectdb://'+inspect.getsourcefile(sample_handler),
+                'all',
+                '--run-in', 'thread'
+            ])
+            time.sleep(1)
+
+            # click run
+            requests.post('http://localhost:5000/run', data={
+                'project': 'sample_handler',
+            })
+
+            data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
+            limit = 30
+            while data.json().get('sample_handler', {}).get('success', 0) < 5:
+                time.sleep(1)
+                data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
+                limit -= 1
+                if limit <= 0:
+                    break
+
+            self.assertGreater(limit, 0)
+            rv = requests.get('http://localhost:5000/results?project=sample_handler')
+            self.assertIn('<th>url</th>', rv.text)
+            self.assertIn('scrapy.org', rv.text)
+        finally:
+            # FIXME: it's the only way to exit it nicely
+            os.kill(thread.pid, signal.SIGINT)
+            thread.join()
+
+    def not_test_a110_one(self):
+        import select
+
+        pid, fd = os.forkpty()
+        if pid == 0:
+            # child
+            run.cli.main([
+                'one',
+                '-i',
+                inspect.getsourcefile(sample_handler)
+            ])
+            sys.exit(0)
+        else:
+            # parent
+            time.sleep(1)
+            
+            def wait_text(timeout=1):
+                text = []
+                while True:
+                    rl, wl, xl = select.select([fd], [], [], timeout)
+                    if not rl:
+                        break
+                    for r in rl:
+                        t = utils.text(os.read(r, 1024))
+                        text.append(t)
+                        print(t, end='')
+                return ''.join(text)
+
+            try:
+                text = wait_text()
+                self.assertIn('new task sample_handler:on_start', text)
+                self.assertIn('pyspider shell', text)
+
+                os.write(fd, 'run()\n')
+                text = wait_text()
+                self.assertIn('task done sample_handler:on_start', text)
+
+                os.write(fd, 'crawl("http://scrapy.org/")\n')
+                text = wait_text(10)
+                self.assertIn('//github.com/scrapy/scrapy', text)
+
+                os.write(fd, 'crawl("http://www.baidu.com/", callback=self.detail_page)\n')
+                text = wait_text(10)
+                self.assertIn('task done sample_handler', text)
+
+                #os.write(fd, '\x04y\n')
+                #text = wait_text()
+                #self.assertIn('scheduler exiting...', text)
+            finally:
+                os.kill(pid, signal.SIGKILL)

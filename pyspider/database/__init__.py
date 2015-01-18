@@ -31,6 +31,8 @@ def connect_database(url):
         sqlalchemy+postgresql+type://user:passwd@host:port/database
         sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database
         more: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html
+    local:
+        local+projectdb://filepath,filepath
 
     type:
         taskdb
@@ -46,6 +48,10 @@ def connect_database(url):
     else:
         engine, dbtype = scheme[0], scheme[-1]
         other_scheme = "+".join(scheme[1:-1])
+
+    if dbtype not in ('taskdb', 'projectdb', 'resultdb'):
+        raise LookupError('unknow database type: %s, '
+                          'type should be one of ["taskdb", "projectdb", "resultdb"]', dbtype)
 
     if engine == 'mysql':
         parames = {}
@@ -70,7 +76,7 @@ def connect_database(url):
             from .mysql.resultdb import ResultDB
             return ResultDB(**parames)
         else:
-            raise Exception('unknow database type: %s' % dbtype)
+            raise LookupError
     elif engine == 'sqlite':
         if parsed.path.startswith('//'):
             path = '/' + parsed.path.strip('/')
@@ -91,7 +97,7 @@ def connect_database(url):
             from .sqlite.resultdb import ResultDB
             return ResultDB(path)
         else:
-            raise Exception('unknow database type: %s' % dbtype)
+            raise LookupError
     elif engine == 'mongodb':
         url = url.replace(parsed.scheme, 'mongodb')
         parames = {}
@@ -108,7 +114,7 @@ def connect_database(url):
             from .mongodb.resultdb import ResultDB
             return ResultDB(url, **parames)
         else:
-            raise Exception('unknow database type: %s' % dbtype)
+            raise LookupError
     elif engine == 'sqlalchemy':
         if not other_scheme:
             raise Exception('wrong scheme format: %s' % parsed.scheme)
@@ -124,7 +130,13 @@ def connect_database(url):
             from .sqlalchemy.resultdb import ResultDB
             return ResultDB(url)
         else:
-            raise Exception('unknow database type: %s, '
-                            'type should be one of ["taskdb", "projectdb", "resultdb"]' % dbtype)
+            raise LookupError
+    elif engine == 'local':
+        scripts = url.split('//', 1)[1].split(',')
+        if dbtype == 'projectdb':
+            from .local.projectdb import ProjectDB
+            return ProjectDB(scripts)
+        else:
+            raise LookupError('not supported dbtype: %s', dbtype)
     else:
         raise Exception('unknow engine: %s' % engine)

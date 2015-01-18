@@ -705,6 +705,10 @@ class OneScheduler(Scheduler):
 
             shell.ask_exit()
 
+        def quit_pyspider():
+            self.quit()
+            shell.ask_exit()
+
         shell = utils.get_python_console()
         shell.interact(
             'pyspider shell - Select task\n'
@@ -779,3 +783,4 @@ class OneScheduler(Scheduler):
 
     def quit(self):
         self.ioloop.stop()
+        logger.info("scheduler exiting...")
