@@ -30,7 +30,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
                            Column('taskid', String(64), primary_key=True, nullable=False),
                            Column('url', String(1024)),
                            Column('result', LargeBinary),
-                           Column('updatetime', Float(16))
+                           Column('updatetime', Float(32))
                            )
         self.engine = create_engine(url, convert_unicode=True)
 
