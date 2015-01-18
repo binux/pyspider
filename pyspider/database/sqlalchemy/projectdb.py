@@ -32,7 +32,7 @@ class ProjectDB(BaseProjectDB):
                            Column('comments', String(1024)),
                            Column('rate', Float(11)),
                            Column('burst', Float(11)),
-                           Column('updatetime', Float(16))
+                           Column('updatetime', Float(32))
                            )
         self.engine = create_engine(url, convert_unicode=True)
         self.table.create(self.engine, checkfirst=True)
