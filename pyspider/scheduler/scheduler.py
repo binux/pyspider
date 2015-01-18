@@ -659,6 +659,9 @@ class OneScheduler(Scheduler):
 
         is_crawled = []
 
+        def run(project=None):
+            return crawl('on_start', project=project)
+
         def crawl(url, project=None, **kwargs):
             """
             Crawl given url, same parameters as BaseHandler.crawl
