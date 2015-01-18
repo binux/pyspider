@@ -1,6 +1,7 @@
 [run]
 source =
     pyspider
+parallel = True
 
 [report]
 omit =
