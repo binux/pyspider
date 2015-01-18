@@ -132,15 +132,14 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.status_code, 599, result)
         self.assertIn('redirects followed', response.error)
 
-    # FIXME: test failed
-    #def test_e030_cookie(self):
-        #request = copy.deepcopy(self.sample_task_http)
-        #request['url'] = self.httpbin+'/cookies/set?k1=v1&k2=v2'
-        #result = self.fetcher.sync_fetch(request)
-        #response = rebuild_response(result)
+    def test_e030_cookie(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/cookies/set?k1=v1&k2=v2'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
 
-        #self.assertEqual(response.status_code, 200, result)
-        #self.assertEqual(response.cookies, {'k1': 'v', 'k2': 'v2'}, result)
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.cookies, {'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)
 
     def test_20_dataurl_get(self):
         request = copy.deepcopy(self.sample_task_http)

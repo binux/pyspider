@@ -18,11 +18,11 @@ class MockResponse(object):
 
     def getheaders(self, name):
         """make cookie python 2 version use this method to get cookie list"""
-        self._headers.get_list(name)
+        return self._headers.get_list(name)
 
     def get_all(self, name, default=[]):
         """make cookie python 3 version use this instead of getheaders"""
-        self._headers.get_list(name) or default
+        return self._headers.get_list(name) or default
 
 
 def extract_cookies_to_jar(jar, request, response):

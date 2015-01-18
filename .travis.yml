@@ -11,10 +11,10 @@ install:
     - pip install --allow-all-external -r requirements.txt
     - pip install coveralls httpbin
 script:
-    coverage run setup.py test
-    coverage run setup.py test --test-suit="tests.test_bench.TestBench.not_test_10_bench"
-    coverage run setup.py test --test-suit="tests.test_run.TestRun.not_test_a100_all"
-    coverage run setup.py test --test-suit="tests.test_run.TestRun.not_test_a110_one"
+    - coverage run setup.py test
+    - coverage run setup.py test --test-suit="tests.test_bench.TestBench.not_test_10_bench"
+    - coverage run setup.py test --test-suit="tests.test_run.TestRun.not_test_a100_all"
+    - coverage run setup.py test --test-suit="tests.test_run.TestRun.not_test_a110_one"
 after_success:
     - coverage combine
     - coveralls

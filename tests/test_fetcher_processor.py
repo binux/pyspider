@@ -241,13 +241,12 @@ class TestFetcherProcessor(unittest.TestCase):
         #self.assertFalse(newtasks)
         #self.assertEqual(result['headers'].get('Cookie'), 'g=h; I=j; a=b; C-d=e-F')
 
-    # FIXME: response cookie not work
-    #def test_a140_response_cookie(self):
-        #status, newtasks, result = self.crawl(self.httpbin+'/cookies/set?k1=v1&k2=v2',
-                                              #callback=self.cookies)
-        #self.assertStatusOk(status)
-        #self.assertFalse(newtasks)
-        #self.assertEqual(result, {'k1': 'v1', 'k2': 'v2'})
+    def test_a140_response_cookie(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cookies/set?k1=v1&k2=v2',
+                                              callback=self.cookies)
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.assertEqual(result, {'k1': 'v1', 'k2': 'v2'})
 
     def test_a150_timeout(self):
         status, newtasks, result = self.crawl(self.httpbin+'/delay/2', timeout=1, callback=self.json)
