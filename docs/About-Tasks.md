@@ -6,22 +6,29 @@ tasks are the basic unit to been scheduled.
 Basis
 -----
 
-* A task is differentiate by `taskid` which is `md5(url)` by default.
+* A task is differentiate by `taskid`. (Default: `md5(url)`, can be changed by override the `def get_taskid(self, task)` method)
 * Tasks are isolated between different projects.
-* Task has four status:
+* Task has 4 status:
     - active
     - failed
     - success
     - bad - not used
-* Only tasks in active status will scheduled. Tasks scheduled by `exetime` and `priority`
+* Only tasks in active status will be scheduled.
+* Tasks are served in order of `priority`.
 
 Schedule
 --------
-when a new task comes:
 
-* it will been putted into queued and sorted with `exetime` and `priority`.
+When a new task(have not seen before) comes:
 
-when a crawled task comes:
+* If `exetime` is set but not arrived. It will be putted into a time-based queue to wait.
+* Otherwise it will be accepted.
 
-* if task is current in the queue (`active` status), it will been ignored. Unless `force_update`.
-* if task is finished (in `success` or `failed` status) task arrive, it will been re-crawled if `last_crawl_time + age < now` or `itag` not equal previous value.
+When the task is already in the queue:
+
+* Ignored unless `force_update`
+
+When a completed task comes:
+
+* If `age` is set, `last_crawl_time + age < now` it will be accepted. Otherwise discarded.
+* If `itag` is set and not equal to it's previous value, it will be accepted. Otherwise discarded.

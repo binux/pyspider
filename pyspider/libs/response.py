@@ -149,8 +149,14 @@ class Response(object):
         """Returns a PyQuery object of a request's content"""
         if hasattr(self, '_doc'):
             return self._doc
-        parser = lxml.html.HTMLParser(encoding=self.encoding)
-        elements = lxml.html.fromstring(self.content, parser=parser)
+        try:
+            parser = lxml.html.HTMLParser(encoding=self.encoding)
+            elements = lxml.html.fromstring(self.content, parser=parser)
+        except LookupError:
+            # lxml would raise LookupError when encoding not supported
+            # try fromstring without encoding instead.
+            # on windows, unicode is not availabe as encoding for lxml
+            elements = lxml.html.fromstring(self.content)
         if isinstance(elements, lxml.etree._ElementTree):
             elements = elements.getroot()
         doc = self._doc = PyQuery(elements)
