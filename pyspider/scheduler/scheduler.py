@@ -160,7 +160,7 @@ class Scheduler(object):
         '''
         for each in ('taskid', 'project', 'url', ):
             if each not in task or not task[each]:
-                logger.error('%s not in task: %s', each, utils.unicode_string(task)[:200])
+                logger.error('%s not in task: %.200r', each, task)
                 return False
         if task['project'] not in self.task_queue:
             logger.error('unknow project: %s', task['project'])

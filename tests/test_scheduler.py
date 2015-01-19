@@ -376,6 +376,33 @@ class TestScheduler(unittest.TestCase):
         })
         time.sleep(0.2)
 
+    def test_a30_task_verify(self):
+        self.assertFalse(self.rpc.newtask({
+            #'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url',
+        }))
+        self.assertFalse(self.rpc.newtask({
+            'taskid': 'taskid',
+            #'project': 'test_project',
+            'url': 'url',
+        }))
+        self.assertFalse(self.rpc.newtask({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            #'url': 'url',
+        }))
+        self.assertFalse(self.rpc.newtask({
+            'taskid': 'taskid',
+            'project': 'not_exist_project',
+            'url': 'url',
+        }))
+        self.assertTrue(self.rpc.newtask({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url',
+        }))
+
     def test_x10_inqueue_limit(self):
         self.projectdb.insert('test_inqueue_project', {
             'name': 'test_inqueue_project',
