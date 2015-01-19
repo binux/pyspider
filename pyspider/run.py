@@ -70,8 +70,8 @@ def connect_rpc(ctx, param, value):
               help='database url for projectdb, default: sqlite')
 @click.option('--resultdb', envvar='RESULTDB', callback=connect_db,
               help='database url for resultdb, default: sqlite')
-@click.option('--amqp-url', help='amqp url for rabbitmq, default: built-in Queue')
-@click.option('--phantomjs-proxy', help="phantomjs proxy ip:port")
+@click.option('--amqp-url', envvar='AMQP_URL', help='amqp url for rabbitmq, default: built-in Queue')
+@click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.version_option(version=pyspider.__version__, prog_name=pyspider.__name__)
 @click.pass_context
