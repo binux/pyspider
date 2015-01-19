@@ -10,6 +10,7 @@ services:
 install:
     - pip install --allow-all-external -r requirements.txt
     - pip install coveralls httpbin
+    - pip install -e .
 script:
     - coverage run setup.py test
 after_success:
