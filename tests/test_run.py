@@ -215,13 +215,10 @@ class TestRun(unittest.TestCase):
             self.assertIn('<th>url</th>', rv.text)
             self.assertIn('scrapy.org', rv.text)
         finally:
-            # sending SIGINT is the only way to exit it nicely
-            p.send_signal(signal.SIGINT)
-            time.sleep(1)
-            p.poll()
-            if p.returncode is None:
-                p.kill()
-            p.wait()
+            while p.returncode is None:
+                time.sleep(1)
+                p.send_signal(signal.SIGINT)
+                p.poll()
 
     def test_a110_one(self):
         pid, fd = os.forkpty()
@@ -246,7 +243,10 @@ class TestRun(unittest.TestCase):
                     rl, wl, xl = select.select([fd], [], [], timeout)
                     if not rl:
                         break
-                    t = os.read(fd, 1024)
+                    try:
+                        t = os.read(fd, 1024)
+                    except OSError:
+                        break
                     if not t:
                         break
                     t = utils.text(t)
