@@ -6,13 +6,15 @@
 # Created on 2014-12-10 01:34:09
 
 import os
+import sys
 import time
 import click
 import shutil
+import inspect
 import unittest2 as unittest
 
 from pyspider import run
-from click.testing import CliRunner
+from pyspider.libs import utils
 
 class TestBench(unittest.TestCase):
 
@@ -25,16 +27,23 @@ class TestBench(unittest.TestCase):
     def tearDownClass(self):
         shutil.rmtree('./data/bench', ignore_errors=True)
 
-    def not_test_10_bench(self):
-        self.setUpClass()
-        runner = CliRunner()
-        result = runner.invoke(run.cli, ['--queue-maxsize=0',
-                                         'bench', '--run-in=thread', '--total=500'])
-        self.assertIsNone(result.exception, result.output)
-        self.assertEqual(result.exit_code, 0, result.output)
-        self.assertIn('Crawled', result.output)
-        self.assertIn('Fetched', result.output)
-        self.assertIn('Processed', result.output)
-        self.assertIn('Saved', result.output)
-        print(result.output)
-        self.tearDownClass()
+    def test_10_bench(self):
+        import subprocess
+        #cmd = [sys.executable]
+        cmd = ['coverage', 'run']
+        p = subprocess.Popen(cmd+[
+            inspect.getsourcefile(run),
+            '--queue-maxsize=0',
+            'bench',
+            '--total=500'
+        ], close_fds=True, stderr=subprocess.PIPE)
+
+        stdout, stderr = p.communicate()
+        stderr = utils.text(stderr)
+        print(stderr)
+
+        self.assertEqual(p.returncode, 0, stderr)
+        self.assertIn('Crawled', stderr)
+        self.assertIn('Fetched', stderr)
+        self.assertIn('Processed', stderr)
+        self.assertIn('Saved', stderr)

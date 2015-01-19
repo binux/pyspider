@@ -22,7 +22,6 @@ from pyspider.libs import sample_handler
 from pyspider import run
 from pyspider.libs import utils
 
-
 class TestRun(unittest.TestCase):
 
     @classmethod
@@ -175,26 +174,35 @@ class TestRun(unittest.TestCase):
             del os.environ['SCHEDULER_NAME']
             del os.environ['SCHEDULER_PORT_23333_TCP']
 
-    def not_test_a100_all(self):
-        self.setUpClass()
+    def test_a100_all(self):
+        import subprocess
+        #cmd = [sys.executable]
+        cmd = ['coverage', 'run']
+        p = subprocess.Popen(cmd+[
+            inspect.getsourcefile(run),
+            '--taskdb', 'sqlite+taskdb:///data/tests/all_test_task.db',
+            '--resultdb', 'sqlite+resultdb:///data/tests/all_test_result.db',
+            '--projectdb', 'local+projectdb://'+inspect.getsourcefile(sample_handler),
+            'all',
+        ], close_fds=True)
+
 
         try:
-            thread = utils.run_in_subprocess(run.cli.main, [
-                '--taskdb', 'sqlite+taskdb:///data/tests/all_test_task.db',
-                '--resultdb', 'sqlite+resultdb:///data/tests/all_test_result.db',
-                '--projectdb', 'local+projectdb://'+inspect.getsourcefile(sample_handler),
-                'all',
-                '--run-in', 'thread'
-            ])
-            time.sleep(1)
-
-            # click run
-            requests.post('http://localhost:5000/run', data={
-                'project': 'sample_handler',
-            })
-
-            data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
             limit = 30
+            while limit >= 0:
+                time.sleep(1)
+                # click run
+                try:
+                    requests.post('http://localhost:5000/run', data={
+                        'project': 'sample_handler',
+                    })
+                except requests.exceptions.ConnectionError:
+                    limit -= 1
+                    continue
+                break
+
+            limit = 30
+            data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
             while data.json().get('sample_handler', {}).get('success', 0) < 5:
                 time.sleep(1)
                 data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
@@ -207,58 +215,63 @@ class TestRun(unittest.TestCase):
             self.assertIn('<th>url</th>', rv.text)
             self.assertIn('scrapy.org', rv.text)
         finally:
-            # FIXME: it's the only way to exit it nicely
-            os.kill(thread.pid, signal.SIGINT)
-            thread.join()
-            self.tearDownClass()
+            # sending SIGINT is the only way to exit it nicely
+            p.send_signal(signal.SIGINT)
+            time.sleep(1)
+            p.poll()
+            if p.returncode is None:
+                p.kill()
+            p.wait()
 
-    def not_test_a110_one(self):
-        import select
-
+    def test_a110_one(self):
         pid, fd = os.forkpty()
+        #cmd = [sys.executable]
+        cmd = ['coverage', 'run']
+        cmd += [
+            inspect.getsourcefile(run),
+            'one',
+            '-i',
+            inspect.getsourcefile(sample_handler)
+        ]
+
         if pid == 0:
             # child
-            run.cli.main([
-                'one',
-                '-i',
-                inspect.getsourcefile(sample_handler)
-            ])
-            sys.exit(0)
+            os.execvp(cmd[0], cmd)
         else:
             # parent
-            time.sleep(1)
-            
             def wait_text(timeout=1):
+                import select
                 text = []
                 while True:
                     rl, wl, xl = select.select([fd], [], [], timeout)
                     if not rl:
                         break
-                    for r in rl:
-                        t = utils.text(os.read(r, 1024))
-                        text.append(t)
-                        print(t, end='')
+                    t = os.read(fd, 1024)
+                    if not t:
+                        break
+                    t = utils.text(t)
+                    text.append(t)
+                    print(t, end='')
                 return ''.join(text)
 
-            try:
-                text = wait_text()
-                self.assertIn('new task sample_handler:on_start', text)
-                self.assertIn('pyspider shell', text)
+            text = wait_text()
+            self.assertIn('new task sample_handler:on_start', text)
+            self.assertIn('pyspider shell', text)
 
-                os.write(fd, b'run()\n')
-                text = wait_text()
-                self.assertIn('task done sample_handler:on_start', text)
+            os.write(fd, b'run()\n')
+            text = wait_text()
+            self.assertIn('task done sample_handler:on_start', text)
 
-                os.write(fd, b'crawl("http://scrapy.org/")\n')
-                text = wait_text(10)
-                self.assertIn('//github.com/scrapy/scrapy', text)
+            os.write(fd, b'crawl("http://scrapy.org/")\n')
+            text = wait_text(10)
+            self.assertIn('//github.com/scrapy/scrapy', text)
 
-                os.write(fd, b'crawl("http://www.baidu.com/", callback=self.detail_page)\n')
-                text = wait_text(10)
-                self.assertIn('task done sample_handler', text)
+            os.write(fd, b'crawl("http://www.baidu.com/", callback=self.detail_page)\n')
+            text = wait_text(10)
+            self.assertIn('task done sample_handler', text)
 
-                #os.write(fd, b'\x04y\n')
-                #text = wait_text()
-                #self.assertIn('scheduler exiting...', text)
-            finally:
-                os.kill(pid, signal.SIGKILL)
+            os.write(fd, b'quit_pyspider()\n')
+            text = wait_text()
+            self.assertIn('scheduler exiting...', text)
+            os.close(fd)
+            os.kill(pid, signal.SIGINT)

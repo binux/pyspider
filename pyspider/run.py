@@ -388,6 +388,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     ctx.obj['debug'] = False
     g = ctx.obj
 
+    # FIXME: py34 cannot run components with threads
     if run_in == 'subprocess' and os.name != 'nt':
         run_in = utils.run_in_subprocess
     else:
