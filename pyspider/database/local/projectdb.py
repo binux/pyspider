@@ -24,20 +24,20 @@ class ProjectDB(BaseProjectDB):
                 continue
             self.projects[project['name']] = project
 
-    rate_re = re.compile(r'^\s*#\s*rate.*(\d+(\.\d+)?)', re.I)
-    burst_re = re.compile(r'^\s*#\s*burst.*(\d+(\.\d+)?)', re.I)
+    rate_re = re.compile(r'^\s*#\s*rate.*?(\d+(\.\d+)?)', re.I | re.M)
+    burst_re = re.compile(r'^\s*#\s*burst.*?(\d+(\.\d+)?)', re.I | re.M)
 
     def _build_project(self, filename):
         try:
             with open(filename) as fp:
                 script = fp.read()
-            m = self.rate_re.match(script)
+            m = self.rate_re.search(script)
             if m:
                 rate = float(m.group(1))
             else:
                 rate = 1
 
-            m = self.burst_re.match(script)
+            m = self.burst_re.search(script)
             if m:
                 burst = float(m.group(1))
             else:
