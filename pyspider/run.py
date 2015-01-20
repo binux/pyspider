@@ -70,7 +70,8 @@ def connect_rpc(ctx, param, value):
               help='database url for projectdb, default: sqlite')
 @click.option('--resultdb', envvar='RESULTDB', callback=connect_db,
               help='database url for resultdb, default: sqlite')
-@click.option('--amqp-url', envvar='AMQP_URL', help='amqp url for rabbitmq, default: built-in Queue')
+@click.option('--amqp-url', envvar='AMQP_URL',
+              help='amqp url for rabbitmq, default: built-in Queue')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.version_option(version=pyspider.__version__, prog_name=pyspider.__name__)
@@ -567,15 +568,6 @@ def one(ctx, interactive, enable_phantomjs, scripts):
     """
     One mode not only means all-in-one, it runs every thing in one process over
     tornado.ioloop, for debug purpose
-
-    * webui is not running in one mode.
-    * SCRIPTS is the script file path of project
-        - when set, taskdb and resultdb will use a in-memery sqlite db by default
-        - when set, on_start callback will be triggered on start
-    * the status of project is always RUNNING.
-    * rate and burst can be set in script with comments like:
-        # rate: 1.0
-        # burst: 3
     """
 
     ctx.obj['debug'] = False
@@ -622,13 +614,13 @@ def one(ctx, interactive, enable_phantomjs, scripts):
     if scripts:
         for project in g.projectdb.projects:
             scheduler_obj.trigger_on_start(project)
+
     try:
         scheduler_obj.run()
-    except KeyboardInterrupt:
+    finally:
         scheduler_obj.quit()
         if phantomjs_obj:
             phantomjs_obj.quit()
-        raise
 
 
 def main():

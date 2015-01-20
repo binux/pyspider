@@ -4,9 +4,9 @@ Command Line
 Global Config
 -------------
 
-You can get command help via `pyspider --help`.
+You can get command help via `pyspider --help` and `pyspider all --help` for subcommand help.
 
-global options works for all subcommands.
+global options work for all subcommands.
 
 ```
 Usage: pyspider [OPTIONS] COMMAND [ARGS]...
@@ -30,11 +30,24 @@ Options:
 
 #### --config
 
-Config file is a json file with config values for global options or subcommands (with a sub-dict with subcommand name as key )
+Config file is a JSON file with config values for global options or subcommands (a sub-dict named after subcommand). [example](/Deployment/#configjson)
+
+``` json
+{
+  "taskdb": "mysql+taskdb://username:password@host:port/taskdb",
+  "projectdb": "mysql+projectdb://username:password@host:port/projectdb",
+  "resultdb": "mysql+resultdb://username:password@host:port/resultdb",
+  "amqp_url": "amqp://username:password@host:port/%2F",
+  "webui": {
+    "username": "some_name",
+    "password": "some_passwd",
+    "need-auth": true
+  }
+```
 
 #### --queue-maxsize
 
-Queue size limit, 0 for non-limit
+Queue size limit, 0 for not limit
 
 #### --taskdb, --projectdb, --resultdb
 
@@ -55,9 +68,13 @@ sqlalchemy:
     sqlalchemy+postgresql+type://user:passwd@host:port/database
     sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database
     more: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html
+local:
+    local+projectdb://filepath,filepath
+    
+type:
+    should be one of `taskdb`, `projectdb`, `resultdb`.
 ```
 
-**type** should be one of `taskdb`, `projectdb`, `resultdb`.
 
 #### --amqp-url
 
@@ -65,20 +82,20 @@ See [https://www.rabbitmq.com/uri-spec.html](https://www.rabbitmq.com/uri-spec.h
 
 #### --phantomjs-proxy
 
-The phantomjs proxy address, you need a phantomjs installed and running phantomjs proxy with `phantomjs pyspider/fetcher/phantomjs_fetcher.js 25555`. See [Deployment](Deployment)
+The phantomjs proxy address, you need a phantomjs installed and running phantomjs proxy with command: [`pyspider phantomjs`](#phantomjs).
 
 #### --data-path
 
-SQLite database and counter dump file save path
+SQLite database and counter dump files saved path
 
 
 all
 ---
 
-running components in subprocess or threads
-
 ```
 Usage: pyspider all [OPTIONS]
+
+  Run all the components in subprocess or thread
 
 Options:
   --fetcher-num INTEGER         instance num of fetcher
@@ -90,13 +107,62 @@ Options:
 ```
 
 
+one
+---
+
+```
+Usage: pyspider one [OPTIONS] [SCRIPTS]...
+
+  One mode not only means all-in-one, it runs every thing in one process
+  over tornado.ioloop, for debug purpose
+
+Options:
+  -i, --interactive  enable interactive mode, you can choose crawl url.
+  --phantomjs        enable phantomjs, will spawn a subprocess for phantomjs
+  --help             Show this message and exit.
+```
+
+**NOTE: webui is not running in one mode.**
+
+#### [SCRIPTS]
+
+The script file path of projects. Project status is RUNNING, `rate` and `burst` can be set via script comments:
+
+```
+# rate: 1.0
+# burst: 3
+```
+
+When SCRIPTS is set, `taskdb` and `resultdb` will use a in-memory sqlite db by default (can be overridden by global config `--taskdb`, `--resultdb`). on_start callback will be triggered on start.
+
+#### -i, --interactive
+
+With interactive mode, pyspider will start a interactive console asking what to do in next loop of process. In the console, you can use:
+
+``` python
+crawl(url, project=None, **kwargs)
+    Crawl given url, same parameters as BaseHandler.crawl
+
+    url - url or taskid, parameters will be used if in taskdb
+    project - can be omitted if only one project exists.
+    
+quit_interactive()
+    Quit interactive mode
+    
+quit_pyspider()
+    Close pyspider
+```
+
+You can use `pyspider.libs.utils.python_console()` to open an interactive console in your script.
+
 bench
 -----
 
-do bench test
-
 ```
 Usage: pyspider bench [OPTIONS]
+
+  Run Benchmark test. In bench mode, in-memory sqlite database is used
+  instead of on-disk sqlite database.
 
 Options:
   --fetcher-num INTEGER         instance num of fetcher
@@ -113,10 +179,10 @@ Options:
 scheduler
 ---------
 
-run scheduler
-
 ```
 Usage: pyspider scheduler [OPTIONS]
+
+  Run Scheduler, only one scheduler is allowed.
 
 Options:
   --xmlrpc / --no-xmlrpc
@@ -141,6 +207,8 @@ phantomjs
 ```
 Usage: pyspider phantomjs [OPTIONS]
 
+  Run phantomjs fetcher if phantomjs is installed.
+
 Options:
   --phantomjs-path TEXT  phantomjs path
   --port INTEGER         phantomjs port
@@ -152,6 +220,8 @@ fetcher
 
 ```
 Usage: pyspider fetcher [OPTIONS]
+
+  Run Fetcher.
 
 Options:
   --xmlrpc / --no-xmlrpc
@@ -176,6 +246,8 @@ processor
 ```
 Usage: pyspider processor [OPTIONS]
 
+  Run Processor.
+
 Options:
   --processor-cls TEXT  Processor class to be used.
   --help                Show this message and exit.
@@ -186,6 +258,8 @@ result_worker
 
 ```
 Usage: pyspider result_worker [OPTIONS]
+
+  Run result worker.
 
 Options:
   --result-cls TEXT  ResultWorker class to be used.
@@ -198,6 +272,8 @@ webui
 
 ```
 Usage: pyspider webui [OPTIONS]
+
+  Run WebUI
 
 Options:
   --host TEXT            webui bind to host
@@ -217,12 +293,12 @@ Options:
 
 #### --cdn
 
-JS/CSS libs cdn service, URL must compatible with [cdnjs](https://cdnjs.com/)
+JS/CSS libs CDN service, URL must compatible with [cdnjs](https://cdnjs.com/)
 
 #### --fercher-rpc
 
-XML-RPC path uri for fetcher XMLRPC server. If not set, use a Fetcher instance.
+XML-RPC path URI for fetcher XMLRPC server. If not set, use a Fetcher instance.
 
 #### --need-auth
 
-If true, all pages of webui need a basic auth with the `--username` and `--password`.
+If true, all pages require username and password specified via `--username` and `--password`.

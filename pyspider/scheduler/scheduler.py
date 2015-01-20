@@ -705,17 +705,25 @@ class OneScheduler(Scheduler):
 
             shell.ask_exit()
 
+        def quit_interactive():
+            '''Quit interactive mode'''
+            self.interactive = False
+            shell.ask_exit()
+
         def quit_pyspider():
-            self.quit()
+            '''Close pyspider'''
+            is_crawled[:] = []
             shell.ask_exit()
 
         shell = utils.get_python_console()
         shell.interact(
             'pyspider shell - Select task\n'
-            'crawl(url, **kwargs) - same parameters as BaseHandler.crawl'
+            'crawl(url, project=None, **kwargs) - same parameters as BaseHandler.crawl\n'
+            'quit_interactive() - Quit interactive mode\n'
+            'quit_pyspider() - Close pyspider'
         )
         if not is_crawled:
-            self.quit()
+            self.ioloop.stop()
 
     def __getattr__(self, name):
         """patch for crawl(url, callback=self.index_page) API"""
