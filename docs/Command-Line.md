@@ -43,6 +43,7 @@ Config file is a JSON file with config values for global options or subcommands 
     "password": "some_passwd",
     "need-auth": true
   }
+}
 ```
 
 #### --queue-maxsize

@@ -21,6 +21,7 @@ Your First Script
 ```python
 from pyspider.libs.base_handler import *
 
+
 class Handler(BaseHandler):
     crawl_config = {
     }
@@ -34,6 +35,7 @@ class Handler(BaseHandler):
         for each in response.doc('a[href^="http"]').items():
             self.crawl(each.attr.href, callback=self.detail_page)
 
+    @config(priority=2)
     def detail_page(self, response):
         return {
             "url": response.url,
@@ -42,11 +44,16 @@ class Handler(BaseHandler):
 ```
 
 > * `def on_start(self)` is the entry point of the script. It will be called when you click the `run` button on dashboard.
-> * [`@every(minutes=24*60, seconds=0)`*](/apis/@every/) is a helper to tell the scheduler that `on_start` method should be called every 24*60 minutes = 1 day
-> * [`self.crawl(url, callback=self.index_page)`*](/apis/self.crawl) is the most important API here. It will add a new task to be crawled. `callback` is the method to parse the [`response`*](/apis/Response).
-> * parameters of [`self.crawl`*](/apis/self.crawl) can also be set via `crawl_config` and `@config`.
-> * `def index_page(self, response)` will get a [`Response`*](/apis/Response) object. [`response.doc`*](/apis/Response/#responsedoc) is a [pyquery](https://pythonhosted.org/pyquery/) object which has jquery-like API to select elements to be extracted.
+> * [`self.crawl(url, callback=self.index_page)`*](/apis/self.crawl) is the most important API here. It will add a new task to be crawled.
+> * `def index_page(self, response)` get a [`Response`*](/apis/Response) object. [`response.doc`*](/apis/Response/#responsedoc) is a [pyquery](https://pythonhosted.org/pyquery/) object which has jQuery-like API to select elements to be extracted.
 > * `def detail_page(self, response)` return a `dict` object as result. The result will be captured into `resultdb` by default. You can override `on_result(self, result)` method to manage the result yourself.
+
+
+More things you may want to know:
+
+> * [`@every(minutes=24*60, seconds=0)`*](/apis/@every/) is a helper to tell the scheduler that `on_start` method should be called everyday.
+> * [`@config(age=10 * 24 * 60 * 60)`*](/apis/self.crawl/#configkwargs) tell scheduler discard the request if it have been crawled in 10 days. The parameter [`age`*](/apis/self.crawl/#schedule) can also be specified via `self.crawl(url, age=10*24*60*60)` and `crawl_config`
+> * [`@config(priority=2)`*](/apis/self.crawl/#schedule) mark that detail pages should be crawled first.
 
 You can test your script step by step by click the green `run` button. Switch to `follows` panel, click the play button to move on.
 
