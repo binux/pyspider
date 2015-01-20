@@ -5,8 +5,10 @@
 #         http://binux.me
 # Created on 2014-10-19 15:37:46
 
-from six.moves import queue as Queue
+import time
+import json
 import logging
+from six.moves import queue as Queue
 logger = logging.getLogger("result")
 
 
@@ -62,3 +64,24 @@ class ResultWorker(object):
                 continue
 
         logger.info("result_worker exiting...")
+
+
+class OneResultWorker(ResultWorker):
+    '''Result Worker for one mode, write results to stdout'''
+    def on_result(self, task, result):
+        '''Called every result'''
+        if not result:
+            return
+        if 'taskid' in task and 'project' in task and 'url' in task:
+            logger.info('result %s:%s %s -> %.30r' % (
+                task['project'], task['taskid'], task['url'], result))
+            print(json.dumps({
+                'taskid': task['taskid'],
+                'project': task['project'],
+                'url': task['url'],
+                'result': result,
+                'updatetime': time.time()
+            }))
+        else:
+            logger.warning('result UNKNOW -> %.30r' % result)
+            return

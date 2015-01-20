@@ -5,4 +5,4 @@
 #         http://binux.me
 # Created on 2014-10-19 16:10:19
 
-from .result_worker import ResultWorker
+from .result_worker import ResultWorker, OneResultWorker

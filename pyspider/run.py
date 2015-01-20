@@ -580,7 +580,7 @@ def one(ctx, interactive, enable_phantomjs, scripts):
         if g.get('is_taskdb_default'):
             g['taskdb'] = connect_database('sqlite+taskdb://')
         if g.get('is_resultdb_default'):
-            g['resultdb'] = connect_database('sqlite+resultdb://')
+            g['resultdb'] = None
 
     if enable_phantomjs:
         phantomjs_config = g.config.get('phantomjs', {})
@@ -591,6 +591,9 @@ def one(ctx, interactive, enable_phantomjs, scripts):
         phantomjs_obj = None
 
     result_worker_config = g.config.get('result_worker', {})
+    if g.resultdb is None:
+        result_worker_config.setdefault('result_cls',
+                                        'pyspider.result.OneResultWorker')
     result_worker_obj = ctx.invoke(result_worker, **result_worker_config)
 
     processor_config = g.config.get('processor', {})
@@ -603,7 +606,7 @@ def one(ctx, interactive, enable_phantomjs, scripts):
     scheduler_config = g.config.get('scheduler', {})
     scheduler_config.setdefault('xmlrpc', False)
     scheduler_config.setdefault('scheduler_cls',
-                                'pyspider.scheduler.scheduler.OneScheduler')
+                                'pyspider.scheduler.OneScheduler')
     scheduler_obj = ctx.invoke(scheduler, **scheduler_config)
 
     scheduler_obj.init_one(ioloop=fetcher_obj.ioloop,

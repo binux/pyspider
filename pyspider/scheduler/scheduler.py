@@ -707,6 +707,7 @@ class OneScheduler(Scheduler):
 
         def quit_interactive():
             '''Quit interactive mode'''
+            is_crawled.append(True)
             self.interactive = False
             shell.ask_exit()
 
