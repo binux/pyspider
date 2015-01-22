@@ -125,6 +125,8 @@ Options:
 
 **NOTE: webui is not running in one mode.**
 
+In `one` mode, results will be written to stdout by default. You can capture them via `pyspider one > result.txt`.
+
 #### [SCRIPTS]
 
 The script file path of projects. Project status is RUNNING, `rate` and `burst` can be set via script comments:
