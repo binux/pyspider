@@ -65,10 +65,10 @@ TODO
 
 ### v0.4.0
 
-- [ ] local mode, load script from file.
-- [ ] works as a framework (all components running in one process, no threads)
+- [x] local mode, load script from file.
+- [x] works as a framework (all components running in one process, no threads)
 - [ ] redis
-- [ ] shell mode like `scrapy shell` 
+- [x] shell mode like `scrapy shell` 
 - [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
 
 
