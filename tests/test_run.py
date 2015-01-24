@@ -277,6 +277,10 @@ class TestRun(unittest.TestCase):
             text = wait_text()
             self.assertIn('/robots.txt', text)
 
+            os.write(fd, utils.utf8('crawl("%s/links/10/0")\n' % self.httpbin))
+            text = wait_text()
+            self.assertIn('"title": "Links"', text)
+
             os.write(fd, utils.utf8('crawl("%s/404")\n' % self.httpbin))
             text = wait_text()
             self.assertIn('task retry', text)
