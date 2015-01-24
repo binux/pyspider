@@ -52,7 +52,7 @@ class TestFetcher(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        from . import data_test_webpage
+        import tests.data_test_webpage
         import httpbin
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
         self.httpbin = 'http://127.0.0.1:14887'

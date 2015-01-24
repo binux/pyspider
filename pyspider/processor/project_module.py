@@ -48,7 +48,7 @@ class ProjectManager(object):
         # logger inject
         module.log_buffer = []
         module.logging = module.logger = logging.Logger(project['name'])
-        if env.get('enable_stdout_capture'):
+        if env.get('enable_stdout_capture', True):
             handler = SaveLogHandler(module.log_buffer)
             handler.setFormatter(LogFormatter(color=False))
         else:

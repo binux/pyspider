@@ -20,7 +20,7 @@ import unittest2 as unittest
 
 from pyspider import run
 from pyspider.libs import utils
-from . import data_sample_handler
+from tests import data_sample_handler
 
 class TestRun(unittest.TestCase):
 
@@ -29,7 +29,7 @@ class TestRun(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
-        from . import data_test_webpage
+        import tests.data_test_webpage
         import httpbin
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
         self.httpbin = 'http://127.0.0.1:14887'
