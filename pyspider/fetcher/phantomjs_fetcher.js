@@ -24,9 +24,14 @@ if (system.args.length !== 2) {
     //console.debug(JSON.stringify(request, null, 4));
     // check method
     if (request.method == 'GET') {
+      body = "method not allowed!";
       response.statusCode = 403;
-      response.write("method not allowed!");
-      response.close();
+      response.headers = {
+        'Cache': 'no-cache',
+        'Content-Length': body.length
+      };
+      response.write(body);
+      response.closeGracefully();
       return;
     }
 
@@ -153,7 +158,7 @@ if (system.args.length !== 2) {
       };
       response.setEncoding("binary");
       response.write(body);
-      response.close();
+      response.closeGracefully();
       finished = true;
       page.close();
     }
