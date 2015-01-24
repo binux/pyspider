@@ -24,6 +24,11 @@ class TestWebUI(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
+        from . import data_test_webpage
+        import httpbin
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        self.httpbin = 'http://127.0.0.1:14887'
+
         ctx = run.cli.make_context('test', [
             '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
             '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
@@ -64,6 +69,9 @@ class TestWebUI(unittest.TestCase):
             each.quit()
         time.sleep(1)
 
+        self.httpbin_thread.terminate()
+        self.httpbin_thread.join()
+
         shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_index_page(self):
@@ -83,7 +91,9 @@ class TestWebUI(unittest.TestCase):
         self.__class__.task_content = json.loads(m.group(1))
         m = re.search(r'var script_content = (.*);\n', utils.text(rv.data))
         self.assertIsNotNone(m)
-        self.__class__.script_content = json.loads(m.group(1))
+        self.__class__.script_content = (json.loads(m.group(1))
+                                         .replace('http://scrapy.org/',
+                                                  'http://127.0.0.1:14887/pyspider/test.html'))
 
     def test_30_run(self):
         rv = self.app.post('/debug/test_project/run', data={

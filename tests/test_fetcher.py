@@ -9,7 +9,6 @@ import os
 import json
 import copy
 import time
-import httpbin
 import umsgpack
 import subprocess
 import unittest2 as unittest
@@ -53,14 +52,17 @@ class TestFetcher(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+        from . import data_test_webpage
+        import httpbin
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        self.httpbin = 'http://127.0.0.1:14887'
+
         self.inqueue = Queue(10)
         self.outqueue = Queue(10)
         self.fetcher = Fetcher(self.inqueue, self.outqueue)
         self.fetcher.phantomjs_proxy = '127.0.0.1:25555'
         self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
-        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
-        self.httpbin = 'http://127.0.0.1:14887'
         self.thread = utils.run_in_thread(self.fetcher.run)
         try:
             self.phantomjs = subprocess.Popen(['phantomjs',
@@ -73,11 +75,12 @@ class TestFetcher(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
+        self.httpbin_thread.terminate()
+        self.httpbin_thread.join()
+
         if self.phantomjs:
             self.phantomjs.kill()
             self.phantomjs.wait()
-        self.httpbin_thread.terminate()
-        self.httpbin_thread.join()
         self.rpc._quit()
         self.thread.join()
         time.sleep(1)
@@ -258,17 +261,18 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['status_code'], 200)
         self.assertIn('binux', result['content'])
 
-    @unittest.skipIf(os.environ.get('IGNORE_GOOGLE'), "can't connect to google.")
     def test_a100_phantomjs_sharp_url(self):
         if not self.phantomjs:
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
-        request['url'] = 'https://groups.google.com/forum/#!forum/pyspider-users'
+        request['url'] = self.httpbin+'/pyspider/ajax.html'
         request['fetch']['fetch_type'] = 'js'
-        request['fetch']['headers']['User-Agent'] = 'Mozilla/5.0'
+        request['fetch']['headers']['User-Agent'] = 'pyspider-test'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
-        self.assertIn('pyspider-users', result['content'])
+        self.assertNotIn('loading', result['content'])
+        self.assertIn('done', result['content'])
+        self.assertIn('pyspider-test', result['content'])
 
     def test_a110_dns_error(self):
         request = copy.deepcopy(self.sample_task_http)

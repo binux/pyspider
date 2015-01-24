@@ -18,9 +18,9 @@ import inspect
 import requests
 import unittest2 as unittest
 
-from pyspider.libs import sample_handler
 from pyspider import run
 from pyspider.libs import utils
+from . import data_sample_handler
 
 class TestRun(unittest.TestCase):
 
@@ -29,8 +29,16 @@ class TestRun(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
+        from . import data_test_webpage
+        import httpbin
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        self.httpbin = 'http://127.0.0.1:14887'
+
     @classmethod
     def tearDownClass(self):
+        self.httpbin_thread.terminate()
+        self.httpbin_thread.join()
+
         shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_cli(self):
@@ -182,7 +190,7 @@ class TestRun(unittest.TestCase):
             inspect.getsourcefile(run),
             '--taskdb', 'sqlite+taskdb:///data/tests/all_test_task.db',
             '--resultdb', 'sqlite+resultdb:///data/tests/all_test_result.db',
-            '--projectdb', 'local+projectdb://'+inspect.getsourcefile(sample_handler),
+            '--projectdb', 'local+projectdb://'+inspect.getsourcefile(data_sample_handler),
             'all',
         ], close_fds=True)
 
@@ -194,7 +202,7 @@ class TestRun(unittest.TestCase):
                 # click run
                 try:
                     requests.post('http://localhost:5000/run', data={
-                        'project': 'sample_handler',
+                        'project': 'data_sample_handler',
                     })
                 except requests.exceptions.ConnectionError:
                     limit -= 1
@@ -203,7 +211,8 @@ class TestRun(unittest.TestCase):
 
             limit = 30
             data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
-            while data.json().get('sample_handler', {}).get('success', 0) < 5:
+            self.assertEqual(data.status_code, 200)
+            while data.json().get('data_sample_handler', {}).get('success', 0) < 5:
                 time.sleep(1)
                 data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
                 limit -= 1
@@ -211,9 +220,11 @@ class TestRun(unittest.TestCase):
                     break
 
             self.assertGreater(limit, 0)
-            rv = requests.get('http://localhost:5000/results?project=sample_handler')
+            rv = requests.get('http://localhost:5000/results?project=data_sample_handler')
             self.assertIn('<th>url</th>', rv.text)
-            self.assertIn('scrapy.org', rv.text)
+            self.assertIn('class=url', rv.text)
+        except:
+            raise
         finally:
             while p.returncode is None:
                 time.sleep(1)
@@ -228,7 +239,7 @@ class TestRun(unittest.TestCase):
             inspect.getsourcefile(run),
             'one',
             '-i',
-            inspect.getsourcefile(sample_handler)
+            inspect.getsourcefile(data_sample_handler)
         ]
 
         if pid == 0:
@@ -255,20 +266,20 @@ class TestRun(unittest.TestCase):
                 return ''.join(text)
 
             text = wait_text()
-            self.assertIn('new task sample_handler:on_start', text)
+            self.assertIn('new task data_sample_handler:on_start', text)
             self.assertIn('pyspider shell', text)
 
-            os.write(fd, b'run()\n')
+            os.write(fd, utils.utf8('run()\n'))
             text = wait_text()
-            self.assertIn('task done sample_handler:on_start', text)
+            self.assertIn('task done data_sample_handler:on_start', text)
 
-            os.write(fd, b'crawl("http://scrapy.org/")\n')
-            text = wait_text(10)
-            self.assertIn('//github.com/scrapy/scrapy', text)
+            os.write(fd, utils.utf8('crawl("%s/pyspider/test.html")\n' % self.httpbin))
+            text = wait_text()
+            self.assertIn('/robots.txt', text)
 
-            os.write(fd, b'crawl("http://www.baidu.com/", callback=self.detail_page)\n')
-            text = wait_text(10)
-            self.assertIn('task done sample_handler', text)
+            os.write(fd, utils.utf8('crawl("%s/404")\n' % self.httpbin))
+            text = wait_text()
+            self.assertIn('task retry', text)
 
             os.write(fd, b'quit_pyspider()\n')
             text = wait_text()
