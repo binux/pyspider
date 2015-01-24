@@ -158,7 +158,7 @@ class TestScheduler(unittest.TestCase):
     def test_30_update_project(self):
         from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
-            task = self.scheduler2fetcher.get(timeout=0.1)
+            task = self.scheduler2fetcher.get(timeout=1)
         self.projectdb.update('test_project', status="DEBUG")
         time.sleep(0.1)
         self.rpc.update_project()

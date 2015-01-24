@@ -29,6 +29,7 @@ class TestHandler(BaseHandler):
         return response.status_code
 
     def raise_exception(self):
+        print('print')
         logger.info("info")
         logger.warning("warning")
         logger.error("error")

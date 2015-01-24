@@ -44,8 +44,27 @@ class ProjectManager(object):
 
         loader = ProjectLoader(project)
         module = loader.load_module(project['name'])
+
+        # logger inject
+        module.log_buffer = []
+        module.logging = module.logger = logging.Logger(project['name'])
+        if env.get('enable_stdout_capture'):
+            handler = SaveLogHandler(module.log_buffer)
+            handler.setFormatter(LogFormatter(color=False))
+        else:
+            handler = logging.StreamHandler()
+            handler.setFormatter(LogFormatter(color=True))
+        module.logger.addHandler(handler)
+
+        if '__handler_cls__' not in module.__dict__:
+            BaseHandler = module.__dict__.get('BaseHandler', base_handler.BaseHandler)
+            for each in list(six.itervalues(module.__dict__)):
+                if inspect.isclass(each) and each is not BaseHandler \
+                        and issubclass(each, BaseHandler):
+                    module.__dict__['__handler_cls__'] = each
         _class = module.__dict__.get('__handler_cls__')
         assert _class is not None, "need BaseHandler in project module"
+
         instance = _class()
         instance.__env__ = env
         instance.project_name = project['name']
@@ -155,25 +174,9 @@ class ProjectLoader(object):
         mod.__loader__ = self
         mod.__project__ = self.project
         mod.__package__ = ''
-        # logger inject
-        log_buffer = []
-        mod.logging = mod.logger = logging.Logger(self.name)
-        handler = SaveLogHandler(log_buffer)
-        handler.setFormatter(LogFormatter(color=False))
-        mod.logger.addHandler(handler)
-        mod.log_buffer = log_buffer
-
         code = self.get_code(fullname)
         six.exec_(code, mod.__dict__)
         linecache.clearcache()
-
-        if '__handler_cls__' not in mod.__dict__:
-            BaseHandler = mod.__dict__.get('BaseHandler', base_handler.BaseHandler)
-            for each in list(six.itervalues(mod.__dict__)):
-                if inspect.isclass(each) and each is not BaseHandler \
-                        and issubclass(each, BaseHandler):
-                    mod.__dict__['__handler_cls__'] = each
-
         return mod
 
     def is_package(self, fullname):

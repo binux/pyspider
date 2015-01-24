@@ -23,19 +23,25 @@ class Processor(object):
     RESULT_LOGS_LIMIT = 1000
     RESULT_RESULT_LIMIT = 10
 
-    def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue):
+    def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue,
+                 enable_stdout_capture=True,
+                 enable_projects_import=True):
         self.inqueue = inqueue
         self.status_queue = status_queue
         self.newtask_queue = newtask_queue
         self.result_queue = result_queue
         self.projectdb = projectdb
+        self.enable_stdout_capture = enable_stdout_capture
 
         self._quit = False
         self._exceptions = 10
         self.project_manager = ProjectManager(projectdb, dict(
-            result_queue=self.result_queue))
+            result_queue=self.result_queue,
+            enable_stdout_capture=self.enable_stdout_capture,
+        ))
 
-        self.enable_projects_import()
+        if enable_projects_import:
+            self.enable_projects_import()
 
     def enable_projects_import(self):
         '''

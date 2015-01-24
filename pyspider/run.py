@@ -224,10 +224,10 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
 
 
 @cli.command()
-@click.option('--processor-cls', default='pyspider.processor.Processor', callback=load_cls,
-              help='Processor class to be used.')
+@click.option('--processor-cls', default='pyspider.processor.Processor',
+              callback=load_cls, help='Processor class to be used.')
 @click.pass_context
-def processor(ctx, processor_cls):
+def processor(ctx, processor_cls, enable_stdout_capture=True):
     """
     Run Processor.
     """
@@ -236,7 +236,8 @@ def processor(ctx, processor_cls):
 
     processor = Processor(projectdb=g.projectdb,
                           inqueue=g.fetcher2processor, status_queue=g.status_queue,
-                          newtask_queue=g.newtask_queue, result_queue=g.processor2result)
+                          newtask_queue=g.newtask_queue, result_queue=g.processor2result,
+                          enable_stdout_capture=enable_stdout_capture)
 
     g.instances.append(processor)
     if g.get('testing_mode'):
@@ -597,6 +598,7 @@ def one(ctx, interactive, enable_phantomjs, scripts):
     result_worker_obj = ctx.invoke(result_worker, **result_worker_config)
 
     processor_config = g.config.get('processor', {})
+    processor_config.setdefault('enable_stdout_capture', False)
     processor_obj = ctx.invoke(processor, **processor_config)
 
     fetcher_config = g.config.get('fetcher', {})

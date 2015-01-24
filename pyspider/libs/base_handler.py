@@ -213,7 +213,8 @@ class BaseHandler(object):
         self.response = response
 
         try:
-            sys.stdout = ListO(module.log_buffer)
+            if self.__env__.get('enable_stdout_capture', True):
+                sys.stdout = ListO(module.log_buffer)
             result = self._run_task(task, response)
             if inspect.isgenerator(result):
                 for r in result:
