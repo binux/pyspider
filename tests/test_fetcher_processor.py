@@ -104,11 +104,11 @@ class TestFetcherProcessor(unittest.TestCase):
 
         self.assertFalse(self.status_ok(status, 'fetch'))
         self.assertFalse(self.status_ok(status, 'process'))
-        self.assertEqual(status['track']['fetch']['error'], 'HTTP 418: Unknown')
+        self.assertIn('HTTP 418', status['track']['fetch']['error'])
         self.assertTrue(status['track']['fetch']['content'], '')
         self.assertTrue(status['track']['fetch']['headers'])
         self.assertTrue(status['track']['process']['logs'])
-        self.assertIn('HTTPError: HTTP 418: Unknown', status['track']['process']['logs'])
+        self.assertIn('HTTPError: HTTP 418', status['track']['process']['logs'])
         self.assertFalse(newtasks)
 
 
@@ -247,6 +247,13 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
         self.assertEqual(result, {'k1': 'v1', 'k2': 'v2'})
+
+    def test_a145_redirect_cookie(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cookies/set?k1=v1&k2=v2',
+                                              callback=self.json)
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.assertEqual(result['cookies'], {'k1': 'v1', 'k2': 'v2'})
 
     def test_a150_timeout(self):
         status, newtasks, result = self.crawl(self.httpbin+'/delay/2', timeout=1, callback=self.json)
