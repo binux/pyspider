@@ -18,7 +18,7 @@ import tornado.httputil
 import tornado.httpclient
 import pyspider
 
-from six.moves import queue
+from six.moves import queue, http_cookies
 from requests import cookies
 from six.moves.urllib.parse import urljoin
 from tornado.curl_httpclient import CurlAsyncHTTPClient
@@ -216,6 +216,13 @@ class Fetcher(object):
         session = cookies.RequestsCookieJar()
 
         # fix for tornado request obj
+        fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
+        if 'Cookie' in fetch['headers']:
+            c = http_cookies.SimpleCookie()
+            c.load(fetch['headers']['Cookie'])
+            for key in c:
+                session.set(key, c[key])
+            del fetch['headers']['Cookie']
         fetch['follow_redirects'] = False
         if 'timeout' in fetch:
             fetch['connect_timeout'] = fetch['request_timeout'] = fetch['timeout']
@@ -277,8 +284,6 @@ class Fetcher(object):
         def make_request(fetch):
             try:
                 request = tornado.httpclient.HTTPRequest(**fetch)
-                if 'Cookie' in request.headers:
-                    del request.headers['Cookie']
                 cookie_header = cookies.get_cookie_header(session, request)
                 if cookie_header:
                     request.headers['Cookie'] = cookie_header

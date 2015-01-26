@@ -227,19 +227,21 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertIn('a=b', result['headers'].get('Cookie'))
         self.assertIn('C-d=e-F', result['headers'].get('Cookie'))
 
-    # FIXME: cookies can't use with Cookie header
-    #def test_a130_cookies_with_headers(self):
-        #status, newtasks, result = self.crawl(self.httpbin+'/get',
-                                              #headers={
-                                                  #'Cookie': 'g=h; I=j',
-                                              #},
-                                              #cookies={
-                                                  #'a': 'b',
-                                                  #'C-d': 'e-F'
-                                              #}, callback=self.json)
-        #self.assertStatusOk(status)
-        #self.assertFalse(newtasks)
-        #self.assertEqual(result['headers'].get('Cookie'), 'g=h; I=j; a=b; C-d=e-F')
+    def test_a130_cookies_with_headers(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/get',
+                                              headers={
+                                                  'Cookie': 'g=h; I=j',
+                                              },
+                                              cookies={
+                                                  'a': 'b',
+                                                  'C-d': 'e-F'
+                                              }, callback=self.json)
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.assertIn('g=h', result['headers'].get('Cookie'))
+        self.assertIn('I=j', result['headers'].get('Cookie'))
+        self.assertIn('a=b', result['headers'].get('Cookie'))
+        self.assertIn('C-d=e-F', result['headers'].get('Cookie'))
 
     def test_a140_response_cookie(self):
         status, newtasks, result = self.crawl(self.httpbin+'/cookies/set?k1=v1&k2=v2',

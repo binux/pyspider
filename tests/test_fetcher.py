@@ -96,7 +96,8 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.save, request['fetch']['save'])
         self.assertIsNotNone(response.json, response.content)
         self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
-        self.assertEqual(response.json['headers'].get('Cookie'), 'c=d', response.json)
+        self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
+        self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
 
     def test_15_http_post(self):
         request = copy.deepcopy(self.sample_task_http)
@@ -114,7 +115,8 @@ class TestFetcher(unittest.TestCase):
 
         self.assertEqual(response.json['form'].get('binux'), '')
         self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
-        self.assertEqual(response.json['headers'].get('Cookie'), 'c=d', response.json)
+        self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
+        self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
 
     def test_e010_redirect(self):
         request = copy.deepcopy(self.sample_task_http)
@@ -142,7 +144,7 @@ class TestFetcher(unittest.TestCase):
         response = rebuild_response(result)
 
         self.assertEqual(response.status_code, 200, result)
-        self.assertEqual(response.cookies, {'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)
+        self.assertEqual(response.cookies, {'a': 'b', 'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)
 
     def test_20_dataurl_get(self):
         request = copy.deepcopy(self.sample_task_http)
