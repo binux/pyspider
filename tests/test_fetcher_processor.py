@@ -12,6 +12,7 @@ import json
 import time
 import httpbin
 import pyproxy
+import subprocess
 import unittest2 as unittest
 try:
     from Queue import Queue
@@ -34,10 +35,11 @@ class TestFetcherProcessor(unittest.TestCase):
         self.result_queue = Queue()
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
         self.httpbin = 'http://127.0.0.1:14887'
-        self.proxy_thread = utils.run_in_subprocess(pyproxy.main,
-                                                    username='binux',
-                                                    password='123456',
-                                                    port=14830)
+        self.proxy_thread = subprocess.Popen(['pyproxy',
+                                              '--username=binux',
+                                              '--password=123456',
+                                              '--port=14830'],
+                                             close_fds=True)
         self.proxy = '127.0.0.1:14830'
         self.processor = Processor(projectdb=self.projectdb,
                                    inqueue=None,
@@ -50,7 +52,7 @@ class TestFetcherProcessor(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.proxy_thread.terminate()
-        self.proxy_thread.join()
+        self.proxy_thread.wait()
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
