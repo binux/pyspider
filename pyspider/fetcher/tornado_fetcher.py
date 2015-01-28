@@ -192,13 +192,13 @@ class Fetcher(object):
         track_headers = tornado.httputil.HTTPHeaders(
             task.get('track', {}).get('fetch', {}).get('headers') or {})
         # proxy
-        if 'proxy' in task_fetch:
-            if isinstance(task_fetch['proxy'], six.string_types):
-                fetch['proxy_host'] = utils.utf8(task_fetch['proxy'].split(":")[0])
-                fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
-            elif self.proxy and task_fetch.get('proxy', True):
-                fetch['proxy_host'] = utils.utf8(self.proxy.split(":")[0])
-                fetch['proxy_port'] = int(self.proxy.split(":")[1])
+        if isinstance(task_fetch.get('proxy'), six.string_types):
+            fetch['proxy_host'] = utils.utf8(task_fetch['proxy'].split(":")[0])
+            fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
+        elif self.proxy and task_fetch.get('proxy', True):
+            fetch['proxy_host'] = utils.utf8(self.proxy.split(":")[0])
+            fetch['proxy_port'] = int(self.proxy.split(":")[1])
+
         # etag
         if task_fetch.get('etag', True):
             _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), six.string_types) \

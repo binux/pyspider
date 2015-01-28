@@ -9,7 +9,7 @@ services:
     - rabbitmq
 install:
     - pip install --allow-all-external -r requirements.txt
-    - pip install coveralls httpbin
+    - pip install coveralls httpbin pyproxy
     - pip install -e .
 script:
     - coverage run setup.py test
