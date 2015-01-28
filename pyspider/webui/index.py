@@ -35,7 +35,7 @@ def project_update():
         return app.login_response
 
     if name not in ('group', 'status', 'rate'):
-        return 'unknow field: %s' % name, 400
+        return 'unknown field: %s' % name, 400
     if name == 'rate':
         value = value.split('/')
         if len(value) != 2:
