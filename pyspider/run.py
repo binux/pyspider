@@ -313,14 +313,13 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 
     # fetcher rpc
     if isinstance(fetcher_rpc, six.string_types):
+        import umsgpack
         fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
-    if fetcher_rpc is None:
+        app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
+    else:
         fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
         fetcher.phantomjs_proxy = g.phantomjs_proxy
         app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
-    else:
-        import umsgpack
-        app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
 
     if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)

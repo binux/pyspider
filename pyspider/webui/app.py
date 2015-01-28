@@ -11,7 +11,8 @@ import logging
 logger = logging.getLogger("webui")
 
 from six import reraise
-from six.moves import builtins, urllib
+from six.moves import builtins
+from six.moves.urllib.parse import urljoin
 from flask import Flask
 from pyspider.fetcher import tornado_fetcher
 
@@ -95,7 +96,7 @@ def cdn_url_handler(error, endpoint, kwargs):
         # cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
         # cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
         cdn = app.config.get('cdn', '//cdnjscn.b0.upaiyun.com/libs/')
-        return urllib.parse.urljoin(cdn, path)
+        return urljoin(cdn, path)
     else:
         exc_type, exc_value, tb = sys.exc_info()
         if exc_value is error:
