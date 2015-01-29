@@ -11,6 +11,7 @@ import six
 import copy
 import time
 import shutil
+import inspect
 import logging
 import logging.config
 from six.moves import builtins
@@ -316,9 +317,12 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
         import umsgpack
         fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
         app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
-    else:
+    elif inspect.isclass(Fetcher):
         fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
         fetcher.phantomjs_proxy = g.phantomjs_proxy
+        app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
+    else:
+        fetcher = Fetcher
         app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
 
     if isinstance(scheduler_rpc, six.string_types):
@@ -427,12 +431,23 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
         threads.append(run_in(ctx.invoke, scheduler, **scheduler_config))
 
+        # get fetcher instance for webui
+        scheduler2fetcher = g.scheduler2fetcher
+        fetcher2processor = g.fetcher2processor
+        g['scheduler2fetcher'] = None
+        g['fetcher2processor'] = None
+        g['testing_mode'] = True
+        webui_fetcher = ctx.invoke(fetcher, **fetcher_config)
+        g['scheduler2fetcher'] = scheduler2fetcher
+        g['fetcher2processor'] = fetcher2processor
+        g['testing_mode'] = False
+
         # running webui in main thread to make it exitable
         webui_config = g.config.get('webui', {})
         webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+        webui_config.setdefault('fetcher_cls', webui_fetcher)
         ctx.invoke(webui, **webui_config)
-
     finally:
         # exit components run in threading
         for each in g.instances:
