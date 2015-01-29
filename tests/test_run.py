@@ -198,7 +198,7 @@ class TestRun(unittest.TestCase):
         try:
             limit = 30
             while limit >= 0:
-                time.sleep(1)
+                time.sleep(3)
                 # click run
                 try:
                     requests.post('http://localhost:5000/run', data={
@@ -265,7 +265,7 @@ class TestRun(unittest.TestCase):
                     print(t, end='')
                 return ''.join(text)
 
-            text = wait_text()
+            text = wait_text(3)
             self.assertIn('new task data_sample_handler:on_start', text)
             self.assertIn('pyspider shell', text)
 
