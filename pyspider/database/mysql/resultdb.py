@@ -38,9 +38,9 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
         self._execute('''CREATE TABLE %s (
             `taskid` varchar(64) PRIMARY KEY,
             `url` varchar(1024),
-            `result` BLOB,
+            `result` MEDIUMBLOB,
             `updatetime` double(16, 4)
-            ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
+            ) ENGINE=InnoDB CHARSET=utf8''' % self.escape(tablename))
 
     def _parse(self, data):
         for key, value in list(six.iteritems(data)):

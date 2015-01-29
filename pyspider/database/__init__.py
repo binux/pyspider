@@ -50,7 +50,7 @@ def connect_database(url):
         other_scheme = "+".join(scheme[1:-1])
 
     if dbtype not in ('taskdb', 'projectdb', 'resultdb'):
-        raise LookupError('unknow database type: %s, '
+        raise LookupError('unknown database type: %s, '
                           'type should be one of ["taskdb", "projectdb", "resultdb"]', dbtype)
 
     if engine == 'mysql':
@@ -139,4 +139,4 @@ def connect_database(url):
         else:
             raise LookupError('not supported dbtype: %s', dbtype)
     else:
-        raise Exception('unknow engine: %s' % engine)
+        raise Exception('unknown engine: %s' % engine)
