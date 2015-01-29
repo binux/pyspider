@@ -54,6 +54,7 @@ class TestFetcher(unittest.TestCase):
     def setUpClass(self):
         import tests.data_test_webpage
         import httpbin
+
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
         self.httpbin = 'http://127.0.0.1:14887'
 
@@ -64,6 +65,10 @@ class TestFetcher(unittest.TestCase):
         self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
         self.thread = utils.run_in_thread(self.fetcher.run)
+        self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux',
+                                              '--password=123456', '--port=14830',
+                                              '--debug'], close_fds=True)
+        self.proxy = '127.0.0.1:14830'
         try:
             self.phantomjs = subprocess.Popen(['phantomjs',
                 os.path.join(os.path.dirname(__file__),
@@ -75,6 +80,8 @@ class TestFetcher(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
+        self.proxy_thread.terminate()
+        self.proxy_thread.wait()
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
@@ -117,34 +124,6 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
         self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
         self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
-
-    def test_e010_redirect(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/redirect-to?url=/get'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 200, result)
-        self.assertEqual(response.orig_url, request['url'])
-        self.assertEqual(response.url, self.httpbin+'/get')
-
-    def test_e020_too_much_redirect(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/redirect/10'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 599, result)
-        self.assertIn('redirects followed', response.error)
-
-    def test_e030_cookie(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/cookies/set?k1=v1&k2=v2'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 200, result)
-        self.assertEqual(response.cookies, {'a': 'b', 'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)
 
     def test_20_dataurl_get(self):
         request = copy.deepcopy(self.sample_task_http)
@@ -289,3 +268,57 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(result['status_code'], 599)
         self.assertIn('error', result)
         self.assertIn('resolve', result['error'])
+
+    def test_a120_http_get_with_proxy_fail(self):
+        self.fetcher.proxy = self.proxy
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/get'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
+        self.fetcher.proxy = None
+
+    def test_a130_http_get_with_proxy_ok(self):
+        self.fetcher.proxy = self.proxy
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/get?username=binux&password=123456'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.save, request['fetch']['save'])
+        self.assertIsNotNone(response.json, response.content)
+        self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
+        self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
+        self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
+        self.fetcher.proxy = None
+
+    def test_a140_redirect(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/redirect-to?url=/get'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.url, self.httpbin+'/get')
+
+    def test_a150_too_much_redirect(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/redirect/10'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 599, result)
+        self.assertIn('redirects followed', response.error)
+
+    def test_a160_cookie(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/cookies/set?k1=v1&k2=v2'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.cookies, {'a': 'b', 'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)

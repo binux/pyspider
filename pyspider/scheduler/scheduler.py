@@ -774,6 +774,9 @@ class OneScheduler(Scheduler):
             _task, _result = self.processor.result_queue.get()
             if self.result_worker:
                 self.result_worker.on_result(_task, _result)
+        else:
+            # FIXME: test_a110_one sometimes have no result failed. add this log for debug
+            logger.debug('no result')
         self.running_task -= 1
 
     def send_task(self, task, force=True):
