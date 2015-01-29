@@ -104,6 +104,16 @@ class TestWebUI(unittest.TestCase):
         data = json.loads(utils.text(rv.data))
         self.assertIn(b'follows', rv.data)
         self.assertGreater(len(data['follows']), 0)
+        self.__class__.task_content2 = data['follows'][0]
+
+    def test_35_run_http_task(self):
+        rv = self.app.post('/debug/test_project/run', data={
+            'script': self.script_content,
+            'task': json.dumps(self.task_content2)
+        })
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertIn(b'follows', rv.data)
 
     def test_40_save(self):
         rv = self.app.post('/debug/test_project/save', data={

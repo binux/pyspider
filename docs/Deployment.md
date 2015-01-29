@@ -94,7 +94,7 @@ pyspider -c config.json --phantomjs-proxy="localhost:25555" fetcher
 pyspider -c config.json processor
 pyspider -c config.json result_worker
 
-# start webui
+# start webui, set `--scheduler-rpc` if scheduler not running on same host as webui
 pyspider -c config.json webui
 ```
 

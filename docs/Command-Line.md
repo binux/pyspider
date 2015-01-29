@@ -289,7 +289,6 @@ Options:
   --username TEXT        username of lock -ed projects
   --password TEXT        password of lock -ed projects
   --need-auth            need username and password
-  --fetcher-cls TEXT     Fetcher class to be used.
   --webui-instance TEXT  webui Flask Application instance to be used.
   --help                 Show this message and exit.
 ```

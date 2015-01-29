@@ -11,7 +11,6 @@ import six
 import copy
 import time
 import shutil
-import inspect
 import logging
 import logging.config
 from six.moves import builtins
@@ -199,7 +198,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
               help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, fetcher_cls):
+            timeout, fetcher_cls, async=True):
     """
     Run Fetcher.
     """
@@ -207,7 +206,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     Fetcher = load_cls(None, None, fetcher_cls)
 
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
-                      poolsize=poolsize, proxy=proxy)
+                      poolsize=poolsize, proxy=proxy, async=async)
     fetcher.phantomjs_proxy = g.phantomjs_proxy
     if user_agent:
         fetcher.user_agent = user_agent
@@ -283,18 +282,15 @@ def result_worker(ctx, result_cls):
 @click.option('--password', envvar='WEBUI_PASSWORD',
               help='password of lock -ed projects')
 @click.option('--need-auth', is_flag=True, default=False, help='need username and password')
-@click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
-              help='Fetcher class to be used.')
 @click.option('--webui-instance', default='pyspider.webui.app.app', callback=load_cls,
               help='webui Flask Application instance to be used.')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
-          username, password, need_auth, fetcher_cls, webui_instance):
+          username, password, need_auth, webui_instance):
     """
     Run WebUI
     """
     app = load_cls(None, None, webui_instance)
-    Fetcher = load_cls(None, None, fetcher_cls)
 
     g = ctx.obj
     app.config['taskdb'] = g.taskdb
@@ -317,13 +313,21 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
         import umsgpack
         fetcher_rpc = connect_rpc(ctx, None, fetcher_rpc)
         app.config['fetch'] = lambda x: umsgpack.unpackb(fetcher_rpc.fetch(x).data)
-    elif inspect.isclass(Fetcher):
-        fetcher = Fetcher(inqueue=None, outqueue=None, async=False)
-        fetcher.phantomjs_proxy = g.phantomjs_proxy
-        app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
     else:
-        fetcher = Fetcher
-        app.config['fetch'] = lambda x: fetcher.fetch(x)[1]
+        # get fetcher instance for webui
+        fetcher_config = g.config.get('fetcher', {})
+        scheduler2fetcher = g.scheduler2fetcher
+        fetcher2processor = g.fetcher2processor
+        testing_mode = g.get('testing_mode', False)
+        g['scheduler2fetcher'] = None
+        g['fetcher2processor'] = None
+        g['testing_mode'] = True
+        webui_fetcher = ctx.invoke(fetcher, async=False, **fetcher_config)
+        g['scheduler2fetcher'] = scheduler2fetcher
+        g['fetcher2processor'] = fetcher2processor
+        g['testing_mode'] = testing_mode
+
+        app.config['fetch'] = lambda x: webui_fetcher.fetch(x)[1]
 
     if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
@@ -431,22 +435,10 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
         threads.append(run_in(ctx.invoke, scheduler, **scheduler_config))
 
-        # get fetcher instance for webui
-        scheduler2fetcher = g.scheduler2fetcher
-        fetcher2processor = g.fetcher2processor
-        g['scheduler2fetcher'] = None
-        g['fetcher2processor'] = None
-        g['testing_mode'] = True
-        webui_fetcher = ctx.invoke(fetcher, **fetcher_config)
-        g['scheduler2fetcher'] = scheduler2fetcher
-        g['fetcher2processor'] = fetcher2processor
-        g['testing_mode'] = False
-
         # running webui in main thread to make it exitable
         webui_config = g.config.get('webui', {})
         webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
-        webui_config.setdefault('fetcher_cls', webui_fetcher)
         ctx.invoke(webui, **webui_config)
     finally:
         # exit components run in threading
