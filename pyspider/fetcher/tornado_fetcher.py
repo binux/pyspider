@@ -191,6 +191,7 @@ class Fetcher(object):
 
         track_headers = tornado.httputil.HTTPHeaders(
             task.get('track', {}).get('fetch', {}).get('headers') or {})
+        track_ok = task.get('track', {}).get('process', {}).get('ok', False)
         # proxy
         if isinstance(task_fetch.get('proxy'), six.string_types):
             fetch['proxy_host'] = utils.utf8(task_fetch['proxy'].split(":")[0])
@@ -200,13 +201,13 @@ class Fetcher(object):
             fetch['proxy_port'] = int(self.proxy.split(":")[1])
 
         # etag
-        if task_fetch.get('etag', True):
+        if task_fetch.get('etag', True) and track_ok:
             _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), six.string_types) \
                 else track_headers.get('etag')
             if _t:
                 fetch['headers'].setdefault('If-None-Match', _t)
         # last modifed
-        if task_fetch.get('last_modified', True):
+        if task_fetch.get('last_modified', True) and track_ok:
             _t = task_fetch.get('last_modifed') \
                 if isinstance(task_fetch.get('last_modifed'), six.string_types) \
                 else track_headers.get('last-modified')
