@@ -53,7 +53,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
-    def crawl(self, url=None, **kwargs):
+    def crawl(self, url=None, track=None, **kwargs):
         if url is None and kwargs.get('callback'):
             url = dataurl.encode(utils.text(kwargs.get('callback')))
 
@@ -63,6 +63,7 @@ class TestFetcherProcessor(unittest.TestCase):
         instance._reset()
         task = instance.crawl(url, **kwargs)
         assert not isinstance(task, list), 'url list is not allowed'
+        task['track'] = track
         task, result = self.fetcher.fetch(task)
         self.processor.on_task(task, result)
 
@@ -366,16 +367,38 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertStatusOk(status)
         self.assertEqual(result, 200)
 
-    def test_links(self):
+    def test_zzz_links(self):
         status, newtasks, result = self.crawl(self.httpbin+'/links/10/0', callback=self.links)
 
         self.assertStatusOk(status)
         self.assertEqual(len(newtasks), 9, newtasks)
         self.assertFalse(result)
 
-    def test_html(self):
+    def test_zzz_html(self):
         status, newtasks, result = self.crawl(self.httpbin+'/html', callback=self.html)
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
         self.assertEqual(result, 'Herman Melville - Moby-Dick')
+
+    def test_zzz_etag_enabled(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cache', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        status, newtasks, result = self.crawl(self.httpbin+'/cache',
+                                              track=status['track'], callback=self.json)
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.assertFalse(result)
+
+    def test_zzz_etag_not_working(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cache', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        status['track']['process']['ok'] = False
+        status, newtasks, result = self.crawl(self.httpbin+'/cache',
+                                              track=status['track'], callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
