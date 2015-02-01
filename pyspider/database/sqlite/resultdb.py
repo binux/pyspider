@@ -64,7 +64,8 @@ class ResultDB(SQLiteMixin, SplitTableMixin, BaseResultDB, BaseDB):
             return
         tablename = self._tablename(project)
 
-        for task in self._select2dic(tablename, what=fields, offset=offset, limit=limit):
+        for task in self._select2dic(tablename, what=fields, order='updatetime DESC',
+                                     offset=offset, limit=limit):
             yield self._parse(task)
 
     def count(self, project):
