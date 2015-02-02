@@ -48,7 +48,7 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
             `lastcrawltime` double(16, 4),
             `updatetime` double(16, 4),
             INDEX `status_index` (`status`)
-            ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
+            ) ENGINE=InnoDB CHARSET=utf8''' % self.escape(tablename))
 
     def _parse(self, data):
         for key, value in list(six.iteritems(data)):

@@ -198,7 +198,7 @@ class TestRun(unittest.TestCase):
         try:
             limit = 30
             while limit >= 0:
-                time.sleep(1)
+                time.sleep(3)
                 # click run
                 try:
                     requests.post('http://localhost:5000/run', data={
@@ -265,7 +265,7 @@ class TestRun(unittest.TestCase):
                     print(t, end='')
                 return ''.join(text)
 
-            text = wait_text()
+            text = wait_text(3)
             self.assertIn('new task data_sample_handler:on_start', text)
             self.assertIn('pyspider shell', text)
 
@@ -279,7 +279,10 @@ class TestRun(unittest.TestCase):
 
             os.write(fd, utils.utf8('crawl("%s/links/10/0")\n' % self.httpbin))
             text = wait_text()
-            self.assertIn('"title": "Links"', text)
+            if '"title": "Links"' not in text:
+                os.write(fd, utils.utf8('crawl("%s/links/10/1")\n' % self.httpbin))
+                text = wait_text()
+                self.assertIn('"title": "Links"', text)
 
             os.write(fd, utils.utf8('crawl("%s/404")\n' % self.httpbin))
             text = wait_text()

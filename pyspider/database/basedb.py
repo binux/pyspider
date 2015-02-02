@@ -52,7 +52,7 @@ class BaseDB:
             yield row
 
     def _select2dic(self, tablename=None, what="*", where="", where_values=[],
-                    offset=0, limit=None):
+                    order=None, offset=0, limit=None):
         tablename = self.escape(tablename or self.__tablename__)
         if isinstance(what, list) or isinstance(what, tuple) or what is None:
             what = ','.join(self.escape(f) for f in what) if what else '*'
@@ -60,6 +60,8 @@ class BaseDB:
         sql_query = "SELECT %s FROM %s" % (what, tablename)
         if where:
             sql_query += " WHERE %s" % where
+        if order:
+            sql_query += ' ORDER BY %s' % order
         if limit:
             sql_query += " LIMIT %d, %d" % (offset, limit)
         logger.debug("<sql: %s>", sql_query)

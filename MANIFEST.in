@@ -4,4 +4,4 @@ include Dockerfile
 include LICENSE
 include pyspider/logging.conf
 include pyspider/webui/static/*
-include pyspider/templates/*
+include pyspider/webui/templates/*

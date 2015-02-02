@@ -94,6 +94,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
                                         .with_only_columns(columns=columns)
+                                        .order_by(self.table.c.updatetime.desc())
                                         .offset(offset).limit(limit)
                                         .execution_options(autocommit=True)):
             yield self._parse(result2dict(columns, task))

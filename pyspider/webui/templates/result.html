@@ -54,10 +54,10 @@
             <a class=open-url href="{{ result.url }}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a>
           </td>
           # for field in common_fields|sort
-          <td>{{ json.dumps(result.result_formated[field], ensure_ascii=False) | truncate(100) }}</td>
+          <td>{{ json.dumps(result.result_formated[field], ensure_ascii=False) | truncate(100, True) }}</td>
           # endfor
           <td>
-            {{ json.dumps(result.others, ensure_ascii=False) }}
+            {{ json.dumps(result.others, ensure_ascii=False) | truncate(100, True) }}
           </td>
         # endfor
       </tbody>

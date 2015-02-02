@@ -189,8 +189,13 @@ class Fetcher(object):
                 fetch[each] = task_fetch[each]
         fetch['headers'].update(task_fetch.get('headers', {}))
 
-        track_headers = tornado.httputil.HTTPHeaders(
-            task.get('track', {}).get('fetch', {}).get('headers') or {})
+        if task.get('track'):
+            track_headers = tornado.httputil.HTTPHeaders(
+                task.get('track', {}).get('fetch', {}).get('headers') or {})
+            track_ok = task.get('track', {}).get('process', {}).get('ok', False)
+        else:
+            track_headers = {}
+            track_ok = False
         # proxy, assume proxy address like 'username:password@host:port', and no '@' char in password string.
         if 'proxy' in task_fetch:
             if isinstance(task_fetch['proxy'], six.string_types):
@@ -215,15 +220,20 @@ class Fetcher(object):
                     fetch['proxy_port'] = int(self.proxy.split(":")[1])
         # etag
         if task_fetch.get('etag', True):
-            _t = task_fetch.get('etag') if isinstance(task_fetch.get('etag'), six.string_types) \
-                else track_headers.get('etag')
+            _t = None
+            if isinstance(task_fetch.get('etag'), six.string_types):
+                _t = task_fetch.get('etag')
+            elif track_ok:
+                _t = track_headers.get('etag')
             if _t:
                 fetch['headers'].setdefault('If-None-Match', _t)
         # last modifed
         if task_fetch.get('last_modified', True):
-            _t = task_fetch.get('last_modifed') \
-                if isinstance(task_fetch.get('last_modifed'), six.string_types) \
-                else track_headers.get('last-modified')
+            _t = None
+            if isinstance(task_fetch.get('last_modifed'), six.string_types):
+                _t = task_fetch.get('last_modifed')
+            elif track_ok:
+                _t = track_headers.get('last-modified')
             if _t:
                 fetch['headers'].setdefault('If-Modified-Since', _t)
 
@@ -311,6 +321,7 @@ class Fetcher(object):
                 else:
                     return handle_error(e)
             except Exception as e:
+                logger.exception(fetch)
                 return handle_error(e)
 
         return make_request(fetch)

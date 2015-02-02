@@ -6,10 +6,12 @@
 # Created on 2015-01-18 14:09:41
 
 import os
+import sys
 import six
 import json
 import time
 import httpbin
+import subprocess
 import unittest2 as unittest
 try:
     from Queue import Queue
@@ -32,6 +34,10 @@ class TestFetcherProcessor(unittest.TestCase):
         self.result_queue = Queue()
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
         self.httpbin = 'http://127.0.0.1:14887'
+        self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux',
+                                              '--password=123456', '--port=14830',
+                                              '--debug'], close_fds=True)
+        self.proxy = '127.0.0.1:14830'
         self.processor = Processor(projectdb=self.projectdb,
                                    inqueue=None,
                                    status_queue=self.status_queue,
@@ -42,10 +48,12 @@ class TestFetcherProcessor(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
+        self.proxy_thread.terminate()
+        self.proxy_thread.wait()
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
-    def crawl(self, url=None, **kwargs):
+    def crawl(self, url=None, track=None, **kwargs):
         if url is None and kwargs.get('callback'):
             url = dataurl.encode(utils.text(kwargs.get('callback')))
 
@@ -55,6 +63,7 @@ class TestFetcherProcessor(unittest.TestCase):
         instance._reset()
         task = instance.crawl(url, **kwargs)
         assert not isinstance(task, list), 'url list is not allowed'
+        task['track'] = track
         task, result = self.fetcher.fetch(task)
         self.processor.on_task(task, result)
 
@@ -294,16 +303,102 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertFalse(newtasks)
         self.assertFalse(result)
 
-    def test_links(self):
+    def test_a200_no_proxy(self):
+        old_proxy = self.fetcher.proxy
+        self.fetcher.proxy = self.proxy
+        status, newtasks, result = self.crawl(self.httpbin+'/get',
+                                              params={
+                                                  'test': 'a200'
+                                              }, proxy=False, callback=self.json)
+
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.fetcher.proxy = old_proxy
+
+    def test_a210_proxy_failed(self):
+        old_proxy = self.fetcher.proxy
+        self.fetcher.proxy = self.proxy
+        status, newtasks, result = self.crawl(self.httpbin+'/get',
+                                              params={
+                                                  'test': 'a210'
+                                              }, callback=self.catch_http_error)
+
+        self.assertFalse(self.status_ok(status, 'fetch'))
+        self.assertTrue(self.status_ok(status, 'process'))
+        self.assertEqual(len(newtasks), 1, newtasks)
+        self.assertEqual(result, 403)
+        self.fetcher.proxy = old_proxy
+
+    def test_a220_proxy_ok(self):
+        old_proxy = self.fetcher.proxy
+        self.fetcher.proxy = self.proxy
+        status, newtasks, result = self.crawl(self.httpbin+'/get',
+                                              params={
+                                                  'test': 'a220',
+                                                  'username': 'binux',
+                                                  'password': '123456',
+                                              }, callback=self.catch_http_error)
+
+        self.assertStatusOk(status)
+        self.assertEqual(result, 200)
+        self.fetcher.proxy = old_proxy
+
+    def test_a230_proxy_parameter_fail(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/get',
+                                              params={
+                                                  'test': 'a230',
+                                              }, proxy=self.proxy,
+                                              callback=self.catch_http_error)
+
+        self.assertFalse(self.status_ok(status, 'fetch'))
+        self.assertTrue(self.status_ok(status, 'process'))
+        self.assertEqual(result, 403)
+
+    def test_a240_proxy_parameter_ok(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/post',
+                                              method='POST',
+                                              data={
+                                                  'test': 'a240',
+                                                  'username': 'binux',
+                                                  'password': '123456',
+                                              }, proxy=self.proxy,
+                                              callback=self.catch_http_error)
+
+        self.assertStatusOk(status)
+        self.assertEqual(result, 200)
+
+    def test_zzz_links(self):
         status, newtasks, result = self.crawl(self.httpbin+'/links/10/0', callback=self.links)
 
         self.assertStatusOk(status)
         self.assertEqual(len(newtasks), 9, newtasks)
         self.assertFalse(result)
 
-    def test_html(self):
+    def test_zzz_html(self):
         status, newtasks, result = self.crawl(self.httpbin+'/html', callback=self.html)
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
         self.assertEqual(result, 'Herman Melville - Moby-Dick')
+
+    def test_zzz_etag_enabled(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cache', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        status, newtasks, result = self.crawl(self.httpbin+'/cache',
+                                              track=status['track'], callback=self.json)
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.assertFalse(result)
+
+    def test_zzz_etag_not_working(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cache', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        status['track']['process']['ok'] = False
+        status, newtasks, result = self.crawl(self.httpbin+'/cache',
+                                              track=status['track'], callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)

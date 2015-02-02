@@ -38,9 +38,9 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
         self._execute('''CREATE TABLE %s (
             `taskid` varchar(64) PRIMARY KEY,
             `url` varchar(1024),
-            `result` BLOB,
+            `result` MEDIUMBLOB,
             `updatetime` double(16, 4)
-            ) ENGINE=MyISAM CHARSET=utf8''' % self.escape(tablename))
+            ) ENGINE=InnoDB CHARSET=utf8''' % self.escape(tablename))
 
     def _parse(self, data):
         for key, value in list(six.iteritems(data)):
@@ -75,7 +75,8 @@ class ResultDB(MySQLMixin, SplitTableMixin, BaseResultDB, BaseDB):
             return
         tablename = self._tablename(project)
 
-        for task in self._select2dic(tablename, what=fields, offset=offset, limit=limit):
+        for task in self._select2dic(tablename, what=fields, order='updatetime DESC',
+                                     offset=offset, limit=limit):
             yield self._parse(task)
 
     def count(self, project):
