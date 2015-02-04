@@ -196,14 +196,28 @@ class Fetcher(object):
         else:
             track_headers = {}
             track_ok = False
-        # proxy
-        if isinstance(task_fetch.get('proxy'), six.string_types):
-            fetch['proxy_host'] = utils.utf8(task_fetch['proxy'].split(":")[0])
-            fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
-        elif self.proxy and task_fetch.get('proxy', True):
-            fetch['proxy_host'] = utils.utf8(self.proxy.split(":")[0])
-            fetch['proxy_port'] = int(self.proxy.split(":")[1])
-
+        # proxy, assume proxy address like 'username:password@host:port', and no '@' char in password string.
+        if 'proxy' in task_fetch:
+            if isinstance(task_fetch['proxy'], six.string_types):
+                if len(task_fetch['proxy'].split("@")) == 2:
+                    auth, host = task_fetch['proxy'].split("@")
+                    fetch['proxy_host'] = host.split(":")[0]
+                    fetch['proxy_port'] = int(host.split(":")[1])
+                    fetch['proxy_username'] = auth.split(":")[0]
+                    fetch['proxy_password'] = auth.split(":")[1]
+                else:
+                    fetch['proxy_host'] = task_fetch['proxy'].split(":")[0]
+                    fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
+            elif self.proxy and task_fetch.get('proxy', True):
+                if len(self.proxy.split("@")) == 2:
+                    auth, host = self.proxy.split("@")
+                    fetch['proxy_host'] = host.split(":")[0]
+                    fetch['proxy_port'] = int(host.split(":")[1])
+                    fetch['proxy_username'] = auth.split(":")[0]
+                    fetch['proxy_password'] = auth.split(":")[1]
+                else:
+                    fetch['proxy_host'] = self.proxy.split(":")[0]
+                    fetch['proxy_port'] = int(self.proxy.split(":")[1])
         # etag
         if task_fetch.get('etag', True):
             _t = None
