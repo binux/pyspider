@@ -23,34 +23,54 @@ class TestTaskQueue(unittest.TestCase):
         self.task_queue = TaskQueue()
         self.task_queue.rate = 100000
         self.task_queue.burst = 100000
-        self.task_queue.processing_timeout = 0.2
+        self.task_queue.processing_timeout = 0.5
 
-        self.task_queue.put('a3', 2, time.time() + 0.1)
-        self.task_queue.put('a2', 3)
+    def test_10_put(self):
+        self.task_queue.put('a3', 0, time.time() + 0.5)
+        self.task_queue.put('a4', 3, time.time() + 0.2)
+        self.task_queue.put('a2', 0)
         self.task_queue.put('a1', 1)
+        self.assertEqual(self.task_queue.size(), 4)
 
-    def test_1_priority_queue(self):
+    def test_20_update(self):
+        self.task_queue.put('a2', 4)
+        self.assertEqual(self.task_queue.size(), 4)
+        self.task_queue.put('a3', 2, 0)
+        self.assertEqual(self.task_queue.size(), 4)
+
+    def test_30_get_from_priority_queue(self):
         self.assertEqual(self.task_queue.get(), 'a2')
+        self.assertEqual(self.task_queue.size(), 4)
 
-    def test_2_time_queue(self):
-        time.sleep(0.1)
+    def test_40_time_queue_1(self):
         self.task_queue.check_update()
+        self.assertEqual(self.task_queue.get(), 'a3')
+        self.assertEqual(self.task_queue.size(), 4)
+
+    def test_50_time_queue_2(self):
+        time.sleep(0.3)
+        self.task_queue.check_update()
+        self.assertEqual(self.task_queue.get(), 'a4')
+        self.assertEqual(self.task_queue.get(), 'a1')
+        self.assertEqual(self.task_queue.size(), 4)
+
+    def test_60_processing_queue(self):
+        time.sleep(0.5)
+        self.task_queue.check_update()
+        self.assertEqual(self.task_queue.get(), 'a2')
+        self.assertEqual(len(self.task_queue), 4)
+        self.assertEqual(self.task_queue.get(), 'a4')
         self.assertEqual(self.task_queue.get(), 'a3')
         self.assertEqual(self.task_queue.get(), 'a1')
+        self.assertEqual(len(self.task_queue), 4)
 
-    def test_3_processing_queue(self):
-        time.sleep(0.1)
-        self.task_queue.check_update()
-        self.assertEqual(self.task_queue.get(), 'a2')
+    def test_70_done(self):
+        self.assertTrue(self.task_queue.done('a2'))
+        self.assertTrue(self.task_queue.done('a1'))
+        self.assertEqual(len(self.task_queue), 2)
+        self.assertTrue(self.task_queue.done('a4'))
+        self.assertTrue(self.task_queue.done('a3'))
         self.assertEqual(len(self.task_queue), 0)
-
-    def test_4_done(self):
-        self.task_queue.done('a2')
-        self.task_queue.done('a1')
-        time.sleep(0.1)
-        self.task_queue.check_update()
-        self.assertEqual(self.task_queue.get(), 'a3')
-        self.assertEqual(self.task_queue.get(), None)
 
 
 from pyspider.scheduler.token_bucket import Bucket

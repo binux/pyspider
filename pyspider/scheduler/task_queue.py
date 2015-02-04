@@ -50,6 +50,8 @@ class PriorityTaskQueue(Queue.Queue):
 
     '''
     TaskQueue
+
+    Same taskid items will been merged
     '''
 
     def _init(self, maxsize):
@@ -57,25 +59,43 @@ class PriorityTaskQueue(Queue.Queue):
         self.queue_dict = dict()
 
     def _qsize(self, len=len):
-        return len(self.queue)
+        return len(self.queue_dict)
 
     def _put(self, item, heappush=heapq.heappush):
-        heappush(self.queue, item)
-        self.queue_dict[item.taskid] = item
+        if item.taskid in self.queue_dict:
+            task = self.queue_dict[item.taskid]
+            changed = False
+            if item.priority > task.priority:
+                task.priority = item.priority
+                changed = True
+            if item.exetime < task.exetime:
+                task.exetime = item.exetime
+                changed = True
+            if changed:
+                self._resort()
+        else:
+            heappush(self.queue, item)
+            self.queue_dict[item.taskid] = item
 
     def _get(self, heappop=heapq.heappop):
-        item = heappop(self.queue)
-        self.queue_dict.pop(item.taskid, None)
-        return item
+        while self.queue:
+            item = heappop(self.queue)
+            if item.taskid is None:
+                continue
+            self.queue_dict.pop(item.taskid, None)
+            return item
+        return None
 
     @property
     def top(self):
-        return self.queue[0]
+        while self.queue and self.queue[0].taskid is None:
+            heapq.heappop(self.queue)
+        if self.queue:
+            return self.queue[0]
+        return None
 
-    def resort(self):
-        self.mutex.acquire()
+    def _resort(self):
         heapq.heapify(self.queue)
-        self.mutex.release()
 
     def __contains__(self, taskid):
         return taskid in self.queue_dict
@@ -154,27 +174,18 @@ class TaskQueue(object):
     def put(self, taskid, priority=0, exetime=0):
         '''Put a task into task queue'''
         now = time.time()
+        task = InQueueTask(taskid, priority, exetime)
         self.mutex.acquire()
         if taskid in self.priority_queue:
-            task = self.priority_queue[taskid]
-            if priority > task.priority:
-                task.priority = priority
-                self.priority_queue.resort()
+            self.priority_queue.put(task)
         elif taskid in self.time_queue:
-            task = self.time_queue[taskid]
-            if priority > task.priority:
-                task.priority = priority
-            if exetime < task.exetime:
-                task.exetime = exetime
-                self.time_queue.resort()
+            self.time_queue.put(task)
         elif taskid in self.processing and self.processing[taskid].taskid:
             # force update a processing task is not allowed as there are so many
             # problems may happen
             pass
         else:
-            task = InQueueTask(taskid, priority)
             if exetime and exetime > now:
-                task.exetime = exetime
                 self.time_queue.put(task)
             else:
                 self.priority_queue.put(task)
@@ -204,8 +215,11 @@ class TaskQueue(object):
             return True
         return False
 
+    def size(self):
+        return self.priority_queue.qsize() + self.time_queue.qsize() + self.processing.qsize()
+
     def __len__(self):
-        return self.priority_queue.qsize() + self.time_queue.qsize()
+        return self.size()
 
     def __contains__(self, taskid):
         if taskid in self.priority_queue or taskid in self.time_queue:
