@@ -207,10 +207,10 @@ class Fetcher(object):
                 proxy_string = 'http://' + proxy_string
             proxy_splited = urlsplit(proxy_string)
             if proxy_splited.username:
-                fetch['proxy_username'] = utils.utf8(proxy_splited.username)
+                fetch['proxy_username'] = proxy_splited.username
             if proxy_splited.password:
-                fetch['proxy_password'] = utils.utf8(proxy_splited.password)
-            fetch['proxy_host'] = utils.utf8(proxy_splited.hostname)
+                fetch['proxy_password'] = proxy_splited.password
+            fetch['proxy_host'] = proxy_splited.hostname
             fetch['proxy_port'] = proxy_splited.port or 8080
 
         # etag
