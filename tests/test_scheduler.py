@@ -234,7 +234,7 @@ class TestScheduler(unittest.TestCase):
             'url': 'url'
         })
         time.sleep(0.1)
-        self.assertEqual(self.rpc.size(), 0)
+        self.assertEqual(self.rpc.size(), 1)
 
     def test_50_taskdone_error_no_track(self):
         self.status_queue.put({
@@ -243,7 +243,7 @@ class TestScheduler(unittest.TestCase):
             'url': 'url'
         })
         time.sleep(0.1)
-        self.assertEqual(self.rpc.size(), 0)
+        self.assertEqual(self.rpc.size(), 1)
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -251,7 +251,7 @@ class TestScheduler(unittest.TestCase):
             'track': {}
         })
         time.sleep(0.1)
-        self.assertEqual(self.rpc.size(), 0)
+        self.assertEqual(self.rpc.size(), 1)
 
     def test_60_taskdone_failed_retry(self):
         self.status_queue.put({
