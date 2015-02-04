@@ -20,7 +20,7 @@ import pyspider
 
 from six.moves import queue, http_cookies
 from requests import cookies
-from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urljoin, urlsplit
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from pyspider.libs import utils, dataurl, counter
@@ -197,12 +197,21 @@ class Fetcher(object):
             track_headers = {}
             track_ok = False
         # proxy
+        proxy_string = None
         if isinstance(task_fetch.get('proxy'), six.string_types):
-            fetch['proxy_host'] = utils.utf8(task_fetch['proxy'].split(":")[0])
-            fetch['proxy_port'] = int(task_fetch['proxy'].split(":")[1])
+            proxy_string = task_fetch['proxy']
         elif self.proxy and task_fetch.get('proxy', True):
-            fetch['proxy_host'] = utils.utf8(self.proxy.split(":")[0])
-            fetch['proxy_port'] = int(self.proxy.split(":")[1])
+            proxy_string = self.proxy
+        if proxy_string:
+            if '://' not in proxy_string:
+                proxy_string = 'http://' + proxy_string
+            proxy_splited = urlsplit(proxy_string)
+            if proxy_splited.username:
+                fetch['proxy_username'] = utils.utf8(proxy_splited.username)
+            if proxy_splited.password:
+                fetch['proxy_password'] = utils.utf8(proxy_splited.password)
+            fetch['proxy_host'] = utils.utf8(proxy_splited.hostname)
+            fetch['proxy_port'] = proxy_splited.port or 8080
 
         # etag
         if task_fetch.get('etag', True):

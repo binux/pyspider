@@ -367,6 +367,17 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertStatusOk(status)
         self.assertEqual(result, 200)
 
+    def test_a250_proxy_userpass(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/post',
+                                              method='POST',
+                                              data={
+                                                  'test': 'a250',
+                                              }, proxy='binux:123456@'+self.proxy,
+                                              callback=self.catch_http_error)
+
+        self.assertStatusOk(status)
+        self.assertEqual(result, 200)
+
     def test_zzz_links(self):
         status, newtasks, result = self.crawl(self.httpbin+'/links/10/0', callback=self.links)
 
