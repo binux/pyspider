@@ -2,9 +2,9 @@ Flask>=0.10
 Jinja2>=2.7
 chardet>=2.2
 cssselect>=0.9
-lxml>=3.3.2
-pycurl>=7.19
-pyquery>=1.2
+lxml
+pycurl
+pyquery
 requests>=2.2
 tornado>=3.2
 mysql-connector-python>=1.2.2
