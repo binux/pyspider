@@ -291,13 +291,87 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'url,title,url', rv.data)
 
+    def test_h000_auth(self):
+        ctx = run.webui.make_context('webui', [
+            '--scheduler-rpc', 'http://localhost:23333/',
+            '--username', 'binux',
+            '--password', '4321',
+        ], self.ctx)
+        app = run.webui.invoke(ctx)
+        self.__class__.app = app.test_client()
+        self.__class__.rpc = app.config['scheduler_rpc']
+
+    def test_h010_change_group(self):
+        rv = self.app.post('/update', data={
+            'name': 'group',
+            'value': 'lock',
+            'pk': 'test_project'
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'ok', rv.data)
+
+        rv = self.app.get('/')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'lock', rv.data)
+
+    def test_h020_change_group_lock_failed(self):
+        rv = self.app.post('/update', data={
+            'name': 'group',
+            'value': '',
+            'pk': 'test_project'
+        })
+        self.assertEqual(rv.status_code, 401)
+
+    def test_h020_change_group_lock_ok(self):
+        rv = self.app.post('/update', data={
+            'name': 'group',
+            'value': 'test_binux',
+            'pk': 'test_project'
+        }, headers={
+            'Authorization': 'Basic YmludXg6NDMyMQ=='
+        })
+        self.assertEqual(rv.status_code, 200)
+
+    def test_h030_need_auth(self):
+        ctx = run.webui.make_context('webui', [
+            '--scheduler-rpc', 'http://localhost:23333/',
+            '--username', 'binux',
+            '--password', '4321',
+            '--need-auth',
+        ], self.ctx)
+        app = run.webui.invoke(ctx)
+        self.__class__.app = app.test_client()
+        self.__class__.rpc = app.config['scheduler_rpc']
+
+    def test_h040_auth_fail(self):
+        rv = self.app.get('/')
+        self.assertEqual(rv.status_code, 401)
+
+    def test_h050_auth_fail2(self):
+        rv = self.app.get('/', headers={
+            'Authorization': 'Basic Ymlasdfsd'
+        })
+        self.assertEqual(rv.status_code, 401)
+
+    def test_h060_auth_fail3(self):
+        rv = self.app.get('/', headers={
+            'Authorization': 'Basic YmludXg6MQ=='
+        })
+        self.assertEqual(rv.status_code, 401)
+
+    def test_h070_auth_ok(self):
+        rv = self.app.get('/', headers={
+            'Authorization': 'Basic YmludXg6NDMyMQ=='
+        })
+        self.assertEqual(rv.status_code, 200)
+
     def test_x0_disconnected_scheduler(self):
         ctx = run.webui.make_context('webui', [
             '--scheduler-rpc', 'http://localhost:23458/'
         ], self.ctx)
         app = run.webui.invoke(ctx)
-        self.app = app.test_client()
-        self.rpc = app.config['scheduler_rpc']
+        self.__class__.app = app.test_client()
+        self.__class__.rpc = app.config['scheduler_rpc']
 
     def test_x10_project_update(self):
         rv = self.app.post('/update', data={
