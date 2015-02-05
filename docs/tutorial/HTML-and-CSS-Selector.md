@@ -18,7 +18,7 @@ Some basic knowledges you should know before scraping:
 * Pages transferred via the Hypertext Transfer Protocol ([HTTP]).
 * Web Pages structured using HyperText Markup Language ([HTML]).
 
-To scrape information from web is
+To scrape information from a web is
 
 1. Finding URLs of the pages contain the information we want.
 2. Fetching the pages via HTTP.
@@ -35,7 +35,7 @@ As we want to get all of the movies on [IMDb], the first thing is finding a list
 * by following next page, you can traverse all of the movies. 
 * list sorted by last updated time would be a great help to get latest movies.
 
-By looking around on the index page of [IMDb], I found this:
+By looking around at the index page of [IMDb], I found this:
 
 ![IMDb front page](imgs/tutorial_imdb_front.png)
 
@@ -56,7 +56,7 @@ Changing the crawl URL in `on_start` callback:
 ```
 
 > * `self.crawl` would fetch the page and call the `callback` method to parse the response.  
-> * The [`@every` decorator](http://docs.pyspider.org/en/latest/apis/@every/) represents `on_start` would executed every day, to make sure not missing any new movies.
+> * The [`@every` decorator](http://docs.pyspider.org/en/latest/apis/@every/) represents `on_start` would execute every day, to make sure not missing any new movies.
 
 Click the green `run` button, you should find a red 1 above follows, switch to follows panel, click the green play button:
 
@@ -92,12 +92,12 @@ Remember you can always use the power of python or anything you are familiar wit
 
 #### CSS Selectors
 
-CSS selectors are patterns used by [CSS] to select HTML elements which is wanted to style. As elements containing information may has different style in document, It's appropriate to use CSS Selector to select elements we want. More information about CSS selectors could be found in above links:
+CSS selectors are patterns used by [CSS] to select HTML elements which are wanted to style. As elements containing information may have different style in document, It's appropriate to use CSS Selector to select elements we want. More information about CSS selectors could be found in above links:
 
 * [CSS Selectors](http://www.w3schools.com/css/css_selectors.asp)
 * [CSS Selector Reference](http://www.w3schools.com/cssref/css_selectors.asp)
 
-You can use CSS Selector with built-in `response.doc` object, which is provided by [PyQuery], you may find full reference there.
+You can use CSS Selector with built-in `response.doc` object, which is provided by [PyQuery], you may find the full reference there.
 
 #### CSS Selector Helper
 
@@ -105,7 +105,7 @@ pyspider provide a tool called `CSS selector helper` to make it easier to genera
 
 ![CSS Selector helper](imgs/css_selector_helper.png)
 
-The element will highlighted in yellow when mouse over. When you click it, all elements with same CSS Selector will frame in red and add the pattern to cursor position of your code. Add following code and put cursor between the two quotation marks:
+The element will be highlighted in yellow when mouse over. When you click it, all elements with same CSS Selector will frame in red and add the pattern to the cursor position of your code. Add following code and put cursor between the two quotation marks:
 
 ```
         self.crawl(response.doc('').attr.href, callback=self.index_page)
@@ -121,7 +121,7 @@ click "Next »", selector pattern should have been added to your code:
         self.crawl(response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#main>DIV.leftright>DIV#right>SPAN.pagination>A').attr.href, callback=self.index_page)
 ```
 
-Click `run` again and move to next page, we found that "« Prev" has the same selector pattern as "Next »". When using above code you may find pyspider selected the link of "« Prev", not "Next »". A solution for this is select both of them:
+Click `run` again and move to the next page, we found that "« Prev" has the same selector pattern as "Next »". When using above code you may find pyspider selected the link of "« Prev", not "Next »". A solution for this is select both of them:
 
 ```
         self.crawl([x.attr.href for x in response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#main>DIV.leftright>DIV#right>SPAN.pagination>A').items()], callback=self.index_page)
@@ -144,11 +144,11 @@ Add keys you need to result dict and collect value using `CSS selector helper` r
         }
 ```
 
-Note that, `CSS Selector helper` may not always work (directors and starts have same pattern). You can write selector pattern manually with tools like [Chrome Dev Tools](https://developer.chrome.com/devtools):
+Note that, `CSS Selector helper` may not always work (directors and starts have a same pattern). You can write selector pattern manually with tools like [Chrome Dev Tools](https://developer.chrome.com/devtools):
 
 ![inspect element](imgs/inspect_element.png)
 
-You doesn't need to write every ancestral elements in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator. You can also test CSS Selector in the JavaScript Console by using `$$` like `$$('div[itemprop="director"] span[itemprop="name"]')`
+You doesn't need to write every ancestral element in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator. You can also test CSS Selector in the JavaScript Console by using `$$` like `$$('div[itemprop="director"] span[itemprop="name"]')`
 
 Running
 -------
@@ -168,7 +168,7 @@ The script is just a simple, you may found more issues when scraping IMDb:
 * ref in list page url is for tracing user, it's better remove it.
 * IMDb does not serve more than 100000 results for any query, you need find more lists with lesser results, like [this](http://www.imdb.com/search/title?genres=action&title_type=feature&sort=moviemeter,asc)
 * You may need a list sorted by last updated time and update it with a shorter interval.
-* Some attribute is hard to extract, you may need write selector pattern on hand or using [XPATH](http://www.w3schools.com/xpath/xpath_syntax.asp) and/or some python code to extract informations.
+* Some attribute is hard to extract, you may need write selector pattern on hand or using [XPATH](http://www.w3schools.com/xpath/xpath_syntax.asp) and/or some python code to extract information.
 
 [IMDb]:          http://www.imdb.com/
 [WWW]:           http://en.wikipedia.org/wiki/World_Wide_Web

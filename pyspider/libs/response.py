@@ -61,7 +61,7 @@ class Response(object):
         encoding of Response.content.
 
         if Response.encoding is None, encoding will be guessed
-        by header or content or chardet if avaibable.
+        by header or content or chardet if available.
         """
         if hasattr(self, '_encoding'):
             return self._encoding
@@ -135,7 +135,7 @@ class Response(object):
 
     @property
     def json(self):
-        """Returns the json-encoded content of a request, if any."""
+        """Returns the json-encoded content of the response, if any."""
         if hasattr(self, '_json'):
             return self._json
         try:
@@ -146,7 +146,7 @@ class Response(object):
 
     @property
     def doc(self):
-        """Returns a PyQuery object of a request's content"""
+        """Returns a PyQuery object of the response's content"""
         if hasattr(self, '_doc'):
             return self._doc
         try:

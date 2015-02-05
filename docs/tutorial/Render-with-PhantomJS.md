@@ -1,7 +1,7 @@
 Level 3: Render with PhantomJS
 ==============================
 
-Some times web page is too complex to find out the API request. It's time to meet the power of [PhantomJS].
+Sometimes web page is too complex to find out the API request. It's time to meet the power of [PhantomJS].
 
 To use PhantomJS, you should have PhantomJS [installed](http://phantomjs.org/download.html). If you are running pyspider with `all` mode, PhantomJS is enabled if excitable in the PATH.
 
@@ -26,12 +26,12 @@ class Handler(BaseHandler):
             } for x in response.doc('.stream.item').items()]
         }
 ```
-> I used some API to handle the list of streams. You can find complete API reference from: [PyQuery complete API](https://pythonhosted.org/pyquery/api.html)
+> I used some API to handle the list of streams. You can find complete API reference from [PyQuery complete API](https://pythonhosted.org/pyquery/api.html)
 
 Running JavaScript on Page
 --------------------------
 
-We will try to scrape images from [http://www.pinterest.com/categories/popular/](http://www.pinterest.com/categories/popular/) in this section. Only 25 images is shown at the begining, more images would be loaded when you scroll to the bottom of the page.
+We will try to scrape images from [http://www.pinterest.com/categories/popular/](http://www.pinterest.com/categories/popular/) in this section. Only 25 images is shown at the beginning, more images would be loaded when you scroll to the bottom of the page.
 
 To scrape images as many as posible we can use a [`js_script` parameter](/apis/self.crawl/#enable-javascript-fetcher-need-support-by-fetcher) to set some function wrapped JavaScript codes to simulate the scroll action: 
 
@@ -57,7 +57,7 @@ class Handler(BaseHandler):
 ```
 
 > * Script would been executed after page loaded(can been changed via [`js_run_at` parameter](/apis/self.crawl/#enable-javascript-fetcher-need-support-by-fetcher))
-> * We scroll once after page loaded, you can scroll multiple times using [`setTimeout`](https://developer.mozilla.org/en-US/docs/Web/API/WindowTimers.setTimeout). PhantomJS will fetch as many items as posible before timeout arrived.
+> * We scroll once after page loaded, you can scroll multiple times using [`setTimeout`](https://developer.mozilla.org/en-US/docs/Web/API/WindowTimers.setTimeout). PhantomJS will fetch as many items as possible before timeout arrived.
 
 Online demo: [http://demo.pyspider.org/debug/tutorial_pinterest](http://demo.pyspider.org/debug/tutorial_pinterest)
 

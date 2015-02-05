@@ -3,7 +3,7 @@ Deployment
 
 Since pyspider has various components, you can just run `pyspider` to start a standalone and third service free instance. Or using MySQL or MongoDB and RabbitMQ to deploy a distributed crawl cluster.
 
-To deploy pyspider in product environment, running component in each processes and store data in database service is more reliable and flexible.
+To deploy pyspider in product environment, running component in each process and store data in database service is more reliable and flexible.
 
 Installation
 ------------
@@ -16,7 +16,7 @@ And you need a message queue service to connect the components together. [Rabbit
 
 > Even if you had install pyspider using `pip` before. Install with `pyspider[all]` is necessary to install the requirements for MySQL/MongoDB/RabbitMQ.
 
-if you are using ubuntu, try:
+if you are using Ubuntu, try:
 ```
 apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
 ```
@@ -94,7 +94,7 @@ pyspider -c config.json --phantomjs-proxy="localhost:25555" fetcher
 pyspider -c config.json processor
 pyspider -c config.json result_worker
 
-# start webui, set `--scheduler-rpc` if scheduler not running on same host as webui
+# start webui, set `--scheduler-rpc` if scheduler is not running on the same host as webui
 pyspider -c config.json webui
 ```
 

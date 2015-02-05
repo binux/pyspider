@@ -6,7 +6,7 @@ tasks are the basic unit to been scheduled.
 Basis
 -----
 
-* A task is differentiate by `taskid`. (Default: `md5(url)`, can be changed by override the `def get_taskid(self, task)` method)
+* A task is differentiated by `taskid`. (Default: `md5(url)`, can be changed by override the `def get_taskid(self, task)` method)
 * Tasks are isolated between different projects.
 * Task has 4 status:
     - active

@@ -4,7 +4,7 @@ self.crawl
 self.crawl(url, **kwargs)
 -------------------------
 
-`self.crawl` is the main interface to tell which url will been followed.
+`self.crawl` is the main interface to tell which url will be followed.
 
 ###basis
 
@@ -40,10 +40,10 @@ self.crawl(url, **kwargs)
 * `load_images` - _default: False_
 
 ### process
-* `save` - anything json-able object pass to next response. _can been get from `response.save`_
+* `save` - anything json-able object pass to next response. _can been got from `response.save`_
 
 ### other
-* `taskid` - uniq id for each task. _default: md5(url)_ , can be overrided by define your own `def get_taskid(self, task)`
+* `taskid` - unique id for each task. _default: md5(url)_ , can be overrided by define your own `def get_taskid(self, task)`
 * `force_update` - force update task params when task is in `ACTIVE` status.
 
 @config(**kwargs)
