@@ -638,6 +638,33 @@ def one(ctx, interactive, enable_phantomjs, scripts):
             phantomjs_obj.quit()
 
 
+@cli.command()
+@click.option('--scheduler-rpc', callback=connect_rpc, help='xmlrpc path of scheduler')
+@click.argument('project', nargs=1)
+@click.argument('message', nargs=1)
+@click.pass_context
+def send_message(ctx, scheduler_rpc, project, message):
+    if isinstance(scheduler_rpc, six.string_types):
+        scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
+    if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
+        scheduler_rpc = connect_rpc(ctx, None, 'http://%s/' % (
+            os.environ['SCHEDULER_PORT_23333_TCP'][len('tcp://'):]))
+    if scheduler_rpc is None:
+        scheduler_rpc = connect_rpc(ctx, None, 'http://localhost:23333/')
+
+    return scheduler_rpc.send_task({
+        'taskid': utils.md5string('data:,on_message'),
+        'project': project,
+        'url': 'data:,on_message',
+        'fetch': {
+            'save': ('__command__', message),
+        },
+        'process': {
+            'callback': '_on_message',
+        }
+    })
+
+
 def main():
     cli()
 

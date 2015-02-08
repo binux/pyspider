@@ -293,3 +293,44 @@ class TestRun(unittest.TestCase):
             self.assertIn('scheduler exiting...', text)
             os.close(fd)
             os.kill(pid, signal.SIGINT)
+
+class TestSendMessage(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        shutil.rmtree('./data/tests', ignore_errors=True)
+        os.makedirs('./data/tests')
+
+        ctx = run.cli.make_context('test', [
+            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
+            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
+            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+        ], None, obj=dict(testing_mode=True))
+        self.ctx = run.cli.invoke(ctx)
+
+        ctx = run.scheduler.make_context('scheduler', [], self.ctx)
+        scheduler = run.scheduler.invoke(ctx)
+        utils.run_in_thread(scheduler.xmlrpc_run)
+        utils.run_in_thread(scheduler.run)
+
+        time.sleep(1)
+
+    @classmethod
+    def tearDownClass(self):
+        for each in self.ctx.obj.instances:
+            each.quit()
+        time.sleep(1)
+
+        shutil.rmtree('./data/tests', ignore_errors=True)
+
+    def test_10_send_message(self):
+        ctx = run.send_message.make_context('send_message', [
+            'test_project', 'test_message'
+        ], self.ctx)
+        self.assertTrue(run.send_message.invoke(ctx))
+        while True:
+            task = self.ctx.obj.scheduler2fetcher.get(timeout=1)
+            if task['url'] == 'data:,on_message':
+                break
+        self.assertEqual(task['process']['callback'], '_on_message')
+

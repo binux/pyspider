@@ -447,6 +447,12 @@ class Scheduler(object):
             return False
         server.register_function(new_task, 'newtask')
 
+        def send_task(task):
+            '''dispatch task to fetcher'''
+            self.send_task(task)
+            return True
+        server.register_function(send_task, 'send_task')
+
         def update_project():
             self._force_update_project = True
         server.register_function(update_project, 'update_project')
