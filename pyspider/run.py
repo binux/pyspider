@@ -111,6 +111,10 @@ def cli(ctx, **kwargs):
                 db, kwargs['data_path'], db[:-2])))
             kwargs['is_%s_default' % db] = True
 
+    # create folder for counter.dump
+    if not os.path.exists(kwargs['data_path']):
+        os.mkdir(kwargs['data_path'])
+
     # queue
     if kwargs.get('amqp_url'):
         from pyspider.libs.rabbitmq import Queue
