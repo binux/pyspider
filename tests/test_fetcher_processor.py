@@ -413,3 +413,7 @@ class TestFetcherProcessor(unittest.TestCase):
                                               track=status['track'], callback=self.json)
         self.assertStatusOk(status)
         self.assertTrue(result)
+
+    def test_zzz_unexpected_crawl_argument(self):
+        with self.assertRaisesRegexp(TypeError, "unexpected keyword argument"):
+            self.crawl(self.httpbin+'/cache', cookie={}, callback=self.json)

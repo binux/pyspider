@@ -260,12 +260,12 @@ class BaseHandler(object):
         for k, v in iteritems(self.crawl_config):
             kwargs.setdefault(k, v)
 
-        url = quote_chinese(_build_url(url.strip(), kwargs.get('params')))
+        url = quote_chinese(_build_url(url.strip(), kwargs.pop('params', None)))
         if kwargs.get('files'):
             assert isinstance(
                 kwargs.get('data', {}), dict), "data must be a dict when using with files!"
-            content_type, data = _encode_multipart_formdata(kwargs.get('data', {}),
-                                                            kwargs.get('files', {}))
+            content_type, data = _encode_multipart_formdata(kwargs.pop('data', {}),
+                                                            kwargs.pop('files', {}))
             kwargs.setdefault('headers', {})
             kwargs['headers']['Content-Type'] = content_type
             kwargs['data'] = data
@@ -276,8 +276,8 @@ class BaseHandler(object):
 
         schedule = {}
         for key in ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update'):
-            if key in kwargs and kwargs[key] is not None:
-                schedule[key] = kwargs[key]
+            if key in kwargs:
+                schedule[key] = kwargs.pop(key)
         task['schedule'] = schedule
 
         fetch = {}
@@ -297,19 +297,25 @@ class BaseHandler(object):
                 'load_images',
                 'fetch_type'
         ):
-            if key in kwargs and kwargs[key] is not None:
-                fetch[key] = kwargs[key]
+            if key in kwargs:
+                fetch[key] = kwargs.pop(key)
         task['fetch'] = fetch
 
         process = {}
         for key in ('callback', ):
-            if key in kwargs and kwargs[key] is not None:
-                process[key] = kwargs[key]
+            if key in kwargs:
+                process[key] = kwargs.pop(key)
         task['process'] = process
 
         task['project'] = self.project_name
         task['url'] = url
-        task['taskid'] = kwargs.get('taskid') or self.get_taskid(task)
+        if 'taskid' in kwargs:
+            task['taskid'] = kwargs.pop('taskid')
+        else:
+            task['taskid'] = self.get_taskid(task)
+
+        if kwargs:
+            raise TypeError('crawl() got unexpected keyword argument: %s' % kwargs.keys())
 
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:
