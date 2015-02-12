@@ -8,6 +8,7 @@
 import mimetypes
 
 import six
+import shlex
 from six.moves.urllib.parse import urlparse, urlunparse
 from requests.models import RequestEncodingMixin
 
@@ -67,3 +68,56 @@ def quote_chinese(url, encodeing="utf-8"):
     else:
         res = [b if ord(b) < 128 else '%%%02X' % ord(b) for b in url]
     return "".join(res)
+
+
+def curl_to_arguments(curl):
+    kwargs = {}
+    headers = {}
+    command = None
+    urls = []
+    current_opt = None
+
+    for part in shlex.split(curl):
+        if command is None:
+            # curl
+            command = part
+        elif not part.startswith('-') and not current_opt:
+            # waiting for url
+            urls.append(part)
+        elif current_opt is None and part.startswith('-'):
+            # flags
+            if part == '--compressed':
+                kwargs['use_gzip'] = True
+            else:
+                current_opt = part
+        else:
+            # option
+            if current_opt is None:
+                raise TypeError('Unknow curl argument: %s' % part)
+            elif current_opt in ('-H', '--header'):
+                key_value = part.split(':', 1)
+                if len(key_value) == 2:
+                    key, value = key_value
+                headers[key.strip()] = value.strip()
+            elif current_opt in ('-d', '--data'):
+                kwargs['data'] = part
+            elif current_opt in ('--data-binary'):
+                if part[0] == '$':
+                    part = part[1:]
+                kwargs['data'] = part
+            elif current_opt in ('-X', '--request'):
+                kwargs['method'] = part
+            else:
+                raise TypeError('Unknow curl option: %s' % current_opt)
+            current_opt = None
+
+    if not urls:
+        raise TypeError('curl: no URL specified!')
+    if current_opt:
+        raise TypeError('Unknow curl option: %s' % current_opt)
+
+    kwargs['urls'] = urls
+    if headers:
+        kwargs['headers'] = headers
+
+    return kwargs

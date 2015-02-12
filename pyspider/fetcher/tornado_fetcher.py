@@ -173,7 +173,7 @@ class Fetcher(object):
         self.on_result(type, task, result)
         return task, result
 
-    allowed_options = ['method', 'data', 'timeout', 'cookies']
+    allowed_options = ['method', 'data', 'timeout', 'cookies', 'use_gzip']
 
     def http_fetch(self, url, task, callback):
         '''HTTP fetcher'''

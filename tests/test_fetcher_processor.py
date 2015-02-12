@@ -62,7 +62,8 @@ class TestFetcherProcessor(unittest.TestCase):
         instance = project_data['instance']
         instance._reset()
         task = instance.crawl(url, **kwargs)
-        assert not isinstance(task, list), 'url list is not allowed'
+        if isinstance(task, list):
+            task = task[0]
         task['track'] = track
         task, result = self.fetcher.fetch(task)
         self.processor.on_task(task, result)
@@ -417,3 +418,42 @@ class TestFetcherProcessor(unittest.TestCase):
     def test_zzz_unexpected_crawl_argument(self):
         with self.assertRaisesRegexp(TypeError, "unexpected keyword argument"):
             self.crawl(self.httpbin+'/cache', cookie={}, callback=self.json)
+
+    def test_zzz_curl_get(self):
+        status, newtasks, result = self.crawl("curl '"+self.httpbin+'''/get' -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: en,zh-CN;q=0.8,zh;q=0.6' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.17 Safari/537.36' -H 'Binux-Header: Binux-Value' -H 'Accept: */*' -H 'Cookie: _gauges_unique_year=1; _gauges_unique=1; _ga=GA1.2.415471573.1419316591' -H 'Connection: keep-alive' --compressed''', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        self.assertTrue(result['headers'].get('Binux-Header'), 'Binux-Value')
+
+    def test_zzz_curl_post(self):
+        status, newtasks, result = self.crawl("curl '"+self.httpbin+'''/post' -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' -H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: en,zh-CN;q=0.8,zh;q=0.6' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.17 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Accept: */*' -H 'Cookie: _gauges_unique_year=1; _gauges_unique=1; _ga=GA1.2.415471573.1419316591' -H 'Connection: keep-alive' -H 'DNT: 1' --data 'Binux-Key=%E4%B8%AD%E6%96%87+value' --compressed''', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        self.assertTrue(result['form'].get('Binux-Key'), '中文 value')
+
+    def test_zzz_curl_put(self):
+        status, newtasks, result = self.crawl("curl '"+self.httpbin+'''/put' -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: en,zh-CN;q=0.8,zh;q=0.6' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.17 Safari/537.36' -H 'Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryYlkgyaA7SRGOQYUG' -H 'Accept: */*' -H 'Cookie: _gauges_unique_year=1; _gauges_unique=1; _ga=GA1.2.415471573.1419316591' -H 'Connection: keep-alive' -H 'DNT: 1' --data-binary $'------WebKitFormBoundaryYlkgyaA7SRGOQYUG\r\nContent-Disposition: form-data; name="Binux-Key"\r\n\r\n%E4%B8%AD%E6%96%87+value\r\n------WebKitFormBoundaryYlkgyaA7SRGOQYUG\r\nContent-Disposition: form-data; name="fileUpload1"; filename="1"\r\nContent-Type: application/octet-stream\r\n\r\n\r\n------WebKitFormBoundaryYlkgyaA7SRGOQYUG--\r\n' --compressed''', callback=self.json)
+        self.assertStatusOk(status)
+        self.assertTrue(result)
+
+        self.assertIn('fileUpload1', result['files'], result)
+
+    def test_zzz_curl_no_url(self):
+        with self.assertRaisesRegexp(TypeError, 'no URL'):
+            status, newtasks, result = self.crawl(
+                '''curl -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' --compressed''',
+                callback=self.json)
+
+    def test_zzz_curl_bad_option(self):
+        with self.assertRaisesRegexp(TypeError, 'Unknow curl option'):
+            status, newtasks, result = self.crawl(
+                '''curl '%s/put' -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' -v''' % self.httpbin,
+                callback=self.json)
+
+        with self.assertRaisesRegexp(TypeError, 'Unknow curl option'):
+            status, newtasks, result = self.crawl(
+                '''curl '%s/put' -X PUT -v -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' ''' % self.httpbin,
+                callback=self.json)
+
