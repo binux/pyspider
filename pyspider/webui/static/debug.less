@@ -116,7 +116,7 @@ body {
   bottom: 0;
   border-radius: 5px 0 0 0;
   padding: 5px 0 3px 0;
-  box-shadow: 0px 0px 30px @color;
+  /*box-shadow: 0px 0px 30px @color;*/
   overflow: hidden;
 
   &:hover {
@@ -197,11 +197,14 @@ body {
 }
 
 #debug-tabs {
-  position: relative;
   margin-bottom: 45px;
 }
 
 #tab-web {
+  &.fixed {
+    padding-top: 24px;
+  }
+
   iframe {
     border-width: 0;
     width: 100%;
@@ -319,5 +322,41 @@ body {
     margin: 0;
     padding: 10px 10px;
     color: white;
+  }
+}
+
+#css-selector-helper {
+  background-color: @gray-lighter;
+  padding: 0;
+  width: 100%;
+  height: 24px;
+  text-align: right;
+
+  &.fixed {
+    position: absolute;
+    top: 0;
+
+  }
+
+  span.element {
+    height: 24px;
+    display: inline-block;
+    padding: 0 0.2em;
+    cursor: pointer;
+    color: lighten(@gray, 35%);
+  }
+  span.element.invalid {
+    display: none;
+  }
+  span.element.selected {
+    color: black;
+  }
+  span.element:hover {
+    background-color: darken(@gray-lighter, 15%);
+  }
+
+  button {
+    line-height: 16px;
+    vertical-align: 2px;
   }
 }

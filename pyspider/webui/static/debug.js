@@ -10,11 +10,50 @@ window.Debugger = (function() {
     return tmp_div.text(text).html();
   }
 
+  var helper = $('#css-selector-helper');
+  function render_selector_helper(path) {
+    helper.find('.element').remove();
+    var elements = [];
+    $.each(path, function(i, p) {
+      var span = $('<span>').addClass('element').text(p.name).data('info', p);
+      if (p.selected) span.addClass('selected');
+      if (p.invalid) span.addClass('invalid');
+      span.on('mouseover', function() {
+        var xpath = [];
+        $.each(path, function(i, _p) {
+          xpath.push(_p.xpath);
+          if (_p === p) {
+            return false;
+          }
+        });
+        $("#tab-web iframe")[0].contentWindow.postMessage({
+          type: 'overlay',
+          xpath: '/' + xpath.join('/'),
+        }, '*');
+      })
+      elements.push(span);
+    });
+    console.log(elements);
+    helper.prepend(elements);
+  }
+
   window.addEventListener("message", function(ev) {
     if (ev.data.type == "resize") {
       $("#tab-web iframe").height(ev.data.height+60);
-    } else if (ev.data.type == "selector") {
-      Debugger.python_editor.getDoc().replaceSelection(ev.data.selector);
+    } else if (ev.data.type == "selector_helper_click") {
+      console.log(ev.data.path);
+      render_selector_helper(ev.data.path);
+    }
+  });
+
+  var tab_web = $('#tab-web');
+  $("#task-panel").on("scroll", function(ev) {
+    if ($("#debug-tabs").position().top < 0) {
+      helper.addClass('fixed');
+      tab_web.addClass('fixed');
+    } else {
+      helper.removeClass('fixed');
+      tab_web.removeClass('fixed');
     }
   });
 
@@ -126,7 +165,7 @@ window.Debugger = (function() {
           $("#tab-html").data("format", true);
         }
       });
-      $("#enable_css_selector_helper").on('click', function() {
+      $("#J-enable-css-selector-helper").on('click', function() {
         var iframe = $("#tab-web iframe")[0];
         iframe.contentWindow.postMessage({type: 'enable_css_selector_helper'}, '*');
         Debugger.python_editor.getDoc().replaceSelection('');
@@ -245,7 +284,7 @@ window.Debugger = (function() {
       var _this = this;
 
       // reset
-      $("#tab-web").html('<iframe sandbox></iframe>');
+      $("#tab-web .iframe-box").html('');
       $("#tab-html pre").html('');
       $('#tab-follows').html('');
       $("#tab-control li[data-id=tab-follows] .num").hide();
@@ -264,7 +303,7 @@ window.Debugger = (function() {
           $('#left-area .overlay').hide();
 
           //web
-          $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
+          $("#tab-web .iframe-box").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
           var iframe = $("#tab-web iframe")[0];
           var content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
 
