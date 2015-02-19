@@ -18,7 +18,20 @@ window.Debugger = (function() {
       var span = $('<span>').addClass('element').text(p.name).data('info', p);
       if (p.selected) span.addClass('selected');
       if (p.invalid) span.addClass('invalid');
-      span.on('mouseover', function() {
+
+      var ul = $('<ul>');
+      $.each(p.features, function(i, f) {
+        var li = $('<li>').text(f.name).data('feature', f);
+        if (f.selected) li.addClass('selected');
+        li.appendTo(ul);
+        li.on('click', function(ev) {
+          ev.stopPropagation();
+          $(this).toggleClass('selected');
+        });
+      });
+      ul.appendTo(span);
+
+      span.on('mouseover', function(ev) {
         var xpath = [];
         $.each(path, function(i, _p) {
           xpath.push(_p.xpath);
@@ -31,9 +44,12 @@ window.Debugger = (function() {
           xpath: '/' + xpath.join('/'),
         }, '*');
       })
+      span.on('click', function(ev) {
+        ev.stopPropagation();
+        $(this).toggleClass('selected');
+      });
       elements.push(span);
     });
-    console.log(elements);
     helper.prepend(elements);
   }
 

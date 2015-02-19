@@ -338,25 +338,59 @@ body {
 
   }
 
-  span.element {
-    height: 24px;
-    display: inline-block;
-    padding: 0 0.2em;
-    cursor: pointer;
-    color: lighten(@gray, 35%);
-  }
-  span.element.invalid {
-    display: none;
-  }
-  span.element.selected {
-    color: black;
-  }
-  span.element:hover {
-    background-color: darken(@gray-lighter, 15%);
-  }
-
   button {
     line-height: 16px;
     vertical-align: 2px;
+  }
+}
+
+span.element {
+  position: relative;
+  height: 24px;
+  display: inline-block;
+  padding: 0 0.2em;
+  cursor: pointer;
+  color: lighten(@gray, 35%);
+  z-index: 99999;
+
+  &.invalid {
+    display: none;
+  }
+  &.selected {
+    color: black;
+  }
+  &:hover {
+    background-color: darken(@gray-lighter, 15%);
+
+    & > ul {
+      display: block;
+    }
+  }
+
+  & > ul {
+    display: none;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 24px;
+    left: 0;
+    background-color: @gray-lighter;
+    border: 1px solid black;
+    border-top-width: 0;
+    color: lighten(@gray, 35%);
+
+    & > li {
+      display: block;
+      text-align: left;
+      white-space: nowrap;
+      padding: 0 4px;
+
+      &.selected {
+        color: black;
+      }
+      &:hover {
+        background-color: darken(@gray-lighter, 15%);
+      }
+    }
   }
 }

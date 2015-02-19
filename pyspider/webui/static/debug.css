@@ -319,23 +319,52 @@ body {
   position: absolute;
   top: 0;
 }
-#css-selector-helper span.element {
+#css-selector-helper button {
+  line-height: 16px;
+  vertical-align: 2px;
+}
+span.element {
+  position: relative;
   height: 24px;
   display: inline-block;
   padding: 0 0.2em;
   cursor: pointer;
   color: #afafaf;
+  z-index: 99999;
 }
-#css-selector-helper span.element.invalid {
+span.element.invalid {
   display: none;
 }
-#css-selector-helper span.element.selected {
+span.element.selected {
   color: black;
 }
-#css-selector-helper span.element:hover {
+span.element:hover {
   background-color: #c8c8c8;
 }
-#css-selector-helper button {
-  line-height: 16px;
-  vertical-align: 2px;
+span.element:hover > ul {
+  display: block;
+}
+span.element > ul {
+  display: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 24px;
+  left: 0;
+  background-color: #eeeeee;
+  border: 1px solid black;
+  border-top-width: 0;
+  color: #afafaf;
+}
+span.element > ul > li {
+  display: block;
+  text-align: left;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+span.element > ul > li.selected {
+  color: black;
+}
+span.element > ul > li:hover {
+  background-color: #c8c8c8;
 }

@@ -18,19 +18,56 @@
     } while( elem = elem.offsetParent )
       return {top: top, left: left};
   }
+
+  function merge_name(features) {
+    var element_name = '';
+    features.forEach(function(f) {
+      if (f.selected)
+        element_name += f.name;
+    })
+    return element_name;
+  }
+
+  function merge_pattern(path) {
+    var pattern = '';
+    var prev = null;
+    path.forEach(function(p) {
+      if (p.invalid) {
+        prev = null;
+      } else if (p.selected) {
+        if (prev) {
+          pattern += ' >';
+        }
+        var element_pattern = '';
+        p.features.forEach(function(f) {
+          if (f.selected) {
+            element_pattern += f.pattern;
+          }
+        });
+        pattern += ' '+element_pattern;
+        prev = p;
+      } else {
+        prev = null;
+      }
+    })
+    return pattern;
+  }
  
   function path_info(element) {
     var path = [];
     do {
       var features = [];
+      var has_id_feature = false;
+      var has_class_feature = false;
       // tagName
       features.push({
         name: element.tagName.toLowerCase(),
         pattern: element.tagName.toLowerCase(),
-        selected: true,
+        selected: false,
       });
       // id
       if (element.getAttribute('id')) {
+        has_id_feature = true;
         features.push({
           name: '#'+element.getAttribute('id'),
           pattern: '#'+element.getAttribute('id'),
@@ -39,12 +76,29 @@
       }
       // class
       if (element.classList.length > 0) {
+        var min_class_name = null, min_class_cnt = 9999;
         for (var i=0; i<element.classList.length; i++) {
+          var class_name = element.classList[i];
+          var class_cnt = document.getElementsByClassName(class_name).length;
+          if (!min_class_name || min_class_cnt > class_cnt) {
+            min_class_name = class_name;
+            min_class_cnt = class_cnt;
+          }
+
           features.push({
-            name: '.'+element.classList[i],
-            pattern: '.'+element.classList[i],
-            selected: true,
+            name: '.'+class_name,
+            pattern: '.'+class_name,
+            selected: false,
           });
+        }
+        if (!has_id_feature && min_class_name) {
+          for (var i=0; i<features.length; i++) {
+            if (features[i].pattern == '.'+min_class_name) {
+              features[i].selected = true;
+              has_class_feature = true;
+              break;
+            }
+          }
         }
       }
       // rel, property
@@ -56,8 +110,11 @@
         features.push({
           name: '['+attrs[i].nodeName+'='+JSON.stringify(attrs[i].nodeValue)+']',
           pattern: '['+attrs[i].nodeName+'='+JSON.stringify(attrs[i].nodeValue)+']',
-          selected: true,
+          selected: !has_id_feature && !has_class_feature,
         });
+      }
+      if (!has_id_feature && !has_class_feature) {
+        features[0].selected = true;
       }
 
       // get xpath
@@ -76,7 +133,7 @@
       // pack it up
       path.push({
         tag: element.tagName.toLowerCase(),
-        name: element.tagName.toLowerCase(),
+        name: merge_name(features),
         xpath: xpath,
         selected: true,
         invalid: element.tagName.toLowerCase() === 'tbody',
@@ -85,6 +142,21 @@
     } while (element = element.parentElement);
 
     path.reverse();
+
+    // select features
+    var pattern = merge_pattern(path);
+    var selected_elements = document.querySelectorAll(pattern);
+    path.forEach(function(p) {
+      if (p.invalid)
+        return;
+      p.selected = false;
+      if (selected_elements.length == document.querySelectorAll(
+        merge_pattern(path)).length) {
+        return;
+      }
+      p.selected = true;
+    });
+
     return path;
   }
 
@@ -134,7 +206,7 @@
 
   window.addEventListener("message", function(ev) {
     if (ev.data.type == "overlay") {
-      console.log(ev.data.xpath, getElementByXpath(ev.data.xpath));
+      //console.log(ev.data.xpath, getElementByXpath(ev.data.xpath));
       overlay(getElementByXpath(ev.data.xpath));
     }
   });
