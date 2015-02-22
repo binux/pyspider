@@ -3,14 +3,9 @@
 //         http://binux.me
 // Created on 2014-02-23 15:19:19
 
-
-window.Debugger = (function() {
-  var tmp_div = $('<div>');
-  function escape(text) {
-    return tmp_div.text(text).html();
-  }
-
+window.SelectorHelper = (function() {
   var helper = $('#css-selector-helper');
+  
   function render_selector_helper(path) {
     helper.find('.element').remove();
     var elements = [];
@@ -51,25 +46,52 @@ window.Debugger = (function() {
       elements.push(span);
     });
     helper.prepend(elements);
+
+    adjustHelper();
+  }
+
+  function adjustHelper() {
+    while (helper[0].scrollWidth > helper.width()) {
+      var e = helper.find('.element:visible:first');
+      if (e.length == 0) {
+        return;
+      }
+      e.addClass('invalid').data('info')['invalid'] = true;
+    }
+  }
+
+  var tab_web = $('#tab-web');
+  return {
+    init: function() {
+      window.addEventListener("message", function(ev) {
+        if (ev.data.type == "selector_helper_click") {
+          console.log(ev.data.path);
+          render_selector_helper(ev.data.path);
+        }
+      });
+
+      $("#task-panel").on("scroll", function(ev) {
+        if ($("#debug-tabs").position().top < 0) {
+          helper.addClass('fixed');
+          tab_web.addClass('fixed');
+        } else {
+          helper.removeClass('fixed');
+          tab_web.removeClass('fixed');
+        }
+      });
+    }
+  }
+})();
+
+window.Debugger = (function() {
+  var tmp_div = $('<div>');
+  function escape(text) {
+    return tmp_div.text(text).html();
   }
 
   window.addEventListener("message", function(ev) {
     if (ev.data.type == "resize") {
       $("#tab-web iframe").height(ev.data.height+60);
-    } else if (ev.data.type == "selector_helper_click") {
-      console.log(ev.data.path);
-      render_selector_helper(ev.data.path);
-    }
-  });
-
-  var tab_web = $('#tab-web');
-  $("#task-panel").on("scroll", function(ev) {
-    if ($("#debug-tabs").position().top < 0) {
-      helper.addClass('fixed');
-      tab_web.addClass('fixed');
-    } else {
-      helper.removeClass('fixed');
-      tab_web.removeClass('fixed');
     }
   });
 
@@ -93,6 +115,9 @@ window.Debugger = (function() {
       this.bind_run();
       this.bind_save();
       this.bind_others();
+
+      // css selector helper
+      SelectorHelper.init();
     },
 
     not_saved: false,

@@ -4,6 +4,19 @@
 // Created on 2013-11-11 18:50:58
  
 (function(){
+  function arrayEquals(a, b) {
+    if (!a || !b)
+      return false;
+    if (a.length != b.length)
+      return false;
+
+    for (var i = 0, l = a.length; i < l; i++) {
+      if (a[i] !== b[i])
+        return false;
+    }
+    return true;
+  }
+  
   function getElementByXpath(path) {
     return document.evaluate(path, document, null,
                              XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -28,10 +41,13 @@
     return element_name;
   }
 
-  function merge_pattern(path) {
+  function merge_pattern(path, end) {
     var pattern = '';
     var prev = null;
-    path.forEach(function(p) {
+    path.forEach(function(p, i) {
+      if (end >= 0 && i > end) {
+        return;
+      }
       if (p.invalid) {
         prev = null;
       } else if (p.selected) {
@@ -44,12 +60,18 @@
             element_pattern += f.pattern;
           }
         });
+        if (element_pattern === '') {
+          element_pattern = '*';
+        }
         pattern += ' '+element_pattern;
         prev = p;
       } else {
         prev = null;
       }
     })
+    if (pattern === '') {
+      pattern = '*';
+    }
     return pattern;
   }
  
@@ -57,13 +79,11 @@
     var path = [];
     do {
       var features = [];
-      var has_id_feature = false;
-      var has_class_feature = false;
       // tagName
       features.push({
         name: element.tagName.toLowerCase(),
         pattern: element.tagName.toLowerCase(),
-        selected: false,
+        selected: true,
       });
       // id
       if (element.getAttribute('id')) {
@@ -76,33 +96,17 @@
       }
       // class
       if (element.classList.length > 0) {
-        var min_class_name = null, min_class_cnt = 9999;
         for (var i=0; i<element.classList.length; i++) {
           var class_name = element.classList[i];
-          var class_cnt = document.getElementsByClassName(class_name).length;
-          if (!min_class_name || min_class_cnt > class_cnt) {
-            min_class_name = class_name;
-            min_class_cnt = class_cnt;
-          }
-
           features.push({
             name: '.'+class_name,
             pattern: '.'+class_name,
-            selected: false,
+            selected: true,
           });
-        }
-        if (!has_id_feature && min_class_name) {
-          for (var i=0; i<features.length; i++) {
-            if (features[i].pattern == '.'+min_class_name) {
-              features[i].selected = true;
-              has_class_feature = true;
-              break;
-            }
-          }
         }
       }
       // rel, property
-      var allowed_attr_names = ('rel', 'property');
+      var allowed_attr_names = ('rel', 'property', 'itemprop');
       for (var i=0, attrs = element.attributes; i < attrs.length; i++) {
         if (allowed_attr_names.indexOf(attrs[i].nodeName) == -1) {
           continue
@@ -110,11 +114,8 @@
         features.push({
           name: '['+attrs[i].nodeName+'='+JSON.stringify(attrs[i].nodeValue)+']',
           pattern: '['+attrs[i].nodeName+'='+JSON.stringify(attrs[i].nodeValue)+']',
-          selected: !has_id_feature && !has_class_feature,
+          selected: true,
         });
-      }
-      if (!has_id_feature && !has_class_feature) {
-        features[0].selected = true;
       }
 
       // get xpath
@@ -143,15 +144,28 @@
 
     path.reverse();
 
-    // select features
-    var pattern = merge_pattern(path);
-    var selected_elements = document.querySelectorAll(pattern);
-    path.forEach(function(p) {
+    // select elements
+    var selected_elements = document.querySelectorAll(merge_pattern(path));
+    path.forEach(function(p, i) {
       if (p.invalid)
         return;
+      // select features
+      var feature_selected_elements = document.querySelectorAll(merge_pattern(path, i));
+      if (p.features.length > 1) {
+        p.features.forEach(function(f, fi) {
+          f.selected = false;
+          if (arrayEquals(feature_selected_elements,
+                          document.querySelectorAll(merge_pattern(path, i)))) {
+            return;
+          }
+          f.selected = true;
+        });
+      }
+      p.name = merge_name(p.features);
+
       p.selected = false;
-      if (selected_elements.length == document.querySelectorAll(
-        merge_pattern(path)).length) {
+      if (arrayEquals(selected_elements,
+                      document.querySelectorAll(merge_pattern(path)))) {
         return;
       }
       p.selected = true;
