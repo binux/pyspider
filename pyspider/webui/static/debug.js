@@ -5,12 +5,56 @@
 
 window.SelectorHelper = (function() {
   var helper = $('#css-selector-helper');
+
+  function merge_name(features) {
+    var element_name = '';
+    features.forEach(function(f) {
+      if (f.selected)
+        element_name += f.name;
+    })
+    return element_name;
+  }
+
+  function merge_pattern(path, end) {
+    var pattern = '';
+    var prev = null;
+    path.forEach(function(p, i) {
+      if (end >= 0 && i > end) {
+        return;
+      }
+      if (p.invalid) {
+        prev = null;
+      } else if (p.selected) {
+        if (prev) {
+          pattern += ' >';
+        }
+        var element_pattern = '';
+        p.features.forEach(function(f) {
+          if (f.selected) {
+            element_pattern += f.pattern;
+          }
+        });
+        if (element_pattern === '') {
+          element_pattern = '*';
+        }
+        pattern += ' '+element_pattern;
+        prev = p;
+      } else {
+        prev = null;
+      }
+    })
+    if (pattern === '') {
+      pattern = '*';
+    }
+    return pattern;
+  }
   
   function render_selector_helper(path) {
     helper.find('.element').remove();
     var elements = [];
     $.each(path, function(i, p) {
-      var span = $('<span>').addClass('element').text(p.name).data('info', p);
+      var span = $('<span>').addClass('element').data('info', p);
+      $('<span class="element-name">').text(p.name).appendTo(span);
       if (p.selected) span.addClass('selected');
       if (p.invalid) span.addClass('invalid');
 
@@ -21,7 +65,17 @@ window.SelectorHelper = (function() {
         li.appendTo(ul);
         li.on('click', function(ev) {
           ev.stopPropagation();
-          $(this).toggleClass('selected');
+          var $this = $(this);
+          var f = $this.data('feature');
+          if (f.selected) {
+            f.selected = false;
+            $this.removeClass('selected');
+          } else {
+            f.selected = true;
+            $this.addClass('selected');
+          }
+          var element = $this.parents('.element');
+          element.find('.element-name').text(merge_name(element.data('info').features));
         });
       });
       ul.appendTo(span);
@@ -41,7 +95,16 @@ window.SelectorHelper = (function() {
       })
       span.on('click', function(ev) {
         ev.stopPropagation();
-        $(this).toggleClass('selected');
+        var $this = $(this);
+        var p = $this.data('info');
+        if (p.selected) {
+          p.selected = false;
+          $this.removeClass('selected');
+        } else {
+          p.selected = true;
+          $this.addClass('selected');
+        }
+        $this.find('.element-name').text(merge_name($this.data('info').features));
       });
       elements.push(span);
     });

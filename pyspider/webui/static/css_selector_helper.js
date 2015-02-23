@@ -151,21 +151,27 @@
         return;
       // select features
       var feature_selected_elements = document.querySelectorAll(merge_pattern(path, i));
-      if (p.features.length > 1) {
-        p.features.forEach(function(f, fi) {
-          f.selected = false;
-          if (arrayEquals(feature_selected_elements,
-                          document.querySelectorAll(merge_pattern(path, i)))) {
-            return;
-          }
-          f.selected = true;
-        });
+      p.features.forEach(function(f, fi) {
+        f.selected = false;
+        if (arrayEquals(feature_selected_elements,
+                        document.querySelectorAll(merge_pattern(path, i)))) {
+          return;
+        }
+        f.selected = true;
+      });
+      if (p.features.every(function(f) {
+        return !f.selected;
+      })) {
+        p.features[0].selected = true;
       }
       p.name = merge_name(p.features);
+    });
 
+    path.forEach(function(p, i) {
       p.selected = false;
       if (arrayEquals(selected_elements,
                       document.querySelectorAll(merge_pattern(path)))) {
+        p.name = p.tag;
         return;
       }
       p.selected = true;
