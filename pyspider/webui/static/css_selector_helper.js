@@ -216,8 +216,8 @@
       div.className = "pyspider_highlight";
       var offset = getOffset(elem);
       div.setAttribute('style', 'z-index: 888888;border: 2px solid #c00;position: absolute;pointer-events: none;'
-                     +'top: '+offset.top+'px;'
-                     +'left:'+offset.left+'px;'
+                     +'top: '+(offset.top-2)+'px;'
+                     +'left:'+(offset.left-2)+'px;'
                      +'width: '+elem.offsetWidth+'px;'
                      +'height: '+elem.offsetHeight+'px;');
       document.body.appendChild(div);
@@ -228,6 +228,8 @@
     if (ev.data.type == "overlay") {
       //console.log(ev.data.xpath, getElementByXpath(ev.data.xpath));
       overlay(getElementByXpath(ev.data.xpath));
+    } else if (ev.data.type == "heightlight") {
+      heightlight(document.querySelectorAll(ev.data.css_selector));
     }
   });
 
