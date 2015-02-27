@@ -487,8 +487,16 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     else:
         run_in = utils.run_in_thread
 
-    g.projectdb.insert('bench', {
-        'name': 'bench',
+    project_name = '__bench_test__'
+
+    def clear_project():
+        g.taskdb.drop(project_name)
+        g.projectdb.drop(project_name)
+        g.resultdb.drop(project_name)
+
+    clear_project()
+    g.projectdb.insert(project_name, {
+        'name': project_name,
         'status': 'RUNNING',
         'script': bench.bench_script % {'total': total, 'show': show},
         'rate': total,
@@ -504,68 +512,63 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     logging.getLogger('result').setLevel(logging.ERROR)
     logging.getLogger('webui').setLevel(logging.ERROR)
 
-    threads = []
+    try:
+        threads = []
 
-    # result worker
-    result_worker_config = g.config.get('result_worker', {})
-    for i in range(result_worker_num):
-        threads.append(run_in(ctx.invoke, result_worker,
-                              result_cls='pyspider.libs.bench.BenchResultWorker',
-                              **result_worker_config))
+        # result worker
+        result_worker_config = g.config.get('result_worker', {})
+        for i in range(result_worker_num):
+            threads.append(run_in(ctx.invoke, result_worker,
+                                  result_cls='pyspider.libs.bench.BenchResultWorker',
+                                  **result_worker_config))
 
-    # processor
-    processor_config = g.config.get('processor', {})
-    for i in range(processor_num):
-        threads.append(run_in(ctx.invoke, processor,
-                              processor_cls='pyspider.libs.bench.BenchProcessor',
-                              **processor_config))
+        # processor
+        processor_config = g.config.get('processor', {})
+        for i in range(processor_num):
+            threads.append(run_in(ctx.invoke, processor,
+                                  processor_cls='pyspider.libs.bench.BenchProcessor',
+                                  **processor_config))
 
-    # fetcher
-    fetcher_config = g.config.get('fetcher', {})
-    fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-    for i in range(fetcher_num):
-        threads.append(run_in(ctx.invoke, fetcher,
-                              fetcher_cls='pyspider.libs.bench.BenchFetcher',
-                              **fetcher_config))
+        # fetcher
+        fetcher_config = g.config.get('fetcher', {})
+        fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
+        for i in range(fetcher_num):
+            threads.append(run_in(ctx.invoke, fetcher,
+                                  fetcher_cls='pyspider.libs.bench.BenchFetcher',
+                                  **fetcher_config))
 
-    # scheduler
-    scheduler_config = g.config.get('scheduler', {})
-    scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
-    threads.append(run_in(ctx.invoke, scheduler,
-                          scheduler_cls='pyspider.libs.bench.BenchScheduler',
-                          **scheduler_config))
+        # scheduler
+        scheduler_config = g.config.get('scheduler', {})
+        scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
+        threads.append(run_in(ctx.invoke, scheduler,
+                              scheduler_cls='pyspider.libs.bench.BenchScheduler',
+                              **scheduler_config))
 
-    # webui
-    webui_config = g.config.get('webui', {})
-    webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
-                            % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
-    threads.append(run_in(ctx.invoke, webui, **webui_config))
+        # webui
+        webui_config = g.config.get('webui', {})
+        webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
+                                % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+        threads.append(run_in(ctx.invoke, webui, **webui_config))
 
-    # run project
-    time.sleep(1)
-    import requests
-    rv = requests.post('http://localhost:5000/run', data={
-        'project': 'bench',
-    })
-    assert rv.status_code == 200, 'run project error'
+        # wait bench test finished
+        while True:
+            time.sleep(1)
+            if builtins.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
+                    'newtask_queue', 'status_queue', 'scheduler2fetcher',
+                    'fetcher2processor', 'processor2result')):
+                break
+    finally:
+        # exit components run in threading
+        for each in g.instances:
+            each.quit()
 
-    # wait bench test finished
-    while True:
-        time.sleep(1)
-        if builtins.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
-                'newtask_queue', 'status_queue', 'scheduler2fetcher',
-                'fetcher2processor', 'processor2result')):
-            break
+        # exit components run in subprocess
+        for each in threads:
+            if hasattr(each, 'terminate'):
+                each.terminate()
+            each.join(1)
 
-    # exit components run in threading
-    for each in g.instances:
-        each.quit()
-
-    # exit components run in subprocess
-    for each in threads:
-        if hasattr(each, 'terminate'):
-            each.terminate()
-        each.join(1)
+        clear_project()
 
 
 @cli.command()

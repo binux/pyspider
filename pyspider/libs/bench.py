@@ -42,6 +42,7 @@ class BenchScheduler(Scheduler, BenchMixin):
     def __init__(self, *args, **kwargs):
         super(BenchScheduler, self).__init__(*args, **kwargs)
         self._bench_init()
+        self.trigger_on_start('__bench_test__')
 
     def on_task_status(self, task):
         self._bench_report('Crawled')
