@@ -109,7 +109,7 @@ body {
   bottom: 0;
   border-radius: 5px 0 0 0;
   padding: 5px 0 3px 0;
-  box-shadow: 0px 0px 30px #91cf91;
+  /*box-shadow: 0px 0px 30px @color;*/
   overflow: hidden;
 }
 #undo-redo-btn-group:hover {
@@ -198,8 +198,10 @@ body {
   border-radius: 10px;
 }
 #debug-tabs {
-  position: relative;
   margin-bottom: 45px;
+}
+#tab-web.fixed {
+  padding-top: 24px;
 }
 #tab-web iframe {
   border-width: 0;
@@ -305,4 +307,77 @@ body {
   margin: 0;
   padding: 10px 10px;
   color: white;
+}
+#css-selector-helper {
+  background-color: #eeeeee;
+  padding: 0;
+  width: 100%;
+  height: 24px;
+  text-align: right;
+  white-space: nowrap;
+}
+#css-selector-helper.fixed {
+  position: absolute;
+  top: 0;
+}
+#css-selector-helper button {
+  line-height: 16px;
+  vertical-align: 2px;
+}
+span.element {
+  position: relative;
+  height: 24px;
+  display: inline-block;
+  padding: 0 0.2em;
+  cursor: pointer;
+  color: #afafaf;
+  z-index: 99999;
+}
+span.element.invalid {
+  display: none;
+}
+span.element.selected {
+  color: black;
+}
+span.element:hover {
+  background-color: #c8c8c8;
+}
+span.element:hover > ul {
+  display: block;
+}
+span.element > ul {
+  display: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 24px;
+  left: 0;
+  background-color: #eeeeee;
+  border: 1px solid black;
+  border-top-width: 0;
+  color: #afafaf;
+}
+span.element > ul > li {
+  display: block;
+  text-align: left;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+span.element > ul > li.selected {
+  color: black;
+}
+span.element > ul > li:hover {
+  background-color: #c8c8c8;
+}
+.copy-selector-input {
+  height: 24px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  padding-right: 0.2em;
+  font-size: 1em;
+  text-align: right;
+  width: 100%;
+  margin-left: -100px;
+  background: #eeeeee;
 }

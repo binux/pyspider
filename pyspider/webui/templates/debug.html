@@ -48,7 +48,14 @@
             </div>
           </div>
           <div id="debug-tabs">
-            <div id="tab-web" class="tab" style="display: none;"></div>
+            <div id="tab-web" class="tab" style="display: none;">
+              <div id="css-selector-helper">
+                <input class="copy-selector-input"></input>
+                <button class="btn copy-selector"><i class="fa fa-clipboard" title="copy css selector"></i></button>
+                <button class="btn add-to-editor"><i class="fa fa-arrow-right" title="add to editor"></i></button>
+              </div>
+              <div class="iframe-box"></div>
+            </div>
             <div id="tab-html" class="tab" style="display: none;"><pre class="cm-s-default"></pre></div>
             <div id="tab-follows" class="tab">
               {# <div class="newtask">
@@ -67,7 +74,7 @@
           <li data-id="tab-follows">follows<span class="num" style="display: none;"></span></li>
           <li data-id="tab-html">html</li>
           <li data-id="tab-web" class="active">web</li>
-          <li id="enable_css_selector_helper">enable css selector helper</li>
+          <li id="J-enable-css-selector-helper">enable css selector helper</li>
         </ul>
         <div class="overlay" style="display: none;"></div>
       </div>

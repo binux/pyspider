@@ -3,6 +3,224 @@
 //         http://binux.me
 // Created on 2014-02-23 15:19:19
 
+window.SelectorHelper = (function() {
+  var helper = $('#css-selector-helper');
+
+  function merge_name(p) {
+    var features = p.features;
+    var element_name = '';
+    features.forEach(function(f) {
+      if (f.selected)
+        element_name += f.name;
+    })
+    if (element_name === '') {
+      return p.tag;
+    }
+    return element_name;
+  }
+
+  function merge_pattern(path, end) {
+    var pattern = '';
+    var prev = null;
+    path.forEach(function(p, i) {
+      if (end >= 0 && i > end) {
+        return;
+      }
+      if (p.invalid) {
+        prev = null;
+      } else if (p.selected) {
+        if (prev) {
+          pattern += ' >';
+        }
+        var element_pattern = '';
+        p.features.forEach(function(f) {
+          if (f.selected) {
+            element_pattern += f.pattern;
+          }
+        });
+        if (element_pattern === '') {
+          element_pattern = '*';
+        }
+        pattern += ' '+element_pattern;
+        prev = p;
+      } else {
+        prev = null;
+      }
+    })
+    if (pattern === '') {
+      pattern = '*';
+    }
+    return pattern.trim();
+  }
+
+  function selector_changed(path) {
+    $("#tab-web iframe").get(0).contentWindow.postMessage({
+      type: "heightlight",
+      css_selector: merge_pattern(path),
+    }, '*');
+  }
+  
+  var current_path = null;
+  function render_selector_helper(path) {
+    helper.find('.element').remove();
+    var elements = [];
+    $.each(path, function(i, p) {
+      var span = $('<span>').addClass('element').data('info', p);
+      $('<span class="element-name">').text(p.name).appendTo(span);
+      if (p.selected) span.addClass('selected');
+      if (p.invalid) span.addClass('invalid');
+
+      var ul = $('<ul>');
+      $.each(p.features, function(i, f) {
+        var li = $('<li>').text(f.name).data('feature', f);
+        if (f.selected) li.addClass('selected');
+        li.appendTo(ul);
+        // feature on click
+        li.on('click', function(ev) {
+          ev.stopPropagation();
+          var $this = $(this);
+          var f = $this.data('feature');
+          if (f.selected) {
+            f.selected = false;
+            $this.removeClass('selected');
+          } else {
+            f.selected = true;
+            $this.addClass('selected');
+          }
+          var element = $this.parents('.element');
+          if (!p.selected) {
+            p.selected = true;
+            element.addClass('selected');
+          }
+          element.find('.element-name').text(merge_name(p));
+          selector_changed(path);
+        });
+      });
+      ul.appendTo(span);
+
+      span.on('mouseover', function(ev) {
+        var xpath = [];
+        $.each(path, function(i, _p) {
+          xpath.push(_p.xpath);
+          if (_p === p) {
+            return false;
+          }
+        });
+        $("#tab-web iframe")[0].contentWindow.postMessage({
+          type: 'overlay',
+          xpath: '/' + xpath.join('/'),
+        }, '*');
+      })
+      // path on click
+      span.on('click', function(ev) {
+        ev.stopPropagation();
+        var $this = $(this);
+        var p = $this.data('info');
+        if (p.selected) {
+          p.selected = false;
+          $this.removeClass('selected');
+        } else {
+          p.selected = true;
+          $this.addClass('selected');
+        }
+        $this.find('.element-name').text(merge_name($this.data('info')));
+        selector_changed(path);
+      });
+      elements.push(span);
+    });
+    helper.prepend(elements);
+
+    adjustHelper();
+    selector_changed(path);
+  }
+
+  function adjustHelper() {
+    while (helper[0].scrollWidth > helper.width()) {
+      var e = helper.find('.element:visible:first');
+      if (e.length == 0) {
+        return;
+      }
+      e.addClass('invalid').data('info')['invalid'] = true;
+    }
+  }
+
+  var tab_web = $('#tab-web');
+  return {
+    init: function() {
+      var _this = this;
+      _this.clear();
+      window.addEventListener("message", function(ev) {
+        if (ev.data.type == "selector_helper_click") {
+          console.log(ev.data.path);
+          render_selector_helper(ev.data.path);
+          current_path = ev.data.path;
+        }
+      });
+
+      $("#J-enable-css-selector-helper").on('click', function() {
+        _this.clear();
+        $("#tab-web iframe")[0].contentWindow.postMessage({
+          type: 'enable_css_selector_helper'
+        }, '*');
+        _this.enable();
+      });
+
+      $("#task-panel").on("scroll", function(ev) {
+        if (!helper.is(':visible')) {
+          return;
+        }
+        if ($("#debug-tabs").position().top < 0) {
+          helper.addClass('fixed');
+          tab_web.addClass('fixed');
+        } else {
+          helper.removeClass('fixed');
+          tab_web.removeClass('fixed');
+        }
+      });
+
+      // copy button
+      var input = helper.find('.copy-selector-input');
+      input.on('focus', function(ev) {
+        $(this).select();
+      });
+      helper.find('.copy-selector').on('click', function(ev) {
+        if (!current_path) {
+          return;
+        }
+        if (input.is(':visible')) {
+          input.hide();
+          helper.find('.element').show();
+        } else {
+          helper.find('.element').hide();
+          input.val(merge_pattern(current_path)).show();
+        }
+      });
+ 
+      // add button
+      helper.find('.add-to-editor').on('click', function(ev) {
+        Debugger.python_editor.getDoc().replaceSelection(merge_pattern(current_path));
+      });
+    },
+    clear: function() {
+      current_path = null;
+      helper.hide();
+      helper.removeClass('fixed');
+      tab_web.removeClass('fixed');
+      helper.find('.element').remove();
+    },
+    enable: function() {
+      helper.show();
+      helper.find('.copy-selector-input').hide();
+      if ($("#debug-tabs").position().top < 0) {
+        helper.addClass('fixed');
+        tab_web.addClass('fixed');
+      } else {
+        helper.removeClass('fixed');
+        tab_web.removeClass('fixed');
+      }
+    },
+  }
+})();
 
 window.Debugger = (function() {
   var tmp_div = $('<div>');
@@ -13,8 +231,6 @@ window.Debugger = (function() {
   window.addEventListener("message", function(ev) {
     if (ev.data.type == "resize") {
       $("#tab-web iframe").height(ev.data.height+60);
-    } else if (ev.data.type == "selector") {
-      Debugger.python_editor.getDoc().replaceSelection(ev.data.selector);
     }
   });
 
@@ -38,6 +254,9 @@ window.Debugger = (function() {
       this.bind_run();
       this.bind_save();
       this.bind_others();
+
+      // css selector helper
+      SelectorHelper.init();
     },
 
     not_saved: false,
@@ -125,11 +344,6 @@ window.Debugger = (function() {
           $("#tab-html pre").html(html_styled);
           $("#tab-html").data("format", true);
         }
-      });
-      $("#enable_css_selector_helper").on('click', function() {
-        var iframe = $("#tab-web iframe")[0];
-        iframe.contentWindow.postMessage({type: 'enable_css_selector_helper'}, '*');
-        Debugger.python_editor.getDoc().replaceSelection('');
       });
     },
 
@@ -245,7 +459,8 @@ window.Debugger = (function() {
       var _this = this;
 
       // reset
-      $("#tab-web").html('<iframe sandbox></iframe>');
+      SelectorHelper.clear();
+      $("#tab-web .iframe-box").html('');
       $("#tab-html pre").html('');
       $('#tab-follows').html('');
       $("#tab-control li[data-id=tab-follows] .num").hide();
@@ -264,7 +479,7 @@ window.Debugger = (function() {
           $('#left-area .overlay').hide();
 
           //web
-          $("#tab-web").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
+          $("#tab-web .iframe-box").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
           var iframe = $("#tab-web iframe")[0];
           var content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
 
