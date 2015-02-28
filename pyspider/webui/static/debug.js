@@ -6,12 +6,16 @@
 window.SelectorHelper = (function() {
   var helper = $('#css-selector-helper');
 
-  function merge_name(features) {
+  function merge_name(p) {
+    var features = p.features;
     var element_name = '';
     features.forEach(function(f) {
       if (f.selected)
         element_name += f.name;
     })
+    if (element_name === '') {
+      return p.tag;
+    }
     return element_name;
   }
 
@@ -71,6 +75,7 @@ window.SelectorHelper = (function() {
         var li = $('<li>').text(f.name).data('feature', f);
         if (f.selected) li.addClass('selected');
         li.appendTo(ul);
+        // feature on click
         li.on('click', function(ev) {
           ev.stopPropagation();
           var $this = $(this);
@@ -83,7 +88,11 @@ window.SelectorHelper = (function() {
             $this.addClass('selected');
           }
           var element = $this.parents('.element');
-          element.find('.element-name').text(merge_name(element.data('info').features));
+          if (!p.selected) {
+            p.selected = true;
+            element.addClass('selected');
+          }
+          element.find('.element-name').text(merge_name(p));
           selector_changed(path);
         });
       });
@@ -102,6 +111,7 @@ window.SelectorHelper = (function() {
           xpath: '/' + xpath.join('/'),
         }, '*');
       })
+      // path on click
       span.on('click', function(ev) {
         ev.stopPropagation();
         var $this = $(this);
@@ -113,7 +123,7 @@ window.SelectorHelper = (function() {
           p.selected = true;
           $this.addClass('selected');
         }
-        $this.find('.element-name').text(merge_name($this.data('info').features));
+        $this.find('.element-name').text(merge_name($this.data('info')));
         selector_changed(path);
       });
       elements.push(span);
