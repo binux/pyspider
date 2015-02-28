@@ -369,3 +369,15 @@ span.element > ul > li.selected {
 span.element > ul > li:hover {
   background-color: #c8c8c8;
 }
+.copy-selector-input {
+  height: 24px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  padding-right: 0.2em;
+  font-size: 1em;
+  text-align: right;
+  width: 100%;
+  margin-left: -100px;
+  background: #eeeeee;
+}

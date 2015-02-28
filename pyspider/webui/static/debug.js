@@ -46,7 +46,7 @@ window.SelectorHelper = (function() {
     if (pattern === '') {
       pattern = '*';
     }
-    return pattern;
+    return pattern.trim();
   }
 
   function selector_changed(path) {
@@ -56,6 +56,7 @@ window.SelectorHelper = (function() {
     }, '*');
   }
   
+  var current_path = null;
   function render_selector_helper(path) {
     helper.find('.element').remove();
     var elements = [];
@@ -142,6 +143,7 @@ window.SelectorHelper = (function() {
         if (ev.data.type == "selector_helper_click") {
           console.log(ev.data.path);
           render_selector_helper(ev.data.path);
+          current_path = ev.data.path;
         }
       });
 
@@ -165,8 +167,32 @@ window.SelectorHelper = (function() {
           tab_web.removeClass('fixed');
         }
       });
+
+      // copy button
+      var input = helper.find('.copy-selector-input');
+      input.on('focus', function(ev) {
+        $(this).select();
+      });
+      helper.find('.copy-selector').on('click', function(ev) {
+        if (!current_path) {
+          return;
+        }
+        if (input.is(':visible')) {
+          input.hide();
+          helper.find('.element').show();
+        } else {
+          helper.find('.element').hide();
+          input.val(merge_pattern(current_path)).show();
+        }
+      });
+ 
+      // add button
+      helper.find('.add-to-editor').on('click', function(ev) {
+        Debugger.python_editor.getDoc().replaceSelection(merge_pattern(current_path));
+      });
     },
     clear: function() {
+      current_path = null;
       helper.hide();
       helper.removeClass('fixed');
       tab_web.removeClass('fixed');
@@ -174,6 +200,7 @@ window.SelectorHelper = (function() {
     },
     enable: function() {
       helper.show();
+      helper.find('.copy-selector-input').hide();
       if ($("#debug-tabs").position().top < 0) {
         helper.addClass('fixed');
         tab_web.addClass('fixed');
