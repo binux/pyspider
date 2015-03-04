@@ -85,7 +85,11 @@ class PikaQueue(object):
         """Reconnect to rabbitmq server"""
         self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
         self.channel = self.connection.channel()
-        self.channel.queue_declare(self.name)
+        try:
+            self.channel.queue_declare(self.name)
+        except pika.exceptions.ChannelClosed:
+            self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
+            self.channel = self.connection.channel()
         #self.channel.queue_purge(self.name)
 
     @catch_error
@@ -217,7 +221,10 @@ class AmqpQueue(PikaQueue):
                                           virtual_host=unquote(
                                               parsed.path.lstrip('/')))
         self.channel = self.connection.channel()
-        self.channel.queue_declare(self.name)
+        try:
+            self.channel.queue_declare(self.name)
+        except amqp.exceptions.PreconditionFailed:
+            pass
         #self.channel.queue_purge(self.name)
 
     @catch_error
@@ -250,7 +257,4 @@ class AmqpQueue(PikaQueue):
                 self.channel.basic_ack(message.delivery_tag)
         return umsgpack.unpackb(message.body)
 
-if six.PY2:
-    Queue = PikaQueue
-elif six.PY3:
-    Queue = AmqpQueue
+Queue = AmqpQueue

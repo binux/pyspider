@@ -467,8 +467,15 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
               'always using thread for windows.')
 @click.option('--total', default=10000, help="total url in test page")
 @click.option('--show', default=20, help="show how many urls in a page")
+@click.option('--taskdb-bench', default=False, is_flag=True,
+              help="only run taskdb bench test")
+@click.option('--message-queue-bench', default=False, is_flag=True,
+              help="only run message queue bench test")
+@click.option('--all-bench', default=False, is_flag=True,
+              help="only run all bench test")
 @click.pass_context
-def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, show):
+def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, show,
+          taskdb_bench, message_queue_bench, all_bench):
     """
     Run Benchmark test.
     In bench mode, in-memory sqlite database is used instead of on-disk sqlite database.
@@ -487,10 +494,17 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     else:
         run_in = utils.run_in_thread
 
+    all_test = not taskdb_bench and not message_queue_bench and not all_bench
+
     # test taskdb
-    bench.bench_test_taskdb(g.taskdb)
+    if all_test or taskdb_bench:
+        bench.bench_test_taskdb(g.taskdb)
     # test message queue
-    bench.bench_test_message_queue(g.scheduler2fetcher)
+    if all_test or message_queue_bench:
+        bench.bench_test_message_queue(g.scheduler2fetcher)
+    # test all
+    if not all_test and not all_bench:
+        return
 
     project_name = '__bench_test__'
 
