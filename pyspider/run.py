@@ -487,6 +487,11 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     else:
         run_in = utils.run_in_thread
 
+    # test taskdb
+    bench.bench_test_taskdb(g.taskdb)
+    # test message queue
+    bench.bench_test_message_queue(g.scheduler2fetcher)
+
     project_name = '__bench_test__'
 
     def clear_project():

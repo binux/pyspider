@@ -13,6 +13,164 @@ from pyspider.scheduler import Scheduler
 from pyspider.fetcher.tornado_fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.result import ResultWorker
+from pyspider.libs.utils import md5string
+
+
+def bench_test_taskdb(taskdb):
+    project_name = '__bench_test__'
+    task = {
+        "fetch": {
+            "fetch_type": "js",
+            "headers": {
+                "User-Agent": "BaiDuSpider"
+            }
+        },
+        "process": {
+            "callback": "detail_page"
+        },
+        "project": project_name,
+        "taskid": "553300d2582154413b4982c00c34a2d5",
+        "url": "http://www.sciencedirect.com/science/article/pii/S1674200109000704"
+    }
+
+    track = {
+        "fetch": {
+            "content": None,
+            "encoding": "unicode",
+            "error": None,
+            "headers": {
+                "last-modified": "Wed, 04 Mar 2015 09:24:33 GMT"
+            },
+            "ok": True,
+            "redirect_url": None,
+            "status_code": 200,
+            "time": 5.543
+        },
+        "process": {
+            "exception": None,
+            "follows": 4,
+            "logs": "",
+            "ok": True,
+            "result": "{'url': u'",
+            "time": 0.07105398178100586
+        }
+    }
+
+    def test_insert(n, start=0):
+        logger.info("taskdb insert %d", n)
+        start_time = time.time()
+        for i in range(n):
+            task['url'] = 'http://bench.pyspider.org/?l=%d' % (i + start)
+            task['taskid'] = md5string(task['url'])
+            task['track'] = {}
+            taskdb.insert(task['project'], task['taskid'], task)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        logger.info("cost %.2fs, %.2f/s %.2fms",
+                    cost_time, n * 1.0 / cost_time, cost_time / n * 1000)
+
+    def test_update(n, start=0):
+        logger.info("taskdb update %d" % n)
+        start_time = time.time()
+        for i in range(n):
+            task['url'] = 'http://bench.pyspider.org/?l=%d' % (i + start)
+            task['taskid'] = md5string(task['url'])
+            task['track'] = track
+            taskdb.update(task['project'], task['taskid'], task)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        logger.info("cost %.2fs, %.2f/s %.2fms",
+                    cost_time, n * 1.0 / cost_time, cost_time / n * 1000)
+
+    request_task_fields = [
+        'taskid',
+        'project',
+        'url',
+        'status',
+        'fetch',
+        'process',
+        'track',
+        'lastcrawltime'
+    ]
+
+    def test_get(n, start=0, random=True, fields=request_task_fields):
+        logger.info("taskdb get %d %s" % (n, "randomly" if random else ""))
+        range_n = list(range(n))
+        if random:
+            from random import shuffle
+            shuffle(range_n)
+        start_time = time.time()
+        for i in range_n:
+            task['url'] = 'http://bench.pyspider.org/?l=%d' % (i + start)
+            task['taskid'] = md5string(task['url'])
+            task['track'] = track
+            taskdb.get_task(task['project'], task['taskid'], fields=fields)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        logger.info("cost %.2fs, %.2f/s %.2fms",
+                    cost_time, n * 1.0 / cost_time, cost_time / n * 1000)
+
+    try:
+        test_insert(1000)
+        test_update(1000)
+        test_get(1000)
+        test_insert(10000, 1000)
+        test_update(10000, 1000)
+        test_get(10000, 1000)
+    except Exception as e:
+        logger.exception(e)
+    finally:
+        taskdb.drop(project_name)
+
+
+def bench_test_message_queue(queue):
+    task = {
+        "fetch": {
+            "fetch_type": "js",
+            "headers": {
+                "User-Agent": "BaiDuSpider"
+            }
+        },
+        "process": {
+            "callback": "detail_page"
+        },
+        "project": "__bench_test__",
+        "taskid": "553300d2582154413b4982c00c34a2d5",
+        "url": "http://www.sciencedirect.com/science/article/pii/S1674200109000704"
+    }
+
+    def test_put(n):
+        logger.info("message queue put %d", n)
+        start_time = time.time()
+        for i in range(n):
+            task['url'] = 'http://bench.pyspider.org/?l=%d' % i
+            task['taskid'] = md5string(task['url'])
+            queue.put_nowait(task)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        logger.info("cost %.2fs, %.2f/s %.2fms",
+                    cost_time, n * 1.0 / cost_time, cost_time / n * 1000)
+
+    def test_get(n):
+        logger.info("message queue get %d", n)
+        start_time = time.time()
+        for i in range(n):
+            queue.get_nowait()
+        end_time = time.time()
+        cost_time = end_time - start_time
+        logger.info("cost %.2fs, %.2f/s %.2fms",
+                    cost_time, n * 1.0 / cost_time, cost_time / n * 1000)
+
+    try:
+        test_put(1000)
+        test_get(1000)
+        test_put(10000)
+        test_get(10000)
+    except Exception as e:
+        logger.exception(e)
+    finally:
+        if hasattr(queue, 'channel'):
+            queue.channel.queue_purge(queue.name)
 
 
 class BenchMixin(object):
