@@ -7,6 +7,8 @@ python:
 services:
     - mongodb
     - rabbitmq
+#addons:
+    #postgresql: "9.4"
 install:
     - pip install --allow-all-external -r requirements.txt
     - pip install coveralls httpbin pyproxy>=0.1.6

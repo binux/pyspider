@@ -480,5 +480,49 @@ class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
     def tearDownClass(self):
         del self.resultdb
 
+
+#@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+#class TestPGTaskDB(TaskDBCase, unittest.TestCase):
+
+    #@classmethod
+    #def setUpClass(self):
+        #self.taskdb = database.connect_database(
+            #'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_taskdb'
+        #)
+
+    #@classmethod
+    #def tearDownClass(self):
+        #self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
+
+
+#@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+#class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
+
+
+    #@classmethod
+    #def setUpClass(self):
+        #self.projectdb = database.connect_database(
+            #'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_projectdb'
+        #)
+
+    #@classmethod
+    #def tearDownClass(self):
+        #self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
+
+
+#@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+#class TestPGResultDB(ResultDBCase, unittest.TestCase):
+
+    #@classmethod
+    #def setUpClass(self):
+        #self.resultdb = database.connect_database(
+            #'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_resultdb'
+        #)
+
+    #@classmethod
+    #def tearDownClass(self):
+        #self.resultdb._execute('DROP DATABASE pyspider_test_resultdb')
+
+
 if __name__ == '__main__':
     unittest.main()
