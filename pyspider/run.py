@@ -366,8 +366,9 @@ def phantomjs(ctx, phantomjs_path, port):
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     try:
         _phantomjs = subprocess.Popen([phantomjs_path,
-                                      phantomjs_fetcher,
-                                      str(port)])
+                                       "--ssl-protocol=any",
+                                       phantomjs_fetcher,
+                                       str(port)])
     except OSError:
         return None
 

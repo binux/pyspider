@@ -105,26 +105,22 @@ pyspider provide a tool called `CSS selector helper` to make it easier to genera
 
 ![CSS Selector helper](imgs/css_selector_helper.png)
 
-The element will be highlighted in yellow when mouse over. When you click it, all elements with same CSS Selector will frame in red and add the pattern to the cursor position of your code. Add following code and put cursor between the two quotation marks:
+The element will be highlighted in yellow while mouse over. When you click it, a pre-selected CSS Selector pattern is shown on the bar above. You can edit the features to locate the element and add it to your source code.
 
-```
-        self.crawl(response.doc('').attr.href, callback=self.index_page)
-```
-
-click "Next »", selector pattern should have been added to your code:
+click "Next »" in the page and add selector pattern to your code:
 
 ```
     def index_page(self, response):
         for each in response.doc('a[href^="http"]').items():
             if re.match("http://www.imdb.com/title/tt\d+/$", each.attr.href):
                 self.crawl(each.attr.href, callback=self.detail_page)
-        self.crawl(response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#main>DIV.leftright>DIV#right>SPAN.pagination>A').attr.href, callback=self.index_page)
+        self.crawl(response.doc('#right a').attr.href, callback=self.index_page)
 ```
 
 Click `run` again and move to the next page, we found that "« Prev" has the same selector pattern as "Next »". When using above code you may find pyspider selected the link of "« Prev", not "Next »". A solution for this is select both of them:
 
 ```
-        self.crawl([x.attr.href for x in response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#main>DIV.leftright>DIV#right>SPAN.pagination>A').items()], callback=self.index_page)
+        self.crawl([x.attr.href for x in response.doc('#right a').items()], callback=self.index_page)
 ```
 
 Extracting Information
@@ -138,17 +134,17 @@ Add keys you need to result dict and collect value using `CSS selector helper` r
     def detail_page(self, response):
         return {
             "url": response.url,
-            "title": response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#maindetails_center_top>DIV.article.title-overview>DIV#title-overview-widget>TABLE#title-overview-widget-layout>TBODY>TR>TD#overview-top>H1.header>SPAN.itemprop').text(),
-            "rating": response.doc('HTML>BODY#styleguide-v2>DIV#wrapper>DIV#root>DIV#pagecontent>DIV#content-2-wide>DIV#maindetails_center_top>DIV.article.title-overview>DIV#title-overview-widget>TABLE#title-overview-widget-layout>TBODY>TR>TD#overview-top>DIV.star-box.giga-star>DIV.star-box-details>STRONG>SPAN').text(),
-            "director": [x.text() for x in response.doc('div[itemprop="director"] span[itemprop="name"]').items()],
+            "title": response.doc('.header > [itemprop="name"]').text(),
+            "rating": response.doc('.star-box-giga-star').text(),
+            "director": [x.text() for x in response.doc('[itemprop="director"] span').items()],
         }
 ```
 
-Note that, `CSS Selector helper` may not always work (directors and starts have a same pattern). You can write selector pattern manually with tools like [Chrome Dev Tools](https://developer.chrome.com/devtools):
+Note that, `CSS Selector helper` may not always work. You could write selector pattern manually with tools like [Chrome Dev Tools](https://developer.chrome.com/devtools):
 
 ![inspect element](imgs/inspect_element.png)
 
-You doesn't need to write every ancestral element in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator. You can also test CSS Selector in the JavaScript Console by using `$$` like `$$('div[itemprop="director"] span[itemprop="name"]')`
+You doesn't need to write every ancestral element in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator. You can also test CSS Selector in the JavaScript Console by using `$$` like `$$('[itemprop="director"] span')`
 
 Running
 -------

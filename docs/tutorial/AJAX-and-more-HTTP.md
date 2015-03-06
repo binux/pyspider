@@ -90,6 +90,13 @@ You can get this with [Chrome Developer Tools](https://developer.chrome.com/devt
 
 In most case, the last thing you need is to copy right URL + method + headers + body from Network panel.
 
+cURL command
+------------
+
+`self.crawl` supports `cURL` command as argument to make the HTTP request. It will parse the arguments in the command and use it as fetch parameters.
+
+With `Copy as cURL` of a request, you can get a `cURL` command and paste to `self.crawl(command)` to make crawling easy.
+
 HTTP Method
 -----------
 

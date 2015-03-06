@@ -46,6 +46,15 @@ self.crawl(url, **kwargs)
 * `taskid` - unique id for each task. _default: md5(url)_ , can be overrided by define your own `def get_taskid(self, task)`
 * `force_update` - force update task params when task is in `ACTIVE` status.
 
+cURL command
+------------
+
+`self.crawl(curl_command)`
+
+cURL is a command line tool to make a HTTP request. cURL command can get from chrome devtools > network panel, right click a request and `Copy as cURL`.
+
+You can use cURL command as the first argument of `self.crawl`. It will parse the command and make the HTTP request just like curl do.
+
 @config(**kwargs)
 -----------------
 default kwargs for self.crawl of method. Any `self.crawl` with this callback will use this config.
