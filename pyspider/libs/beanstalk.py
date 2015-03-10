@@ -88,7 +88,10 @@ class BeanstalkQueue(object):
 
     def get(self, block=True, timeout=None):
         with self.lock:
-            job = self.connection.reserve(timeout)
+            try:
+                job = self.connection.reserve(timeout)
+            except beanstalkc.DeadlineSoon:
+                raise BaseQueue.Empty
             if job:
                 body = umsgpack.unpackb(job.body)
                 job.delete()
