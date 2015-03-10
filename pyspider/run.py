@@ -72,6 +72,8 @@ def connect_rpc(ctx, param, value):
               help='database url for resultdb, default: sqlite')
 @click.option('--amqp-url', envvar='AMQP_URL',
               help='amqp url for rabbitmq, default: built-in Queue')
+@click.option('--beanstalk', envvar='BEANSTALK_HOST',
+              help='beanstalk config for beanstalk queue, defalt: localhost:11300')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.version_option(version=pyspider.__version__, prog_name=pyspider.__name__)
@@ -130,6 +132,12 @@ def cli(ctx, **kwargs):
                      'fetcher2processor', 'processor2result'):
             kwargs[name] = utils.Get(lambda name=name: Queue(name, amqp_url=amqp_url,
                                                              maxsize=kwargs['queue_maxsize']))
+    elif kwargs.get('beanstalk'):
+        from pyspider.libs.beanstalk import Queue
+        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
+                    'fetcher2processor', 'processor2result'):
+            kwargs[name] = utils.Get(lambda name=name: Queue(name, host=kwargs.get('beanstalk'), 
+                                                            maxsize=kwargs['queue_maxsize']))
     else:
         from multiprocessing import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
