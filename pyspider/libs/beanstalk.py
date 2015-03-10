@@ -20,8 +20,7 @@ class BeanstalkQueue(object):
     Empty = BaseQueue.Empty
     Full = BaseQueue.Full
 
-    def __init__(self, name, host='localhost:11300', tube='pyspider',
-                 maxsize=0):
+    def __init__(self, name, host='localhost:11300', maxsize=0):
         """
         Constructor for a BeanstalkdQueue.
         """
@@ -30,23 +29,21 @@ class BeanstalkQueue(object):
         config = host.split(':')
         self.host = config[0] if len(config) else 'localhost'
         self.port = int(config[1]) if len(config) > 1 else 11300
-        self.tube = tube
-
         self.lock = threading.RLock()
         self.maxsize = maxsize
         self.reconnect()
 
     def stats(self):
         with self.lock:
-            stats = self.connection.stats_tube(self.tube)
+            stats = self.connection.stats_tube(self.name)
         stats = [item.split(': ') for item in stats.split('\n')[2: -1] if item.find(':')]
         stats = [(item[0], int(item[1])) for item in stats]
         return dict(stats)
 
     def reconnect(self):
         self.connection = beanstalkc.Connection(host=self.host, port=self.port, parse_yaml=False)
-        self.connection.use(self.tube)
-        self.connection.watch(self.tube)
+        self.connection.use(self.name)
+        self.connection.watch(self.name)
 
     def qsize(self):
         stats = self.stats()
