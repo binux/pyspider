@@ -11,8 +11,6 @@ import time
 import unittest2 as unittest
 
 from pyspider.libs import utils
-from pyspider.libs import rabbitmq
-from pyspider.libs import beanstalk
 
 
 class TestMessageQueue(object):
@@ -69,6 +67,7 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+        from pyspider.libs import rabbitmq
         with utils.timeout(3):
             self.q1 = rabbitmq.PikaQueue('test_queue', maxsize=5)
             self.q2 = rabbitmq.PikaQueue('test_queue', maxsize=5)
@@ -91,6 +90,7 @@ class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+        from pyspider.libs import rabbitmq
         with utils.timeout(3):
             self.q1 = rabbitmq.AmqpQueue('test_queue', maxsize=5)
             self.q2 = rabbitmq.AmqpQueue('test_queue', maxsize=5)
@@ -115,6 +115,7 @@ class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+        from pyspider.libs import beanstalk
         with utils.timeout(3):
             self.q1 = beanstalk.BeanstalkQueue('test_queue', maxsize=5)
             self.q2 = beanstalk.BeanstalkQueue('test_queue', maxsize=5)
