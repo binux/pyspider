@@ -54,7 +54,7 @@ class BeanstalkQueue(object):
 
     def qsize(self):
         stats = self.stats()
-        return stats.get('current-jobs-ready', 0)
+        return int(stats.get('current-jobs-ready', 0))
 
     def empty(self):
         if self.qsize() == 0:
