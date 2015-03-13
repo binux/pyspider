@@ -75,7 +75,7 @@ class BeanstalkQueue(object):
         start_time = time.time()
         while True:
             try:
-                self.put_nowait(obj)
+                return self.put_nowait(obj)
             except BaseQueue.Full:
                 if timeout:
                     lasted = time.time() - start_time
