@@ -11,6 +11,7 @@ import time
 import umsgpack
 import beanstalkc
 import threading
+import logging
 
 from six.moves import queue as BaseQueue
 
@@ -34,10 +35,16 @@ class BeanstalkQueue(object):
         self.reconnect()
 
     def stats(self):
-        with self.lock:
-            stats = self.connection.stats_tube(self.name)
-        stats = [item.split(': ') for item in stats.split('\n')[2: -1] if item.find(':')]
-        stats = [(item[0], int(item[1])) for item in stats]
+        try:
+            with self.lock:
+                stats = self.connection.stats_tube(self.name)
+        except beanstalkc.CommandFailed, err:
+            # tube is empty
+            if err[1] == 'NOT_FOUND':
+                return {}
+
+        stats = [item.split(': ') for item in stats.split('\n') if item.find(':')]
+        stats = [(item[0], item[1]) for item in stats if len(item) == 2]
         return dict(stats)
 
     def reconnect(self):
@@ -47,7 +54,7 @@ class BeanstalkQueue(object):
 
     def qsize(self):
         stats = self.stats()
-        return stats.get('current-jobs-ready', 0)
+        return int(stats.get('current-jobs-ready', 0))
 
     def empty(self):
         if self.qsize() == 0:
@@ -87,27 +94,35 @@ class BeanstalkQueue(object):
             return self.connection.put(umsgpack.packb(obj))
 
     def get(self, block=True, timeout=None):
-        with self.lock:
+        if not block:
+            return self.get_nowait()
+
+        start_time = time.time()
+        while True:
             try:
-                job = self.connection.reserve(timeout)
-            except beanstalkc.DeadlineSoon:
-                raise BaseQueue.Empty
-            if job:
-                body = umsgpack.unpackb(job.body)
-                job.delete()
-                return body
-            else:
-                raise BaseQueue.Empty
+                return self.get_nowait()
+            except BaseQueue.Empty:
+                if timeout:
+                    lasted = time.time() - start_time
+                    if timeout > lasted:
+                        time.sleep(min(self.max_timeout, timeout - lasted))
+                    else:
+                        raise
+                else:
+                    time.sleep(self.max_timeout)
 
     def get_nowait(self):
-        with self.lock:
-            job = self.connection.reserve(0)
-            if not job:
-                raise BaseQueue.Empty
-            else:
-                body = umsgpack.unpackb(job.body)
-                job.delete()
-                return body
+        try:
+            with self.lock:
+                job = self.connection.reserve(0)
+                if not job:
+                    raise BaseQueue.Empty
+                else:
+                    body = umsgpack.unpackb(job.body)
+                    job.delete()
+                    return body
+        except beanstalkc.DeadlineSoon:
+            raise BaseQueue.Empty
 
 
 Queue = BeanstalkQueue

@@ -284,7 +284,7 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertEqual(self.rpc.size(), 0)
 
     def test_80_newtask_age_ignore(self):
