@@ -12,8 +12,8 @@ import imp
 import time
 import logging
 import inspect
+import traceback
 import linecache
-from pyspider.libs import base_handler
 from pyspider.libs.log import SaveLogHandler, LogFormatter
 logger = logging.getLogger("processor")
 
@@ -29,6 +29,7 @@ class ProjectManager(object):
     @staticmethod
     def build_module(project, env={}):
         '''Build project script as module'''
+        from pyspider.libs import base_handler
         assert 'name' in project, 'need name of project'
         assert 'script' in project, 'need script of project'
 
@@ -75,6 +76,8 @@ class ProjectManager(object):
             'module': module,
             'class': _class,
             'instance': instance,
+            'exception': None,
+            'exception_log': '',
             'info': project,
             'load_time': time.time(),
         }
@@ -118,8 +121,19 @@ class ProjectManager(object):
         try:
             ret = self.build_module(project, self.env)
             self.projects[project['name']] = ret
-        except Exception:
+        except Exception as e:
             logger.exception("load project %s error", project.get('name', None))
+            ret = {
+                'loader': None,
+                'module': None,
+                'class': None,
+                'instance': None,
+                'exception': e,
+                'exception_log': traceback.format_exc(),
+                'info': project,
+                'load_time': time.time(),
+            }
+            self.projects[project['name']] = ret
             return False
         logger.debug('project: %s updated.', project.get('name', None))
         return True

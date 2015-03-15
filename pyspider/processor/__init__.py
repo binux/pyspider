@@ -1,1 +1,1 @@
-from .processor import Processor
+from .processor import ProcessorResult, Processor

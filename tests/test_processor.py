@@ -249,8 +249,27 @@ class TestProcessor(unittest.TestCase):
         }
         self.in_queue.put((task, {}))
         time.sleep(1)
-        self.assertTrue(self.status_queue.empty())
+        self.assertFalse(self.status_queue.empty())
+        while not self.status_queue.empty():
+            status = self.status_queue.get()
+        self.assertEqual(status['track']['process']['ok'], False)
         self.assertIsNone(self.processor.project_manager.get('not_exists'))
+
+    def test_20_broken_project(self):
+        self.assertIsNone(self.processor.project_manager.get('test_broken_project'))
+        self.projectdb.insert('test_broken_project', {
+            'name': 'test_broken_project',
+            'group': 'group',
+            'status': 'DEBUG',
+            'script': inspect.getsource(sample_handler)[:10],
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
+        self.assertIsNone(self.processor.project_manager.get('not_exists'))
+        self.assertIsNotNone(self.processor.project_manager.get('test_broken_project'))
+        project_data = self.processor.project_manager.get('test_broken_project')
+        self.assertIsNotNone(project_data.get('exception'))
 
     def test_30_new_task(self):
         self.assertTrue(self.status_queue.empty())
@@ -366,3 +385,38 @@ class TestProcessor(unittest.TestCase):
         self.assertIsNone(status['track']['process']['result'])
         self.assertGreater(len(status['track']['process']['logs']), 0)
         self.assertIsNotNone(status['track']['process']['exception'])
+
+    def test_60_call_broken_project(self):
+        # clear new task queue
+        while not self.newtask_queue.empty():
+            self.newtask_queue.get()
+        # clear status queue
+        while not self.status_queue.empty():
+            self.status_queue.get()
+
+        task = {
+            "process": {
+                "callback": "on_start"
+            },
+            "project": "test_broken_project",
+            "taskid": "data:,on_start",
+            "url": "data:,on_start"
+        }
+        fetch_result = {
+            "orig_url": "data:,on_start",
+            "content": "on_start",
+            "headers": {},
+            "status_code": 200,
+            "url": "data:,on_start",
+            "time": 0,
+        }
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        while not self.status_queue.empty():
+            status = self.status_queue.get()
+        self.assertEqual(status['track']['fetch']['ok'], True)
+        self.assertEqual(status['track']['process']['ok'], False)
+        self.assertGreater(len(status['track']['process']['logs']), 0)
+        self.assertIsNotNone(status['track']['process']['exception'])
+        self.assertTrue(self.newtask_queue.empty())

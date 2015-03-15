@@ -6,14 +6,54 @@
 # Created on 2014-02-16 22:59:56
 
 import sys
+import six
 import time
 import logging
+import traceback
 logger = logging.getLogger("processor")
 
 from six.moves import queue as Queue
 from pyspider.libs import utils
+from pyspider.libs.log import LogFormatter
+from pyspider.libs.utils import pretty_unicode, hide_me
 from pyspider.libs.response import rebuild_response
 from .project_module import ProjectManager, ProjectLoader, ProjectFinder
+
+
+class ProcessorResult(object):
+    """The result and logs producted by a callback"""
+
+    def __init__(self, result=None, follows=(), messages=(),
+                 logs=(), exception=None, extinfo={}):
+        self.result = result
+        self.follows = follows
+        self.messages = messages
+        self.logs = logs
+        self.exception = exception
+        self.extinfo = extinfo
+
+    def rethrow(self):
+        """rethrow the exception"""
+
+        if self.exception:
+            raise self.exception
+
+    def logstr(self):
+        """handler the log records to formatted string"""
+
+        result = []
+        formater = LogFormatter(color=False)
+        for record in self.logs:
+            if isinstance(record, six.string_types):
+                result.append(pretty_unicode(record))
+            else:
+                if record.exc_info:
+                    a, b, tb = record.exc_info
+                    tb = hide_me(tb, globals())
+                    record.exc_info = a, b, tb
+                result.append(pretty_unicode(formater.format(record)))
+                result.append(u'\n')
+        return u''.join(result)
 
 
 class Processor(object):
@@ -65,20 +105,23 @@ class Processor(object):
     def on_task(self, task, response):
         '''Deal one task'''
         start_time = time.time()
+        response = rebuild_response(response)
+
         try:
-            response = rebuild_response(response)
             assert 'taskid' in task, 'need taskid in task'
             project = task['project']
             updatetime = task.get('updatetime', None)
             project_data = self.project_manager.get(project, updatetime)
-            if not project_data:
-                logger.error("no such project: %s", project)
-                return False
-            ret = project_data['instance'].run_task(
-                project_data['module'], task, response)
+            assert project_data, "no such project!"
+            if project_data.get('exception'):
+                ret = ProcessorResult(logs=(project_data.get('exception_log'), ),
+                                      exception=project_data['exception'])
+            else:
+                ret = project_data['instance'].run_task(
+                    project_data['module'], task, response)
         except Exception as e:
-            logger.exception(e)
-            return False
+            logstr = traceback.format_exc()
+            ret = ProcessorResult(logs=(logstr, ), exception=e)
         process_time = time.time() - start_time
 
         if not ret.extinfo.get('not_send_status', False):
