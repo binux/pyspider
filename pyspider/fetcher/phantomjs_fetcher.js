@@ -17,7 +17,7 @@ if (system.args.length !== 2) {
   console.debug = function(){};
 
   service = server.listen(port, {
-    'keepAlive': true
+    'keepAlive': false
   }, function (request, response) {
     phantom.clearCookies();
 
@@ -147,16 +147,11 @@ if (system.args.length !== 2) {
 
       console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
 
-      var body = unescape(encodeURIComponent(JSON.stringify(result, null, 2)));
-      response.statusCode = 200;
-      response.headers = {
+      var body = JSON.stringify(result, null, 2);
+      response.writeHead(200, {
         'Cache': 'no-cache',
         'Content-Type': 'application/json',
-        'Connection': 'Keep-Alive',
-        'Keep-Alive': 'timeout=5, max=100',
-        'Content-Length': body.length
-      };
-      response.setEncoding("binary");
+      });
       response.write(body);
       response.closeGracefully();
       finished = true;
