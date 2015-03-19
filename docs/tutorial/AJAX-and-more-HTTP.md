@@ -126,7 +126,7 @@ HTTP Cookie
 
 [HTTP Cookie](http://en.wikipedia.org/wiki/HTTP_cookie) is a field in HTTP headers used for tracking which user is making the request. Generally used for user login and prevent unauthorized requests.
 
-You can use [`self.crawl(cookie={"key": value})`](/apis/self.crawl/#fetch) to set cookie via a dict like API.
+You can use [`self.crawl(cookies={"key": value})`](/apis/self.crawl/#fetch) to set cookie via a dict like API.
 
 TODO: need example here.
 
