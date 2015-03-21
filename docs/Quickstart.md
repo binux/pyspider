@@ -15,6 +15,9 @@ to install binary packages first.
 
 **Note:** `pyspider` command is running pyspider in `all` mode, which running components in threads or subprocesses. For production environment, please refer to [Deployment](Deployment).
 
+
+When visiting [http://localhost:5000/](http://localhost:5000/), click the blue CREATE button in the upper right hand corner of page and then your first script will appear. Otherwise, it will appear that your ` pyspider ` process is "hanging"/doing nothing.
+
 Your First Script
 -----------------
 
