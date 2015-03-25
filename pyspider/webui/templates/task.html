@@ -38,35 +38,46 @@
           <dd>{{ task.lastcrawltime }} ({{ task.lastcrawltime | format_date }})</dd>
           <dt>updatetime</dt>
           <dd>{{ task.updatetime }} ({{ task.updatetime | format_date }})</dd>
+          # if task.schedule and task.schedule.exetime
+          <dt>exetime</dt>
+          <dd>{{ task.schedule.exetime }} ({{ task.schedule.exetime | format_date }})</dd>
+          # endif
 
-          {% if task.track and task.track.fetch %}
+          # if task.track and task.track.fetch
           <dt>
             track.fetch
             <span class="glyphicon glyphicon-{{ "ok" if task.track.fetch.ok else "remove" }}"></span>
             {{ (task.track.fetch.time * 1000) | round(2) }}ms
           </dt>
           <dd>{{ json.dumps(task.track.fetch, indent=2, ensure_ascii=False) }}</dd>
-          {% endif %}
+          # endif
 
-          {% if task.track and task.track.process %}
+          # if task.track and task.track.process
           <dt>
             track.process
             <span class="glyphicon glyphicon-{{ "ok" if task.track.process.ok else "remove" }}"></span>
-            {% if task.track.process.follows %}+{{ task.track.process.follows | int }}{% endif %}
+            # if task.track.process.follows
+              +{{ task.track.process.follows | int }}
+            # endif
             {{ (task.track.process.time * 1000) | round(2) }}ms
           </dt>
-          <dd>{%- if task.track.process.exception != 'None' %}{{ task.track.process.exception }}
-{% endif -%}
-{%- if task.track.process.logs %}{{ task.track.process.logs or ''}}
-{% endif %}{{ json.dumps(task.track.process, indent=2, ensure_ascii=False) }}</dd>
-          {% endif %}
+          <dd>
+            #- if task.track.process.exception
+            {{- task.track.process.exception or '' }}
+            # endif
+            #- if task.track.process.logs
+              {{- task.track.process.logs or '' }}
+            # endif
+            {{- json.dumps(task.track.process, indent=2, ensure_ascii=False) -}}
+          </dd>
+          # endif
         </dl>
         <dl>
-          {%- set not_shown_keys = ('status', 'url', 'project', 'taskid', 'lastcrawltime', 'updatetime', 'track', ) %}
-          {%- for key, value in task.items() if key not in not_shown_keys %}
+          #- set not_shown_keys = ('status', 'url', 'project', 'taskid', 'lastcrawltime', 'updatetime', 'track', )
+          #- for key, value in task.items() if key not in not_shown_keys
           <dt>{{ key }}</dt>
           <dd>{{ json.dumps(value, indent=2, ensure_ascii=False) if value is mapping else value }}</dd>
-          {%- endfor %}
+          #- endfor
         </dl>
         # if result and result.get('result'):
         <dl>
