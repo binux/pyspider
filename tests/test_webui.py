@@ -281,6 +281,18 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'"taskid":', rv.data)
 
+    def test_a32_export_json_style_full(self):
+        rv = self.app.get('/results/dump/test_project.json?style=full')
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(rv.data.decode('utf8'))
+        self.assertGreater(len(data), 1)
+
+    def test_a34_export_json_style_full_limit_1(self):
+        rv = self.app.get('/results/dump/test_project.json?style=full&limit=1&offset=1')
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(rv.data.decode('utf8'))
+        self.assertEqual(len(data), 1)
+
     def test_a40_export_url_json(self):
         rv = self.app.get('/results/dump/test_project.txt')
         self.assertEqual(rv.status_code, 200)
