@@ -9,8 +9,9 @@
 import os
 import json
 import time
-from six.moves import queue as Queue
 import logging
+import itertools
+from six.moves import queue as Queue
 from collections import deque
 
 from six import iteritems, itervalues
@@ -336,6 +337,44 @@ class Scheduler(object):
             cnt_dict[project] = cnt
         return cnt_dict
 
+    def _print_counter_log(self):
+        # print top 5 active counters
+        keywords = ('pending', 'success', 'retry', 'failed')
+        total_cnt = {}
+        project_actives = []
+        project_fails = []
+        for key in keywords:
+            total_cnt[key] = 0
+        for project, subcounter in iteritems(self._cnt['5m']):
+            actives = 0
+            for key in keywords:
+                cnt = subcounter.get(key, None)
+                if cnt:
+                    cnt = cnt.sum
+                    total_cnt[key] += cnt
+                    actives += cnt
+
+            project_actives.append((actives, project))
+
+            fails = subcounter.get('failed', None)
+            if fails:
+                project_fails.append((fails.sum, project))
+
+        top_2_fails = sorted(project_fails, reverse=True)[:2]
+        top_3_actives = sorted([x for x in project_actives if x[1] not in top_2_fails],
+                               reverse=True)[:5 - len(top_2_fails)]
+
+        log_str = ("in 5m: new:%(pending)d,success:%(success)d,"
+                   "retry:%(retry)d,failed:%(failed)d" % total_cnt)
+        for _, project in itertools.chain(top_3_actives, top_2_fails):
+            subcounter = self._cnt['5m'][project].to_dict(get_value='sum')
+            log_str += " %s:%d,%d,%d,%d" % (project,
+                                            subcounter.get('pending', 0),
+                                            subcounter.get('success', 0),
+                                            subcounter.get('retry', 0),
+                                            subcounter.get('failed', 0))
+        logger.info(log_str)
+
     def _dump_cnt(self):
         '''Dump counters to file'''
         self._cnt['1h'].dump(os.path.join(self.data_path, 'scheduler.1h'))
@@ -348,6 +387,7 @@ class Scheduler(object):
         if now - self._last_dump_cnt > 60:
             self._last_dump_cnt = now
             self._dump_cnt()
+            self._print_counter_log()
 
     def _check_delete(self):
         '''Check project delete'''
