@@ -210,9 +210,15 @@ class Fetcher(object):
             proxy_splited = urlsplit(proxy_string)
             if proxy_splited.username:
                 fetch['proxy_username'] = proxy_splited.username
+                if six.PY2:
+                    fetch['proxy_username'] = fetch['proxy_username'].encode('utf8')
             if proxy_splited.password:
                 fetch['proxy_password'] = proxy_splited.password
-            fetch['proxy_host'] = proxy_splited.hostname
+                if six.PY2:
+                    fetch['proxy_password'] = fetch['proxy_password'].encode('utf8')
+            fetch['proxy_host'] = proxy_splited.hostname.encode('utf8')
+            if six.PY2:
+                fetch['proxy_host'] = fetch['proxy_host'].encode('utf8')
             fetch['proxy_port'] = proxy_splited.port or 8080
 
         # etag
