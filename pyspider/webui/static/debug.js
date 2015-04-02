@@ -442,11 +442,19 @@ window.Debugger = (function() {
       $(dom).find('base').attr('href', base_url);
       $(dom).find('link[href]').each(function(i, e) {
         e = $(e);
-        e.attr('href', URI(e.attr('href')).absoluteTo(base_url).toString());
+        try {
+          e.attr('href', URI(e.attr('href')).absoluteTo(base_url).toString());
+        } catch (error) {
+          console.log(error);
+        }
       });
       $(dom).find('img[____src____]').each(function(i, e) {
         e = $(e);
-        e.attr('____src____', URI(e.attr('____src____')).absoluteTo(base_url).toString());
+        try {
+          e.attr('____src____', URI(e.attr('____src____')).absoluteTo(base_url).toString());
+        } catch (error) {
+          console.log(error);
+        }
       });
       html = dom.innerHTML;
       html = html.replace(/(\s)____src____=/g, "$1src=");
