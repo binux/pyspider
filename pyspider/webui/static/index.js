@@ -87,11 +87,19 @@ $(function() {
 
   // onload
   function fill_progress(project, type, info) {
+    var $e = $("tr[data-name="+project+"] td.progress-"+type);
+
     if (!!!info) {
+      $e.attr("title", "");
+      $e.attr('data-value', 0);
+      $e.find(".progress-text").text(type);
+      $e.find(".progress-pending").width("0%");
+      $e.find(".progress-success").width("0%");
+      $e.find(".progress-retry").width("0%");
+      $e.find(".progress-failed").width("0%");
       return ;
     }
 
-    var $e = $("tr[data-name="+project+"] td.progress-"+type);
     var pending = info.pending || 0,
     success = info.success || 0,
     retry = info.retry || 0,
@@ -127,6 +135,8 @@ $(function() {
           var process_time = (info['5m_time']['process_time'] || 0) * 1000;
           $(tr).find('.project-time').text(
             ''+fetch_time.toFixed(1)+'+'+process_time.toFixed(2)+'ms');
+        } else {
+          $(tr).find('.project-time').text('');
         }
 
         fill_progress(project, '5m', info['5m']);
