@@ -13,9 +13,9 @@ from pyspider.libs import counter
 
 class TestCounter(unittest.TestCase):
     def test_TimebaseAverageEventCounter(self):
-        c = counter.TimebaseAverageEventCounter(30, 1)
+        c = counter.TimebaseAverageEventCounter(2, 1)
         for i in range(100):
-            time.sleep(0.05)
+            time.sleep(0.1)
             c.event(100+i)
-        self.assertEqual(c.sum, float(100+199)*100/2)
-        self.assertEqual(c.avg, float(100+199)/2)
+        self.assertEqual(c.sum, float(180+199)*20/2)
+        self.assertEqual(c.avg, float(180+199)/2)

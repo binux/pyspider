@@ -160,6 +160,7 @@ class TimebaseAverageEventCounter(BaseCounter):
         window_limit = now - self.window_size * self.window_interval
         while self.times and self.times[0] < window_limit:
             self.times.popleft()
+            self.events.popleft()
             self.values.popleft()
 
     @property
