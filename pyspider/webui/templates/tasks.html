@@ -44,7 +44,7 @@
 
         {% if task.track and task.track.fetch %}
         <span span=use-time>
-          {{- '%.1f' | format(task.track.fetch.time * 1000) }}+{{ '%.2f' | format(task.track.process.time if task.track and task.track.process else 0) }}ms
+          {{- '%.1f' | format(task.track.fetch.time * 1000) }}+{{ '%.2f' | format(task.track.process.time * 1000 if task.track and task.track.process else 0) }}ms
         </span>
         {% endif %}
 

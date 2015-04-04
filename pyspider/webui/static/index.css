@@ -58,6 +58,9 @@
 .projects .project-rate {
   width: 110px;
 }
+.projects .project-time {
+  width: 110px;
+}
 .projects th.project-progress {
   position: relative;
 }

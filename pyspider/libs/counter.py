@@ -99,11 +99,95 @@ class AverageWindowCounter(BaseCounter):
             return True
 
 
+class TimebaseAverageEventCounter(BaseCounter):
+    """
+    Record last window_size * window_interval seconds event.
+
+    records will trim ever window_interval seconds
+    """
+
+    def __init__(self, window_size=30, window_interval=10):
+        self.max_window_size = window_size
+        self.window_size = 0
+        self.window_interval = window_interval
+        self.values = deque(maxlen=window_size)
+        self.events = deque(maxlen=window_size)
+        self.times = deque(maxlen=window_size)
+
+        self.cache_value = 0
+        self.cache_event = 0
+        self.cache_start = None
+        self._first_data_time = None
+
+    def event(self, value=1):
+        now = time.time()
+        if self._first_data_time is None:
+            self._first_data_time = now
+
+        if self.cache_start is None:
+            self.cache_value = value
+            self.cache_event = 1
+            self.cache_start = now
+        elif now - self.cache_start > self.window_interval:
+            self.values.append(self.cache_value)
+            self.events.append(self.cache_event)
+            self.times.append(self.cache_start)
+            self.on_append(self.cache_value, self.cache_start)
+            self.cache_value = value
+            self.cache_event += 1
+            self.cache_start = now
+        else:
+            self.cache_value += value
+            self.cache_event += 1
+        return self
+
+    def value(self, value):
+        self.cache_value = value
+
+    def _trim_window(self):
+        now = time.time()
+        if self.cache_start and now - self.cache_start > self.window_interval:
+            self.values.append(self.cache_value)
+            self.events.append(self.cache_event)
+            self.times.append(self.cache_start)
+            self.on_append(self.cache_value, self.cache_start)
+            self.cache_value = 0
+            self.cache_start = None
+
+        if self.window_size != self.max_window_size and self._first_data_time is not None:
+            time_passed = now - self._first_data_time
+            self.window_size = min(self.max_window_size, time_passed / self.window_interval)
+        window_limit = now - self.window_size * self.window_interval
+        while self.times and self.times[0] < window_limit:
+            self.times.popleft()
+            self.values.popleft()
+
+    @property
+    def avg(self):
+        events = (sum(self.events) + self.cache_event)
+        if not events:
+            return 0
+        return float(self.sum) / events
+
+    @property
+    def sum(self):
+        self._trim_window()
+        return sum(self.values) + self.cache_value
+
+    def empty(self):
+        self._trim_window()
+        if not self.values and not self.cache_start:
+            return True
+
+    def on_append(self, value, time):
+        pass
+
+
 class TimebaseAverageWindowCounter(BaseCounter):
     """
     Record last window_size * window_interval seconds values.
 
-    records will trim evert window_interval seconds
+    records will trim ever window_interval seconds
     """
 
     def __init__(self, window_size=30, window_interval=10):
