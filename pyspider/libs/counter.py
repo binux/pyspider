@@ -134,7 +134,7 @@ class TimebaseAverageEventCounter(BaseCounter):
             self.times.append(self.cache_start)
             self.on_append(self.cache_value, self.cache_start)
             self.cache_value = value
-            self.cache_event += 1
+            self.cache_event = 1
             self.cache_start = now
         else:
             self.cache_value += value

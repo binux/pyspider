@@ -56,10 +56,10 @@
           <dt>
             track.process
             <span class="glyphicon glyphicon-{{ "ok" if task.track.process.ok else "remove" }}"></span>
+            {{ (task.track.process.time * 1000) | round(2) }}ms
             # if task.track.process.follows
               +{{ task.track.process.follows | int }}
             # endif
-            {{ (task.track.process.time * 1000) | round(2) }}ms
           </dt>
           <dd>
             #- if task.track.process.exception

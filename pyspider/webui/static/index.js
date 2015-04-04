@@ -133,7 +133,7 @@ $(function() {
         if (info['5m_time']) {
           var fetch_time = (info['5m_time']['fetch_time'] || 0) * 1000;
           var process_time = (info['5m_time']['process_time'] || 0) * 1000;
-          $(tr).find('.project-time').text(
+          $(tr).find('.project-time').attr('data-value', fetch_time+process_time).text(
             ''+fetch_time.toFixed(1)+'+'+process_time.toFixed(2)+'ms');
         } else {
           $(tr).find('.project-time').text('');
