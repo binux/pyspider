@@ -42,12 +42,11 @@
 
         <span class=update-time>{{ task.updatetime | format_date }}</span>
 
-        <span span=use-time>
         {% if task.track and task.track.fetch %}
-          {% set use_time = task.track.fetch.time + task.track.process.time if task.track and task.track.process else 0%}
-          {{ '%.2f' | format(use_time * 1000) }}ms
-        {% endif %}
+        <span span=use-time>
+          {{- '%.1f' | format(task.track.fetch.time * 1000) }}+{{ '%.2f' | format(task.track.process.time if task.track and task.track.process else 0) }}ms
         </span>
+        {% endif %}
 
         <span span=follows>
         {% if task.track and task.track.process %}
