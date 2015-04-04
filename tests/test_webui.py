@@ -199,29 +199,14 @@ class TestWebUI(unittest.TestCase):
                     .get('test_project', {}).get('success', 0) > 5:
                 break
 
-        rv = self.app.get('/counter?time=5m&type=sum')
+        rv = self.app.get('/counter')
         self.assertEqual(rv.status_code, 200)
         data = json.loads(utils.text(rv.data))
         self.assertGreater(len(data), 0)
-        self.assertGreater(data['test_project']['success'], 3)
-
-        rv = self.app.get('/counter?time=1h&type=sum')
-        self.assertEqual(rv.status_code, 200)
-        data = json.loads(utils.text(rv.data))
-        self.assertGreater(len(data), 0)
-        self.assertGreater(data['test_project']['success'], 3)
-
-        rv = self.app.get('/counter?time=1d&type=sum')
-        self.assertEqual(rv.status_code, 200)
-        data = json.loads(utils.text(rv.data))
-        self.assertGreater(len(data), 0)
-        self.assertGreater(data['test_project']['success'], 3)
-
-        rv = self.app.get('/counter?time=all&type=sum')
-        self.assertEqual(rv.status_code, 200)
-        data = json.loads(utils.text(rv.data))
-        self.assertGreater(len(data), 0)
-        self.assertGreater(data['test_project']['success'], 3)
+        self.assertGreater(data['test_project']['5m']['success'], 3)
+        self.assertGreater(data['test_project']['1h']['success'], 3)
+        self.assertGreater(data['test_project']['1d']['success'], 3)
+        self.assertGreater(data['test_project']['all']['success'], 3)
 
     def test_a20_tasks(self):
         rv = self.app.get('/tasks')

@@ -210,11 +210,11 @@ class TestRun(unittest.TestCase):
                 break
 
             limit = 30
-            data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
+            data = requests.get('http://localhost:5000/counter')
             self.assertEqual(data.status_code, 200)
-            while data.json().get('data_sample_handler', {}).get('success', 0) < 5:
+            while data.json().get('data_sample_handler', {}).get('5m', {}).get('success', 0) < 5:
                 time.sleep(1)
-                data = requests.get('http://localhost:5000/counter?time=5m&type=sum')
+                data = requests.get('http://localhost:5000/counter')
                 limit -= 1
                 if limit <= 0:
                     break

@@ -617,9 +617,9 @@ class Scheduler(object):
             ret = self.on_task_failed(task)
 
         self._cnt['5m_time'].event((task['project'], 'fetch_time'),
-                                   task['track']['fetch']['time'])
+                                   task['track']['fetch'].get('time', 0))
         self._cnt['5m_time'].event((task['project'], 'process_time'),
-                                   task['track']['process']['time'])
+                                   task['track']['process'].get('time', 0))
         self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return ret
 
@@ -804,9 +804,9 @@ class OneScheduler(Scheduler):
         else:
             ret = self.on_task_failed(task)
         self._cnt['5m_time'].event((task['project'], 'fetch_time'),
-                                   task['track']['fetch']['time'])
+                                   task['track']['fetch'].get('time', 0))
         self._cnt['5m_time'].event((task['project'], 'process_time'),
-                                   task['track']['process']['time'])
+                                   task['track']['process'].get('time', 0))
         self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return ret
 
