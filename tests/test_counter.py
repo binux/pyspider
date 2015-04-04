@@ -17,5 +17,5 @@ class TestCounter(unittest.TestCase):
         for i in range(100):
             time.sleep(0.05)
             c.event(100+i)
-        self.assertEqual(c.sum, (100+199)*100/2)
-        self.assertEqual(c.avg, (100+199)/2)
+        self.assertEqual(c.sum, float(100+199)*100/2)
+        self.assertEqual(c.avg, float(100+199)/2)
