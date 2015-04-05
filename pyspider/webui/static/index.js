@@ -136,7 +136,7 @@ $(function() {
           $(tr).find('.project-time').attr('data-value', fetch_time+process_time).text(
             ''+fetch_time.toFixed(1)+'+'+process_time.toFixed(2)+'ms');
         } else {
-          $(tr).find('.project-time').text('');
+          $(tr).find('.project-time').attr('data-value', '').text('');
         }
 
         fill_progress(project, '5m', info['5m']);
