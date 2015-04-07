@@ -18,6 +18,35 @@
   </head>
 
   <body>
+    <header>
+      <h1>pyspider dashboard</h1>
+      <table class="table queue-info">
+        <tr>
+          <th>scheduler</th>
+          <td class="queue_value" title="scheduler2fetcher">???</td>
+          <th>fetcher</th>
+          <td class="queue_value" title="fetcher2processor">???</td>
+          <th>processor</th>
+          <td class="queue_value" title="processor2result">???</td>
+          <th>result</th>
+        </tr>
+        <tr>
+          <td style="border-width: 0px 1px;"></td>
+          <td colspan=3></td>
+          <td style="border-width: 0px 1px;"></td>
+          <td colspan=2 style="border-width: 0px;"></td>
+        </tr>
+        <tr>
+          <td style="border-width: 0px 0px 1px 1px"></td>
+          <td colspan=3 style="border-width: 1px 0px;">
+            <span class="queue_value" title="newtask_queue">???</span>
+            + <span class="queue_value" title="status_queue">???</span>
+          </td>
+          <td style="border-width: 0px 1px 1px 0px;"></td>
+          <td colspan=2 style="border-width: 0px;"></td>
+        </tr>
+      </table>
+    </header>
     <section>
       <table class="table sortable-theme-bootstrap projects">
         <thead>

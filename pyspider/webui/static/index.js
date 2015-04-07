@@ -122,7 +122,7 @@ $(function() {
   }
   function update_counters() {
     $.get('/counter', function(data) {
-      console.log(data);
+      //console.log(data);
       $('tr[data-name]').each(function(i, tr) {
         var project = $(tr).data('name');
         var info = data[project];
@@ -148,6 +148,22 @@ $(function() {
   }
   window.setInterval(update_counters, 15*1000);
   update_counters();
+
+  function update_queues() {
+    $.get('/queues', function(data) {
+      //console.log(data);
+      $('.queue_value').each(function(i, e) {
+        var attr = $(e).attr('title');
+        if (data[attr] !== undefined) {
+          $(e).text(data[attr]);
+        } else {
+          $(e).text('???');
+        }
+      });
+    });
+  }
+  window.setInterval(update_queues, 15*1000);
+  update_queues();
 
   // table sortable
   Sortable.getColumnType = function(table, i) {

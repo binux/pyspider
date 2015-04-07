@@ -6,6 +6,14 @@
 /* Author: Binux<i@binux.me> */
 /*         http://binux.me */
 /* Created on 2014-07-16 19:18:30 */
+h1 {
+  margin-top: 5px;
+}
+.queue-info th,
+.queue-info td {
+  text-align: center;
+  border: 1px solid #ddd;
+}
 .projects {
   min-width: 850px;
   border-bottom: 1px solid #ddd;

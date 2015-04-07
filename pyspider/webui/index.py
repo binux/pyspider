@@ -17,7 +17,27 @@ index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', 'updatet
 @app.route('/')
 def index():
     projectdb = app.config['projectdb']
+
     return render_template("index.html", projects=projectdb.get_all(fields=index_fields))
+
+
+@app.route('/queues')
+def get_queues():
+    def try_get_qsize(queue):
+        if queue is None:
+            return 'None'
+        try:
+            return queue.qsize()
+        except NotImplementedError:
+            return 'Not Available For OSX'
+        except Exception as e:
+            return "%r" % e
+
+    result = {}
+    queues = app.config.get('queues', {})
+    for key in queues:
+        result[key] = try_get_qsize(queues[key])
+    return json.dumps(result), 200, {'Content-Type': 'application/json'}
 
 
 @app.route('/update', methods=['POST', ])

@@ -137,9 +137,9 @@ def cli(ctx, **kwargs):
     elif kwargs.get('beanstalk'):
         from pyspider.libs.beanstalk import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                    'fetcher2processor', 'processor2result'):
-            kwargs[name] = utils.Get(lambda name=name: Queue(name, host=kwargs.get('beanstalk'), 
-                                                            maxsize=kwargs['queue_maxsize']))
+                     'fetcher2processor', 'processor2result'):
+            kwargs[name] = utils.Get(lambda name=name: Queue(name, host=kwargs.get('beanstalk'),
+                                                             maxsize=kwargs['queue_maxsize']))
     else:
         from multiprocessing import Queue
         for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
@@ -321,6 +321,11 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     if password:
         app.config['webui_password'] = password
     app.config['need_auth'] = need_auth
+
+    # inject queues for webui
+    for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
+                 'fetcher2processor', 'processor2result'):
+        app.config['queues'][name] = g[name]
 
     # fetcher rpc
     if isinstance(fetcher_rpc, six.string_types):

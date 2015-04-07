@@ -87,6 +87,7 @@ app.config.update({
     'taskdb': None,
     'projectdb': None,
     'scheduler_rpc': None,
+    'queues': dict(),
 })
 
 
