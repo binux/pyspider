@@ -325,7 +325,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     # inject queues for webui
     for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
                  'fetcher2processor', 'processor2result'):
-        app.config['queues'][name] = g[name]
+        app.config['queues'][name] = getattr(g, name, None)
 
     # fetcher rpc
     if isinstance(fetcher_rpc, six.string_types):
@@ -546,6 +546,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     logging.getLogger('processor').setLevel(logging.ERROR)
     logging.getLogger('result').setLevel(logging.ERROR)
     logging.getLogger('webui').setLevel(logging.ERROR)
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
     try:
         threads = []
