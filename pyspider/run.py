@@ -150,7 +150,7 @@ def cli(ctx, **kwargs):
     if kwargs.get('phantomjs_proxy'):
         pass
     elif os.environ.get('PHANTOMJS_NAME'):
-        kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT'][len('tcp://'):]
+        kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT_25555_TCP'][len('tcp://'):]
 
     ctx.obj = utils.ObjectDict(ctx.obj or {})
     ctx.obj['instances'] = []
