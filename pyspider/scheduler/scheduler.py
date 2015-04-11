@@ -136,6 +136,7 @@ class Scheduler(object):
             priority = _schedule.get('priority', self.default_schedule['priority'])
             exetime = _schedule.get('exetime', self.default_schedule['exetime'])
             self.task_queue[project].put(taskid, priority, exetime)
+        logger.debug('project: %s loaded %d tasks.', project, len(self.task_queue[project]))
 
         if self.projects[project]['status'] in ('RUNNING', 'DEBUG'):
             self.task_queue[project].rate = self.projects[project]['rate']

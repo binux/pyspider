@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM cmfatih/phantomjs
 MAINTAINER binux <roy@binux.me>
 
 # install python

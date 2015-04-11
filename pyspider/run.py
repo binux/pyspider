@@ -376,28 +376,40 @@ def phantomjs(ctx, phantomjs_path, port):
     """
     import subprocess
     g = ctx.obj
-
+    _quit = []
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
+    cmd = [phantomjs_path,
+           '--ssl-protocol=any',
+           '--disk-cache=true',
+           # this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
+           #'--load-images=false',
+           phantomjs_fetcher, str(port)]
+
     try:
-        _phantomjs = subprocess.Popen([phantomjs_path,
-                                       "--ssl-protocol=any",
-                                       phantomjs_fetcher,
-                                       str(port)])
+        _phantomjs = subprocess.Popen(cmd)
     except OSError:
         return None
 
     def quit(*args, **kwargs):
+        _quit.append(1)
         _phantomjs.kill()
         _phantomjs.wait()
         logging.info('phantomjs existed.')
+
+    if not g.get('phantomjs_proxy'):
+        g['phantomjs_proxy'] = 'localhost:%s' % port
 
     phantomjs = utils.ObjectDict(port=port, quit=quit)
     g.instances.append(phantomjs)
     if g.get('testing_mode'):
         return phantomjs
 
-    _phantomjs.wait()
+    while True:
+        _phantomjs.wait()
+        if _quit:
+            break
+        _phantomjs = subprocess.Popen(cmd)
 
 
 @cli.command()
@@ -427,12 +439,8 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
     try:
         # phantomjs
-        g['testing_mode'] = True
         phantomjs_config = g.config.get('phantomjs', {})
-        phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
-        if phantomjs_obj and not g.get('phantomjs_proxy'):
-            g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_obj.port
-        g['testing_mode'] = False
+        threads.append(run_in(ctx.invoke, phantomjs, **phantomjs_config))
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
