@@ -153,7 +153,7 @@ class TestRun(unittest.TestCase):
     def test_80_docker_phantomjs(self):
         try:
             os.environ['PHANTOMJS_NAME'] = 'phantomjs'
-            os.environ['PHANTOMJS_PORT'] = 'tpc://binux:25678'
+            os.environ['PHANTOMJS_PORT_25555_TCP'] = 'tpc://binux:25678'
             ctx = run.cli.make_context('test', [], None,
                                        obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
@@ -162,7 +162,7 @@ class TestRun(unittest.TestCase):
             self.assertIsNone(e)
         finally:
             del os.environ['PHANTOMJS_NAME']
-            del os.environ['PHANTOMJS_PORT']
+            del os.environ['PHANTOMJS_PORT_25555_TCP']
 
     def test_90_docker_scheduler(self):
         try:
