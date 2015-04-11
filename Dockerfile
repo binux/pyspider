@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 # install requirements
 ADD requirements.txt /opt/pyspider/requirements.txt
-RUN pip install --allow-all-external -r /opt/pyspider/requirements.txt
+RUN pip install --allow-external mysql-connector-python -r /opt/pyspider/requirements.txt
 
 # add all repo
 ADD ./ /opt/pyspider
