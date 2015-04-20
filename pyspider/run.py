@@ -13,7 +13,6 @@ import time
 import shutil
 import logging
 import logging.config
-from six.moves import builtins
 
 import click
 import pyspider
@@ -584,9 +583,12 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
         scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
+        scheduler_config.setdefault('xmlrpc_port', 23333)
         threads.append(run_in(ctx.invoke, scheduler,
                               scheduler_cls='pyspider.libs.bench.BenchScheduler',
                               **scheduler_config))
+        scheduler_rpc = connect_rpc(ctx, None,
+                                    'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
 
         # webui
         webui_config = g.config.get('webui', {})
@@ -597,9 +599,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         # wait bench test finished
         while True:
             time.sleep(1)
-            if builtins.all(getattr(g, x) is None or getattr(g, x).empty() for x in (
-                    'newtask_queue', 'status_queue', 'scheduler2fetcher',
-                    'fetcher2processor', 'processor2result')):
+            if scheduler_rpc.size() == 0:
                 break
     finally:
         # exit components run in threading
