@@ -424,6 +424,7 @@ class TestProcessor(unittest.TestCase):
 
     def test_70_update_project(self):
         self.processor.project_manager.CHECK_PROJECTS_INTERVAL = 1000000
+        self.processor.project_manager._check_projects()
         self.assertIsNotNone(self.processor.project_manager.get('test_broken_project'))
         # clear new task queue
         while not self.newtask_queue.empty():

@@ -110,8 +110,9 @@ class Processor(object):
         try:
             assert 'taskid' in task, 'need taskid in task'
             project = task['project']
-            updatetime = task.get('updatetime', None)
-            project_data = self.project_manager.get(project, updatetime)
+            updatetime = task.get('project_updatetime', None)
+            md5sum = task.get('project_md5sum', None)
+            project_data = self.project_manager.get(project, updatetime, md5sum)
             assert project_data, "no such project!"
             if project_data.get('exception'):
                 ret = ProcessorResult(logs=(project_data.get('exception_log'), ),

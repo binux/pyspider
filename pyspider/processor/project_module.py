@@ -14,6 +14,7 @@ import logging
 import inspect
 import traceback
 import linecache
+from pyspider.libs import utils
 from pyspider.libs.log import SaveLogHandler, LogFormatter
 logger = logging.getLogger("processor")
 
@@ -89,13 +90,15 @@ class ProjectManager(object):
         self.projects = {}
         self.last_check_projects = time.time()
 
-    def _need_update(self, project_name, updatetime=None):
+    def _need_update(self, project_name, updatetime=None, md5sum=None):
         '''Check if project_name need update'''
         if project_name not in self.projects:
             return True
-        if updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
+        elif md5sum and md5sum != self.projects[project_name]['info'].get('md5sum'):
             return True
-        if time.time() - self.projects[project_name]['load_time'] > self.RELOAD_PROJECT_INTERVAL:
+        elif updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
+            return True
+        elif time.time() - self.projects[project_name]['load_time'] > self.RELOAD_PROJECT_INTERVAL:
             return True
         return False
 
@@ -119,6 +122,7 @@ class ProjectManager(object):
     def _load_project(self, project):
         '''Load project into self.projects from project info dict'''
         try:
+            project['md5sum'] = utils.md5string(project['script'])
             ret = self.build_module(project, self.env)
             self.projects[project['name']] = ret
         except Exception as e:
@@ -138,11 +142,11 @@ class ProjectManager(object):
         logger.debug('project: %s updated.', project.get('name', None))
         return True
 
-    def get(self, project_name, updatetime=None):
+    def get(self, project_name, updatetime=None, md5sum=None):
         '''get project data object, return None if not exists'''
-        if time.time() - self.last_check_projects < self.CHECK_PROJECTS_INTERVAL:
+        if time.time() - self.last_check_projects > self.CHECK_PROJECTS_INTERVAL:
             self._check_projects()
-        if self._need_update(project_name, updatetime):
+        if self._need_update(project_name, updatetime, md5sum):
             self._update_project(project_name)
         return self.projects.get(project_name, None)
 

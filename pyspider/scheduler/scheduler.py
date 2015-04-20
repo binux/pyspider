@@ -92,6 +92,7 @@ class Scheduler(object):
         if project['name'] not in self.projects:
             self.projects[project['name']] = {}
         self.projects[project['name']].update(project)
+        self.projects[project['name']]['md5sum'] = utils.md5string(project['script'])
         if not self.projects[project['name']].get('active_tasks', None):
             self.projects[project['name']]['active_tasks'] = deque(maxlen=self.ACTIVE_TASKS)
 
@@ -104,7 +105,7 @@ class Scheduler(object):
 
             # update project runtime info from processing by sending a on_get_info request,
             # result is catched by on_request
-            self.send_task({
+            self.on_select_task({
                 'taskid': '_on_get_info',
                 'project': project['name'],
                 'url': 'data:,_on_get_info',
@@ -115,7 +116,6 @@ class Scheduler(object):
                 'process': {
                     'callback': '_on_get_info',
                 },
-                'project_updatetime': self.projects[project['name']].get('updatetime', 0),
             })
         else:
             if project['name'] in self.task_queue:
@@ -279,11 +279,11 @@ class Scheduler(object):
                 continue
             if self._last_tick % int(project['min_tick']) != 0:
                 continue
-            self.send_task({
+            self.on_select_task({
                 'taskid': '_on_cronjob',
                 'project': project['name'],
                 'url': 'data:,_on_cronjob',
-                'status': self.taskdb.ACTIVE,
+                'status': self.taskdb.SUCCESS,
                 'fetch': {
                     'save': {
                         'tick': self._last_tick,
@@ -292,7 +292,6 @@ class Scheduler(object):
                 'process': {
                     'callback': '_on_cronjob',
                 },
-                'project_updatetime': self.projects[project['name']].get('updatetime', 0),
             })
         return True
 
@@ -334,7 +333,6 @@ class Scheduler(object):
                     continue
 
                 # inform processor project may updated
-                task['project_updatetime'] = self.projects[project].get('updatetime', 0)
                 task = self.on_select_task(task)
                 cnt += 1
             cnt_dict[project] = cnt
@@ -688,9 +686,16 @@ class Scheduler(object):
 
     def on_select_task(self, task):
         '''Called when a task is selected to fetch & process'''
+        # inject informations about project
         logger.info('select %(project)s:%(taskid)s %(url)s', task)
+
+        project_info = self.projects.get(task['project'])
+        assert project_info, 'no such project'
+        task['group'] = project_info.get('group')
+        task['project_md5sum'] = project_info.get('md5sum')
+        task['project_updatetime'] = project_info.get('updatetime', 0)
+        project_info['active_tasks'].appendleft((time.time(), task))
         self.send_task(task)
-        self.projects[task['project']]['active_tasks'].appendleft((time.time(), task))
         return task
 
 
@@ -758,7 +763,6 @@ class OneScheduler(Scheduler):
                     task = dbtask
 
             # select the task
-            task['project_updatetime'] = self.projects[project].get('updatetime', 0)
             self.on_select_task(task)
             is_crawled.append(True)
 
