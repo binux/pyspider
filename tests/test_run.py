@@ -192,7 +192,7 @@ class TestRun(unittest.TestCase):
             '--resultdb', 'sqlite+resultdb:///data/tests/all_test_result.db',
             '--projectdb', 'local+projectdb://'+inspect.getsourcefile(data_sample_handler),
             'all',
-        ], close_fds=True)
+        ], close_fds=True, preexec_fn=os.setsid)
 
 
         try:
@@ -228,7 +228,7 @@ class TestRun(unittest.TestCase):
         finally:
             while p.returncode is None:
                 time.sleep(1)
-                p.send_signal(signal.SIGINT)
+                os.killpg(p.pid, signal.SIGTERM)
                 p.poll()
 
     def test_a110_one(self):

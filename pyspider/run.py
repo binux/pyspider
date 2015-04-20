@@ -368,8 +368,9 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 @cli.command()
 @click.option('--phantomjs-path', default='phantomjs', help='phantomjs path')
 @click.option('--port', default=25555, help='phantomjs port')
+@click.option('--auto-restart', default=False, help='auto restart phantomjs if crashed')
 @click.pass_context
-def phantomjs(ctx, phantomjs_path, port):
+def phantomjs(ctx, phantomjs_path, port, auto_restart):
     """
     Run phantomjs fetcher if phantomjs is installed.
     """
@@ -406,7 +407,7 @@ def phantomjs(ctx, phantomjs_path, port):
 
     while True:
         _phantomjs.wait()
-        if _quit:
+        if _quit or not auto_restart:
             break
         _phantomjs = subprocess.Popen(cmd)
 
@@ -439,6 +440,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     try:
         # phantomjs
         phantomjs_config = g.config.get('phantomjs', {})
+        phantomjs_config.setdefault('auto_restart', True)
         threads.append(run_in(ctx.invoke, phantomjs, **phantomjs_config))
 
         # result worker
