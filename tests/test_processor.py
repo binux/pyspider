@@ -12,6 +12,7 @@ import unittest2 as unittest
 import logging.config
 logging.config.fileConfig("pyspider/logging.conf")
 
+from pyspider.libs import utils
 from pyspider.processor.project_module import ProjectManager
 
 
@@ -400,7 +401,7 @@ class TestProcessor(unittest.TestCase):
             },
             "project": "test_broken_project",
             "taskid": "data:,on_start",
-            "url": "data:,on_start"
+            "url": "data:,on_start",
         }
         fetch_result = {
             "orig_url": "data:,on_start",
@@ -420,3 +421,70 @@ class TestProcessor(unittest.TestCase):
         self.assertGreater(len(status['track']['process']['logs']), 0)
         self.assertIsNotNone(status['track']['process']['exception'])
         self.assertTrue(self.newtask_queue.empty())
+
+    def test_70_update_project(self):
+        self.processor.project_manager.CHECK_PROJECTS_INTERVAL = 1000000
+        self.assertIsNotNone(self.processor.project_manager.get('test_broken_project'))
+        # clear new task queue
+        while not self.newtask_queue.empty():
+            self.newtask_queue.get()
+        # clear status queue
+        while not self.status_queue.empty():
+            self.status_queue.get()
+
+        task = {
+            "process": {
+                "callback": "on_start"
+            },
+            "project": "test_broken_project",
+            "taskid": "data:,on_start",
+            "url": "data:,on_start"
+        }
+        fetch_result = {
+            "orig_url": "data:,on_start",
+            "content": "on_start",
+            "headers": {},
+            "status_code": 200,
+            "url": "data:,on_start",
+            "time": 0,
+        }
+
+        self.projectdb.update('test_broken_project', {
+            'script': inspect.getsource(sample_handler),
+        })
+
+        # not update
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        while not self.status_queue.empty():
+            status = self.status_queue.get()
+        self.assertEqual(status['track']['fetch']['ok'], True)
+        self.assertEqual(status['track']['process']['ok'], False)
+
+        # updated
+        task['project_updatetime'] = time.time()
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        while not self.status_queue.empty():
+            status = self.status_queue.get()
+        self.assertEqual(status['track']['fetch']['ok'], True)
+        self.assertEqual(status['track']['process']['ok'], True)
+
+        self.projectdb.update('test_broken_project', {
+            'script': inspect.getsource(sample_handler)[:10],
+        })
+
+        # update with md5
+        task['project_md5sum'] = 'testmd5'
+        del task['project_updatetime']
+        self.in_queue.put((task, fetch_result))
+        time.sleep(1)
+        self.assertFalse(self.status_queue.empty())
+        while not self.status_queue.empty():
+            status = self.status_queue.get()
+        self.assertEqual(status['track']['fetch']['ok'], True)
+        self.assertEqual(status['track']['process']['ok'], False)
+
+        self.processor.project_manager.CHECK_PROJECTS_INTERVAL = 0.1
