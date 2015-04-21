@@ -161,13 +161,10 @@ class TaskDBCase(object):
 class ProjectDBCase(object):
     sample_project = {
         'name': 'name',
-        'group': 'group',
-        'status': 'TODO',
         'script': 'import time\nprint(time.time())',
-        'comments': 'test project',
+        'status': 'TODO',
         'rate': 1.0,
         'burst': 10.0,
-        'updatetime': time.time(),
     }
 
     @classmethod
@@ -188,15 +185,17 @@ class ProjectDBCase(object):
         projects = list(self.projectdb.get_all())
         self.assertEqual(len(projects), 2)
         project = projects[0]
+        for key in ('name', 'group', 'status', 'script', 'comments', 'rate', 'burst', 'updatetime'):
+            self.assertIn(key, project)
+
         self.assertEqual(project['name'], u'abc')
-        self.assertEqual(project['group'], self.sample_project['group'])
         self.assertEqual(project['status'], self.sample_project['status'])
         self.assertEqual(project['script'], self.sample_project['script'])
-        self.assertEqual(project['comments'], self.sample_project['comments'])
         self.assertEqual(project['rate'], self.sample_project['rate'])
         self.assertEqual(type(project['rate']), float)
         self.assertEqual(project['burst'], self.sample_project['burst'])
         self.assertEqual(type(project['burst']), float)
+
 
         projects = list(self.projectdb.get_all(fields=['name', 'script']))
         self.assertEqual(len(projects), 2)
@@ -223,6 +222,12 @@ class ProjectDBCase(object):
         project = projects[0]
         self.assertEqual(project['name'], 'abc')
         self.assertEqual(project['status'], 'RUNNING')
+
+    def test_45_check_update_when_bootup(self):
+        projects = list(self.projectdb.check_update(0))
+        project = projects[0]
+        for key in ('name', 'group', 'status', 'script', 'comments', 'rate', 'burst', 'updatetime'):
+            self.assertIn(key, project)
 
     def test_50_get(self):
         project = self.projectdb.get('not_found')

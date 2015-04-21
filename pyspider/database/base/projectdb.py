@@ -7,6 +7,8 @@
 
 import re
 
+# NOTE: When get/get_all/check_update from database with default fields,
+#       all following fields should be included in output dict.
 {
     'project': {
         'name': str,

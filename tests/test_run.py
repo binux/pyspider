@@ -226,10 +226,9 @@ class TestRun(unittest.TestCase):
         except:
             raise
         finally:
-            while p.returncode is None:
-                time.sleep(1)
-                os.killpg(p.pid, signal.SIGTERM)
-                p.poll()
+            time.sleep(1)
+            os.killpg(p.pid, signal.SIGTERM)
+            p.wait()
 
     def test_a110_one(self):
         pid, fd = os.forkpty()
