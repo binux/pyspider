@@ -26,7 +26,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             collection_name = self._collection_name(project)
             self.database[collection_name].ensure_index('status')
 
-    def _parse(self, data, fields=()):
+    def _parse(self, data):
         if '_id' in data:
             del data['_id']
         for each in ('schedule', 'fetch', 'process', 'track'):
@@ -37,9 +37,6 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                     data[each] = json.loads(data[each], 'utf8')
                 else:
                     data[each] = {}
-        if fields:
-            for each in fields:
-                data.setdefault(each, None)
         return data
 
     def _stringify(self, data):
@@ -60,7 +57,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for project in projects:
             collection_name = self._collection_name(project)
             for task in self.database[collection_name].find({'status': status}, fields=fields):
-                yield self._parse(task, fields)
+                yield self._parse(task)
 
     def get_task(self, project, taskid, fields=None):
         if project not in self.projects:
@@ -71,7 +68,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         ret = self.database[collection_name].find_one({'taskid': taskid}, fields=fields)
         if not ret:
             return ret
-        return self._parse(ret, fields)
+        return self._parse(ret)
 
     def status_count(self, project):
         if project not in self.projects:
