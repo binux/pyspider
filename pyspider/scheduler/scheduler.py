@@ -628,6 +628,15 @@ class Scheduler(object):
         '''Called when a task is done and success, called by `on_task_status`'''
         task['status'] = self.taskdb.SUCCESS
         task['lastcrawltime'] = time.time()
+
+        if 'schedule' in task:
+            if task['schedule'].get('auto_recrawl') and 'age' in task['schedule']:
+                task['status'] = self.taskdb.ACTIVE
+                next_exetime = task['schedule'].get('age')
+                task['schedule']['exetime'] = time.time() + next_exetime
+                self.put_task(task)
+            else:
+                del task['schedule']
         self.update_task(task)
 
         project = task['project']
@@ -640,11 +649,12 @@ class Scheduler(object):
 
     def on_task_failed(self, task):
         '''Called when a task is failed, called by `on_task_status`'''
-        old_task = self.taskdb.get_task(task['project'], task['taskid'], fields=['schedule'])
-        if old_task is None:
-            logging.error('unknown status pack: %s' % task)
-            return
-        if not task.get('schedule'):
+
+        if 'schedule' not in task:
+            old_task = self.taskdb.get_task(task['project'], task['taskid'], fields=['schedule'])
+            if old_task is None:
+                logging.error('unknown status pack: %s' % task)
+                return
             task['schedule'] = old_task.get('schedule', {})
 
         retries = task['schedule'].get('retries', self.default_schedule['retries'])
@@ -656,7 +666,12 @@ class Scheduler(object):
         else:
             next_exetime = 6 * (2 ** retried) * 60 * 60
 
-        if retried >= retries:
+        if task['schedule'].get('auto_recrawl') and 'age' in task['schedule']:
+            next_exetime = min(next_exetime, task['schedule'].get('age'))
+        elif retried >= retries:
+            next_exetime = -1
+
+        if next_exetime < 0:
             task['status'] = self.taskdb.FAILED
             task['lastcrawltime'] = time.time()
             self.update_task(task)

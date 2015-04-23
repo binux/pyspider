@@ -394,7 +394,10 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        time.sleep(0.2)
+
+        from six.moves import queue as Queue
+        with self.assertRaises(Queue.Empty):
+            self.scheduler2fetcher.get(timeout=5)
 
     def test_a30_task_verify(self):
         self.assertFalse(self.rpc.newtask({
@@ -422,6 +425,93 @@ class TestScheduler(unittest.TestCase):
             'project': 'test_project',
             'url': 'url',
         }))
+
+    def test_a40_success_recrawl(self):
+        self.newtask_queue.put({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url',
+            'fetch': {
+                'data': 'abc',
+            },
+            'process': {
+                'data': 'abc',
+            },
+            'schedule': {
+                'age': 0,
+                'retries': 1,
+                'auto_recrawl': True,
+            },
+        })
+        task = self.scheduler2fetcher.get(timeout=10)
+        self.assertIsNotNone(task)
+
+        self.status_queue.put({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url',
+            'schedule': {
+                'age': 0,
+                'retries': 1,
+                'auto_recrawl': True,
+            },
+            'track': {
+                'fetch': {
+                    'ok': True
+                },
+                'process': {
+                    'ok': True
+                },
+            }
+        })
+        task = self.scheduler2fetcher.get(timeout=10)
+        self.assertIsNotNone(task)
+
+    def test_a50_failed_recrawl(self):
+        for i in range(3):
+            self.status_queue.put({
+                'taskid': 'taskid',
+                'project': 'test_project',
+                'url': 'url',
+                'schedule': {
+                    'age': 0,
+                    'retries': 1,
+                    'auto_recrawl': True,
+                },
+                'track': {
+                    'fetch': {
+                        'ok': True
+                    },
+                    'process': {
+                        'ok': False
+                    },
+                }
+            })
+            task = self.scheduler2fetcher.get(timeout=10)
+            self.assertIsNotNone(task)
+
+    def test_a60_disable_recrawl(self):
+        self.status_queue.put({
+            'taskid': 'taskid',
+            'project': 'test_project',
+            'url': 'url',
+            'schedule': {
+                'age': 0,
+                'retries': 1,
+            },
+            'track': {
+                'fetch': {
+                    'ok': True
+                },
+                'process': {
+                    'ok': True
+                },
+            }
+        })
+
+        from six.moves import queue as Queue
+        with self.assertRaises(Queue.Empty):
+            self.scheduler2fetcher.get(timeout=5)
 
     def test_x10_inqueue_limit(self):
         self.projectdb.insert('test_inqueue_project', {
@@ -466,7 +556,7 @@ class TestScheduler(unittest.TestCase):
         self.assertFalse(self.process.is_alive())
         self.assertEqual(
             self.taskdb.get_task('test_project', 'taskid')['status'],
-            self.taskdb.FAILED
+            self.taskdb.SUCCESS
         )
 
 if __name__ == '__main__':

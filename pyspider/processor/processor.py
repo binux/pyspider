@@ -139,6 +139,7 @@ class Processor(object):
                 'taskid': task['taskid'],
                 'project': task['project'],
                 'url': task.get('url'),
+                'schedule': task.get('schedule', {}),
                 'track': {
                     'fetch': {
                         'ok': response.isok(),
