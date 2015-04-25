@@ -206,7 +206,7 @@ class Scheduler(object):
         '''Check status queue'''
         cnt = 0
         try:
-            while cnt < self.LOOP_LIMIT:
+            while True:
                 task = self.status_queue.get_nowait()
                 if not self.task_verify(task):
                     continue

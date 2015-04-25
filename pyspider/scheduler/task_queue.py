@@ -168,7 +168,7 @@ class TaskQueue(object):
                 continue
             task.exetime = 0
             self.priority_queue.put(task)
-            logger.info("[processing: retry] %s" % task.taskid)
+            logger.info("processing: retry %s", task.taskid)
         self.mutex.release()
 
     def put(self, taskid, priority=0, exetime=0):

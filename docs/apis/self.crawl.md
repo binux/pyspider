@@ -19,6 +19,7 @@ self.crawl(url, **kwargs)
 * `exetime`
 * `retries`
 * `itag` - compare to its last value, re-crawl when it's changed.
+* `auto_recrawl` - when enabled, task would be recrawled every `age` time.
 
 ### fetch
 * `method`
