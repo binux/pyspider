@@ -262,6 +262,8 @@ class BaseHandler(object):
                 'save',
                 'js_run_at',
                 'js_script',
+                'js_viewport_width',
+                'js_viewport_height',
                 'load_images',
                 'fetch_type',
                 'use_gzip',

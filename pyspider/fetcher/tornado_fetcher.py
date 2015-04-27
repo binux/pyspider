@@ -333,8 +333,6 @@ class Fetcher(object):
 
         return make_request(fetch)
 
-    phantomjs_adding_options = ['js_run_at', 'js_script', 'load_images']
-
     def phantomjs_fetch(self, url, task, callback):
         '''Fetch with phantomjs proxy'''
         start_time = time.time()
