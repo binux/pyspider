@@ -135,3 +135,29 @@ class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
             self.q2.get()
         while not self.q3.empty():
             self.q3.get()
+
+@unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
+class TestRedisQueue(TestMessageQueue, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        from pyspider.libs import redis_queue
+        with utils.timeout(3):
+            self.q1 = redis_queue.RedisQueue('test_queue', maxsize=5, lazy_limit=False)
+            self.q2 = redis_queue.RedisQueue('test_queue', maxsize=5, lazy_limit=False)
+            self.q3 = redis_queue.RedisQueue('test_queue_for_threading_test')
+            while not self.q1.empty():
+                self.q1.get()
+            while not self.q2.empty():
+                self.q2.get()
+            while not self.q3.empty():
+                self.q3.get()
+
+    @classmethod
+    def tearDownClass(self):
+        while not self.q1.empty():
+            self.q1.get()
+        while not self.q2.empty():
+            self.q2.get()
+        while not self.q3.empty():
+            self.q3.get()

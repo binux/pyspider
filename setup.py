@@ -76,7 +76,8 @@ setup(
             'amqp>=1.3.0',
             'pymongo>=2.7.2,<3.0',
             'unittest2>=0.5.1',
-            'SQLAlchemy>=0.9.7'
+            'SQLAlchemy>=0.9.7',
+            'redis',
         ],
     },
 

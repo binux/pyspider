@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2012-11-15 17:27:54
 
-import six
 import time
 import socket
 import select
@@ -14,8 +13,6 @@ import umsgpack
 import threading
 
 import amqp
-import pika
-import pika.exceptions
 from six.moves import queue as BaseQueue
 from six.moves.urllib.parse import unquote
 try:
@@ -26,6 +23,9 @@ except ImportError:
 
 def catch_error(func):
     """Catch errors of rabbitmq then reconnect"""
+    import amqp
+    import pika.exceptions
+
     def wrap(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
@@ -83,6 +83,9 @@ class PikaQueue(object):
 
     def reconnect(self):
         """Reconnect to rabbitmq server"""
+        import pika
+        import pika.exceptions
+
         self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
         self.channel = self.connection.channel()
         try:
