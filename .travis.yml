@@ -7,6 +7,7 @@ python:
 services:
     - mongodb
     - rabbitmq
+    - redis-server
 #addons:
     #postgresql: "9.4"
 before_install:
