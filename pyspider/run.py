@@ -442,6 +442,9 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         phantomjs_config = g.config.get('phantomjs', {})
         phantomjs_config.setdefault('auto_restart', True)
         threads.append(run_in(ctx.invoke, phantomjs, **phantomjs_config))
+        time.sleep(2)
+        if threads[-1].is_alive() and not g.get('phantomjs_proxy'):
+            g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_config.get('port', 25555)
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
