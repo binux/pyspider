@@ -22,9 +22,9 @@ or running with [fig](http://www.fig.sh/) with `fig.yml`:
 
 ```
 mysql:
-  image: dockerfile/mysql:latest
+  image: mysql:latest
 rabbitmq:
-  image: dockerfile/rabbitmq:latest
+  image: rabbitmq:latest
 phantomjs:
   image: cmfatih/phantomjs:latest
   expose:
