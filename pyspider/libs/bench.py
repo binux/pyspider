@@ -9,6 +9,7 @@ import time
 import logging
 logger = logging.getLogger('bench')
 
+from six.moves import queue as Queue
 from pyspider.scheduler import Scheduler
 from pyspider.fetcher.tornado_fetcher import Fetcher
 from pyspider.processor import Processor
@@ -155,7 +156,11 @@ def bench_test_message_queue(queue):
         logger.info("message queue get %d", n)
         start_time = time.time()
         for i in range(n):
-            queue.get_nowait()
+            try:
+                queue.get(True, 1)
+            except Queue.Empty:
+                logger.error('message queue empty while get %d', i)
+                raise
         end_time = time.time()
         cost_time = end_time - start_time
         logger.info("cost %.2fs, %.2f/s %.2fms",
