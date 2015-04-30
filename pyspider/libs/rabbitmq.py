@@ -219,10 +219,10 @@ class AmqpQueue(PikaQueue):
         parsed = urlparse.urlparse(self.amqp_url)
         port = parsed.port or 5672
         self.connection = amqp.Connection(host="%s:%s" % (parsed.hostname, port),
-                                          userid=parsed.username,
-                                          password=parsed.password,
+                                          userid=parsed.username or 'guest',
+                                          password=parsed.password or 'guest',
                                           virtual_host=unquote(
-                                              parsed.path.lstrip('/')))
+                                              parsed.path.lstrip('/') or '%2F'))
         self.channel = self.connection.channel()
         try:
             self.channel.queue_declare(self.name)

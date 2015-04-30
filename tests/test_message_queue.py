@@ -70,8 +70,10 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
         from pyspider.libs import rabbitmq
         with utils.timeout(3):
             self.q1 = rabbitmq.PikaQueue('test_queue', maxsize=5)
-            self.q2 = rabbitmq.PikaQueue('test_queue', maxsize=5)
-            self.q3 = rabbitmq.PikaQueue('test_queue_for_threading_test')
+            #self.q2 = rabbitmq.PikaQueue('test_queue', maxsize=5)
+            #self.q3 = rabbitmq.PikaQueue('test_queue_for_threading_test')
+            self.q2 = rabbitmq.PikaQueue('test_queue', amqp_url='amqp://localhost:5672/%2F', maxsize=5)
+            self.q3 = rabbitmq.PikaQueue('test_queue_for_threading_test', amqp_url='amqp://guest:guest@localhost:5672/')
         self.q2.delete()
         self.q2.reconnect()
         self.q3.delete()
@@ -93,8 +95,8 @@ class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
         from pyspider.libs import rabbitmq
         with utils.timeout(3):
             self.q1 = rabbitmq.AmqpQueue('test_queue', maxsize=5)
-            self.q2 = rabbitmq.AmqpQueue('test_queue', maxsize=5)
-            self.q3 = rabbitmq.AmqpQueue('test_queue_for_threading_test')
+            self.q2 = rabbitmq.AmqpQueue('test_queue', amqp_url='amqp://localhost:5672/%2F', maxsize=5)
+            self.q3 = rabbitmq.AmqpQueue('test_queue_for_threading_test', amqp_url='amqp://guest:guest@localhost:5672/')
         self.q2.delete()
         self.q2.reconnect()
         self.q3.delete()
