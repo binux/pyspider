@@ -80,7 +80,7 @@ refer to: [https://www.rabbitmq.com/uri-spec.html](https://www.rabbitmq.com/uri-
 running
 -------
 
-You should run components alone with subcommands. You may add `&` after command to make it running in background and use [screen](http://linux.die.net/man/1/screen) or [nohub](http://linux.die.net/man/1/nohup) to prevent exit after your ssh session ends. **It's recommended to manage components with [Supervisor](http://supervisord.org/).**
+You should run components alone with subcommands. You may add `&` after command to make it running in background and use [screen](http://linux.die.net/man/1/screen) or [nohup](http://linux.die.net/man/1/nohup) to prevent exit after your ssh session ends. **It's recommended to manage components with [Supervisor](http://supervisord.org/).**
 
 ```
 # start **only one** scheduler instance
