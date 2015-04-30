@@ -146,7 +146,7 @@ def bench_test_message_queue(queue):
         for i in range(n):
             task['url'] = 'http://bench.pyspider.org/?l=%d' % i
             task['taskid'] = md5string(task['url'])
-            queue.put_nowait(task)
+            queue.put(task, block=True, timeout=1)
         end_time = time.time()
         cost_time = end_time - start_time
         logger.info("cost %.2fs, %.2f/s %.2fms",
