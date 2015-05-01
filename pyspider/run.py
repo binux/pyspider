@@ -16,6 +16,7 @@ import logging.config
 
 import click
 import pyspider
+from pyspider.message_queue import connect_message_queue
 from pyspider.database import connect_database
 from pyspider.libs import utils
 
@@ -71,10 +72,14 @@ def connect_rpc(ctx, param, value):
               help='database url for projectdb, default: sqlite')
 @click.option('--resultdb', envvar='RESULTDB', callback=connect_db,
               help='database url for resultdb, default: sqlite')
-@click.option('--amqp-url', envvar='AMQP_URL',
-              help='amqp url for rabbitmq, default: built-in Queue')
+@click.option('--message-queue', envvar='AMQP_URL',
+              help='connection url to message queue, '
+              'default: builtin multiprocessing.Queue')
+@click.option('--amqp-url', help='[deprecated] amqp url for rabbitmq. '
+              'please use --message-queue instead.')
 @click.option('--beanstalk', envvar='BEANSTALK_HOST',
-              help='beanstalk config for beanstalk queue, defalt: localhost:11300')
+              help='[deprecated] beanstalk config for beanstalk queue. '
+              'please use --message-queue instead.')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.version_option(version=pyspider.__version__, prog_name=pyspider.__name__)
@@ -118,32 +123,25 @@ def cli(ctx, **kwargs):
     if not os.path.exists(kwargs['data_path']):
         os.mkdir(kwargs['data_path'])
 
-    # queue
-    if kwargs.get('amqp_url'):
-        from pyspider.libs.rabbitmq import Queue
-        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                     'fetcher2processor', 'processor2result'):
-            kwargs[name] = utils.Get(lambda name=name: Queue(name, amqp_url=kwargs['amqp_url'],
-                                                             maxsize=kwargs['queue_maxsize']))
+    # message queue, compatible with old version
+    if kwargs.get('message_queue'):
+        pass
+    elif kwargs.get('amqp_url'):
+        kwargs['message_queue'] = kwargs['amqp_url']
     elif os.environ.get('RABBITMQ_NAME'):
-        from pyspider.libs.rabbitmq import Queue
-        amqp_url = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
-                    ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
-        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                     'fetcher2processor', 'processor2result'):
-            kwargs[name] = utils.Get(lambda name=name: Queue(name, amqp_url=amqp_url,
-                                                             maxsize=kwargs['queue_maxsize']))
+        kwargs['message_queue'] = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
+                                   ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
     elif kwargs.get('beanstalk'):
-        from pyspider.libs.beanstalk import Queue
-        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                     'fetcher2processor', 'processor2result'):
-            kwargs[name] = utils.Get(lambda name=name: Queue(name, host=kwargs.get('beanstalk'),
-                                                             maxsize=kwargs['queue_maxsize']))
-    else:
-        from multiprocessing import Queue
-        for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
-                     'fetcher2processor', 'processor2result'):
-            kwargs[name] = Queue(kwargs['queue_maxsize'])
+        kwargs['message_queue'] = "beanstalk://%s/" % kwargs['beanstalk']
+
+    for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
+                 'fetcher2processor', 'processor2result'):
+        if kwargs.get('message_queue'):
+            kwargs[name] = utils.Get(lambda name=name: connect_message_queue(
+                name, kwargs.get('message_queue'), kwargs['queue_maxsize']))
+        else:
+            kwargs[name] = connect_message_queue(name, kwargs.get('message_queue'),
+                                                 kwargs['queue_maxsize'])
 
     # phantomjs-proxy
     if kwargs.get('phantomjs_proxy'):

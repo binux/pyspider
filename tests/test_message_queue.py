@@ -67,11 +67,9 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        from pyspider.libs import rabbitmq
+        from pyspider.message_queue import rabbitmq
         with utils.timeout(3):
             self.q1 = rabbitmq.PikaQueue('test_queue', maxsize=5)
-            #self.q2 = rabbitmq.PikaQueue('test_queue', maxsize=5)
-            #self.q3 = rabbitmq.PikaQueue('test_queue_for_threading_test')
             self.q2 = rabbitmq.PikaQueue('test_queue', amqp_url='amqp://localhost:5672/%2F', maxsize=5)
             self.q3 = rabbitmq.PikaQueue('test_queue_for_threading_test', amqp_url='amqp://guest:guest@localhost:5672/')
         self.q2.delete()
@@ -92,11 +90,14 @@ class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        from pyspider.libs import rabbitmq
+        from pyspider.message_queue import connect_message_queue
         with utils.timeout(3):
-            self.q1 = rabbitmq.AmqpQueue('test_queue', maxsize=5)
-            self.q2 = rabbitmq.AmqpQueue('test_queue', amqp_url='amqp://localhost:5672/%2F', maxsize=5)
-            self.q3 = rabbitmq.AmqpQueue('test_queue_for_threading_test', amqp_url='amqp://guest:guest@localhost:5672/')
+            self.q1 = connect_message_queue('test_queue', 'amqp://localhost:5672/',
+                                            maxsize=5)
+            self.q2 = connect_message_queue('test_queue', 'amqp://localhost:5672/%2F',
+                                            maxsize=5)
+            self.q3 = connect_message_queue('test_queue_for_threading_test',
+                                            'amqp://guest:guest@localhost:5672/')
         self.q2.delete()
         self.q2.reconnect()
         self.q3.delete()
@@ -117,11 +118,14 @@ class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        from pyspider.libs import beanstalk
+        from pyspider.message_queue import connect_message_queue
         with utils.timeout(3):
-            self.q1 = beanstalk.BeanstalkQueue('test_queue', maxsize=5)
-            self.q2 = beanstalk.BeanstalkQueue('test_queue', maxsize=5)
-            self.q3 = beanstalk.BeanstalkQueue('test_queue_for_threading_test')
+            self.q1 = connect_message_queue('test_queue', 'beanstalk://localhost:11300',
+                                            maxsize=5)
+            self.q2 = connect_message_queue('test_queue', 'beanstalk://localhost:11300',
+                                            maxsize=5)
+            self.q3 = connect_message_queue('test_queue_for_threading_test',
+                                            'beanstalk://localhost:11300')
             while not self.q1.empty():
                 self.q1.get()
             while not self.q2.empty():
@@ -143,11 +147,13 @@ class TestRedisQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        from pyspider.libs import redis_queue
+        from pyspider.message_queue import connect_message_queue
+        from pyspider.message_queue import redis_queue
         with utils.timeout(3):
             self.q1 = redis_queue.RedisQueue('test_queue', maxsize=5, lazy_limit=False)
             self.q2 = redis_queue.RedisQueue('test_queue', maxsize=5, lazy_limit=False)
-            self.q3 = redis_queue.RedisQueue('test_queue_for_threading_test')
+            self.q3 = connect_message_queue('test_queue_for_threading_test',
+                                            'redis://localhost:6379/')
             while not self.q1.empty():
                 self.q1.get()
             while not self.q2.empty():

@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
+# Author: Binux<roy@binux.me>
+#         http://binux.me
+# Created on 2015-04-30 21:47:08
+
+try:
+    from urllib import parse as urlparse
+except ImportError:
+    import urlparse
+
+
+def connect_message_queue(name, url=None, maxsize=0):
+    """
+    create connection to message queue
+
+    name:
+        name of message queue
+
+    rabbitmq:
+        amqp://username:password@host:5672/%2F
+        Refer: https://www.rabbitmq.com/uri-spec.html
+    beanstalk:
+        beanstalk://host:11300/
+    redis:
+        redis://host:6379/db
+    builtin:
+        None
+    """
+
+    if not url:
+        from multiprocessing import Queue
+        return Queue(maxsize=maxsize)
+
+    parsed = urlparse.urlparse(url)
+    if parsed.scheme == 'amqp':
+        from .rabbitmq import Queue
+        return Queue(name, url, maxsize=maxsize)
+    elif parsed.scheme == 'beanstalk':
+        from .beanstalk import Queue
+        return Queue(name, host=parsed.netloc, maxsize=maxsize)
+    elif parsed.scheme == 'redis':
+        from .redis_queue import Queue
+        db = parsed.path.lstrip('/').split('/')
+        try:
+            db = int(db[0])
+        except:
+            db = 0
+
+        return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize)
+
+    raise Exception('unknow connection url: %s', url)

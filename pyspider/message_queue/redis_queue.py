@@ -102,3 +102,5 @@ class RedisQueue(object):
                         raise
                 else:
                     time.sleep(self.max_timeout)
+
+Queue = RedisQueue
