@@ -152,9 +152,6 @@ class BaseHandler(object):
         Finding callback specified by `task['callback']`
         raising status error for it if needed.
         """
-        self._reset()
-        if isinstance(response, dict):
-            response = rebuild_response(response)
         process = task.get('process', {})
         callback = process.get('callback', '__call__')
         if not hasattr(self, callback):
@@ -177,11 +174,15 @@ class BaseHandler(object):
         exception = None
         stdout = sys.stdout
         self.task = task
+        if isinstance(response, dict):
+            response = rebuild_response(response)
         self.response = response
+        self.save = (task.get('track') or {}).get('save', {})
 
         try:
             if self.__env__.get('enable_stdout_capture', True):
                 sys.stdout = ListO(module.log_buffer)
+            self._reset()
             result = self._run_task(task, response)
             if inspect.isgenerator(result):
                 for r in result:
@@ -192,16 +193,19 @@ class BaseHandler(object):
             logger.exception(e)
             exception = e
         finally:
-            self.task = None
-            self.response = None
-            sys.stdout = stdout
             follows = self._follows
             messages = self._messages
             logs = list(module.log_buffer)
             extinfo = self._extinfo
+            save = self.save
+
+            sys.stdout = stdout
+            self.task = None
+            self.response = None
+            self.save = None
 
         module.log_buffer[:] = []
-        return ProcessorResult(result, follows, messages, logs, exception, extinfo)
+        return ProcessorResult(result, follows, messages, logs, exception, extinfo, save)
 
     def _crawl(self, url, **kwargs):
         """

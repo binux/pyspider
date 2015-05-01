@@ -48,6 +48,7 @@
                 'logs': str,
                 'exception': str,
             },
+            'save': object,  # jsonable object saved by processor
         },  # finish
         'lastcrawltime': int,  # keep between request
         'updatetime': int,  # keep between request

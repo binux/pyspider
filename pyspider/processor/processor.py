@@ -24,13 +24,14 @@ class ProcessorResult(object):
     """The result and logs producted by a callback"""
 
     def __init__(self, result=None, follows=(), messages=(),
-                 logs=(), exception=None, extinfo={}):
+                 logs=(), exception=None, extinfo={}, save=None):
         self.result = result
         self.follows = follows
         self.messages = messages
         self.logs = logs
         self.exception = exception
         self.extinfo = extinfo
+        self.save = save
 
     def rethrow(self):
         """rethrow the exception"""
@@ -162,6 +163,7 @@ class Processor(object):
                         'logs': ret.logstr()[-self.RESULT_LOGS_LIMIT:],
                         'exception': ret.exception,
                     },
+                    'save': ret.save,
                 },
             }
 

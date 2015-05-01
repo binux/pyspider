@@ -290,14 +290,16 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertFalse(result)
 
     def test_a180_save(self):
-        status, newtasks, result = self.crawl(callback=self.save, save={'roy': 'binux', u'中文': 'value'})
+        status, newtasks, result = self.crawl(callback=self.get_save,
+                                              save={'roy': 'binux', u'中文': 'value'})
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
         self.assertEqual(result, {'roy': 'binux', u'中文': 'value'})
 
     def test_a190_taskid(self):
-        status, newtasks, result = self.crawl(callback=self.save, taskid='binux-taskid')
+        status, newtasks, result = self.crawl(callback=self.get_save,
+                                              taskid='binux-taskid')
 
         self.assertStatusOk(status)
         self.assertEqual(status['taskid'], 'binux-taskid')
@@ -378,6 +380,21 @@ class TestFetcherProcessor(unittest.TestCase):
 
         self.assertStatusOk(status)
         self.assertEqual(result, 200)
+
+    def test_a260_process_save(self):
+        status, newtasks, result = self.crawl(callback=self.set_process_save)
+
+        self.assertStatusOk(status)
+        self.assertIn('roy', status['track']['save'])
+        self.assertEqual(status['track']['save']['roy'], 'binux')
+
+        status, newtasks, result = self.crawl(callback=self.get_process_save,
+                                              track=status['track'])
+
+        self.assertStatusOk(status)
+        self.assertIn('roy', result)
+        self.assertEqual(result['roy'], 'binux')
+
 
     def test_zzz_links(self):
         status, newtasks, result = self.crawl(self.httpbin+'/links/10/0', callback=self.links)

@@ -38,8 +38,14 @@ class Handler(BaseHandler):
     def cookies(self, response):
         return response.cookies
 
-    def save(self, response):
+    def get_save(self, response):
         return response.save
+
+    def get_process_save(self, response):
+        return self.save
+
+    def set_process_save(self, response):
+        self.save['roy'] = 'binux'
 
 class IgnoreHandler(BaseHandler):
     pass
