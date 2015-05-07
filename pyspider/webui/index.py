@@ -6,19 +6,59 @@
 # Created on 2014-02-22 23:20:39
 
 import socket
+import inspect
+import datetime
+
+from pyspider.libs import sample_handler
 
 from flask import render_template, request, json
 from flask.ext import login
 from .app import app
+import re
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', 'updatetime']
-
+default_script = inspect.getsource(sample_handler)
 
 @app.route('/')
 def index():
     projectdb = app.config['projectdb']
 
     return render_template("index.html", projects=projectdb.get_all(fields=index_fields))
+
+@app.route('/create', methods=['POST', ]) 
+def project_save():
+    project = request.form['name']
+    target_site = request.form['target'] # Won't do anything with this data just yet
+    group = request.form['group']
+
+    if re.search(r"[^\w]", project):
+        print("\n--In here--\n")
+        return 'project name is not allowed!', 400
+
+    projectdb = app.config['projectdb']
+    info = {
+            'name': project,
+            'status': 'TODO',
+            'rate': app.config.get('max_rate', 1),
+            'burst': app.config.get('max_burst', 3),
+            'group': group,
+            'script': (default_script
+                  .replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                  .replace('__PROJECT_NAME__', project)),
+
+        }
+    projectdb.insert(project, info)
+
+    rpc = app.config['scheduler_rpc']
+    if rpc is not None:
+        try:
+            rpc.update_project()
+        except socket.error as e:
+            app.logger.warning('connect to scheduler rpc error: %r', e)
+            return 'rpc error', 200
+
+    return 'ok', 200
+
 
 
 @app.route('/queues')
