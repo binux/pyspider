@@ -401,27 +401,27 @@ class TestScheduler(unittest.TestCase):
 
     def test_a30_task_verify(self):
         self.assertFalse(self.rpc.newtask({
-            #'taskid': 'taskid',
+            #'taskid': 'taskid#',
             'project': 'test_project',
             'url': 'url',
         }))
         self.assertFalse(self.rpc.newtask({
-            'taskid': 'taskid',
+            'taskid': 'taskid#',
             #'project': 'test_project',
             'url': 'url',
         }))
         self.assertFalse(self.rpc.newtask({
-            'taskid': 'taskid',
+            'taskid': 'taskid#',
             'project': 'test_project',
             #'url': 'url',
         }))
         self.assertFalse(self.rpc.newtask({
-            'taskid': 'taskid',
+            'taskid': 'taskid#',
             'project': 'not_exist_project',
             'url': 'url',
         }))
         self.assertTrue(self.rpc.newtask({
-            'taskid': 'taskid',
+            'taskid': 'taskid#',
             'project': 'test_project',
             'url': 'url',
         }))
@@ -524,7 +524,7 @@ class TestScheduler(unittest.TestCase):
             'burst': 0,
         })
         time.sleep(0.1)
-        self.assertLess(self.rpc.size(), 10)
+        pre_size = self.rpc.size()
         for i in range(20):
             self.newtask_queue.put({
                 'taskid': 'taskid%d' % i,
@@ -536,11 +536,11 @@ class TestScheduler(unittest.TestCase):
                 },
             })
         time.sleep(1)
-        self.assertEqual(self.rpc.size(), 10)
+        self.assertEqual(self.rpc.size() - pre_size, 10)
 
     def test_x20_delete_project(self):
         self.assertIsNotNone(self.projectdb.get('test_inqueue_project'))
-        self.assertIsNotNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
+        #self.assertIsNotNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
         self.projectdb.update('test_inqueue_project', status="STOP", group="lock,delete")
         time.sleep(1)
         self.assertIsNone(self.projectdb.get('test_inqueue_project'))
