@@ -401,3 +401,20 @@ class TestWebUI(unittest.TestCase):
     def test_x50_tasks(self):
         rv = self.app.get('/tasks')
         self.assertEqual(rv.status_code, 502)
+
+    def test_index_create_prompt_exists(self):
+        rv = self.app.get('/')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'Project Name', rv.data)
+        self.assertIn(b'Target website', rv.data)
+        self.assertIn(b'Grouping', rv.data)
+        self.assertIn(b'id="confirm-create"', rv.data)
+    
+    def test_index_posts_to_create_path(self):
+        rv = self.app.post('/create', data={
+            'name': "Test-project",
+            'target': "www.This-Does-Not-Matter-Yet.com",
+            'group': "Group of Winners"
+        }))
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'project-create', rv.data)
