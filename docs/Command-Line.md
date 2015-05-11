@@ -15,13 +15,20 @@ Usage: pyspider [OPTIONS] COMMAND [ARGS]...
 
 Options:
   -c, --config FILENAME    a json file with default values for subcommands.
-                           {"webui": {"port":5001}}
+                           {“webui”: {“port”:5001}}
+  --logging-config TEXT    logging config file for built-in python logging
+                           module  [default: pyspider/pyspider/logging.conf]
   --debug                  debug mode
   --queue-maxsize INTEGER  maxsize of queue
   --taskdb TEXT            database url for taskdb, default: sqlite
   --projectdb TEXT         database url for projectdb, default: sqlite
   --resultdb TEXT          database url for resultdb, default: sqlite
-  --amqp-url TEXT          amqp url for rabbitmq, default: built-in Queue
+  --message-queue TEXT     connection url to message queue, default: builtin
+                           multiprocessing.Queue
+  --amqp-url TEXT          [deprecated] amqp url for rabbitmq. please use
+                           --message-queue instead.
+  --beanstalk TEXT         [deprecated] beanstalk config for beanstalk queue.
+                           please use --message-queue instead.
   --phantomjs-proxy TEXT   phantomjs proxy ip:port
   --data-path TEXT         data dir path
   --version                Show the version and exit.
@@ -37,7 +44,7 @@ Config file is a JSON file with config values for global options or subcommands 
   "taskdb": "mysql+taskdb://username:password@host:port/taskdb",
   "projectdb": "mysql+projectdb://username:password@host:port/projectdb",
   "resultdb": "mysql+resultdb://username:password@host:port/resultdb",
-  "amqp_url": "amqp://username:password@host:port/%2F",
+  “message_queue”: "amqp://username:password@host:port/%2F",
   "webui": {
     "username": "some_name",
     "password": "some_passwd",
@@ -77,9 +84,19 @@ type:
 ```
 
 
-#### --amqp-url
+#### --message-queue
 
-See [https://www.rabbitmq.com/uri-spec.html](https://www.rabbitmq.com/uri-spec.html)
+```
+    rabbitmq:
+        amqp://username:password@host:5672/%2F
+        Refer: https://www.rabbitmq.com/uri-spec.html
+    beanstalk:
+        beanstalk://host:11300/
+    redis:
+        redis://host:6379/db
+    builtin:
+        None
+```
 
 #### --phantomjs-proxy
 
@@ -304,3 +321,5 @@ XML-RPC path URI for fetcher XMLRPC server. If not set, use a Fetcher instance.
 #### --need-auth
 
 If true, all pages require username and password specified via `--username` and `--password`.
+
+

@@ -10,7 +10,7 @@ Installation
 
 To deploy pyspider components in each single processes, you need at least one database service. pyspider now supports [MySQL](http://www.mysql.com/), [MongoDB](http://www.mongodb.org/) and [PostgreSQL](http://www.postgresql.org/). You can choose one of them.
 
-And you need a message queue service to connect the components together. [RabbitMQ](http://www.rabbitmq.com/) is the only choice currently.
+And you need a message queue service to connect the components together. You can use [RabbitMQ](http://www.rabbitmq.com/), [Beanstalk](http://kr.github.io/beanstalkd/) or [Redis](http://redis.io/) as message queue.
 
 `pip install --allow-all-external pyspider[all]`
 
@@ -36,7 +36,7 @@ Although you can use command-line to specify the parameters. A config file is a 
   "taskdb": "mysql+taskdb://username:password@host:port/taskdb",
   "projectdb": "mysql+projectdb://username:password@host:port/projectdb",
   "resultdb": "mysql+resultdb://username:password@host:port/resultdb",
-  "amqp_url": "amqp://username:password@host:port/%2F",
+  "message_queue": "amqp://username:password@host:port/%2F",
   "webui": {
     "username": "some_name",
     "password": "some_passwd",
@@ -48,7 +48,7 @@ Although you can use command-line to specify the parameters. A config file is a 
 you can get complete options by running `pyspider --help` and `pyspider webui --help` for subcommands. `"webui"` in JSON  is configs for subcommands. You can add parameters for other components similar to this one.
 
 #### Database Connection URI
-`"taskdb"`, `"projectdb", `"resultdb"` is using database connection URI with format below:
+`"taskdb"`, `"projectdb”`, `"resultdb"` is using database connection URI with format below:
 
 ```
 mysql:
@@ -74,8 +74,18 @@ type:
     should be one of `taskdb`, `projectdb`, `resultdb`.
 ```
 
-#### AMPQ URL
-refer to: [https://www.rabbitmq.com/uri-spec.html](https://www.rabbitmq.com/uri-spec.html)
+#### Message Queue URL
+You can use connection URL to specify the message queue:
+
+```
+    rabbitmq:
+        amqp://username:password@host:5672/%2F
+        Refer: https://www.rabbitmq.com/uri-spec.html
+    beanstalk:
+        beanstalk://host:11300/
+    redis:
+        redis://host:6379/db
+```
 
 running
 -------
@@ -101,3 +111,5 @@ pyspider -c config.json webui
 Running with Docker
 -------------------
 Or you want to [Running pyspider with Docker](Running-pyspider-with-Docker)
+
+

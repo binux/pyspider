@@ -4,62 +4,69 @@ self.crawl
 self.crawl(url, **kwargs)
 -------------------------
 
-`self.crawl` is the main interface to tell which url will be followed.
+`self.crawl` is the main interface to tell pyspider which url(s) should be crawled.
 
-###basis
+### Parameters:
 
-* `url` - the url to been followed. Can be a list of urls.
-* `callback` - which method should parse the response. A callback is needed in most case. _default: `__call__` _
+* `url` - the url or url list to be crawled.
+* `callback` - the method to parse the response. _default: `__call__` _  
 
-### schedule
-* `age` - re-crawl if `last_crawl_time + age < now`.  
-> **NOTE: tasks will not restart automatically.** `age` is something like: hey, spider I found this link, don't restart it if you had seen it in `age` seconds, it may not changed.
+the following parameters are optional
 
-* `priority` - higher the better
-* `exetime`
-* `retries`
-* `itag` - compare to its last value, re-crawl when it's changed.
-* `auto_recrawl` - when enabled, task would be recrawled every `age` time.
-
-### fetch
-* `method`
-* `params` - query string, like `?a=b`
-* `data` - post body, `str` or `dict`
-* `files` - `{'filename': ('file.name': 'content')}`
-* `headers` - `dict`
-* `cookies` - `dict`
-* `timeout` - in seconds
+* `age` - the term of validity of the task. The page would be regarded as not modified during the term. _default: 0(never recrawl)_
+* `priority` - the priority of task to be scheduled, higher the better. _default: 0_
+* `exetime` - the executed time of task in unix timestamp. _default: 0(immediately)_
+* `retries` - retry times while failed. _default: 3_
+* `itag` - a marker from frontier page to reveal the potential modification of the task. It will be compared to its last value, recrawl when it's changed. _default: None_
+* `auto_recrawl` - when enabled, task would be recrawled every `age` time. _default: False_
+* `method` - HTTP method to use. _default: GET_
+* `params` - dictionary of URL parameters to append to the URL.
+* `data` - the body to attach to the request. If a dictionary is provided, form-encoding will take place.
+* `files` - dictionary of `{field: {filename: 'content'}}` files to multipart upload.`
+* `headers` - dictionary of headers to send.
+* `cookies` - dictionary of cookies to attach to this request.
+* `timeout` - maximum time in seconds to fetch the page. _default: 120_
 * `allow_redirects` - follow `30x` redirect _default: True_
-* `proxy`
-* `etag` - enable etag _default: True_
-* `last_modifed` - enable last modifed _default: True_
-
-#### enable JavaScript fetcher (need support by fetcher)
-* `fetch_type` - set to `js` to enable JavaScript fetcher
-* `js_script` - JavaScript run before or after page loaded, should been wrapped by a function like `function() { document.write("binux"); }`
-* `js_run_at` - `document-start` or `document-end` _default: `document-end`_
-* `load_images` - _default: False_
-
-### process
-* `save` - anything json-able object pass to next response. _can been got from `response.save`_
-
-### other
-* `taskid` - unique id for each task. _default: md5(url)_ , can be overrided by define your own `def get_taskid(self, task)`
-* `force_update` - force update task params when task is in `ACTIVE` status.
+* `proxy` - proxy server of `username:password@hostname:port` to use, only http proxy is supported currently.
+* `etag` - use HTTP Etag mechanism to pass the process if the content of the page is not changed. _default: True_
+* `last_modifed` - use HTTP Last-Modified header mechanism to pass the process if the content of the page is not changed. _default: True_
+* `fetch_type` - set to `js` to enable JavaScript fetcher. _default: None_
+* `js_script` - JavaScript run before or after page loaded, should been wrapped by a function like `function() { document.write("binux"); }`.
+* `js_run_at` - run JavaScript specified via `js_script` at `document-start` or `document-end`. _default: `document-end`_
+* `js_viewport_width/js_viewport_height` - set the size of the viewport for the JavaScript fetcher of the layout process.
+* `load_images` - load images when JavaScript fetcher enabled. _default: False_
+* `save` - a object pass to the callback method, can be visit via `response.save`.
+* `taskid` - unique id to identify the task, default is the MD5 sum code of the URL, can be overridden by method `def get_taskid(self, task)`
+* `force_update` - force update task params even if the task is in `ACTIVE` status.
 
 cURL command
 ------------
 
 `self.crawl(curl_command)`
 
-cURL is a command line tool to make a HTTP request. cURL command can get from chrome devtools > network panel, right click a request and `Copy as cURL`.
+cURL is a command line tool to make a HTTP request. It can easily get form Chrome Devtools > Network panel,  right click the request and "Copy as cURL".
 
 You can use cURL command as the first argument of `self.crawl`. It will parse the command and make the HTTP request just like curl do.
 
 @config(**kwargs)
 -----------------
-default kwargs for self.crawl of method. Any `self.crawl` with this callback will use this config.
+default parameters of `self.crawl` when use the decorated method as callback. For example:
+
+```python
+@config(age=15*60)
+def index_page(self, response):
+    self.crawl('http://www.example.org/list-1', callback=self.index_page)
+    self.crawl('http://www.example.org/product-233', callback=self.detail_page)
+    
+@config(age=10*24*60*60)
+def detail_page(self, response):
+    return {...}
+```
+
+`age` of 'http://www.example.org/list-1' is 15min while the `age` of 'http://www.example.org/product-233' is 10days. Because the callback of 'http://www.example.org/product-233' is `detail_page`, means it's a `detail_page` so it shares the config of `detail_page`.
 
 Handler.crawl_config = {}
 -------------------------
-default config for the project. 
+default parameters of `self.crawl` for the whole project. 
+
+

@@ -305,7 +305,7 @@ class BaseHandler(object):
     # apis
     def crawl(self, url, **kwargs):
         '''
-        avalable params:
+        available params:
           url
           callback
 
@@ -320,10 +320,13 @@ class BaseHandler(object):
           proxy
           etag
           last_modifed
+          auto_recrawl
 
           fetch_type
           js_run_at
           js_script
+          js_viewport_width
+          js_viewport_height
           load_images
 
           priority
