@@ -694,6 +694,9 @@ def one(ctx, interactive, enable_phantomjs, scripts):
 @click.argument('message', nargs=1)
 @click.pass_context
 def send_message(ctx, scheduler_rpc, project, message):
+    """
+    Send Message to project from command line
+    """
     if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
     if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):

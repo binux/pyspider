@@ -177,18 +177,22 @@ class Processor(object):
             self.newtask_queue.put([utils.unicode_obj(newtask) for newtask in ret.follows])
 
         for project, msg, url in ret.messages:
-            self.inqueue.put(({
-                'taskid': utils.md5string(url),
-                'project': project,
-                'url': url,
-                'process': {
-                    'callback': '_on_message',
-                }
-            }, {
-                'status_code': 200,
-                'url': url,
-                'save': (task['project'], msg),
-            }))
+            try:
+                self.on_task({
+                    'taskid': utils.md5string(url),
+                    'project': project,
+                    'url': url,
+                    'process': {
+                        'callback': '_on_message',
+                    }
+                }, {
+                    'status_code': 200,
+                    'url': url,
+                    'save': (task['project'], msg),
+                })
+            except Exception as e:
+                logger.exception('Sending message error.')
+                continue
 
         if ret.exception:
             logger_func = logger.error
