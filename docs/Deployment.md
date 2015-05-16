@@ -110,6 +110,6 @@ pyspider -c config.json webui
 
 Running with Docker
 -------------------
-Or you want to [Running pyspider with Docker](Running-pyspider-with-Docker)
+Or [Running pyspider with Docker](Running-pyspider-with-Docker)
 
 

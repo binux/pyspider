@@ -44,7 +44,7 @@ Config file is a JSON file with config values for global options or subcommands 
   "taskdb": "mysql+taskdb://username:password@host:port/taskdb",
   "projectdb": "mysql+projectdb://username:password@host:port/projectdb",
   "resultdb": "mysql+resultdb://username:password@host:port/resultdb",
-  “message_queue”: "amqp://username:password@host:port/%2F",
+  "message_queue": "amqp://username:password@host:port/%2F",
   "webui": {
     "username": "some_name",
     "password": "some_passwd",
