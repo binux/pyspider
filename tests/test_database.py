@@ -149,7 +149,6 @@ class TaskDBCase(object):
         self.assertIsNone(self.taskdb.get_task('drop_project3', 'taskid'), None)
 
     def test_z20_update_projects(self):
-        self.taskdb.projects = set()
         saved = self.taskdb.UPDATE_PROJECTS_TIME
         self.taskdb.UPDATE_PROJECTS_TIME = 0.1
         time.sleep(0.2)
@@ -322,7 +321,6 @@ class ResultDBCase(object):
         self.assertIsNone(self.resultdb.get('drop_project3', 'test_taskid'))
 
     def test_z20_update_projects(self):
-        self.resultdb.projects = set()
         saved = self.resultdb.UPDATE_PROJECTS_TIME
         self.resultdb.UPDATE_PROJECTS_TIME = 0.1
         time.sleep(0.2)
@@ -528,6 +526,19 @@ class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
     #def tearDownClass(self):
         #self.resultdb._execute('DROP DATABASE pyspider_test_resultdb')
 
+@unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
+class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database('redis+taskdb://localhost:6379/15')
+        self.taskdb.__prefix__ = 'testtaskdb_'
+
+    @classmethod
+    def tearDownClass(self):
+        for project in self.taskdb.projects:
+            print("drop project: %s" % project)
+            self.taskdb.drop(project)
 
 if __name__ == '__main__':
     unittest.main()

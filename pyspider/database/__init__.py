@@ -31,6 +31,8 @@ def connect_database(url):
         sqlalchemy+postgresql+type://user:passwd@host:port/database
         sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database
         more: http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html
+    redis:
+        redis+taskdb://host:port/db
     local:
         local+projectdb://filepath,filepath
 
@@ -131,6 +133,13 @@ def connect_database(url):
             return ResultDB(url)
         else:
             raise LookupError
+    elif engine == 'redis':
+        if dbtype == 'taskdb':
+            from .redis.taskdb import TaskDB
+            return TaskDB(parsed.hostname, parsed.port,
+                          int(parsed.path.strip('/') or 0))
+        else:
+            raise LookupError('not supported dbtype: %s', dbtype)
     elif engine == 'local':
         scripts = url.split('//', 1)[1].split(',')
         if dbtype == 'projectdb':
