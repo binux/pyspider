@@ -20,11 +20,14 @@ def connect_message_queue(name, url=None, maxsize=0):
 
     rabbitmq:
         amqp://username:password@host:5672/%2F
-        Refer: https://www.rabbitmq.com/uri-spec.html
+        see https://www.rabbitmq.com/uri-spec.html
     beanstalk:
         beanstalk://host:11300/
     redis:
         redis://host:6379/db
+    kombu:
+        kombu+transport://userid:password@hostname:port/virtual_host
+        see http://kombu.readthedocs.org/en/latest/userguide/connections.html#urls
     builtin:
         None
     """
@@ -49,5 +52,10 @@ def connect_message_queue(name, url=None, maxsize=0):
             db = 0
 
         return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize)
+    else:
+        if url.startswith('kombu+'):
+            url = url[len('kombu+'):]
+        from .kombu_queue import Queue
+        return Queue(name, url, maxsize=maxsize)
 
     raise Exception('unknow connection url: %s', url)

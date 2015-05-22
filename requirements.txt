@@ -18,3 +18,4 @@ SQLAlchemy>=0.9.7
 six
 amqp>=1.3.0
 redis
+kombu

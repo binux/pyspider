@@ -54,7 +54,6 @@ class RedisQueue(object):
 
     def put_nowait(self, obj):
         if self.lazy_limit and self.last_qsize < self.maxsize:
-            print(self.name, self.last_qsize)
             pass
         elif self.full():
             raise self.Full

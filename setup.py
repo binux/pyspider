@@ -78,6 +78,7 @@ setup(
             'unittest2>=0.5.1',
             'SQLAlchemy>=0.9.7',
             'redis',
+            'kombu',
         ],
     },
 

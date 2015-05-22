@@ -78,13 +78,15 @@ type:
 You can use connection URL to specify the message queue:
 
 ```
-    rabbitmq:
-        amqp://username:password@host:5672/%2F
-        Refer: https://www.rabbitmq.com/uri-spec.html
-    beanstalk:
-        beanstalk://host:11300/
-    redis:
-        redis://host:6379/db
+rabbitmq:
+    amqp://username:password@host:5672/%2F
+    Refer: https://www.rabbitmq.com/uri-spec.html
+beanstalk:
+    beanstalk://host:11300/
+redis:
+    redis://host:6379/db
+builtin:
+    None
 ```
 
 running
