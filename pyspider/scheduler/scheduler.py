@@ -304,6 +304,7 @@ class Scheduler(object):
         'project',
         'url',
         'status',
+        'schedule',
         'fetch',
         'process',
         'track',

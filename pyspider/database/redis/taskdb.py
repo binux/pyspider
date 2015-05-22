@@ -53,9 +53,9 @@ class TaskDB(BaseTaskDB):
         if 'status' in data:
             data['status'] = int(data['status'])
         if 'lastcrawltime' in data:
-            data['lastcrawltime'] = float(data['lastcrawltime'])
+            data['lastcrawltime'] = float(data['lastcrawltime'] or 0)
         if 'updatetime' in data:
-            data['updatetime'] = float(data['updatetime'])
+            data['updatetime'] = float(data['updatetime'] or 0)
         return data
 
     def _stringify(self, data):
