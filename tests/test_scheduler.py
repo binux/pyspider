@@ -209,9 +209,10 @@ class TestScheduler(unittest.TestCase):
         self.assertGreater(len(self.rpc.get_active_tasks()), 0)
         self.assertIsNotNone(task)
         self.assertEqual(task['project'], 'test_project')
+        self.assertIn('schedule', task)
         self.assertIn('fetch', task)
         self.assertIn('process', task)
-        self.assertNotIn('schedule', task)
+        self.assertIn('track', task)
         self.assertEqual(task['fetch']['data'], 'abc')
 
     def test_37_force_update_processing_task(self):
