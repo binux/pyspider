@@ -66,7 +66,7 @@ TODO
 
 - [x] local mode, load script from file.
 - [x] works as a framework (all components running in one process, no threads)
-- [ ] redis
+- [x] redis
 - [x] shell mode like `scrapy shell` 
 - [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
 

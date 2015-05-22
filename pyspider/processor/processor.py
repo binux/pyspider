@@ -140,7 +140,6 @@ class Processor(object):
                 'taskid': task['taskid'],
                 'project': task['project'],
                 'url': task.get('url'),
-                'schedule': task.get('schedule', {}),
                 'track': {
                     'fetch': {
                         'ok': response.isok(),
@@ -166,6 +165,8 @@ class Processor(object):
                     'save': ret.save,
                 },
             }
+            if 'schedule' in task:
+                status_pack['schedule'] = task['schedule']
 
             # FIXME: unicode_obj should used in scheduler before store to database
             # it's used here for performance.
