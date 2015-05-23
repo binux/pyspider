@@ -38,7 +38,7 @@
 
         <a class=callback href="/debug/{{ task.project }}?taskid={{ task.taskid }}" target=_blank>{{ task.project }}</a>
         &gt;
-        <a class=url href="/task/{{ task.project }}:{{ task.taskid }}" target=_blank>{{ task.url }}</a>
+        <a class=url href="/task/{{ task.project }}:{{ task.taskid }}" title="{{ task.url }}" target=_blank>{{ task.url }}</a>
 
         <span class=update-time>{{ task.updatetime | format_date }}</span>
 
