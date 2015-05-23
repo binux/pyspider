@@ -53,15 +53,6 @@ $(function() {
     url: "/update"
   });
 
-  $('.project-create').on('click', function() {
-    var result = prompt('Create new project:');
-    if (result && result.search(/[^\w]/) == -1) {
-      location.href = "/debug/"+result;
-    } else {
-      alert('project name not allowed!');
-    }
-  });
-
   $('.project-run').on('click', function() {
     var project = $(this).parents('tr').data("name");
     var _this = this;
@@ -83,6 +74,27 @@ $(function() {
         $(_this).removeClass("btn-warning").addClass("btn-danger");
       }
     });
+  });
+
+  //$("input[name=start-urls]").on('keydown', function(ev) {
+    //if (ev.keyCode == 13) {
+      //var value = $(this).val();
+      //var textarea = $('<textarea class="form-control" rows=3 name="start-urls"></textarea>').replaceAll(this);
+      //textarea.val(value).focus();
+    //}
+  //});
+
+  $("#create-project-modal form").on('submit', function(ev) {
+    var $this = $(this);
+    var project_name = $this.find('[name=project-name]').val()
+    if (project_name.length == 0 || project_name.search(/[^\w]/) != -1) {
+      $this.find('[name=project-name]').parents('.form-group').addClass('has-error');
+      $this.find('[name=project-name] ~ .help-block').show();
+      return false;
+    }
+    var mode = $this.find('[name=script-mode]:checked').val();
+    $this.attr('action', '/debug/'+project_name);
+    return true;
   });
 
   // onload

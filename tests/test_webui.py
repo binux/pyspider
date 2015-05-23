@@ -88,12 +88,32 @@ class TestWebUI(unittest.TestCase):
 
         m = re.search(r'var task_content = (.*);\n', utils.text(rv.data))
         self.assertIsNotNone(m)
-        self.__class__.task_content = json.loads(m.group(1))
+        self.assertIn('test_project', json.loads(m.group(1)))
+
         m = re.search(r'var script_content = (.*);\n', utils.text(rv.data))
         self.assertIsNotNone(m)
-        self.__class__.script_content = (json.loads(m.group(1))
-                                         .replace('http://scrapy.org/',
-                                                  'http://127.0.0.1:14887/pyspider/test.html'))
+        self.assertIn('__START_URL__', json.loads(m.group(1)))
+
+    def test_25_debug_post(self):
+        rv = self.app.post('/debug/test_project', data={
+            'project-name': 'other_project',
+            'start-urls': 'http://127.0.0.1:14887/pyspider/test.html',
+            'script-mode': 'script',
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'debugger', rv.data)
+        self.assertIn(b'var task_content = ', rv.data)
+        self.assertIn(b'var script_content = ', rv.data)
+
+        m = re.search(r'var task_content = (.*);\n', utils.text(rv.data))
+        self.assertIsNotNone(m)
+        self.assertIn('test_project', m.group(1))
+        self.__class__.task_content = json.loads(m.group(1))
+
+        m = re.search(r'var script_content = (.*);\n', utils.text(rv.data))
+        self.assertIsNotNone(m)
+        self.assertIn('127.0.0.1:14887', m.group(1))
+        self.__class__.script_content = json.loads(m.group(1))
 
     def test_30_run(self):
         rv = self.app.post('/debug/test_project/run', data={

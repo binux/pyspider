@@ -38,7 +38,7 @@ def verify_project_name(project):
     return True
 
 
-@app.route('/debug/<project>')
+@app.route('/debug/<project>', methods=['GET', 'POST'])
 def debug(project):
     if not verify_project_name(project):
         return 'project name is not allowed!', 400
@@ -49,7 +49,8 @@ def debug(project):
     else:
         script = (default_script
                   .replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                  .replace('__PROJECT_NAME__', project))
+                  .replace('__PROJECT_NAME__', project)
+                  .replace('__START_URL__', request.values.get('start-urls', '__START_URL__')))
 
     taskid = request.args.get('taskid')
     if taskid:
