@@ -47,6 +47,38 @@
         </tr>
       </table>
     </header>
+
+    <section>
+      <div class="modal fade" id="confirm-create" tabindex="-1" role="dialog" aria-labelledby="create-dialog" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+          
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title">Create New Project</h4>
+            </div>
+        
+            <div class="modal-body">
+              <form class="project-create-my" name="create">
+                <label class="modal-label" for="project">Project Name</label><br>
+                <input class="input-xlarge" type="text" name="name"><br>
+                <label class="modal-label" for="target-site">Target website</label><br>
+                <input class="input-xlarge" type="email" name="site"><br>
+                <label class="modal-label" for="pyspider-grouping">Grouping</label><br>
+                <input class="input-xlarge" type="text" name="grouping"><br>
+              </form>
+              <p class="debug-url"></p>
+            </div>
+            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+              <a class="project-create btn btn-ok btn-primary">Create</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section>
       <table class="table sortable-theme-bootstrap projects">
         <thead>
@@ -129,7 +161,9 @@
           {% endif %}
         </div>
         <div class="pull-right">
-          <button class="project-create btn btn-default btn-primary">Create</button>
+          <button class="btn btn-default btn-primary" data-toggle="modal" data-target="#confirm-create">
+            Create
+          </button>
         </div>
       </div>
     </section>
@@ -139,5 +173,3 @@
     <script src="{{ url_for('static', filename='index.js') }}"></script>
   </body>
 </html>
-<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8 syntax=htmldjango: -->
-

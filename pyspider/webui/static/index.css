@@ -106,3 +106,26 @@ h1 {
   margin-top: -5px;
   padding: 0 60px 10px 10px;
 }
+.project-create-my .label{
+  color: #000;
+}
+.project-create-my .input-xlarge{
+  display: block;
+  width: 75%;
+  height: 36px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #555;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  line-height: 1.42857143;
+}
+
+.project-create-my .modal-label{
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
