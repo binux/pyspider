@@ -5,37 +5,49 @@ The attributes of Response object.
 
 ### Response.url
 
-final URL
+final URL.
 
 ### Response.text
 
-Content of the response, in unicode.
+Content of response, in unicode.
 
-if `Response.encoding` is None and `chardet` module is available, encoding will be guessed.
+if `Response.encoding` is None and `chardet` module is available, encoding of content will be guessed.
+
+### Response.content
+
+Content of response, in bytes.
 
 ### Response.doc
 
-A [PyQuery](https://pythonhosted.org/pyquery/) object of the request's content. `make_links_absolute` is called by default.
+A [PyQuery](https://pythonhosted.org/pyquery/) object of the request's content. Links have made as absolute by default.
+
+Refer to the documentation of PyQuery: [https://pythonhosted.org/pyquery/](https://pythonhosted.org/pyquery/)
+
+It's important that I will repeat, refer to the documentation of PyQuery: [https://pythonhosted.org/pyquery/](https://pythonhosted.org/pyquery/)
 
 ### Response.json
 
-The json-encoded content of the response, if any.
+The JSON-encoded content of the response, if any.
 
 ### Response.status_code
 
 ### Response.orig_url
 
+If there is any redirection during the request, here is the url you just submit via `self.crawl`.
+
 ### Response.headers
+
+A case insensitive dict holds the headers of response.
 
 ### Response.cookies
 
 ### Response.error
 
-Fetch error
+Messages when fetch error
 
 ### Response.time
 
-Fetch time
+Time used during fetching.
 
 ### Response.ok
 
@@ -45,18 +57,19 @@ True if `status_code` is 200 and no error.
 
 Encoding of Response.content.
 
-If Response.encoding is None, encoding will be guessed by header or content or chardet if available.
+If Response.encoding is None, encoding will be guessed by header or content or `chardet`(if available).
 
 Set encoding of content manually will overwrite the guessed encoding.
 
-### Response.content
-
 ### Response.save
 
-The object saved by [`self.crawl`](/apis/self.crawl/#process) API
+The object saved by [`self.crawl`](/apis/self.crawl/#save) API
 
 ### Response.js_script_result
 
 content returned by JS script
 
 ### Response.raise_for_status()
+
+Raise HTTPError if status code is not 200 or `Response.error` exists.
+
