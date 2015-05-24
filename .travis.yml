@@ -12,7 +12,7 @@ services:
     #postgresql: "9.4"
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -y beanstalkd python-mysqldb
+    - sudo apt-get install -y beanstalkd
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
 install:
