@@ -95,7 +95,7 @@ def cli(ctx, **kwargs):
         if kwargs[db] is not None:
             continue
         if os.environ.get('MYSQL_NAME'):
-            kwargs[db] = utils.Get(lambda db=db: connect_database('mysql+%s://%s:%s/%s' % (
+            kwargs[db] = utils.Get(lambda db=db: connect_database('sqlalchemy+mysql+%s://%s:%s/%s' % (
                 db, os.environ['MYSQL_PORT_3306_TCP_ADDR'],
                 os.environ['MYSQL_PORT_3306_TCP_PORT'], db)))
         elif os.environ.get('MONGODB_NAME'):
