@@ -56,7 +56,7 @@ if (system.args.length !== 2) {
       page.settings.userAgent = fetch.headers['User-Agent'];
     }
     // this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
-    page.settings.loadImages = fetch.load_images ? true : false;
+    page.settings.loadImages = fetch.load_images === undefined ? true : fetch.load_images;
     page.settings.resourceTimeout = fetch.timeout ? fetch.timeout * 1000 : 120*1000;
     if (fetch.headers) {
       page.customHeaders = fetch.headers;
