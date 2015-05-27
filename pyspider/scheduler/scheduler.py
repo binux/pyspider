@@ -103,13 +103,13 @@ class Scheduler(object):
             self.task_queue[project['name']].rate = project['rate']
             self.task_queue[project['name']].burst = project['burst']
 
-            # update project runtime info from processing by sending a on_get_info request,
-            # result is catched by on_request
+            # update project runtime info from processor by sending a _on_get_info
+            # request, result is in status_page.track.save
             self.on_select_task({
                 'taskid': '_on_get_info',
                 'project': project['name'],
                 'url': 'data:,_on_get_info',
-                'status': self.taskdb.ACTIVE,
+                'status': self.taskdb.SUCCESS,
                 'fetch': {
                     'save': ['min_tick', ],
                 },
@@ -208,7 +208,14 @@ class Scheduler(object):
         try:
             while True:
                 task = self.status_queue.get_nowait()
-                if not self.task_verify(task):
+                # check _on_get_info result here
+                if task.get('taskid') == '_on_get_info' and 'project' in task and 'track' in task:
+                    self.projects[task['project']].update(task['track'].get('save', {}))
+                    logger.info(
+                        '%s on_get_info %r', task['project'], task['track'].get('save', {})
+                    )
+                    continue
+                elif not self.task_verify(task):
                     continue
                 self.on_task_status(task)
                 cnt += 1
@@ -234,14 +241,6 @@ class Scheduler(object):
 
             for task in _tasks:
                 if not self.task_verify(task):
-                    continue
-
-                # check _on_get_info result here
-                if task['url'] == 'data:,on_get_info':
-                    self.projects[task['project']].update(task['fetch'].get('save', {}))
-                    logger.info(
-                        '%s on_get_info %r', task['project'], task['fetch'].get('save', {})
-                    )
                     continue
 
                 if task['taskid'] in self.task_queue[task['project']]:

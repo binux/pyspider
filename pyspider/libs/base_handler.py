@@ -400,12 +400,8 @@ class BaseHandler(object):
             function = cronjob.__get__(self, self.__class__)
             self._run_func(function, response, task)
 
-    @not_send_status
     def _on_get_info(self, response, task):
         """Sending runtime infomation about this script."""
-        result = {}
-        assert response.save
-        for each in response.save:
+        for each in response.save or []:
             if each == 'min_tick':
-                result[each] = self._min_tick
-        self.crawl('data:,on_get_info', save=result)
+                self.save[each] = self._min_tick

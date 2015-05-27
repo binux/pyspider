@@ -174,7 +174,7 @@ class TestProjectModule(unittest.TestCase):
         fetch_result['save'] = task['fetch']['save']
 
         ret = self.instance.run_task(self.module, task, fetch_result)
-        self.assertEqual(len(ret.follows), 1, ret.logstr())
+        self.assertEqual(len(ret.save), 1, ret.logstr())
         for each in ret.follows:
             self.assertEqual(each['url'], 'data:,on_get_info')
             self.assertEqual(each['fetch']['save']['min_tick'], 10)
