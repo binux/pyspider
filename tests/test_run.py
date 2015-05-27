@@ -133,6 +133,7 @@ class TestRun(unittest.TestCase):
             del os.environ['MONGODB_PORT_27017_TCP_ADDR']
             del os.environ['MONGODB_PORT_27017_TCP_PORT']
 
+    @unittest.skip('noly available in docker')
     @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
     def test_70_docker_mysql(self):
         try:
