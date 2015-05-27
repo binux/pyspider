@@ -40,14 +40,18 @@ class ProjectDB(BaseProjectDB):
     def _parse(data):
         if six.PY3:
             for key, value in list(six.iteritems(data)):
-                data[utils.text(key)] = utils.text(value)
+                if isinstance(value, six.binary_type):
+                    data[utils.text(key)] = utils.text(value)
+                else:
+                    data[utils.text(key)] = value
         return data
 
     @staticmethod
     def _stringify(data):
         if six.PY3:
             for key, value in list(six.iteritems(data)):
-                data[key] = utils.utf8(value)
+                if isinstance(value, six.string_types):
+                    data[key] = utils.utf8(value)
         return data
 
     def insert(self, name, obj={}):
