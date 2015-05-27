@@ -8,8 +8,7 @@
 import six
 import time
 
-from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, Text, sql, func)
+from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Text
 from pyspider.libs import utils
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from .sqlalchemybase import result2dict
@@ -34,22 +33,21 @@ class ProjectDB(BaseProjectDB):
                            Column('burst', Float(11)),
                            Column('updatetime', Float(32))
                            )
-        self.engine = create_engine(url, convert_unicode=True)
+        self.engine = create_engine(url, convert_unicode=False)
         self.table.create(self.engine, checkfirst=True)
 
     @staticmethod
     def _parse(data):
-        for key, value in list(six.iteritems(data)):
-            if isinstance(value, six.binary_type):
-                data[key] = utils.text(value)
+        if six.PY3:
+            for key, value in list(six.iteritems(data)):
+                data[utils.text(key)] = utils.text(value)
         return data
 
     @staticmethod
     def _stringify(data):
         if six.PY3:
             for key, value in list(six.iteritems(data)):
-                if isinstance(value, six.string_types):
-                    data[key] = utils.utf8(value)
+                data[key] = utils.utf8(value)
         return data
 
     def insert(self, name, obj={}):
