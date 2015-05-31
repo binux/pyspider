@@ -50,7 +50,7 @@ def debug(project):
         script = (default_script
                   .replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                   .replace('__PROJECT_NAME__', project)
-                  .replace('__START_URL__', request.values.get('start-urls', '__START_URL__')))
+                  .replace('__START_URL__', request.values.get('start-urls') or '__START_URL__'))
 
     taskid = request.args.get('taskid')
     if taskid:
