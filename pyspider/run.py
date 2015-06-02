@@ -389,6 +389,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart):
     try:
         _phantomjs = subprocess.Popen(cmd)
     except OSError:
+        logging.warning('phantomjs not found, continue running without it.')
         return None
 
     def quit(*args, **kwargs):
