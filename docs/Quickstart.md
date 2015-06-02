@@ -17,14 +17,7 @@ to install binary packages first.
 
 please install PhantomJS if needed: http://phantomjs.org/build.html
 
-and conduct one of the step below after compiling phantomjs:
-```
-cp path/to/phantomjs/bin/phantomjs /usr/local/bin
-#or
-ln -s /path/to/phantomjs /usr/local/bin/
-#or
-echo 'PATH=/home/user/phantomjs/bin:$PATH' > /home/user/.bashrc
-```
+note that PhantomJS will be enable only if it is excutable in the **PATH** or in the System Environment
 
 **Note:** `pyspider` command is running pyspider in `all` mode, which running components in threads or subprocesses. For production environment, please refer to [Deployment](Deployment).
 
