@@ -9,9 +9,22 @@ Installation
 
 if you are using ubuntu, try:
 ```
-apt-get install python python-dev python-distribute python-pip libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
+apt-get install python python-dev python-distribute python-pip \
+libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
 ```
 to install binary packages first.
+
+
+please install PhantomJS if needed: http://phantomjs.org/build.html
+
+and conduct one of the step below after compiling phantomjs:
+```
+cp path/to/phantomjs/bin/phantomjs /usr/local/bin
+#or
+ln -s /path/to/phantomjs /usr/local/bin/
+#or
+echo 'PATH=/home/user/phantomjs/bin:$PATH' > /home/user/.bashrc
+```
 
 **Note:** `pyspider` command is running pyspider in `all` mode, which running components in threads or subprocesses. For production environment, please refer to [Deployment](Deployment).
 
