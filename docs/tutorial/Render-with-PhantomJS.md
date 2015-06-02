@@ -3,7 +3,17 @@ Level 3: Render with PhantomJS
 
 Sometimes web page is too complex to find out the API request. It's time to meet the power of [PhantomJS].
 
-To use PhantomJS, you should have PhantomJS [installed](http://phantomjs.org/download.html). If you are running pyspider with `all` mode, PhantomJS is enabled if excitable in the PATH.
+To use PhantomJS, you should have PhantomJS [installed](http://phantomjs.org/download.html). If you are running pyspider with `all` mode, PhantomJS is enabled if excutable in the `PATH`.
+
+Make sure phantomjs is working by running
+```
+$ pyspider phantomjs
+```
+
+Continue with the rest of the tutorial if the output is
+```
+Web server running on port 25555
+```
 
 Use PhantomJS
 -------------
