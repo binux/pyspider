@@ -36,7 +36,7 @@ class User(login.UserMixin):
 def load_user_from_request(request):
     api_key = request.headers.get('Authorization')
     if api_key:
-        api_key = api_key.replace('Basic ', '', 1)
+        api_key = api_key[len("Basic "):]
         try:
             api_key = base64.b64decode(api_key).decode('utf8')
             return User(*api_key.split(":", 1))
