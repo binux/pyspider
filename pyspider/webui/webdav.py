@@ -7,13 +7,26 @@
 
 
 import os
+import re
 import time
 import base64
 from six import BytesIO
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
+from wsgidav.dav_error import DAVError, HTTP_NOT_FOUND, HTTP_FORBIDDEN
 from pyspider.libs.utils import utf8, text
 from .app import app
+
+
+def verify_project_name(project):
+    if re.search(r"[^\w]", project):
+        return False
+    return True
+
+class ContentIO(BytesIO):
+    def close(self):
+        self.content = self.getvalue()
+        BytesIO.close(self)
 
 
 class ScriptResource(DAVNonCollection):
@@ -21,6 +34,7 @@ class ScriptResource(DAVNonCollection):
         super(ScriptResource, self).__init__(path, environ)
 
         self.app = app
+        self.new_project = False
         self._project = project
         self.project_name = self.name
         self.writebuffer = None
@@ -35,17 +49,24 @@ class ScriptResource(DAVNonCollection):
         if projectdb:
             self._project = projectdb.get(self.project_name)
         if not self._project:
-            self._project = {
-                'name': self.project_name,
-                'script': '',
-                'updatetime': time.time(),
-            }
+            if verify_project_name(self.project_name) and self.name.endswith('.py'):
+                self.new_project = True
+                self._project = {
+                    'name': self.project_name,
+                    'script': '',
+                    'status': 'TODO',
+                    'rate': self.app.config.get('max_rate', 1),
+                    'burst': self.app.config.get('max_burst', 3),
+                    'updatetime': time.time(),
+                }
+            else:
+                raise DAVError(HTTP_FORBIDDEN)
         return self._project
 
     @property
     def readonly(self):
         projectdb = self.app.config['projectdb']
-        if projectdb:
+        if not projectdb:
             return True
         if 'lock' in projectdb.split_group(self.project.get('group')) \
                 and self.app.config.get('webui_username') \
@@ -84,7 +105,7 @@ class ScriptResource(DAVNonCollection):
         if self.readonly:
             self.app.logger.error('webdav.beginWrite readonly')
             return super(ScriptResource, self).beginWrite(contentType)
-        self.writebuffer = BytesIO()
+        self.writebuffer = ContentIO()
         return self.writebuffer
 
     def endWrite(self, withErrors):
@@ -96,12 +117,19 @@ class ScriptResource(DAVNonCollection):
         projectdb = self.app.config['projectdb']
         if not projectdb:
             return
+
         info = {
-            'script': text(self.writebuffer.getvalue())
+            'script': text(getattr(self.writebuffer, 'content', ''))
         }
         if self.project.get('status') in ('DEBUG', 'RUNNING'):
             info['status'] = 'CHECKING'
-        return projectdb.update(self.project_name, info)
+
+        if self.new_project:
+            self.project.update(info)
+            self.new_project = False
+            return projectdb.insert(self.project_name, self.project)
+        else:
+            return projectdb.update(self.project_name, info)
 
 
 class RootCollection(DAVCollection):
@@ -143,7 +171,8 @@ class ScriptProvider(DAVProvider):
         return "pyspiderScriptProvider"
 
     def getResourceInst(self, path, environ):
-        if path == '/':
+        path = os.path.normpath(path)
+        if path in ('/', '.', ''):
             return RootCollection(path, environ, self.app)
         else:
             return ScriptResource(path, environ, self.app)
