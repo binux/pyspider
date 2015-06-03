@@ -16,10 +16,7 @@ before_install:
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
 install:
-    - pip install --allow-all-external -r requirements.txt
-    - pip install coveralls httpbin pyproxy>=0.1.6
-    - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then travis_retry pip install beanstalkc; fi
-    - pip install -e .
+    - pip install --allow-all-external -e .[all,test]
 script:
     - coverage run setup.py test
 after_success:

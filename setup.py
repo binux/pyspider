@@ -5,6 +5,8 @@
 #         http://binux.me
 # Created on 2014-11-24 22:27:45
 
+
+import sys
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
@@ -13,8 +15,43 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-
 import pyspider
+
+install_requires = [
+    'Flask>=0.10',
+    'Jinja2>=2.7',
+    'chardet>=2.2',
+    'cssselect>=0.9',
+    'lxml',
+    'pycurl',
+    'pyquery',
+    'requests>=2.2',
+    'tornado>=3.2',
+    'Flask-Login>=0.2.11',
+    'u-msgpack-python>=1.6',
+    'click>=3.3',
+    'six',
+]
+if sys.version_info < (3, 0):
+    install_requires.extend([
+        'wsgidav',
+    ])
+
+extras_require_all = [
+    'mysql-connector-python>=1.2.2',
+    'amqp>=1.3.0',
+    'pymongo>=2.7.2,<3.0',
+    'SQLAlchemy>=0.9.7',
+    'redis',
+    'kombu',
+]
+if sys.version_info < (3, 0):
+    extras_require_all.extend([
+        'pika>=0.9.14',
+        'beanstalkc',
+    ])
+
+
 setup(
     name='pyspider',
     version=pyspider.__version__,
@@ -53,33 +90,16 @@ setup(
 
     packages=find_packages(exclude=['data', 'tests*']),
 
-    install_requires=[
-        'Flask>=0.10',
-        'Jinja2>=2.7',
-        'chardet>=2.2',
-        'cssselect>=0.9',
-        'lxml',
-        'pycurl',
-        'pyquery',
-        'requests>=2.2',
-        'tornado>=3.2',
-        'Flask-Login>=0.2.11',
-        'u-msgpack-python>=1.6',
-        'click>=3.3',
-        'six',
-    ],
+    install_requires=install_requires,
 
     extras_require={
-        'all': [
-            'mysql-connector-python>=1.2.2',
-            'pika>=0.9.14',
-            'amqp>=1.3.0',
-            'pymongo>=2.7.2,<3.0',
+        'all': extras_require_all,
+        'test': [
             'unittest2>=0.5.1',
-            'SQLAlchemy>=0.9.7',
-            'redis',
-            'kombu',
-        ],
+            'coverage',
+            'httpbin',
+            'pyproxy>=0.1.6',
+        ]
     },
 
     package_data={
