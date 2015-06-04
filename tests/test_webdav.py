@@ -39,6 +39,7 @@ class TestWebDav(unittest.TestCase):
         ], self.ctx)
         self.app = run.webui.invoke(ctx)
         utils.run_in_thread(self.app.run)
+        time.sleep(5)
 
         self.webdav = easywebdav.connect('localhost', port=5000, path='dav')
         self.webdav_up = easywebdav.connect('localhost', port=5000, path='dav',
