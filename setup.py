@@ -99,6 +99,7 @@ setup(
             'coverage',
             'httpbin',
             'pyproxy>=0.1.6',
+            'easywebdav',
         ]
     },
 
