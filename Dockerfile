@@ -9,6 +9,7 @@ RUN apt-get update && \
 # install requirements
 ADD requirements.txt /opt/pyspider/requirements.txt
 RUN pip install -r /opt/pyspider/requirements.txt
+RUN pip install -U pip
 
 # add all repo
 ADD ./ /opt/pyspider
