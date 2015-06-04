@@ -198,7 +198,7 @@ window.SelectorHelper = (function() {
  
       // add button
       helper.find('.add-to-editor').on('click', function(ev) {
-        Debugger.python_editor.getDoc().replaceSelection(merge_pattern(current_path));
+        Debugger.python_editor_replace_selection(merge_pattern(current_path));
       });
     },
     clear: function() {
@@ -237,14 +237,14 @@ window.Debugger = (function() {
   return {
     init: function() {
       //init resizer
-      $(".debug-panel:not(:first)").splitter().data('splitter')
-      .trigger('init')
-      .on('resize-start', function() {
-        $('#left-area .overlay').show();
-      })
-      .on('resize-end', function() {
-        $('#left-area .overlay').hide();
-      });
+      this.splitter = $(".debug-panel:not(:first)").splitter().data('splitter')
+          .trigger('init')
+          .on('resize-start', function() {
+            $('#left-area .overlay').show();
+          })
+          .on('resize-end', function() {
+            $('#left-area .overlay').hide();
+          });
 
       //codemirror
       CodeMirror.keyMap.basic.Tab = 'indentMore';
@@ -262,6 +262,7 @@ window.Debugger = (function() {
     not_saved: false,
     init_python_editor: function($el) {
       var _this = this;
+      this.python_editor_elem = $el;
       var cm = this.python_editor = CodeMirror($el[0], {
         value: script_content,
         mode: "python",
@@ -286,6 +287,10 @@ window.Debugger = (function() {
           return returnValue;
         }
       });
+    },
+
+    python_editor_replace_selection: function(content) {
+      this.python_editor.getDoc().replaceSelection(content);
     },
 
     auto_format: function(cm) {
@@ -410,6 +415,7 @@ window.Debugger = (function() {
     },
 
     bind_others: function() {
+      var _this = this;
       $('#python-log-show').on('click', function() {
         if ($('#python-log pre').is(":visible")) {
           $('#python-log pre').hide();
@@ -419,6 +425,9 @@ window.Debugger = (function() {
           $(this).height(0);
         }
       });
+      $('.webdav-btn').on('click', function() {
+        _this.toggle_webdav_mode(this);
+      })
     },
 
     render_html: function(html, base_url, block_script, resizer, selector_helper) {
@@ -479,7 +488,8 @@ window.Debugger = (function() {
         type: "POST",
         url: location.pathname+'/run',
         data: {
-          script: script,
+          webdav_mode: _this.webdav_mode,
+          script: _this.webdav_mode ? '' : script,
           task: task
         },
         success: function(data) {
@@ -572,7 +582,21 @@ window.Debugger = (function() {
       } else {
         $('#python-log pre, #python-log').hide();
       }
-    }
+    },
+
+    webdav_mode: false,
+    toggle_webdav_mode: function(button) {
+      this.webdav_mode = !this.webdav_mode;
+      if (this.webdav_mode) {
+        this.python_editor_elem.hide();
+        this.splitter.trigger('fullsize', 'prev');
+        $(button).addClass('active');
+      } else {
+        this.python_editor_elem.show();
+        this.splitter.trigger('init');
+        $(button).removeClass('active');
+      }
+    },
   };
 })();
 

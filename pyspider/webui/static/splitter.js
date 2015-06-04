@@ -26,6 +26,7 @@ $.fn.splitter = function (_type) {
     top = parentOffset.top, // usually zero :(
     props = {
       x: {
+        display: 'block',
         currentPos: $parent.offset().left,
         multiplier: 1,
         cssProp: 'left',
@@ -50,6 +51,7 @@ $.fn.splitter = function (_type) {
         }
       },
       y: {
+        display: 'block',
         currentPos: $parent.offset().top,
         multiplier: -1,
         size: $parent.height(),
@@ -190,6 +192,19 @@ $.fn.splitter = function (_type) {
        }
        })
        */
+
+    $handle.bind('fullsize', function(event, panel) {
+      if (panel === undefined) {
+        panel = 'prev';
+      }
+      var split = 0;
+      if (panel === 'prev') {
+        split = 100;
+      }
+      $el.css(props[type].cssProp, split + '%');
+      $prev.css(props[type].otherCssProp, (100 - split) + '%');
+      $handle.hide();
+    });
 
     $handle.bind('init', function (event, x) {
       $handle.css(props[type].init);

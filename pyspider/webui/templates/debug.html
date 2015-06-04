@@ -36,6 +36,7 @@
       <div class="title pull-left"><a href="/">pyspider</a> &gt; {{ project_name }}</div>
       <div class="pull-right">
         <a href="http://docs.pyspider.org/" target="_blank">Documentation</a>
+        <span class="webdav-btn">WebDAV Mode</span>
       </div>
     </section>
     <section id="editarea">
@@ -47,10 +48,14 @@
               <a href="javascript:;" id="undo-btn"> &lt; </a>|<a href="javascript:;" id="redo-btn">&gt; </a>
             </div>
           </div>
+          <div id="python-log" style="display: none;">
+            <pre style="display: none;"></pre>
+            <div id="python-log-show"></div>
+          </div>
           <div id="debug-tabs">
             <div id="tab-web" class="tab" style="display: none;">
               <div id="css-selector-helper">
-                <input class="copy-selector-input"></input>
+                <input class="copy-selector-input" />
                 <button class="btn copy-selector"><i class="fa fa-clipboard" title="copy css selector"></i></button>
                 <button class="btn add-to-editor"><i class="fa fa-arrow-right" title="add to editor"></i></button>
               </div>
@@ -82,10 +87,6 @@
       <div id="right-area" class="debug-panel" style="left: 50%">
         <div id="python-editor" class="editor focus">
           <div id="save-task-btn">save</div>
-        </div>
-        <div id="python-log" style="display: none;">
-          <div id="python-log-show"></div>
-          <pre style="display: none;"></pre>
         </div>
         <div class="overlay" style="display: none;"></div>
       </div>

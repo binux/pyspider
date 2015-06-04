@@ -36,6 +36,28 @@ body {
     margin-left: 10px;
     margin-right: 10px;
   }
+
+  .webdav-btn {
+    position: relative;
+    float: right;
+    padding: 1px 7px 0 7px;
+    line-height: 21px;
+    border-radius: 5px;
+    border: solid 1px @blue;
+    background: white;
+    color: @blue;
+    cursor: pointer;
+    margin: 6px 0 0 10px;
+
+    &:hover {
+      background: lighten(@blue, 10%);
+      color: white;
+    }
+    &.active {
+      background: @blue;
+      color: white;
+    }
+  }
 }
 
 #editarea {
@@ -264,8 +286,8 @@ body {
     }
     .task-run {
       position: absolute;
-      right: 0px;
-      top: 0px;
+      right: 0;
+      top: 0;
       font-size: 80%;
       padding: 0 10px 0 30px;
       float: right;
@@ -301,9 +323,6 @@ body {
 }
 
 #python-log {
-  z-index: 88;
-  position: absolute;
-  bottom: 0;
   width: 100%;
   min-height: 10px;
   max-height: 40%;
@@ -315,7 +334,7 @@ body {
     width: auto;
     padding-top: 5px;
     background: @red;
-    box-shadow: 0px 2px 20px @red;
+    box-shadow: 0 2px 20px @red;
     cursor: pointer;
   }
   pre {

@@ -43,7 +43,7 @@ def debug(project):
     if not verify_project_name(project):
         return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']
-    info = projectdb.get(project)
+    info = projectdb.get(project, fields=['name', 'script'])
     if info:
         script = info['script']
     else:
@@ -89,13 +89,30 @@ def run(project):
             'result': None,
             'time': time.time() - start_time,
         }
-        return json.dumps(utils.unicode_obj(result)), 200, {'Content-Type': 'application/json'}
+        return json.dumps(utils.unicode_obj(result)), \
+               200, {'Content-Type': 'application/json'}
 
     project_info = {
         'name': project,
         'status': 'DEBUG',
         'script': request.form['script'],
     }
+
+    if request.form.get('webdav_mode') == 'true':
+        projectdb = app.config['projectdb']
+        info = projectdb.get(project, fields=['name', 'script'])
+        if not info:
+            result = {
+                'fetch_result': "",
+                'logs': u' in wevdav mode, cannot load script',
+                'follows': [],
+                'messages': [],
+                'result': None,
+                'time': time.time() - start_time,
+            }
+            return json.dumps(utils.unicode_obj(result)), \
+                   200, {'Content-Type': 'application/json'}
+        project_info['script'] = info['script']
 
     fetch_result = {}
     try:

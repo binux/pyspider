@@ -34,6 +34,26 @@ body {
   margin-left: 10px;
   margin-right: 10px;
 }
+#control .webdav-btn {
+  position: relative;
+  float: right;
+  padding: 1px 7px 0 7px;
+  line-height: 21px;
+  border-radius: 5px;
+  border: solid 1px #428bca;
+  background: white;
+  color: #428bca;
+  cursor: pointer;
+  margin: 6px 0 0 10px;
+}
+#control .webdav-btn:hover {
+  background: #6aa3d5;
+  color: white;
+}
+#control .webdav-btn.active {
+  background: #428bca;
+  color: white;
+}
 #editarea {
   width: 100%;
   position: fixed;
@@ -110,6 +130,7 @@ body {
   border-radius: 5px 0 0 0;
   padding: 5px 0 3px 0;
   /*box-shadow: 0px 0px 30px @color;*/
+
   overflow: hidden;
 }
 #undo-redo-btn-group:hover {
@@ -257,8 +278,8 @@ body {
 }
 #tab-follows .newtask .task-run {
   position: absolute;
-  right: 0px;
-  top: 0px;
+  right: 0;
+  top: 0;
   font-size: 80%;
   padding: 0 10px 0 30px;
   float: right;
@@ -286,9 +307,6 @@ body {
   padding-bottom: 20px;
 }
 #python-log {
-  z-index: 88;
-  position: absolute;
-  bottom: 0;
   width: 100%;
   min-height: 10px;
   max-height: 40%;
@@ -300,7 +318,7 @@ body {
   width: auto;
   padding-top: 5px;
   background: #d9534f;
-  box-shadow: 0px 2px 20px #d9534f;
+  box-shadow: 0 2px 20px #d9534f;
   cursor: pointer;
 }
 #python-log pre {

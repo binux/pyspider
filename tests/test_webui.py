@@ -126,6 +126,26 @@ class TestWebUI(unittest.TestCase):
         self.assertGreater(len(data['follows']), 0)
         self.__class__.task_content2 = data['follows'][0]
 
+    def test_32_run_bad_task(self):
+        rv = self.app.post('/debug/test_project/run', data={
+            'script': self.script_content,
+            'task': self.task_content+'asdfasdf312!@#'
+        })
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertGreater(len(data['logs']), 0)
+        self.assertEqual(len(data['follows']), 0)
+
+    def test_33_run_bad_script(self):
+        rv = self.app.post('/debug/test_project/run', data={
+            'script': self.script_content+'adfasfasdf',
+            'task': self.task_content
+        })
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertGreater(len(data['logs']), 0)
+        self.assertEqual(len(data['follows']), 0)
+
     def test_35_run_http_task(self):
         rv = self.app.post('/debug/test_project/run', data={
             'script': self.script_content,
@@ -141,6 +161,18 @@ class TestWebUI(unittest.TestCase):
         })
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'ok', rv.data)
+
+    def test_45_run_with_saved_script(self):
+        rv = self.app.post('/debug/test_project/run', data={
+            'webdav_mode': 'true',
+            'script': '',
+            'task': self.task_content
+        })
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertIn(b'follows', rv.data)
+        self.assertGreater(len(data['follows']), 0)
+        self.__class__.task_content2 = data['follows'][0]
 
     def test_50_index_page_list(self):
         rv = self.app.get('/')
