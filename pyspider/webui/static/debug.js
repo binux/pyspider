@@ -12,7 +12,7 @@ window.SelectorHelper = (function() {
     features.forEach(function(f) {
       if (f.selected)
         element_name += f.name;
-    })
+    });
     if (element_name === '') {
       return p.tag;
     }
@@ -586,15 +586,39 @@ window.Debugger = (function() {
 
     webdav_mode: false,
     toggle_webdav_mode: function(button) {
-      this.webdav_mode = !this.webdav_mode;
-      if (this.webdav_mode) {
+      if (!this.webdav_mode) {
+        if (this.not_saved) {
+            if (!confirm("You have not saved changes. Ignore changes and switch to WebDav mode.")) {
+            return;
+          }
+          this.not_saved = false;
+        }
         this.python_editor_elem.hide();
         this.splitter.trigger('fullsize', 'prev');
         $(button).addClass('active');
+        this.webdav_mode = !this.webdav_mode;
       } else {
-        this.python_editor_elem.show();
-        this.splitter.trigger('init');
-        $(button).removeClass('active');
+        // leaving webdav mode, reload script
+        var _this = this;
+        $.ajax({
+          type: "GET",
+          url: location.pathname + '/get',
+          success: function (data) {
+            _this.splitter.trigger('init');
+            _this.python_editor_elem.show();
+            _this.python_editor.setValue(data.script);
+            _this.not_saved = false;
+            $(button).removeClass('active');
+            _this.webdav_mode = !_this.webdav_mode;
+          },
+          error: function() {
+            alert('Loading script from database error. Script may out-of-date.');
+            _this.python_editor_elem.show();
+            _this.splitter.trigger('init');
+            $(button).removeClass('active');
+            _this.webdav_mode = !_this.webdav_mode;
+          },
+        });
       }
     },
   };

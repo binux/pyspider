@@ -206,6 +206,16 @@ def save(project):
     return 'ok', 200
 
 
+@app.route('/debug/<project>/get')
+def get_script(project):
+    if not verify_project_name(project):
+        return 'project name is not allowed!', 400
+    projectdb = app.config['projectdb']
+    info = projectdb.get(project, fields=['name', 'script'])
+    return json.dumps(utils.unicode_obj(info)), \
+           200, {'Content-Type': 'application/json'}
+
+
 @app.route('/helper.js')
 def resizer_js():
     host = request.headers['Host']

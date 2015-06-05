@@ -153,7 +153,7 @@ class TestWebUI(unittest.TestCase):
         })
         self.assertEqual(rv.status_code, 200)
         data = json.loads(utils.text(rv.data))
-        self.assertIn(b'follows', rv.data)
+        self.assertIn('follows', data)
 
     def test_40_save(self):
         rv = self.app.post('/debug/test_project/save', data={
@@ -161,6 +161,13 @@ class TestWebUI(unittest.TestCase):
         })
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'ok', rv.data)
+
+    def test_42_get(self):
+        rv = self.app.get('/debug/test_project/get')
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertIn('script', data)
+        self.assertEqual(data['script'], self.script_content)
 
     def test_45_run_with_saved_script(self):
         rv = self.app.post('/debug/test_project/run', data={
