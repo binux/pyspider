@@ -353,7 +353,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://%s/' % (
             os.environ['SCHEDULER_PORT_23333_TCP'][len('tcp://'):]))
     elif scheduler_rpc is None:
-        app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://localhost:23333/')
+        app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
     else:
         app.config['scheduler_rpc'] = scheduler_rpc
 
@@ -399,7 +399,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart):
         logging.info('phantomjs existed.')
 
     if not g.get('phantomjs_proxy'):
-        g['phantomjs_proxy'] = 'localhost:%s' % port
+        g['phantomjs_proxy'] = '127.0.0.1:%s' % port
 
     phantomjs = utils.ObjectDict(port=port, quit=quit)
     g.instances.append(phantomjs)
@@ -445,7 +445,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         threads.append(run_in(ctx.invoke, phantomjs, **phantomjs_config))
         time.sleep(2)
         if threads[-1].is_alive() and not g.get('phantomjs_proxy'):
-            g['phantomjs_proxy'] = 'localhost:%s' % phantomjs_config.get('port', 25555)
+            g['phantomjs_proxy'] = '127.0.0.1:%s' % phantomjs_config.get('port', 25555)
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
@@ -470,7 +470,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
         # running webui in main thread to make it exitable
         webui_config = g.config.get('webui', {})
-        webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
+        webui_config.setdefault('scheduler_rpc', 'http://127.0.0.1:%s/'
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
         ctx.invoke(webui, **webui_config)
     finally:
@@ -598,7 +598,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 
         # webui
         webui_config = g.config.get('webui', {})
-        webui_config.setdefault('scheduler_rpc', 'http://localhost:%s/'
+        webui_config.setdefault('scheduler_rpc', 'http://127.0.0.1:%s/'
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
         threads.append(run_in(ctx.invoke, webui, **webui_config))
 
@@ -650,7 +650,7 @@ def one(ctx, interactive, enable_phantomjs, scripts):
         phantomjs_config = g.config.get('phantomjs', {})
         phantomjs_obj = ctx.invoke(phantomjs, **phantomjs_config)
         if phantomjs_obj:
-            g.setdefault('phantomjs_proxy', 'localhost:%s' % phantomjs_obj.port)
+            g.setdefault('phantomjs_proxy', '127.0.0.1:%s' % phantomjs_obj.port)
     else:
         phantomjs_obj = None
 
@@ -706,7 +706,7 @@ def send_message(ctx, scheduler_rpc, project, message):
         scheduler_rpc = connect_rpc(ctx, None, 'http://%s/' % (
             os.environ['SCHEDULER_PORT_23333_TCP'][len('tcp://'):]))
     if scheduler_rpc is None:
-        scheduler_rpc = connect_rpc(ctx, None, 'http://localhost:23333/')
+        scheduler_rpc = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
 
     return scheduler_rpc.send_task({
         'taskid': utils.md5string('data:,on_message'),
