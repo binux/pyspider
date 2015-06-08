@@ -198,7 +198,7 @@ window.SelectorHelper = (function() {
  
       // add button
       helper.find('.add-to-editor').on('click', function(ev) {
-        Debugger.python_editor_replace_selection(merge_pattern(current_path));
+        Debugger.current_editor.replace_selection(merge_pattern(current_path));
       });
     },
     clear: function() {
@@ -222,41 +222,11 @@ window.SelectorHelper = (function() {
   }
 })();
 
-window.Debugger = (function() {
-  var tmp_div = $('<div>');
-  function escape(text) {
-    return tmp_div.text(text).html();
-  }
-
-  window.addEventListener("message", function(ev) {
-    if (ev.data.type == "resize") {
-      $("#tab-web iframe").height(ev.data.height+60);
-    }
-  });
-
+window.PythonEditor = (function() {
   return {
     init: function() {
-      //init resizer
-      this.splitter = $(".debug-panel:not(:first)").splitter().data('splitter')
-          .trigger('init')
-          .on('resize-start', function() {
-            $('#left-area .overlay').show();
-          })
-          .on('resize-end', function() {
-            $('#left-area .overlay').hide();
-          });
-
-      //codemirror
-      CodeMirror.keyMap.basic.Tab = 'indentMore';
       this.init_python_editor($("#python-editor"));
-      this.init_task_editor($("#task-editor"));
-      this.bind_debug_tabs();
-      this.bind_run();
       this.bind_save();
-      this.bind_others();
-
-      // css selector helper
-      SelectorHelper.init();
     },
 
     not_saved: false,
@@ -289,8 +259,90 @@ window.Debugger = (function() {
       });
     },
 
-    python_editor_replace_selection: function(content) {
+    replace_selection: function(content) {
       this.python_editor.getDoc().replaceSelection(content);
+    },
+
+    bind_save: function() {
+      var _this = this;
+      $('#save-task-btn').on('click', function() {
+        var script = _this.get_script();
+        $('#right-area .overlay').show();
+        $.ajax({
+          type: "POST",
+          url: location.pathname+'/save',
+          data: {
+            script: script
+          },
+          success: function(data) {
+            console.log(data);
+            _this.python_log('');
+            _this.python_log("saved!");
+            _this.not_saved = false;
+            $('#right-area .overlay').hide();
+          },
+          error: function(xhr, textStatus, errorThrown) {
+            console.log(xhr, textStatus, errorThrown);
+            _this.python_log("save error!\n"+xhr.responseText);
+            $('#right-area .overlay').hide();
+          }
+        });
+      });
+    },
+
+    get_script: function() {
+      return this.python_editor.getDoc().getValue();
+    },
+
+    set_script: function(value) {
+      return this.python_editor.setValue(value);
+    },
+
+    hide: function() {
+      return this.python_editor_elem.hide();
+    },
+
+    show: function() {
+      return this.python_editor_elem.show();
+    },
+  }
+})();
+
+window.Debugger = (function() {
+  var tmp_div = $('<div>');
+  function escape(text) {
+    return tmp_div.text(text).html();
+  }
+
+  window.addEventListener("message", function(ev) {
+    if (ev.data.type == "resize") {
+      $("#tab-web iframe").height(ev.data.height+60);
+    }
+  });
+
+  return {
+    init: function() {
+      //init resizer
+      this.splitter = $(".debug-panel:not(:first)").splitter().data('splitter')
+          .trigger('init')
+          .on('resize-start', function() {
+            $('#left-area .overlay').show();
+          })
+          .on('resize-end', function() {
+            $('#left-area .overlay').hide();
+          });
+
+      //codemirror
+      CodeMirror.keyMap.basic.Tab = 'indentMore';
+      this.init_task_editor($("#task-editor"));
+      this.bind_debug_tabs();
+      this.bind_run();
+      this.bind_others();
+      // css selector helper
+      SelectorHelper.init();
+      // python editor
+      this.current_editor = PythonEditor;
+      this.current_editor.init();
     },
 
     auto_format: function(cm) {
@@ -362,33 +414,6 @@ window.Debugger = (function() {
       });
       $('#redo-btn').on('click', function(ev) {
         _this.task_editor.execCommand('redo');
-      });
-    },
-
-    bind_save: function() {
-      var _this = this;
-      $('#save-task-btn').on('click', function() {
-        var script = _this.python_editor.getDoc().getValue();
-        $('#right-area .overlay').show();
-        $.ajax({
-          type: "POST",
-          url: location.pathname+'/save',
-          data: {
-            script: script
-          },
-          success: function(data) {
-            console.log(data);
-            _this.python_log('');
-            _this.python_log("saved!");
-            _this.not_saved = false;
-            $('#right-area .overlay').hide();
-          },
-          error: function(xhr, textStatus, errorThrown) {
-            console.log(xhr, textStatus, errorThrown);
-            _this.python_log("save error!\n"+xhr.responseText);
-            $('#right-area .overlay').hide();
-          }
-        });
       });
     },
 
@@ -471,7 +496,7 @@ window.Debugger = (function() {
     },
 
     run: function() {
-      var script = this.python_editor.getDoc().getValue();
+      var script = this.current_editor.get_script();
       var task = this.task_editor.getDoc().getValue();
       var _this = this;
 
@@ -593,7 +618,7 @@ window.Debugger = (function() {
           }
           this.not_saved = false;
         }
-        this.python_editor_elem.hide();
+        this.current_editor.hide();
         this.splitter.trigger('fullsize', 'prev');
         $(button).addClass('active');
         this.webdav_mode = !this.webdav_mode;
@@ -605,15 +630,15 @@ window.Debugger = (function() {
           url: location.pathname + '/get',
           success: function (data) {
             _this.splitter.trigger('init');
-            _this.python_editor_elem.show();
-            _this.python_editor.setValue(data.script);
+            _this.current_editor.show();
+            _this.current_editor.set_script(data.script);
             _this.not_saved = false;
             $(button).removeClass('active');
             _this.webdav_mode = !_this.webdav_mode;
           },
           error: function() {
             alert('Loading script from database error. Script may out-of-date.');
-            _this.python_editor_elem.show();
+            _this.current_editor.show();
             _this.splitter.trigger('init');
             $(button).removeClass('active');
             _this.webdav_mode = !_this.webdav_mode;

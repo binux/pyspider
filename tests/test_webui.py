@@ -460,3 +460,34 @@ class TestWebUI(unittest.TestCase):
     def test_x50_tasks(self):
         rv = self.app.get('/tasks')
         self.assertEqual(rv.status_code, 502)
+
+
+import sys
+import signal
+import inspect
+import subprocess
+
+
+class TestWebUIwithPhantomjs(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        shutil.rmtree('./data/tests', ignore_errors=True)
+        os.makedirs('./data/tests')
+        cmd = [sys.executable]
+        self.p = subprocess.Popen(cmd+[
+            inspect.getsourcefile(run),
+            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
+            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
+            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+            'all', ], close_fds=True, preexec_fn=os.setsid)
+        time.sleep(3)
+
+    @classmethod
+    def tearDownClass(self):
+        os.killpg(self.p.pid, signal.SIGTERM)
+        self.p.wait()
+        shutil.rmtree('./data/tests', ignore_errors=True)
+
+    def test_10_webui(self):
+        webui_js = os.path.join(os.path.dirname(__file__), 'test_webui.js')
+        self.assertEqual(subprocess.check_call(['casperjs', 'test', webui_js]), 0)
