@@ -37,7 +37,7 @@ As we want to get all of the movies on [IMDb], the first thing is finding a list
 
 By looking around at the index page of [IMDb], I found this:
 
-![IMDb front page](imgs/tutorial_imdb_front.png)
+![IMDb front page](../imgs/tutorial_imdb_front.png)
 
 [http://www.imdb.com/search/title?count=100&title_type=feature,tv_series,tv_movie&ref_=nv_ch_mm_1](http://www.imdb.com/search/title?count=100&title_type=feature,tv_series,tv_movie&ref_=nv_ch_mm_1)
 
@@ -45,7 +45,7 @@ By looking around at the index page of [IMDb], I found this:
 
 You can find "Create" on the bottom right of baseboard. Click and name a project.
 
-![Creating a project](imgs/creating_a_project.png)
+![Creating a project](../imgs/creating_a_project.png)
 
 Changing the crawl URL in `on_start` callback:
 
@@ -60,7 +60,7 @@ Changing the crawl URL in `on_start` callback:
 
 Click the green `run` button, you should find a red 1 above follows, switch to follows panel, click the green play button:
 
-![Run one step](imgs/run_one_step.png)
+![Run one step](../imgs/run_one_step.png)
 
 Index Page
 ----------
@@ -103,7 +103,7 @@ You can use CSS Selector with built-in `response.doc` object, which is provided 
 
 pyspider provide a tool called `CSS selector helper` to make it easier to generate a selector pattern to element you clicked. Enable CSS selector helper by click the button and switch to `web` panel.
 
-![CSS Selector helper](imgs/css_selector_helper.png)
+![CSS Selector helper](../imgs/css_selector_helper.png)
 
 The element will be highlighted in yellow while mouse over. When you click it, a pre-selected CSS Selector pattern is shown on the bar above. You can edit the features to locate the element and add it to your source code.
 
@@ -142,7 +142,7 @@ Add keys you need to result dict and collect value using `CSS selector helper` r
 
 Note that, `CSS Selector helper` may not always work. You could write selector pattern manually with tools like [Chrome Dev Tools](https://developer.chrome.com/devtools):
 
-![inspect element](imgs/inspect_element.png)
+![inspect element](../imgs/inspect_element.png)
 
 You doesn't need to write every ancestral element in selector pattern, only the elements which can differentiate with not needed elements, is enough. However, it needs experience on scraping or Web developing to know which attribute is important, can be used as locator. You can also test CSS Selector in the JavaScript Console by using `$$` like `$$('[itemprop="director"] span')`
 
@@ -154,7 +154,7 @@ Running
 3. Changing the `status` to `DEBUG` or `RUNNING`.
 4. Press the `run` button. 
 
-![index demo](imgs/index_page.png)
+![index demo](../imgs/index_page.png)
 
 Notes
 -----
