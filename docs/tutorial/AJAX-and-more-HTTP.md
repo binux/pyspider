@@ -12,7 +12,7 @@ AJAX
 
 You may find elements mission in HTML fetched by pyspider or [wget](https://www.gnu.org/software/wget/). When you open it in browser some elements appear after page loaded with(maybe not) a 'loading' animation or words. For example, we want to scrape all channels of Dota 2 from [http://www.twitch.tv/directory/game/Dota%202](http://www.twitch.tv/directory/game/Dota%202)
 
-![twitch](imgs/twitch.png)
+![twitch](../imgs/twitch.png)
 
 But you may find nothing in the page. 
 
@@ -27,11 +27,11 @@ As [AJAX] data is transferred in [HTTP], we can find the real request with the h
 
 While resources are been loaded, you may find a table of requested resources.
 
-![developer tools network](imgs/developer-tools-network.png)
+![developer tools network](../imgs/developer-tools-network.png)
 
 AJAX is using [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) object to send and retrieve data which is generally shorted as "XHR". Use Filter (funnel icon) to filter out the XHR requests. Glance over each requests using preview:
 
-![find request](imgs/search-for-request.png)
+![find request](../imgs/search-for-request.png)
 
 To determine which one is the key request, you can use a filter to reduce the number of requests, guess the usage of the request by this path and parameters, then view the response contents for confirmation. Here we found the request: [http://api.twitch.tv/kraken/streams?limit=20&offset=0&game=Dota+2&broadcaster_language=&on_site=1](http://api.twitch.tv/kraken/streams?limit=20&offset=0&game=Dota+2&broadcaster_language=&on_site=1)
 
@@ -86,7 +86,7 @@ If-Modified-Since: Fri, 09 Aug 2013 23:54:35 GMT
 
 You can get this with [Chrome Developer Tools](https://developer.chrome.com/devtools) - Network panel we used in above section:
 
-![request header](imgs/request-headers.png)
+![request header](../imgs/request-headers.png)
 
 In most case, the last thing you need is to copy right URL + method + headers + body from Network panel.
 
