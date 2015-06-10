@@ -3,9 +3,11 @@
  */
 
 
+var base_url = casper.cli.options.base || "http://localhost:5000/";
+
 casper.test.begin('index page', function suite(test) {
     test.info('open index.html');
-    casper.start('http://localhost:5000/', function() {
+    casper.start(base_url, function() {
         test.assertSelectorHasText('header > h1', 'pyspider dashboard');
         test.assertExists('.project-create');
 
@@ -32,7 +34,7 @@ casper.test.begin('index page', function suite(test) {
     }, 1000);
 
     casper.then(function() {
-        test.assertUrlMatch(/^http:\/\/localhost:5000\/debug\/test_project/);
+        test.assert(this.getCurrentUrl().indexOf(base_url+'debug/test_project') == 0);
     });
 
     casper.run(function() {
@@ -42,7 +44,7 @@ casper.test.begin('index page', function suite(test) {
 
 casper.test.begin('debug page', function(test) {
     test.info('open index.html');
-    casper.start('http://localhost:5000/', function() {
+    casper.start(base_url, function() {
         test.info('fill and create project');
         this.fill('#create-project-modal form', {
             'project-name': 'test_project',

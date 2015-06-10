@@ -37,6 +37,7 @@ class TestResponse(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.httpbin_thread.terminate()
+        self.httpbin_thread.join(5)
 
     def get(self, url, **kwargs):
         if not url.startswith('http://'):

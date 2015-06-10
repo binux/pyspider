@@ -51,7 +51,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.proxy_thread.terminate()
         self.proxy_thread.wait()
         self.httpbin_thread.terminate()
-        self.httpbin_thread.join()
+        self.httpbin_thread.join(5)
 
     def crawl(self, url=None, track=None, **kwargs):
         if url is None and kwargs.get('callback'):

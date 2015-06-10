@@ -6,9 +6,7 @@
 # Created on 2014-12-10 01:34:09
 
 import os
-import sys
-import time
-import click
+import signal
 import shutil
 import inspect
 import unittest2 as unittest
@@ -36,7 +34,7 @@ class TestBench(unittest.TestCase):
             '--queue-maxsize=0',
             'bench',
             '--total=500'
-        ], close_fds=True, stderr=subprocess.PIPE)
+        ], close_fds=True, stderr=subprocess.PIPE, preexec_fn=os.setsid)
 
         stdout, stderr = p.communicate()
         stderr = utils.text(stderr)
@@ -47,3 +45,8 @@ class TestBench(unittest.TestCase):
         self.assertIn('Fetched', stderr)
         self.assertIn('Processed', stderr)
         self.assertIn('Saved', stderr)
+
+        try:
+            os.killpg(p.pid, signal.SIGTERM)
+        except OSError:
+            pass

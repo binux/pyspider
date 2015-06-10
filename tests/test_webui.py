@@ -38,20 +38,20 @@ class TestWebUI(unittest.TestCase):
 
         ctx = run.scheduler.make_context('scheduler', [], self.ctx)
         scheduler = run.scheduler.invoke(ctx)
-        run_in_thread(scheduler.xmlrpc_run)
-        run_in_thread(scheduler.run)
+        self.scheduler_xmlrpc_p = run_in_thread(scheduler.xmlrpc_run)
+        self.scheduler_p = run_in_thread(scheduler.run)
 
         ctx = run.fetcher.make_context('fetcher', [], self.ctx)
         fetcher = run.fetcher.invoke(ctx)
-        run_in_thread(fetcher.run)
+        self.fetcher_p = run_in_thread(fetcher.run)
 
         ctx = run.processor.make_context('processor', [], self.ctx)
         processor = run.processor.invoke(ctx)
-        run_in_thread(processor.run)
+        self.processor_p = run_in_thread(processor.run)
 
         ctx = run.result_worker.make_context('result_worker', [], self.ctx)
         result_worker = run.result_worker.invoke(ctx)
-        run_in_thread(result_worker.run)
+        self.result_worker_p = run_in_thread(result_worker.run)
 
         ctx = run.webui.make_context('webui', [
             '--scheduler-rpc', 'http://localhost:23333/'
@@ -67,10 +67,14 @@ class TestWebUI(unittest.TestCase):
     def tearDownClass(self):
         for each in self.ctx.obj.instances:
             each.quit()
-        time.sleep(1)
+        self.scheduler_xmlrpc_p.join(5)
+        self.scheduler_p.join(5)
+        self.fetcher_p.join(5)
+        self.processor_p.join(5)
+        self.result_worker_p.join(5)
 
         self.httpbin_thread.terminate()
-        self.httpbin_thread.join()
+        self.httpbin_thread.join(3)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 
@@ -474,12 +478,18 @@ class TestWebUIwithPhantomjs(unittest.TestCase):
         time.sleep(3)
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
+        json.dump({
+            'taskdb': 'sqlite+taskdb:///data/tests/task.db',
+            'projectdb': 'sqlite+projectdb:///data/tests/projectdb.db',
+            'resultdb': 'sqlite+resultdb:///data/tests/resultdb.db',
+            'webui': {
+                'port': 25001,
+            }
+        }, fp=open('./data/tests/config.json', 'w'))
         cmd = [sys.executable]
         self.p = subprocess.Popen(cmd+[
             inspect.getsourcefile(run),
-            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
-            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
-            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+            '-c', './data/tests/config.json',
             'all', ], close_fds=True, preexec_fn=os.setsid)
         time.sleep(3)
 
@@ -491,4 +501,5 @@ class TestWebUIwithPhantomjs(unittest.TestCase):
 
     def test_10_webui(self):
         webui_js = os.path.join(os.path.dirname(__file__), 'test_webui.js')
-        self.assertEqual(subprocess.check_call(['casperjs', 'test', webui_js]), 0)
+        self.assertEqual(subprocess.check_call(['casperjs', 'test', webui_js,
+                                                '--base=http://localhost:25001/']), 0)

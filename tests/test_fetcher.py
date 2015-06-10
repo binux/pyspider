@@ -9,6 +9,7 @@ import os
 import json
 import copy
 import time
+import signal
 import umsgpack
 import subprocess
 import unittest2 as unittest
@@ -73,7 +74,7 @@ class TestFetcher(unittest.TestCase):
             self.phantomjs = subprocess.Popen(['phantomjs',
                 os.path.join(os.path.dirname(__file__),
                     '../pyspider/fetcher/phantomjs_fetcher.js'),
-                '25555'])
+                '25555'], preexec_fn=os.setsid)
         except OSError:
             self.phantomjs = None
         time.sleep(0.5)
@@ -83,13 +84,15 @@ class TestFetcher(unittest.TestCase):
         self.proxy_thread.terminate()
         self.proxy_thread.wait()
         self.httpbin_thread.terminate()
-        self.httpbin_thread.join()
+        self.httpbin_thread.join(5)
+        self.xmlrpc_thread.join(5)
 
         if self.phantomjs:
             self.phantomjs.kill()
             self.phantomjs.wait()
         self.rpc._quit()
-        self.thread.join()
+        self.xmlrpc_thread.join(5)
+        self.thread.join(5)
         time.sleep(1)
 
     def test_10_http_get(self):

@@ -222,8 +222,7 @@ class TestProcessor(unittest.TestCase):
     def tearDownClass(self):
         if self.process.is_alive():
             self.processor.quit()
-            self.process.join(2)
-        assert not self.process.is_alive()
+            self.process.join(5)
         shutil.rmtree('./data/tests/', ignore_errors=True)
 
     def test_10_update_project(self):

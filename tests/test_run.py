@@ -37,7 +37,7 @@ class TestRun(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.httpbin_thread.terminate()
-        self.httpbin_thread.join()
+        self.httpbin_thread.join(5)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 
@@ -195,7 +195,6 @@ class TestRun(unittest.TestCase):
             'all',
         ], close_fds=True, preexec_fn=os.setsid)
 
-
         try:
             limit = 30
             while limit >= 0:
@@ -310,8 +309,8 @@ class TestSendMessage(unittest.TestCase):
 
         ctx = run.scheduler.make_context('scheduler', [], self.ctx)
         scheduler = run.scheduler.invoke(ctx)
-        utils.run_in_thread(scheduler.xmlrpc_run)
-        utils.run_in_thread(scheduler.run)
+        self.scheduler_xmlrpc_p = utils.run_in_thread(scheduler.xmlrpc_run)
+        self.scheduler_p = utils.run_in_thread(scheduler.run)
 
         time.sleep(1)
 
@@ -319,7 +318,8 @@ class TestSendMessage(unittest.TestCase):
     def tearDownClass(self):
         for each in self.ctx.obj.instances:
             each.quit()
-        time.sleep(1)
+        self.scheduler_xmlrpc_p.join(5)
+        self.scheduler_p.join(5)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 
