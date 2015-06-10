@@ -15,8 +15,17 @@ before_install:
     - sudo apt-get install -y beanstalkd
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
+    # install casperjs
+    - git clone git://github.com/n1k0/casperjs.git ~/casperjs
+    - cd ~/casperjs
+    - git checkout tags/1.1-beta3
+    - export PATH=$PATH:`pwd`/bin
+    - cd -
 install:
     - pip install --allow-all-external -e .[all,test]
+before_script:
+    - phantomjs --version
+    - casperjs --version
 script:
     - coverage run setup.py test
 after_success:
