@@ -471,6 +471,7 @@ import subprocess
 class TestWebUIwithPhantomjs(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        time.sleep(3)
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
         cmd = [sys.executable]
