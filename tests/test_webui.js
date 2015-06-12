@@ -34,7 +34,9 @@ casper.test.begin('index page', function suite(test) {
     }, 1000);
 
     casper.then(function() {
-        test.assert(this.getCurrentUrl().indexOf(base_url+'debug/test_project') == 0);
+        test.assert(this.getCurrentUrl().indexOf(base_url+'debug/test_project') == 0,
+            this.getCurrentUrl()
+        );
     });
 
     casper.run(function() {

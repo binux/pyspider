@@ -5,11 +5,28 @@
 
 @import "variable";
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden;
+
+  // from bootstrap
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333;
+  background-color: #fff;
+}
+
+a {
+  // from bootstrap
+  color: #428bca;
+  text-decoration: none;
 }
 
 .warning {
@@ -211,9 +228,6 @@ body {
       background: @red;
       color: white;
       font-size: 80%;
-      font-weight: bold;
-      padding: 2px 5px 0 5px;
-      border-radius: 10px;
     }
   }
 }
@@ -349,13 +363,13 @@ body {
   padding: 0;
   width: 100%;
   height: 24px;
+  line-height: 24px;
   text-align: right;
   white-space: nowrap;
 
   &.fixed {
     position: absolute;
     top: 0;
-
   }
 
   button {
@@ -426,4 +440,33 @@ span.element {
   width: 100%;
   margin-left: -100px;
   background: @gray-lighter;
+}
+
+#slime-editor .panel-group {
+  .panel-heading {
+    background-color: lighten(@blue, 5%);
+    border: 1px solid darken(@blue, 15%);
+    border-width: 1px 0;
+    color: white;
+    font-weight: bold;
+    padding: 2px 7px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: darken(@blue, 5%);
+    }
+  }
+
+  .panel-setup {
+    background-color: @blue;
+    border-width: 1px 0;
+  }
+
+  .panel-body {
+    display: none;
+
+    &.active {
+      display: block;
+    }
+  }
 }

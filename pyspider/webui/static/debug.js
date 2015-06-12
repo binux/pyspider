@@ -233,6 +233,7 @@ window.PythonEditor = (function() {
     init_python_editor: function($el) {
       var _this = this;
       this.python_editor_elem = $el;
+      this.python_editor_elem.show();
       var cm = this.python_editor = CodeMirror($el[0], {
         value: script_content,
         mode: "python",
@@ -308,6 +309,47 @@ window.PythonEditor = (function() {
   }
 })();
 
+window.SlimeEditor = (function() {
+
+  return {
+    init: function() {
+      var _this = this;
+      // webdav mode is not available in slime mode
+      $('.webdav-btn').hide();
+      this.slime_elem = $('#slime-editor');
+      this.slime_elem.show();
+
+      this.resize_panel_body();
+
+      // bind
+      $(window).on('resize', function() { _this.resize_panel_body() });
+      this.slime_elem.on("click", ".panel-heading", function() {
+        _this.slime_elem.find(".active").removeClass("active");
+        $(this).find("~.panel-body").addClass("active");
+        _this.resize_panel_body();
+      });
+    },
+
+    resize_panel_body: function() {
+      var heading = this.slime_elem.find(".panel-heading");
+      var panel_body_height = this.slime_elem.parent().innerHeight()
+          - heading.length * heading.outerHeight();
+
+      this.slime_elem.find(".panel-body.active").height(panel_body_height);
+    },
+
+    replace_selector: function() {},
+    get_script: function() {},
+    set_script: function(value) {},
+    hide: function() {
+      this.slime_elem.hide();
+    },
+    show: function() {
+      this.slime_elem.show();
+    },
+  };
+})();
+
 window.Debugger = (function() {
   var tmp_div = $('<div>');
   function escape(text) {
@@ -340,8 +382,13 @@ window.Debugger = (function() {
       this.bind_others();
       // css selector helper
       SelectorHelper.init();
-      // python editor
-      this.current_editor = PythonEditor;
+      // editor
+
+      if (request_args['script-mode'] == 'slime') {
+        this.current_editor = SlimeEditor;
+      } else {
+        this.current_editor = PythonEditor;
+      }
       this.current_editor.init();
     },
 

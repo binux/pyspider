@@ -56,8 +56,8 @@
             <div id="tab-web" class="tab" style="display: none;">
               <div id="css-selector-helper">
                 <input class="copy-selector-input" />
-                <button class="btn copy-selector"><i class="fa fa-clipboard" title="copy css selector"></i></button>
-                <button class="btn add-to-editor"><i class="fa fa-arrow-right" title="add to editor"></i></button>
+                <button class="copy-selector"><i class="fa fa-clipboard" title="copy css selector"></i></button>
+                <button class="add-to-editor"><i class="fa fa-arrow-right" title="add to editor"></i></button>
               </div>
               <div class="iframe-box"></div>
             </div>
@@ -75,8 +75,8 @@
           </div>
         </div>
         <ul id="tab-control">
-          <li data-id="tab-messages">messages<span class="num" style="display: none;"></span></li>
-          <li data-id="tab-follows">follows<span class="num" style="display: none;"></span></li>
+          <li data-id="tab-messages">messages<span class="badge num" style="display: none;"></span></li>
+          <li data-id="tab-follows">follows<span class="badge num" style="display: none;"></span></li>
           <li data-id="tab-html">html</li>
           <li data-id="tab-web" class="active">web</li>
           <li id="J-enable-css-selector-helper">enable css selector helper</li>
@@ -85,8 +85,36 @@
       </div>
 
       <div id="right-area" class="debug-panel" style="left: 50%">
-        <div id="python-editor" class="editor focus">
+        <div id="python-editor" class="editor focus" style="display: none;">
           <div id="save-task-btn">save</div>
+        </div>
+        <div id="slime-editor" style="display: none;">
+          <div class="panel-group">
+            <div class="panel">
+              <div class="panel-heading panel-setup">
+                setup
+              </div>
+              <div class="panel-body active">
+                body
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-heading">
+                heading
+              </div>
+              <div class="panel-body">
+                body
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-heading">
+                heading
+              </div>
+              <div class="panel-body">
+                body
+              </div>
+            </div>
+          </div>
         </div>
         <div class="overlay" style="display: none;"></div>
       </div>
@@ -95,6 +123,7 @@
     <script>
       var task_content = {{ task | tojson | tojson | safe }};
       var script_content = {{ script | tojson | safe }};
+      var request_args = {{ request.values | tojson | safe }};
     </script>
     <script src="{{ url_for('static', filename='splitter.js') }}"></script>
     <script src="{{ url_for('static', filename='debug.js') }}"></script>

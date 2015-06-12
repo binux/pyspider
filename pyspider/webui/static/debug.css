@@ -6,11 +6,23 @@
 /* Author: Binux<i@binux.me> */
 /*         http://binux.me */
 /* Created on 2014-07-16 19:18:30 */
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333;
+  background-color: #fff;
+}
+a {
+  color: #428bca;
+  text-decoration: none;
 }
 .warning {
   color: #f0ad4e;
@@ -214,9 +226,6 @@ body {
   background: #d9534f;
   color: white;
   font-size: 80%;
-  font-weight: bold;
-  padding: 2px 5px 0 5px;
-  border-radius: 10px;
 }
 #debug-tabs {
   margin-bottom: 45px;
@@ -331,6 +340,7 @@ body {
   padding: 0;
   width: 100%;
   height: 24px;
+  line-height: 24px;
   text-align: right;
   white-space: nowrap;
 }
@@ -398,4 +408,26 @@ span.element > ul > li:hover {
   width: 100%;
   margin-left: -100px;
   background: #eeeeee;
+}
+#slime-editor .panel-group .panel-heading {
+  background-color: #5697d0;
+  border: 1px solid #2a6496;
+  border-width: 1px 0;
+  color: white;
+  font-weight: bold;
+  padding: 2px 7px;
+  cursor: pointer;
+}
+#slime-editor .panel-group .panel-heading:hover {
+  background-color: #357ebd;
+}
+#slime-editor .panel-group .panel-setup {
+  background-color: #428bca;
+  border-width: 1px 0;
+}
+#slime-editor .panel-group .panel-body {
+  display: none;
+}
+#slime-editor .panel-group .panel-body.active {
+  display: block;
 }
