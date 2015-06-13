@@ -328,6 +328,10 @@ window.SlimeEditor = (function() {
         $(this).find("~.panel-body").addClass("active");
         _this.resize_panel_body();
       });
+      this.slime_elem.on("click", ".crawl, .return", function() {
+        $(this).parent().find(".active").removeClass("active");
+        $(this).addClass("active");
+      });
     },
 
     resize_panel_body: function() {

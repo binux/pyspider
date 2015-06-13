@@ -469,4 +469,22 @@ span.element {
       display: block;
     }
   }
+
+  .crawl, .return {
+    padding: 10px 10px;
+    cursor: pointer;
+    border: 0 solid lighten(@orange, 25%);
+    border-left-width: 10px;
+
+    &.active {
+      border: 0 solid @orange;
+      border-left-width: 10px;
+    }
+
+    &:hover {
+      background-color: lighten(@orange, 30%);
+      border: 0 solid @orange;
+      border-left-width: 10px;
+    }
+  }
 }

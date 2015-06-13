@@ -431,3 +431,21 @@ span.element > ul > li:hover {
 #slime-editor .panel-group .panel-body.active {
   display: block;
 }
+#slime-editor .panel-group .crawl,
+#slime-editor .panel-group .return {
+  padding: 10px 10px;
+  cursor: pointer;
+  border: 0 solid #fae3c4;
+  border-left-width: 10px;
+}
+#slime-editor .panel-group .crawl.active,
+#slime-editor .panel-group .return.active {
+  border: 0 solid #f0ad4e;
+  border-left-width: 10px;
+}
+#slime-editor .panel-group .crawl:hover,
+#slime-editor .panel-group .return:hover {
+  background-color: #fceedb;
+  border: 0 solid #f0ad4e;
+  border-left-width: 10px;
+}
