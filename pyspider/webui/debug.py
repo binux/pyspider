@@ -32,17 +32,11 @@ default_task = {
 default_script = inspect.getsource(sample_handler)
 
 
-def verify_project_name(project):
-    if re.search(r"[^\w]", project):
-        return False
-    return True
-
-
 @app.route('/debug/<project>', methods=['GET', 'POST'])
 def debug(project):
-    if not verify_project_name(project):
-        return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']
+    if not projectdb.verify_project_name(project):
+        return 'project name is not allowed!', 400
     info = projectdb.get(project, fields=['name', 'script'])
     if info:
         script = info['script']
@@ -169,9 +163,9 @@ def run(project):
 
 @app.route('/debug/<project>/save', methods=['POST', ])
 def save(project):
-    if not verify_project_name(project):
-        return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']
+    if not projectdb.verify_project_name(project):
+        return 'project name is not allowed!', 400
     script = request.form['script']
     project_info = projectdb.get(project, fields=['name', 'status', 'group'])
     if project_info and 'lock' in projectdb.split_group(project_info.get('group')) \
@@ -208,9 +202,9 @@ def save(project):
 
 @app.route('/debug/<project>/get')
 def get_script(project):
-    if not verify_project_name(project):
-        return 'project name is not allowed!', 400
     projectdb = app.config['projectdb']
+    if not projectdb.verify_project_name(project):
+        return 'project name is not allowed!', 400
     info = projectdb.get(project, fields=['name', 'script'])
     return json.dumps(utils.unicode_obj(info)), \
            200, {'Content-Type': 'application/json'}

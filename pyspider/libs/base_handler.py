@@ -216,6 +216,8 @@ class BaseHandler(object):
         """
         task = {}
 
+        assert len(url) < 1024, "Maximum URL length error: len(url) > 1024"
+
         if kwargs.get('callback'):
             callback = kwargs['callback']
             if isinstance(callback, six.string_types) and hasattr(self, callback):

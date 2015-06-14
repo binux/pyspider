@@ -18,11 +18,6 @@ from pyspider.libs.utils import utf8, text
 from .app import app
 
 
-def verify_project_name(project):
-    if re.search(r"[^\w]", project):
-        return False
-    return True
-
 class ContentIO(BytesIO):
     def close(self):
         self.content = self.getvalue()
@@ -49,7 +44,7 @@ class ScriptResource(DAVNonCollection):
         if projectdb:
             self._project = projectdb.get(self.project_name)
         if not self._project:
-            if verify_project_name(self.project_name) and self.name.endswith('.py'):
+            if projectdb.verify_project_name(self.project_name) and self.name.endswith('.py'):
                 self.new_project = True
                 self._project = {
                     'name': self.project_name,
