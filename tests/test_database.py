@@ -444,6 +444,48 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb.conn.drop_database(self.resultdb.database.name)
 
 
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+class TestSQLAlchemyMySQLTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database(
+            'sqlalchemy+mysql+mysqlconnector+taskdb://root@localhost/pyspider_test_taskdb'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.taskdb.engine.execute('DROP DATABASE pyspider_test_taskdb')
+
+
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+class TestSQLAlchemyMySQLProjectDB(ProjectDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'sqlalchemy+mysql+mysqlconnector+projectdb://root@localhost/pyspider_test_projectdb'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb.engine.execute('DROP DATABASE pyspider_test_projectdb')
+
+
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+class TestSQLAlchemyMySQLResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database(
+            'sqlalchemy+mysql+mysqlconnector+resultdb://root@localhost/pyspider_test_resultdb'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.resultdb.engine.execute('DROP DATABASE pyspider_test_resultdb')
+
+
 class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -458,7 +500,6 @@ class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
 
 
 class TestSQLAlchemyProjectDB(ProjectDBCase, unittest.TestCase):
-
 
     @classmethod
     def setUpClass(self):

@@ -11,7 +11,8 @@ import time
 import json
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, LargeBinary, sql, func)
+                        Integer, String, Float, LargeBinary, func)
+from sqlalchemy.engine.url import make_url
 from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from .sqlalchemybase import SplitTableMixin, result2dict
@@ -37,8 +38,18 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                            Column('track', LargeBinary),
                            Column('lastcrawltime', Float(32)),
                            Column('updatetime', Float(32)),
+                           mysql_engine='InnoDB',
+                           mysql_charset='utf8'
                            )
-        self.engine = create_engine(url, convert_unicode=True)
+
+        self.url = make_url(url)
+        if self.url.database:
+            database = self.url.database
+            self.url.database = None
+            engine = create_engine(self.url, convert_unicode=True)
+            engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
+            self.url.database = database
+        self.engine = create_engine(self.url, convert_unicode=True)
 
         self._list_project()
 
