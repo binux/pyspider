@@ -29,6 +29,10 @@ a {
   text-decoration: none;
 }
 
+.clear {
+  clear: both;
+}
+
 .warning {
   color: @orange;
 }
@@ -464,13 +468,14 @@ span.element {
 
   .panel-body {
     display: none;
+    overflow: auto;
 
     &.active {
       display: block;
     }
   }
 
-  .crawl, .return {
+  .item-group {
     padding: 10px 10px;
     cursor: pointer;
     border: 0 solid lighten(@orange, 25%);
@@ -487,4 +492,19 @@ span.element {
       border-left-width: 10px;
     }
   }
+
+  .crawl-config {
+    .CodeMirror {
+      height: auto;
+    }
+
+    &:hover {
+      background-color: lighten(@orange, 35%);
+
+      .CodeMirror {
+        background-color: lighten(@orange, 35%);
+      }
+    }
+  }
 }
+

@@ -224,6 +224,8 @@ window.SelectorHelper = (function() {
 
 window.PythonEditor = (function() {
   return {
+    name: "python-editor",
+
     init: function() {
       this.init_python_editor($("#python-editor"));
       this.bind_save();
@@ -312,6 +314,8 @@ window.PythonEditor = (function() {
 window.SlimeEditor = (function() {
 
   return {
+    name: "slime-editor",
+
     init: function() {
       var _this = this;
       // webdav mode is not available in slime mode
@@ -321,16 +325,30 @@ window.SlimeEditor = (function() {
 
       this.resize_panel_body();
 
-      // bind
+      // bind .panel-heading
       $(window).on('resize', function() { _this.resize_panel_body() });
       this.slime_elem.on("click", ".panel-heading", function() {
-        _this.slime_elem.find(".active").removeClass("active");
+        _this.slime_elem.find(".panel-body.active").removeClass("active");
         $(this).find("~.panel-body").addClass("active");
         _this.resize_panel_body();
       });
-      this.slime_elem.on("click", ".crawl, .return", function() {
+
+      // bind .item-group
+      this.slime_elem.on("click", ".item-group", function() {
         $(this).parent().find(".active").removeClass("active");
         $(this).addClass("active");
+      });
+
+      // init crawl config editor
+      this.crawl_config_elem = $("#slime-editor .crawl-config");
+      var crawl_config_text = this.crawl_config_elem.text().trim();
+      this.crawl_config_elem.text('');
+      var cm = this.crawl_config_editor = CodeMirror(this.crawl_config_elem.get(0), {
+        value: crawl_config_text,
+        mode: "application/json",
+        indentUnit: 2,
+        lineWrapping: true,
+        styleActiveLine: true,
       });
     },
 
@@ -587,7 +605,9 @@ window.Debugger = (function() {
               content = JSON.stringify(content, null, '  ');
               content = "<html><pre>"+content+"</pre></html>";
               iframe.src = _this.render_html(content,
-                                             data.fetch_result.url, true, true, false);
+                  data.fetch_result.url, true, true,
+                  // enalbe css selector helper by default when using slime editor
+                  _this.current_editor.name == 'slime-editor');
             } catch (e) {
               iframe.src = "data:,Content-Type:"+content_type+" parse error.";
             }

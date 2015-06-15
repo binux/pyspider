@@ -24,6 +24,9 @@ a {
   color: #428bca;
   text-decoration: none;
 }
+.clear {
+  clear: both;
+}
 .warning {
   color: #f0ad4e;
 }
@@ -427,25 +430,32 @@ span.element > ul > li:hover {
 }
 #slime-editor .panel-group .panel-body {
   display: none;
+  overflow: auto;
 }
 #slime-editor .panel-group .panel-body.active {
   display: block;
 }
-#slime-editor .panel-group .crawl,
-#slime-editor .panel-group .return {
+#slime-editor .panel-group .item-group {
   padding: 10px 10px;
   cursor: pointer;
   border: 0 solid #fae3c4;
   border-left-width: 10px;
 }
-#slime-editor .panel-group .crawl.active,
-#slime-editor .panel-group .return.active {
+#slime-editor .panel-group .item-group.active {
   border: 0 solid #f0ad4e;
   border-left-width: 10px;
 }
-#slime-editor .panel-group .crawl:hover,
-#slime-editor .panel-group .return:hover {
+#slime-editor .panel-group .item-group:hover {
   background-color: #fceedb;
   border: 0 solid #f0ad4e;
   border-left-width: 10px;
+}
+#slime-editor .panel-group .crawl-config .CodeMirror {
+  height: auto;
+}
+#slime-editor .panel-group .crawl-config:hover {
+  background-color: #fef9f3;
+}
+#slime-editor .panel-group .crawl-config:hover .CodeMirror {
+  background-color: #fef9f3;
 }

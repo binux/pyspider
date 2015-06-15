@@ -92,13 +92,24 @@
           <div class="panel-group">
             <div class="panel">
               <div class="panel-heading panel-setup">
-                def on_start(self):
+                setup
               </div>
               <div class="panel-body active">
-                <div class="crawl active">
+                <div class="item-group crawl-config">
+crawl_config = {
+}
+                </div>
+                <div class="item-group crawl active">
                   self.crawl(<input />, <button>...</button>, callback=self.<a href="#">callback</a>)
                 </div>
-                <div class="return">
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-heading">
+                def callback(self):
+              </div>
+              <div class="panel-body">
+                <div class="item-group return">
                   return {
                   <div class="return-item">
                     <input />: <input /> . <select>
@@ -109,14 +120,6 @@
                   </div>
                   }
                 </div>
-              </div>
-            </div>
-            <div class="panel">
-              <div class="panel-heading">
-                heading
-              </div>
-              <div class="panel-body">
-                body
               </div>
             </div>
             <div class="panel">

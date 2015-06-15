@@ -224,23 +224,33 @@
     });
   }
 
-  window.addEventListener("message", function(ev) {
-    if (ev.data.type == "overlay") {
-      //console.log(ev.data.xpath, getElementByXpath(ev.data.xpath));
-      overlay(getElementByXpath(ev.data.xpath));
-    } else if (ev.data.type == "heightlight") {
-      heightlight(document.querySelectorAll(ev.data.css_selector));
+  function init() {
+    if (window.pyspider_css_selector_helper_inited) {
+      return ;
     }
-  });
 
-  document.addEventListener("mouseover", function(ev) {
-    overlay(event.target);
-  });
- 
-  document.addEventListener("click", function(ev) {
-    ev.preventDefault();
-    ev.stopPropagation();
+    window.addEventListener("message", function (ev) {
+      if (ev.data.type == "overlay") {
+        //console.log(ev.data.xpath, getElementByXpath(ev.data.xpath));
+        overlay(getElementByXpath(ev.data.xpath));
+      } else if (ev.data.type == "heightlight") {
+        heightlight(document.querySelectorAll(ev.data.css_selector));
+      }
+    });
 
-    parent.postMessage({type: 'selector_helper_click', path: path_info(ev.target)}, '*');
-  });
+    document.addEventListener("mouseover", function (ev) {
+      overlay(event.target);
+    });
+
+    document.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      parent.postMessage({type: 'selector_helper_click', path: path_info(ev.target)}, '*');
+    });
+
+    window.pyspider_css_selector_helper_inited = true;
+  }
+
+  init();
 })();
