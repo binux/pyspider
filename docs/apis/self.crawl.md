@@ -66,7 +66,7 @@ class Handler(BaseHandler):
         'itag': 'v223'
     }
 ```
-> Change the value of itag after you modified the script and click run button again. It don't matter if not set before. 
+> Change the value of itag after you modified the script and click run button again. It doesn't matter if not set before. 
 
 * `auto_recrawl` - when enabled, task would be recrawled every `age` time. _default: False_ <a name="auto_recrawl" href="#auto_recrawl">¶</a>
 
@@ -151,7 +151,7 @@ def callback(self, response):
 * `taskid` - unique id to identify the task, default is the MD5 check code of the URL, can be overridden by method `def get_taskid(self, task)` <a name="taskid" href="#taskid">¶</a>
 
 ```python
-import son
+import json
 from pyspider.libs.utils import md5string
 def get_taskid(self, task):
     return md5string(task['url']+json.dumps(task['data']))
