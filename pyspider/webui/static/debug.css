@@ -459,3 +459,22 @@ span.element > ul > li:hover {
 #slime-editor .panel-group .crawl-config:hover .CodeMirror {
   background-color: #fef9f3;
 }
+#slime-editor .panel-group .crawl {
+  padding: 5px 10px;
+}
+#slime-editor .panel-group .crawl p {
+  margin: 5px 0;
+}
+#slime-editor .panel-group .crawl input.crawl-url {
+  width: 20em;
+}
+#slime-editor .panel-group .crawl input.crawl-callback {
+  width: 7em;
+}
+#slime-editor .panel-group .crawl .crawl-operation {
+  display: none;
+  float: right;
+}
+#slime-editor .panel-group .crawl:hover .crawl-operation {
+  display: inline-block;
+}

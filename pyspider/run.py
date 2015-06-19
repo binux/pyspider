@@ -284,8 +284,8 @@ def result_worker(ctx, result_cls):
               help='webui bind to host')
 @click.option('--port', default=5000, envvar='WEBUI_PORT',
               help='webui bind to host')
-@click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/',
-              help='js/css cdn server')
+@click.option('--cdn', default='//cdnjs.cloudflare.com/ajax/libs/',
+              help='js/css cdn server, path format must be compatible with cdnjs.com')
 @click.option('--scheduler-rpc', callback=connect_rpc, help='xmlrpc path of scheduler')
 @click.option('--fetcher-rpc', callback=connect_rpc, help='xmlrpc path of fetcher')
 @click.option('--max-rate', type=float, help='max rate for each project')
