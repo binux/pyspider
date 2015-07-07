@@ -3,24 +3,28 @@ site_description: A Powerful Spider(Web Crawler) System in Python.
 site_author: binux
 repo_url: https://github.com/binux/pyspider
 pages:
-    - [index.md, 'Introduction']
-    - [Quickstart.md, '', 'Quickstart']
-    - [Command-Line.md, '', 'Command Line']
-    - [tutorial/index.md, 'Tutorial', 'Index']
-    - [tutorial/HTML-and-CSS-Selector.md, 'Tutorial', 'Level 1: HTML and CSS Selector']
-    - [tutorial/AJAX-and-more-HTTP.md, 'Tutorial', 'Level 2: AJAX and More HTTP']
-    - [tutorial/Render-with-PhantomJS.md, 'Tutorial', 'Level 3: Render with PhantomJS']
-    - [Architecture.md, 'About pyspider', 'Architecture']
-    - [About-Tasks.md, 'About pyspider', 'About Tasks']
-    - [About-Projects.md, 'About pyspider', 'About Projects']
-    - [Script-Environment.md, 'About pyspider', 'Script Environment']
-    - [apis/index.md, 'API Reference', 'Index']
-    - [apis/self.crawl.md, 'API Reference', 'self.crawl']
-    - [apis/Response.md, 'API Reference', 'Response']
-    - [apis/self.send_message.md, 'API Reference', 'self.send_message']
-    - [apis/@catch_status_code_error.md, 'API Reference', '@catch_status_code_error']
-    - [apis/@every.md, 'API Reference', '@every']
-    - [Deployment.md, '', 'Deployment']
-    - [Running-pyspider-with-Docker.md, '', 'Running pyspider with Docker']
-    - [Frequently-Asked-Questions.md, '', 'Frequently Asked Questions']
+- Introduction: index.md
+- Quickstart: Quickstart.md
+- Command Line: Command-Line.md
+- Tutorial:
+  - Index: tutorial/index.md
+  - 'Level 1: HTML and CSS Selector': tutorial/HTML-and-CSS-Selector.md
+  - 'Level 2: AJAX and More HTTP': tutorial/AJAX-and-more-HTTP.md
+  - 'Level 3: Render with PhantomJS': tutorial/Render-with-PhantomJS.md
+- About pyspider:
+  - Architecture: Architecture.md
+  - About Tasks: About-Tasks.md
+  - About Projects: About-Projects.md
+  - Script Environment: Script-Environment.md
+- API Reference:
+  - Index: apis/index.md
+  - self.crawl: apis/self.crawl.md
+  - Response: apis/Response.md
+  - self.send_message: apis/self.send_message.md
+  - '@catch_status_code_error': apis/@catch_status_code_error.md
+  - '@every': apis/@every.md
+- Deployment: Deployment.md
+- Running pyspider with Docker: Running-pyspider-with-Docker.md
+- Frequently Asked Questions: Frequently-Asked-Questions.md
+
 theme: readthedocs
