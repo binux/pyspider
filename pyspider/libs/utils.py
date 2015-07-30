@@ -223,10 +223,8 @@ def pretty_unicode(string):
     """
     if isinstance(string, six.text_type):
         return string
-    try:
-        return string.decode("utf8")
-    except UnicodeDecodeError:
-        return string.decode('Latin-1').encode('unicode_escape')
+    else:
+        return string.decode("utf8", errors='ignore')
 
 
 def unicode_string(string):
