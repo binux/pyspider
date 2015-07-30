@@ -224,7 +224,7 @@ def pretty_unicode(string):
     if isinstance(string, six.text_type):
         return string
     else:
-        return string.decode("utf8", errors='ignore')
+        return string.decode("utf8", 'ignore')
 
 
 def unicode_string(string):
