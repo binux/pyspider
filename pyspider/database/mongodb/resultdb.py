@@ -23,6 +23,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self._list_project()
 
     def _parse(self, data):
+        data['_id'] = str(data['_id'])
         if 'result' in data:
             data['result'] = json.loads(data['result'])
         return data
