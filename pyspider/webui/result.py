@@ -39,7 +39,7 @@ def dump_result(project, _format):
         return "no such project.", 404
 
     offset = int(request.args.get('offset', 0))
-    limit = int(request.args.get('limit', 0)) or None
+    limit = int(request.args.get('limit', 0))
     results = resultdb.select(project, offset=offset, limit=limit)
 
     if _format == 'json':
