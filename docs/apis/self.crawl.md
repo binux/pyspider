@@ -154,7 +154,7 @@ def callback(self, response):
 import json
 from pyspider.libs.utils import md5string
 def get_taskid(self, task):
-    return md5string(task['url']+json.dumps(task['data']))
+    return md5string(task['url']+json.dumps(task['fetch'].get('data', '')))
 ```
 > Only url is md5 -ed as taskid by default, the code above add `data` of POST request as part of taskid.
 
