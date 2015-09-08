@@ -51,7 +51,9 @@ def connect_message_queue(name, url=None, maxsize=0):
         except:
             db = 0
 
-        return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize)
+        password = parsed.password or None
+
+        return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize, password=password)
     else:
         if url.startswith('kombu+'):
             url = url[len('kombu+'):]
