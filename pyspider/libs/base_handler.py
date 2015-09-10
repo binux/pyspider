@@ -276,7 +276,13 @@ class BaseHandler(object):
                 'use_gzip',
         ):
             if key in kwargs:
-                fetch[key] = kwargs.pop(key)
+                keyValue = kwargs.pop(key)
+                #Merge a key if it's a dict and there is a default dict set in ```crawl_config```
+                if fetch.get(key) and isinstance(keyValue,dict) and isinstance(fetch[key],dict):
+                    fetch[key] = fetch[key].update(keyValue)
+                else:
+                    fetch[key] = keyValue
+
         task['fetch'] = fetch
 
         process = {}
