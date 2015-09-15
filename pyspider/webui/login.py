@@ -14,6 +14,21 @@ login_manager = login.LoginManager()
 login_manager.init_app(app)
 
 
+class AnonymousUser(login.AnonymousUserMixin):
+
+    def is_anonymous(self):
+        return True
+
+    def is_active(self):
+        return False
+
+    def is_authenticated(self):
+        return False
+
+    def get_id(self):
+        return
+
+
 class User(login.UserMixin):
 
     def __init__(self, id, password):
@@ -30,6 +45,9 @@ class User(login.UserMixin):
 
     def is_active(self):
         return self.is_authenticated()
+
+
+login_manager.anonymous_user = AnonymousUser
 
 
 @login_manager.request_loader
