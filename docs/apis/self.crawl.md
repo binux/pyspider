@@ -18,7 +18,7 @@ def on_start(self):
 
 the following parameters are optional
 
-* `age` - the period of validity of the task. The page would be regarded as not modified during the period. _default: 0(never recrawl)_ <a name="age" href="#age">¶</a>
+* `age` - the period of validity of the task. The page would be regarded as not modified during the period. _default: -1(never recrawl)_ <a name="age" href="#age">¶</a>
 
 ```python
 @config(age=10 * 24 * 60 * 60)
