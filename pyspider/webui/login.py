@@ -70,5 +70,5 @@ app.login_response = Response(
 @app.before_request
 def before_request():
     if app.config.get('need_auth', False):
-        if not login.current_user.is_active():
+        if not login.current_user.is_active:
             return app.login_response
