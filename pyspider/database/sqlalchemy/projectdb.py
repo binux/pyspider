@@ -7,6 +7,7 @@
 
 import six
 import time
+import sqlalchemy.exc
 
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Text
 from sqlalchemy.engine.url import make_url
@@ -41,8 +42,11 @@ class ProjectDB(BaseProjectDB):
         if self.url.database:
             database = self.url.database
             self.url.database = None
-            engine = create_engine(self.url, convert_unicode=False)
-            engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
+            try:
+                engine = create_engine(self.url, convert_unicode=False)
+                engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
+            except sqlalchemy.exc.OperationalError:
+                pass
             self.url.database = database
         self.engine = create_engine(url, convert_unicode=False)
         self.table.create(self.engine, checkfirst=True)

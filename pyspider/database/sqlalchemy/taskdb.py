@@ -9,6 +9,7 @@ import re
 import six
 import time
 import json
+import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
                         Integer, String, Float, LargeBinary, func)
@@ -46,8 +47,11 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         if self.url.database:
             database = self.url.database
             self.url.database = None
-            engine = create_engine(self.url, convert_unicode=True)
-            engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
+            try:
+                engine = create_engine(self.url, convert_unicode=True)
+                engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
+            except sqlalchemy.exc.OperationalError:
+                pass
             self.url.database = database
         self.engine = create_engine(self.url, convert_unicode=True)
 
