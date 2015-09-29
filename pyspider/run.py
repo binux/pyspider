@@ -286,8 +286,8 @@ def result_worker(ctx, result_cls):
               help='webui bind to host')
 @click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/',
               help='js/css cdn server')
-@click.option('--scheduler-rpc', callback=connect_rpc, help='xmlrpc path of scheduler')
-@click.option('--fetcher-rpc', callback=connect_rpc, help='xmlrpc path of fetcher')
+@click.option('--scheduler-rpc', help='xmlrpc path of scheduler')
+@click.option('--fetcher-rpc', help='xmlrpc path of fetcher')
 @click.option('--max-rate', type=float, help='max rate for each project')
 @click.option('--max-burst', type=float, help='max burst for each project')
 @click.option('--username', envvar='WEBUI_USERNAME',

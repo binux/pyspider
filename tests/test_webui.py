@@ -41,8 +41,12 @@ class TestWebUI(unittest.TestCase):
         run_in_thread(scheduler.xmlrpc_run)
         run_in_thread(scheduler.run)
 
-        ctx = run.fetcher.make_context('fetcher', [], self.ctx)
+        ctx = run.fetcher.make_context('fetcher', [
+            '--xmlrpc',
+            '--xmlrpc-port', '24444',
+        ], self.ctx)
         fetcher = run.fetcher.invoke(ctx)
+        run_in_thread(fetcher.xmlrpc_run)
         run_in_thread(fetcher.run)
 
         ctx = run.processor.make_context('processor', [], self.ctx)
@@ -346,6 +350,37 @@ class TestWebUI(unittest.TestCase):
         rv = self.app.get('/results/dump/test_project.csv')
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'url,title,url', rv.data)
+
+    def test_a60_fetch_via_cannot_connect_fetcher(self):
+        ctx = run.webui.make_context('webui', [
+            '--fetcher-rpc', 'http://localhost:20000/',
+        ], self.ctx)
+        app = run.webui.invoke(ctx)
+        app = app.test_client()
+        rv = app.post('/debug/test_project/run', data={
+            'script': self.script_content,
+            'task': self.task_content
+        })
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertGreater(len(data['logs']), 0)
+        self.assertEqual(len(data['follows']), 0)
+
+    def test_a70_fetch_via_fetcher(self):
+        ctx = run.webui.make_context('webui', [
+            '--fetcher-rpc', 'http://localhost:24444/',
+        ], self.ctx)
+        app = run.webui.invoke(ctx)
+        app = app.test_client()
+        rv = app.post('/debug/test_project/run', data={
+            'script': self.script_content,
+            'task': self.task_content
+        })
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertEqual(len(data['logs']), 0, data['logs'])
+        self.assertIn(b'follows', rv.data)
+        self.assertGreater(len(data['follows']), 0)
 
     def test_h000_auth(self):
         ctx = run.webui.make_context('webui', [
