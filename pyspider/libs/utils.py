@@ -226,7 +226,7 @@ def pretty_unicode(string):
     try:
         return string.decode("utf8")
     except UnicodeDecodeError:
-        return string.decode('Latin-1').encode('unicode_escape')
+        return string.decode('Latin-1').encode('unicode_escape').decode("utf8")
 
 
 def unicode_string(string):
