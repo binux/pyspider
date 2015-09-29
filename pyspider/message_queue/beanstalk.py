@@ -38,7 +38,7 @@ class BeanstalkQueue(object):
         try:
             with self.lock:
                 stats = self.connection.stats_tube(self.name)
-        except beanstalkc.CommandFailed, err:
+        except beanstalkc.CommandFailed as err:
             # tube is empty
             if err[1] == 'NOT_FOUND':
                 return {}
