@@ -10,7 +10,7 @@ AJAX
 
 [AJAX] is short for asynchronous JavaScript + XML. AJAX is using existing standards to update parts of a web page without loading the whole page. A common usage of AJAX is loading [JSON] data and render to HTML on the client side.
 
-You may find elements mission in HTML fetched by pyspider or [wget](https://www.gnu.org/software/wget/). When you open it in browser some elements appear after page loaded with(maybe not) a 'loading' animation or words. For example, we want to scrape all channels of Dota 2 from [http://www.twitch.tv/directory/game/Dota%202](http://www.twitch.tv/directory/game/Dota%202)
+You may find elements missing in HTML fetched by pyspider or [wget](https://www.gnu.org/software/wget/). When you open it in browser some elements appear after page loaded with(maybe not) a 'loading' animation or words. For example, we want to scrape all channels of Dota 2 from [http://www.twitch.tv/directory/game/Dota%202](http://www.twitch.tv/directory/game/Dota%202)
 
 ![twitch](../imgs/twitch.png)
 
