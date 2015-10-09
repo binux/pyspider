@@ -134,7 +134,7 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
     str_time = "%d:%02d" % (local_date.hour, local_date.minute)
 
     return format % {
-        "month_name": local_date.month - 1,
+        "month_name": local_date.month,
         "weekday": local_date.weekday(),
         "day": str(local_date.day),
         "year": str(local_date.year),
