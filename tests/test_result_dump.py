@@ -11,8 +11,8 @@ import six
 import csv
 import time
 import json
-import StringIO
 import unittest2 as unittest
+from six import StringIO
 
 from pyspider.libs import result_dump
 
