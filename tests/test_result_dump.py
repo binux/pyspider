@@ -65,7 +65,6 @@ class TestResultDump(unittest.TestCase):
             self.assertEqual(results2[i]['result'], json.loads(json_data))
 
     def test_dump_as_csv(self):
-        reader = csv.reader(StringIO.StringIO(''.join(
-            result_dump.dump_as_csv(results1))))
+        reader = csv.reader(StringIO(''.join(result_dump.dump_as_csv(results1))))
         for row in reader:
             self.assertEqual(len(row), 4)
