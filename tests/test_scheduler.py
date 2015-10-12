@@ -187,6 +187,19 @@ class TestScheduler(unittest.TestCase):
         self.assertIsNotNone(task)
         self.assertEqual(task['url'], 'data:,_on_get_info')
 
+    def test_34_new_not_used_project(self):
+        self.projectdb.insert('test_project_not_started', {
+            'name': 'test_project_not_started',
+            'group': 'group',
+            'status': 'RUNNING',
+            'script': 'import time\nprint(time.time())',
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
+        task = self.scheduler2fetcher.get(timeout=1)
+        self.assertEqual(task['taskid'], '_on_get_info')
+
     def test_35_new_task(self):
         time.sleep(0.2)
         self.newtask_queue.put({
