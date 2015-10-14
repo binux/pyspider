@@ -15,11 +15,6 @@ from pyspider.libs import utils
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from .sqlalchemybase import result2dict
 
-if six.PY3:
-    where_type = utils.utf8
-else:
-    where_type = utils.text
-
 
 class ProjectDB(BaseProjectDB):
     __tablename__ = 'projectdb'
@@ -43,30 +38,22 @@ class ProjectDB(BaseProjectDB):
             database = self.url.database
             self.url.database = None
             try:
-                engine = create_engine(self.url, convert_unicode=False)
-                engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
+                engine = create_engine(self.url)
+                conn = engine.connect()
+                conn.execute("commit")
+                conn.execute("CREATE DATABASE %s" % database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
             self.url.database = database
-        self.engine = create_engine(url, convert_unicode=False)
+        self.engine = create_engine(url)
         self.table.create(self.engine, checkfirst=True)
 
     @staticmethod
     def _parse(data):
-        if six.PY3:
-            for key, value in list(six.iteritems(data)):
-                if isinstance(value, six.binary_type):
-                    data[utils.text(key)] = utils.text(value)
-                else:
-                    data[utils.text(key)] = value
         return data
 
     @staticmethod
     def _stringify(data):
-        if six.PY3:
-            for key, value in list(six.iteritems(data)):
-                if isinstance(value, six.string_types):
-                    data[key] = utils.utf8(value)
         return data
 
     def insert(self, name, obj={}):
@@ -81,7 +68,7 @@ class ProjectDB(BaseProjectDB):
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         return self.engine.execute(self.table.update()
-                                   .where(self.table.c.name == where_type(name))
+                                   .where(self.table.c.name == name)
                                    .values(**self._stringify(obj)))
 
     def get_all(self, fields=None):
@@ -93,14 +80,14 @@ class ProjectDB(BaseProjectDB):
     def get(self, name, fields=None):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
-                                        .where(self.table.c.name == where_type(name))
+                                        .where(self.table.c.name == name)
                                         .limit(1)
                                         .with_only_columns(columns)):
             return self._parse(result2dict(columns, task))
 
     def drop(self, name):
         return self.engine.execute(self.table.delete()
-                                   .where(self.table.c.name == where_type(name)))
+                                   .where(self.table.c.name == name))
 
     def check_update(self, timestamp, fields=None):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c

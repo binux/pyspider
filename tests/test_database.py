@@ -156,7 +156,7 @@ class TaskDBCase(object):
 class ProjectDBCase(object):
     sample_project = {
         'name': 'name',
-        'script': 'import time\nprint(time.time())',
+        'script': 'import time\nprint(time.time(), "!@#$%^&*()\';:<>?/|")',
         'status': 'TODO',
         'rate': 1.0,
         'burst': 10.0,
@@ -521,10 +521,12 @@ class TestPGTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_taskdb'
         )
+        self.tearDownClass()
 
     @classmethod
     def tearDownClass(self):
-        pass
+        for project in self.taskdb.projects:
+            self.taskdb.drop(project)
 
 
 @unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
@@ -536,10 +538,12 @@ class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'sqlalchemy+postgresql+projectdb://postgres@127.0.0.1:5432/pyspider_test_projectdb'
         )
+        self.tearDownClass()
 
     @classmethod
     def tearDownClass(self):
-        pass
+        for project in self.projectdb.get_all(fields=['name']):
+            self.projectdb.drop(project['name'])
 
 
 @unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
@@ -550,10 +554,12 @@ class TestPGResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'sqlalchemy+postgresql+resultdb://postgres@127.0.0.1/pyspider_test_resultdb'
         )
+        self.tearDownClass()
 
     @classmethod
     def tearDownClass(self):
-        pass
+        for project in self.resultdb.projects:
+            self.resultdb.drop(project)
 
 
 @unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
@@ -567,7 +573,6 @@ class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         for project in self.taskdb.projects:
-            print("drop project: %s" % project)
             self.taskdb.drop(project)
 
 if __name__ == '__main__':

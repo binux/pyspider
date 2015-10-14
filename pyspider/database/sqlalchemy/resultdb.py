@@ -18,11 +18,6 @@ from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.libs import utils
 from .sqlalchemybase import SplitTableMixin, result2dict
 
-if six.PY3:
-    where_type = utils.utf8
-else:
-    where_type = utils.text
-
 
 class ResultDB(SplitTableMixin, BaseResultDB):
     __tablename__ = ''
@@ -72,11 +67,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
     @staticmethod
     def _stringify(data):
         if 'result' in data:
-            data['result'] = json.dumps(data['result'])
-        if six.PY3:
-            for key, value in list(six.iteritems(data)):
-                if isinstance(value, six.string_types):
-                    data[key] = utils.utf8(value)
+            data['result'] = utils.utf8(json.dumps(data['result']))
         return data
 
     def save(self, project, taskid, url, result):
@@ -93,7 +84,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if self.get(project, taskid, ('taskid', )):
             del obj['taskid']
             return self.engine.execute(self.table.update()
-                                       .where(self.table.c.taskid == where_type(taskid))
+                                       .where(self.table.c.taskid == taskid)
                                        .values(**self._stringify(obj)))
         else:
             return self.engine.execute(self.table.insert()
@@ -134,6 +125,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
                                         .with_only_columns(columns=columns)
-                                        .where(self.table.c.taskid == where_type(taskid))
+                                        .where(self.table.c.taskid == taskid)
                                         .limit(1)):
             return self._parse(result2dict(columns, task))
