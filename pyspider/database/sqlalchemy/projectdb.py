@@ -45,7 +45,7 @@ class ProjectDB(BaseProjectDB):
             try:
                 engine = create_engine(self.url, convert_unicode=False)
                 engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
-            except sqlalchemy.exc.OperationalError:
+            except sqlalchemy.exc.SQLAlchemyError:
                 pass
             self.url.database = database
         self.engine = create_engine(url, convert_unicode=False)

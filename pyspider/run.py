@@ -7,6 +7,7 @@
 
 
 import os
+import sys
 import six
 import copy
 import time
@@ -82,12 +83,17 @@ def connect_rpc(ctx, param, value):
               'please use --message-queue instead.')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
+@click.option('--add-sys-path/--not-add-sys-path', default=True, is_flag=True,
+              help='add current working directory to python lib search path')
 @click.version_option(version=pyspider.__version__, prog_name=pyspider.__name__)
 @click.pass_context
 def cli(ctx, **kwargs):
     """
     A powerful spider system in python.
     """
+    if kwargs['add_sys_path']:
+        sys.path.append(os.getcwd())
+
     logging.config.fileConfig(kwargs['logging_config'])
 
     # get db from env

@@ -8,15 +8,20 @@ services:
     - mongodb
     - rabbitmq
     - redis-server
-#addons:
-    #postgresql: "9.4"
+addons:
+    postgresql: "9.4"
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
+before_script:
+    - psql -c "CREATE DATABASE pyspider_test_taskdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
+    - psql -c "CREATE DATABASE pyspider_test_projectdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
+    - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
 install:
     - pip install --allow-all-external -e .[all,test]
+    - pip install coveralls
 script:
     - coverage run setup.py test
 after_success:

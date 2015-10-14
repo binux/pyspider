@@ -246,7 +246,10 @@ class Fetcher(object):
         fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
         if 'Cookie' in fetch['headers']:
             c = http_cookies.SimpleCookie()
-            c.load(fetch['headers']['Cookie'])
+            try:
+                c.load(fetch['headers']['Cookie'])
+            except AttributeError:
+                c.load(utils.utf8(fetch['headers']['Cookie']))
             for key in c:
                 session.set(key, c[key])
             del fetch['headers']['Cookie']

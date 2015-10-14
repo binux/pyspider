@@ -541,7 +541,7 @@ class Scheduler(object):
             result = []
 
             while len(result) < limit and tasks and not all(x is None for x in tasks):
-                updatetime, task = t = max(tasks)
+                updatetime, task = t = max(t for t in tasks if t)
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
                 for key in list(task):

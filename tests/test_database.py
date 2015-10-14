@@ -69,10 +69,6 @@ class TaskDBCase(object):
     def setUpClass(self):
         raise NotImplementedError
 
-    @classmethod
-    def tearDownClass(self):
-        raise NotImplementedError
-
     # this test not works for mongodb
     # def test_10_create_project(self):
         # with self.assertRaises(AssertionError):
@@ -168,11 +164,7 @@ class ProjectDBCase(object):
 
     @classmethod
     def setUpClass(self):
-        raise NotImplemented()
-
-    @classmethod
-    def tearDownClass(self):
-        raise NotImplemented()
+        raise NotImplemented
 
     def test_10_insert(self):
         self.projectdb.insert('abc', self.sample_project)
@@ -253,11 +245,7 @@ class ResultDBCase(object):
 
     @classmethod
     def setUpClass(self):
-        raise NotImplemented()
-
-    @classmethod
-    def tearDownClass(self):
-        raise NotImplemented()
+        raise NotImplemented
 
     def test_10_save(self):
         self.resultdb.save('test_project', 'test_taskid', 'test_url', 'result')
@@ -525,47 +513,48 @@ class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
         del self.resultdb
 
 
-#@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
-#class TestPGTaskDB(TaskDBCase, unittest.TestCase):
+@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+class TestPGTaskDB(TaskDBCase, unittest.TestCase):
 
-    #@classmethod
-    #def setUpClass(self):
-        #self.taskdb = database.connect_database(
-            #'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_taskdb'
-        #)
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database(
+            'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_taskdb'
+        )
 
-    #@classmethod
-    #def tearDownClass(self):
-        #self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
-
-
-#@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
-#class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
+    @classmethod
+    def tearDownClass(self):
+        pass
 
 
-    #@classmethod
-    #def setUpClass(self):
-        #self.projectdb = database.connect_database(
-            #'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_projectdb'
-        #)
-
-    #@classmethod
-    #def tearDownClass(self):
-        #self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
+@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
 
 
-#@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
-#class TestPGResultDB(ResultDBCase, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'sqlalchemy+postgresql+projectdb://postgres@127.0.0.1:5432/pyspider_test_projectdb'
+        )
 
-    #@classmethod
-    #def setUpClass(self):
-        #self.resultdb = database.connect_database(
-            #'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_resultdb'
-        #)
+    @classmethod
+    def tearDownClass(self):
+        pass
 
-    #@classmethod
-    #def tearDownClass(self):
-        #self.resultdb._execute('DROP DATABASE pyspider_test_resultdb')
+
+@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+class TestPGResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database(
+            'sqlalchemy+postgresql+resultdb://postgres@127.0.0.1/pyspider_test_resultdb'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        pass
+
 
 @unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
 class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
