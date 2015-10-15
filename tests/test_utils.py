@@ -41,6 +41,7 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(utils.format_date(now - 2*60), '2 minutes ago')
         self.assertEqual(utils.format_date(now - 30*60), '30 minutes ago')
         self.assertEqual(utils.format_date(now - 60*60), '1 hour ago')
+        self.assertEqual(utils.format_date(1963475336), 'Mar 21, 2032 at 9:48')
         self.assertEqual(utils.format_date(now - 12*60*60), '12 hours ago')
         self.assertRegex(utils.format_date(now - 24*60*60), r'^yesterday at \d{1,2}:\d{2}$')
         self.assertRegex(utils.format_date(now - 2*24*60*60), r'^[A-Z][a-z]+ at \d{1,2}:\d{2}$')
