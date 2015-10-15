@@ -124,8 +124,8 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
         elif days < 5:
             format = "%(weekday)s" if shorter else "%(weekday)s at %(time)s"
         elif days < 334:  # 11mo, since confusing for same month last year
-            format = "%(month_name)s-%(day)s" if shorter else \
-                "%(month_name)s-%(day)s at %(time)s"
+            format = "%(month)s-%(day)s" if shorter else \
+                "%(month)s-%(day)s at %(time)s"
 
     if format is None:
         format = "%(month_name)s %(day)s, %(year)s" if shorter else \
@@ -134,10 +134,11 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
     str_time = "%d:%02d" % (local_date.hour, local_date.minute)
 
     return format % {
-        "month_name": local_date.month - 1,
-        "weekday": local_date.weekday(),
+        "month_name": local_date.strftime('%b'),
+        "weekday": local_date.strftime('%A'),
         "day": str(local_date.day),
         "year": str(local_date.year),
+        "month": local_date.month,
         "time": str_time
     }
 
