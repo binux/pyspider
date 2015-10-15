@@ -6,7 +6,6 @@
 # Created on 2014-02-23 00:19:06
 
 
-import re
 import sys
 import time
 import socket
@@ -18,7 +17,7 @@ from flask.ext import login
 
 from pyspider.libs import utils, sample_handler, dataurl
 from pyspider.libs.response import rebuild_response
-from pyspider.processor.project_module import ProjectManager, ProjectFinder, ProjectLoader
+from pyspider.processor.project_module import ProjectManager, ProjectFinder
 from .app import app
 
 default_task = {
@@ -60,13 +59,7 @@ def debug(project):
 
 @app.before_first_request
 def enable_projects_import():
-    class DebuggerProjectFinder(ProjectFinder):
-
-        def get_loader(self, name):
-            info = app.config['projectdb'].get(name)
-            if info:
-                return ProjectLoader(info)
-    sys.meta_path.append(DebuggerProjectFinder())
+    sys.meta_path.append(ProjectFinder(app.config['projectdb']))
 
 
 @app.route('/debug/<project>/run', methods=['POST', ])
@@ -84,7 +77,7 @@ def run(project):
             'time': time.time() - start_time,
         }
         return json.dumps(utils.unicode_obj(result)), \
-               200, {'Content-Type': 'application/json'}
+            200, {'Content-Type': 'application/json'}
 
     project_info = {
         'name': project,
@@ -105,7 +98,7 @@ def run(project):
                 'time': time.time() - start_time,
             }
             return json.dumps(utils.unicode_obj(result)), \
-                   200, {'Content-Type': 'application/json'}
+                200, {'Content-Type': 'application/json'}
         project_info['script'] = info['script']
 
     fetch_result = {}
@@ -207,7 +200,7 @@ def get_script(project):
         return 'project name is not allowed!', 400
     info = projectdb.get(project, fields=['name', 'script'])
     return json.dumps(utils.unicode_obj(info)), \
-           200, {'Content-Type': 'application/json'}
+        200, {'Content-Type': 'application/json'}
 
 
 @app.route('/helper.js')

@@ -6,6 +6,7 @@
 # Created on 2014-02-22 14:00:05
 
 import os
+import six
 import copy
 import time
 import unittest2 as unittest
@@ -489,3 +490,34 @@ class TestProcessor(unittest.TestCase):
         self.assertEqual(status['track']['process']['ok'], False)
 
         self.processor.project_manager.CHECK_PROJECTS_INTERVAL = 0.1
+
+    @unittest.skipIf(six.PY3, "deprecated feature, not work for PY3")
+    def test_80_import_project(self):
+        self.projectdb.insert('test_project2', {
+            'name': 'test_project',
+            'group': 'group',
+            'status': 'TODO',
+            'script': inspect.getsource(sample_handler),
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
+        self.projectdb.insert('test_project3', {
+            'name': 'test_project',
+            'group': 'group',
+            'status': 'TODO',
+            'script': inspect.getsource(sample_handler),
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
+
+        from projects import test_project
+        self.assertIsNotNone(test_project)
+        self.assertIsNotNone(test_project.Handler)
+
+        from projects.test_project2 import Handler
+        self.assertIsNotNone(Handler)
+
+        import projects.test_project3
+        self.assertIsNotNone(projects.test_project3.Handler)
