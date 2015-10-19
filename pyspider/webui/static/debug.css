@@ -130,7 +130,6 @@ body {
   border-radius: 5px 0 0 0;
   padding: 5px 0 3px 0;
   /*box-shadow: 0px 0px 30px @color;*/
-
   overflow: hidden;
 }
 #undo-redo-btn-group:hover {
@@ -305,6 +304,7 @@ body {
 #python-editor .CodeMirror {
   height: 100%;
   padding-bottom: 20px;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "Source Code Pro", "Lucida Console", "Courier New", "Courier", "monospace";
 }
 #python-log {
   width: 100%;
