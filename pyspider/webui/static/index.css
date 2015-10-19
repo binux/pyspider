@@ -77,7 +77,7 @@ h1 {
 }
 .projects td.project-progress {
   position: relative;
-  min-width: 5%;
+  min-width: 6%;
 }
 .projects td.project-progress.progress-all {
   min-width: 10%;
