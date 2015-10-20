@@ -274,6 +274,7 @@ class BaseHandler(object):
                 'load_images',
                 'fetch_type',
                 'use_gzip',
+                'max_redirects'
         ):
             if key in kwargs:
                 fetch[key] = kwargs.pop(key)
