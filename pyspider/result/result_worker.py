@@ -8,7 +8,7 @@
 import time
 import json
 import logging
-from six.moves import queue as Queue
+from pyspider.libs.queue import Queue
 logger = logging.getLogger("result")
 
 

@@ -33,7 +33,7 @@ def connect_message_queue(name, url=None, maxsize=0):
     """
 
     if not url:
-        from multiprocessing import Queue
+        from pyspider.libs.base_queue import MultiProcessingQueue as Queue
         return Queue(maxsize=maxsize)
 
     parsed = urlparse.urlparse(url)

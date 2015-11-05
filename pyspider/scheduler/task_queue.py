@@ -9,12 +9,13 @@ import time
 import heapq
 import logging
 import threading
-from six.moves import queue as Queue
 try:
     from UserDict import DictMixin
 except ImportError:
     from collections import Mapping as DictMixin
 from .token_bucket import Bucket
+from pyspider.libs.queue import Queue
+
 logger = logging.getLogger('scheduler')
 
 try:
