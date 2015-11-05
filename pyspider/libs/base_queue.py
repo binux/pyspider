@@ -91,3 +91,11 @@ class MultiProcessingQueue(MPQueue, object):
     def empty(self):
         """ Reliable implementation of multiprocessing.Queue.empty() """
         return not self.qsize()
+
+
+def get_queue(maxsize=0):
+    if hasattr(multiprocessing, 'get_context'):  # python 3.4
+        return MultiProcessingQueue(maxsize,
+                                    ctx=multiprocessing.get_context())
+    else:
+        return MultiProcessingQueue(maxsize=maxsize)

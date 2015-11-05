@@ -15,7 +15,8 @@ from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.libs import utils, dataurl
-from pyspider.libs.queue import Queue
+from pyspider.libs.base_queue import Queue
+
 
 class TestFetcherProcessor(unittest.TestCase):
 
