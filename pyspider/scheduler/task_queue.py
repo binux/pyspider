@@ -154,7 +154,7 @@ class TaskQueue(object):
     def _check_time_queue(self):
         now = time.time()
         self.mutex.acquire()
-        while self.time_queue.qsize() and self.time_queue.top.exetime < now:
+        while self.time_queue.qsize() and self.time_queue.top and self.time_queue.top.exetime < now:
             task = self.time_queue.get_nowait()
             task.exetime = 0
             self.priority_queue.put(task)
@@ -163,7 +163,7 @@ class TaskQueue(object):
     def _check_processing(self):
         now = time.time()
         self.mutex.acquire()
-        while self.processing.qsize() and self.processing.top.exetime < now:
+        while self.processing.qsize() and self.processing.top and self.processing.top.exetime < now:
             task = self.processing.get_nowait()
             if task.taskid is None:
                 continue
