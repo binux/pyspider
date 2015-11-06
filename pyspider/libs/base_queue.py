@@ -93,7 +93,7 @@ class MultiProcessingQueue(MPQueue, object):
         return not self.qsize()
 
 
-def get_queue(maxsize=0):
+def get_multiprocessing_queue(maxsize=0):
     if hasattr(multiprocessing, 'get_context'):  # python 3.4
         return MultiProcessingQueue(maxsize,
                                     ctx=multiprocessing.get_context())

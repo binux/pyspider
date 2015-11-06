@@ -97,7 +97,7 @@ except ImportError:
     import xmlrpclib as xmlrpc_client
 from pyspider.scheduler.scheduler import Scheduler
 from pyspider.database.sqlite import taskdb, projectdb, resultdb
-from pyspider.libs.base_queue import get_queue as Queue
+from pyspider.libs.queue import get_queue as Queue
 from pyspider.libs.utils import run_in_thread
 
 
