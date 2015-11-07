@@ -144,8 +144,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
 
-        status, newtasks, result = self.crawl(self.httpbin+'/get', method='PATCH',
-                                              callback=self.catch_http_error)
+        status, newtasks, result = self.crawl(self.httpbin+'/get', method='DELETE', callback=self.catch_http_error)
 
         self.assertFalse(self.status_ok(status, 'fetch'))
         self.assertTrue(self.status_ok(status, 'process'))
