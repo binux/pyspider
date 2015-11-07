@@ -95,9 +95,9 @@ try:
     from six.moves import xmlrpc_client
 except ImportError:
     import xmlrpclib as xmlrpc_client
-from multiprocessing import Queue
 from pyspider.scheduler.scheduler import Scheduler
 from pyspider.database.sqlite import taskdb, projectdb, resultdb
+from pyspider.libs.queue import get_queue as Queue
 from pyspider.libs.utils import run_in_thread
 
 
@@ -176,7 +176,7 @@ class TestScheduler(unittest.TestCase):
         })
 
     def test_30_update_project(self):
-        from six.moves import queue as Queue
+        from pyspider.libs.queue import Queue
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=1)
         self.projectdb.update('test_project', status="DEBUG")
@@ -409,7 +409,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from six.moves import queue as Queue
+        from pyspider.libs.queue import Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 
@@ -523,7 +523,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from six.moves import queue as Queue
+        from pyspider.libs.queue import Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 

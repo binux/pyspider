@@ -12,7 +12,7 @@ import logging
 import traceback
 logger = logging.getLogger("processor")
 
-from six.moves import queue as Queue
+from pyspider.libs.queue import Queue
 from pyspider.libs import utils
 from pyspider.libs.log import LogFormatter
 from pyspider.libs.utils import pretty_unicode, hide_me

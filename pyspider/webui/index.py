@@ -28,8 +28,6 @@ def get_queues():
             return 'None'
         try:
             return queue.qsize()
-        except NotImplementedError:
-            return 'Not Available For OSX'
         except Exception as e:
             return "%r" % e
 

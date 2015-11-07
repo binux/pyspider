@@ -6,22 +6,17 @@
 # Created on 2015-01-18 14:09:41
 
 import os
-import sys
-import six
-import json
 import time
 import httpbin
 import subprocess
 import unittest2 as unittest
-try:
-    from Queue import Queue
-except ImportError:
-    from queue import Queue
 
 from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.libs import utils, dataurl
+from pyspider.libs.base_queue import Queue
+
 
 class TestFetcherProcessor(unittest.TestCase):
 

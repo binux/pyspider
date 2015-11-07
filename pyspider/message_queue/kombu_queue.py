@@ -10,7 +10,7 @@ import umsgpack
 from kombu import Connection, enable_insecure_serializers
 from kombu.serialization import register
 from kombu.exceptions import ChannelError
-from six.moves import queue as BaseQueue
+from pyspider.libs.queue import Queue as BaseQueue
 
 
 register('umsgpack', umsgpack.packb, umsgpack.unpackb, 'application/x-msgpack')

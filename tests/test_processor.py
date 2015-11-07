@@ -188,9 +188,9 @@ class TestProjectModule(unittest.TestCase):
 
 import shutil
 import inspect
-from multiprocessing import Queue
 from pyspider.database.sqlite import projectdb
 from pyspider.processor.processor import Processor
+from pyspider.libs.queue import get_queue as Queue
 from pyspider.libs.utils import run_in_thread
 from pyspider.libs import sample_handler
 
