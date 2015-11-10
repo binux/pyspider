@@ -48,6 +48,9 @@ if (system.args.length !== 2) {
 
     // create and set page
     var page = webpage.create();
+    page.onConsoleMessage = function(msg) {
+        console.log('console: ' + msg);
+    };
     page.viewportSize = {
       width: fetch.js_viewport_width || 1024,
       height: fetch.js_viewport_height || 768*3
