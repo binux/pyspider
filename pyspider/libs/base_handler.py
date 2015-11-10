@@ -162,7 +162,7 @@ class BaseHandler(object):
         # do not run_func when 304
         if response.status_code == 304 and not getattr(function, '_catch_status_code_error', False):
             return None
-        # host not found when 500
+        # 500 Server Error
         if response.status_code == 500 and not getattr(function, '_catch_status_code_error', False):
             return None
         # host not found when 599
