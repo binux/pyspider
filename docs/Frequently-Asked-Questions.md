@@ -29,3 +29,13 @@ It happens after you modified a script, and wants to crawl everything again with
 #### Solution
 1. Create a new project.
 2. Using a [itag](apis/self.crawl/#itag) within `Handler.crawl_config` to specify the version of your script.
+
+How to Use WebDAV Mode?
+-----------------------
+Mount `http://hostname/dav/` to your filesystem, edit or create scripts with your favourite editor.
+
+> OSX: `mount_webdav http://hostname/dav/ /Volumes/dav`  
+> Linux: Install davfs2, `mount.davfs http://hostname/dav/ /mnt/dav`  
+> VIM: `vim dav://hostname/dav/script_name.py`
+
+When you are editing script without WebUI, you need to change it to `WebDAV Mode` while debugging. After you saved script in editor, WebUI can load and use latest script to debug your code.
