@@ -16,6 +16,7 @@ pages:
   - About Tasks: About-Tasks.md
   - About Projects: About-Projects.md
   - Script Environment: Script-Environment.md
+  - Working with Results: Working-with-Results.md
 - API Reference:
   - Index: apis/index.md
   - self.crawl: apis/self.crawl.md
