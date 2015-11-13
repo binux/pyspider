@@ -6,22 +6,17 @@
 # Created on 2015-01-18 14:09:41
 
 import os
-import sys
-import six
-import json
 import time
 import httpbin
 import subprocess
 import unittest2 as unittest
-try:
-    from Queue import Queue
-except ImportError:
-    from queue import Queue
 
 from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.libs import utils, dataurl
+from pyspider.libs.base_queue import Queue
+
 
 class TestFetcherProcessor(unittest.TestCase):
 
@@ -149,8 +144,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
 
-        status, newtasks, result = self.crawl(self.httpbin+'/get', method='PATCH',
-                                              callback=self.catch_http_error)
+        status, newtasks, result = self.crawl(self.httpbin+'/get', method='DELETE', callback=self.catch_http_error)
 
         self.assertFalse(self.status_ok(status, 'fetch'))
         self.assertTrue(self.status_ok(status, 'process'))

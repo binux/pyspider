@@ -216,7 +216,7 @@ class BaseHandler(object):
         """
         task = {}
 
-        assert len(url) < 1024, "Maximum URL length error: len(url) > 1024"
+        assert len(url) < 1024, "Maximum (1024) URL length error."
 
         if kwargs.get('callback'):
             callback = kwargs['callback']

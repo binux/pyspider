@@ -57,6 +57,7 @@ Contribute
 * Use It
 * Open [Issue], send PR
 * [User Group]
+* [中文问答](http://segmentfault.com/t/pyspider)
 
 
 TODO
@@ -73,7 +74,7 @@ TODO
 
 ### more
 
-- [ ] edit script with vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
+- [x] edit script with vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
 - [ ] in-browser debugger like [Werkzeug](http://werkzeug.pocoo.org/)
 
 

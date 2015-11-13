@@ -11,12 +11,12 @@ import json
 import time
 import logging
 import itertools
-from six.moves import queue as Queue
 from collections import deque
 
 from six import iteritems, itervalues
 
 from pyspider.libs import counter, utils
+from pyspider.libs.queue import Queue
 from .task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 
@@ -541,7 +541,7 @@ class Scheduler(object):
             result = []
 
             while len(result) < limit and tasks and not all(x is None for x in tasks):
-                updatetime, task = t = max(tasks)
+                updatetime, task = t = max(t for t in tasks if t)
                 i = tasks.index(t)
                 tasks[i] = next(iters[i], None)
                 for key in list(task):

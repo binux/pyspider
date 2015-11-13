@@ -18,12 +18,13 @@ import tornado.httputil
 import tornado.httpclient
 import pyspider
 
-from six.moves import queue, http_cookies
+from six.moves import http_cookies
 from requests import cookies
 from six.moves.urllib.parse import urljoin, urlsplit
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from pyspider.libs import utils, dataurl, counter
+from pyspider.libs.queue import Queue as queue
 from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
@@ -246,7 +247,10 @@ class Fetcher(object):
         fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
         if 'Cookie' in fetch['headers']:
             c = http_cookies.SimpleCookie()
-            c.load(fetch['headers']['Cookie'])
+            try:
+                c.load(fetch['headers']['Cookie'])
+            except AttributeError:
+                c.load(utils.utf8(fetch['headers']['Cookie']))
             for key in c:
                 session.set(key, c[key])
             del fetch['headers']['Cookie']

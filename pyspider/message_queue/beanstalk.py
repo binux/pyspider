@@ -13,7 +13,7 @@ import beanstalkc
 import threading
 import logging
 
-from six.moves import queue as BaseQueue
+from pyspider.libs.queue import Queue as BaseQueue
 
 
 class BeanstalkQueue(object):
@@ -38,7 +38,7 @@ class BeanstalkQueue(object):
         try:
             with self.lock:
                 stats = self.connection.stats_tube(self.name)
-        except beanstalkc.CommandFailed, err:
+        except beanstalkc.CommandFailed as err:
             # tube is empty
             if err[1] == 'NOT_FOUND':
                 return {}

@@ -95,9 +95,9 @@ try:
     from six.moves import xmlrpc_client
 except ImportError:
     import xmlrpclib as xmlrpc_client
-from multiprocessing import Queue
 from pyspider.scheduler.scheduler import Scheduler
 from pyspider.database.sqlite import taskdb, projectdb, resultdb
+from pyspider.libs.queue import get_queue as Queue
 from pyspider.libs.utils import run_in_thread
 
 
@@ -176,7 +176,7 @@ class TestScheduler(unittest.TestCase):
         })
 
     def test_30_update_project(self):
-        from six.moves import queue as Queue
+        from pyspider.libs.queue import Queue
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=1)
         self.projectdb.update('test_project', status="DEBUG")
@@ -186,6 +186,19 @@ class TestScheduler(unittest.TestCase):
         task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
         self.assertEqual(task['url'], 'data:,_on_get_info')
+
+    def test_34_new_not_used_project(self):
+        self.projectdb.insert('test_project_not_started', {
+            'name': 'test_project_not_started',
+            'group': 'group',
+            'status': 'RUNNING',
+            'script': 'import time\nprint(time.time())',
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+        })
+        task = self.scheduler2fetcher.get(timeout=1)
+        self.assertEqual(task['taskid'], '_on_get_info')
 
     def test_35_new_task(self):
         time.sleep(0.2)
@@ -396,7 +409,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from six.moves import queue as Queue
+        from pyspider.libs.queue import Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 
@@ -510,7 +523,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from six.moves import queue as Queue
+        from pyspider.libs.queue import Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 

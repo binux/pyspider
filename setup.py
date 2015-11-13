@@ -44,6 +44,7 @@ extras_require_all = [
     'SQLAlchemy>=0.9.7',
     'redis',
     'kombu',
+    'psycopg2',
 ]
 if sys.version_info < (3, 0):
     extras_require_all.extend([

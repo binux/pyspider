@@ -89,6 +89,8 @@ builtin:
     None
 ```
 
+> Hint for postgresql: you need to create database with encoding utf8 by your own. pyspider will not create database for you.
+
 running
 -------
 

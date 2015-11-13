@@ -13,12 +13,12 @@ import umsgpack
 import threading
 
 import amqp
-from six.moves import queue as BaseQueue
 from six.moves.urllib.parse import unquote
 try:
     from urllib import parse as urlparse
 except ImportError:
     import urlparse
+from pyspider.libs.queue import Queue as BaseQueue
 
 
 def catch_error(func):
