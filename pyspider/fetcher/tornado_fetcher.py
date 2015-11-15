@@ -185,6 +185,7 @@ class Fetcher(object):
         self.on_fetch('http', task)
         fetch = copy.deepcopy(self.default_options)
         fetch['url'] = url
+        fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
         fetch['headers']['User-Agent'] = self.user_agent
         task_fetch = task.get('fetch', {})
         for each in self.allowed_options:
@@ -244,7 +245,6 @@ class Fetcher(object):
         session = cookies.RequestsCookieJar()
 
         # fix for tornado request obj
-        fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
         if 'Cookie' in fetch['headers']:
             c = http_cookies.SimpleCookie()
             try:
@@ -364,6 +364,7 @@ class Fetcher(object):
 
         fetch = copy.deepcopy(self.default_options)
         fetch['url'] = url
+        fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
         fetch['headers']['User-Agent'] = self.user_agent
         task_fetch = task.get('fetch', {})
         for each in task_fetch:
