@@ -101,6 +101,7 @@ def on_start(self):
 * `cookies` - dictionary of cookies to attach to this request. <a name="cookies" href="#cookies">¶</a>
 * `timeout` - maximum time in seconds to fetch the page. _default: 120_ <a name="timeout" href="#timeout">¶</a>
 * `allow_redirects` - follow `30x` redirect _default: True_ <a name="allow_redirects" href="#allow_redirects">¶</a>
+* `validate_cert` - For HTTPS requests, validate the server’s certificate? _default: True_ <a name="validate_cert" href="#validate_cert">¶</a>
 * `proxy` - proxy server of `username:password@hostname:port` to use, only http proxy is supported currently. <a name="proxy" href="#proxy">¶</a>
 
 ```python

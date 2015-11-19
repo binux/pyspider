@@ -322,3 +322,12 @@ class TestFetcher(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200, result)
         self.assertEqual(response.cookies, {'a': 'b', 'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)
+
+    def test_a170_validate_cert(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['fetch']['validate_cert'] = False
+        request['url'] = self.httpbin+'/get'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
