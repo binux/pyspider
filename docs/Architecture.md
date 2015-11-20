@@ -49,12 +49,12 @@ scheduler -> fetcher -> processor
 ```
 
 ### Processor
-The Processor is responsible for running the script written by users to parse and extract information. Your script is running in an unlimited environment. Although we have various tools(like [PyQuery](https://pythonhosted.org/pyquery/)) for you to extract information and links, you can use anything you want to due with the response. You may refer to [Script Environment](Script-Environment) and [API Reference](apis/) to get more information about script.
+The Processor is responsible for running the script written by users to parse and extract information. Your script is running in an unlimited environment. Although we have various tools(like [PyQuery](https://pythonhosted.org/pyquery/)) for you to extract information and links, you can use anything you want to deal with the response. You may refer to [Script Environment](Script-Environment) and [API Reference](apis/) to get more information about script.
 
 Processor will capture the exceptions and logs, send status(task track) and new tasks to `scheduler`, send results to `Result Worker`.
 
 ### Result Worker (optional)
-Result worker receives results from `Processor`. Pyspider has a built-in result worker to save result to `resultdb`. Overwrite it to due with result by your needs.
+Result worker receives results from `Processor`. Pyspider has a built-in result worker to save result to `resultdb`. Overwrite it to deal with result by your needs.
 
 ### WebUI
 WebUI is a web frontend for everything. It contains:
