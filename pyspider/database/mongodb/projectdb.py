@@ -16,6 +16,7 @@ class ProjectDB(BaseProjectDB):
 
     def __init__(self, url, database='projectdb'):
         self.conn = MongoClient(url)
+        self.conn.admin.command("ismaster")
         self.database = self.conn[database]
         self.collection = self.database[self.__collection_name__]
 
@@ -46,13 +47,13 @@ class ProjectDB(BaseProjectDB):
         return self.collection.update({'name': name}, {'$set': obj})
 
     def get_all(self, fields=None):
-        for each in self.collection.find({}, fields=fields):
+        for each in self.collection.find({}, fields):
             if each and '_id' in each:
                 del each['_id']
             yield self._default_fields(each)
 
     def get(self, name, fields=None):
-        each = self.collection.find_one({'name': name}, fields=fields)
+        each = self.collection.find_one({'name': name}, fields)
         if each and '_id' in each:
             del each['_id']
         return self._default_fields(each)
