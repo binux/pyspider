@@ -374,9 +374,12 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 @cli.command()
 @click.option('--phantomjs-path', default='phantomjs', help='phantomjs path')
 @click.option('--port', default=25555, help='phantomjs port')
+@click.option('--proxy', default=None, help='phantomjs proxy')
+@click.option('--proxy-type', default=None, help='phantomjs proxy-type [http|socks5|none]')
+@click.option('--ignore-ssl-errors', default=None, help='phantomjs ignore-ssl-errors')
 @click.option('--auto-restart', default=False, help='auto restart phantomjs if crashed')
 @click.pass_context
-def phantomjs(ctx, phantomjs_path, port, auto_restart):
+def phantomjs(ctx, phantomjs_path, port, proxy, proxy_type, ignore_ssl_errors, auto_restart):
     """
     Run phantomjs fetcher if phantomjs is installed.
     """
@@ -392,6 +395,10 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart):
            #'--load-images=false',
            phantomjs_fetcher, str(port)]
 
+    if proxy != None: cmd.insert(1,"--proxy=%s"%proxy)
+    if proxy_type != None: cmd.insert(1,"--proxy-type=%s"%proxy_type)
+    if ignore_ssl_errors != None: cmd.insert(1,"--ignore-ssl-errors=%s"%ignore_ssl_errors)
+    
     try:
         _phantomjs = subprocess.Popen(cmd)
     except OSError:
