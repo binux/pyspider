@@ -375,8 +375,9 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 @click.option('--phantomjs-path', default='phantomjs', help='phantomjs path')
 @click.option('--port', default=25555, help='phantomjs port')
 @click.option('--auto-restart', default=False, help='auto restart phantomjs if crashed')
+@click.argument('args', nargs=-1)
 @click.pass_context
-def phantomjs(ctx, phantomjs_path, port, auto_restart):
+def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     """
     Run phantomjs fetcher if phantomjs is installed.
     """
@@ -386,11 +387,10 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart):
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     cmd = [phantomjs_path,
-           '--ssl-protocol=any',
-           '--disk-cache=true',
            # this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
            #'--load-images=false',
-           phantomjs_fetcher, str(port)]
+           '--ssl-protocol=any',
+           '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
     try:
         _phantomjs = subprocess.Popen(cmd)
