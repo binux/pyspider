@@ -1,4 +1,4 @@
-pyspider [![Build Status]][Travis CI] [![Coverage Status]][Coverage] [![Try]][Demo]
+pyspider [![Build Status][Build Status]][Travis CI] [![Coverage Status][Coverage Status]][Coverage] [![Try][Try]][Demo]
 ========
 
 A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
@@ -90,6 +90,6 @@ Licensed under the Apache License, Version 2.0
 [Coverage]:             https://coveralls.io/r/binux/pyspider
 [Try]:                  https://img.shields.io/badge/try-pyspider-blue.svg?style=flat
 [Demo]:                 http://demo.pyspider.org/
-[Demo Img]:             https://github.com/binux/pyspider/blob/master/docs/imgs/demo.png
+[Demo Img]:             imgs/demo.png
 [Issue]:                https://github.com/binux/pyspider/issues
 [User Group]:           https://groups.google.com/group/pyspider-users
