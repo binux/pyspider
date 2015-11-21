@@ -418,5 +418,5 @@ class BaseHandler(object):
                 self.save[each] = self._min_tick
             elif each == 'retry_delay':
                 if not isinstance(self.retry_delay, dict):
-                    self.retry_delay = {'', self.retry_delay}
+                    self.retry_delay = {'': self.retry_delay}
                 self.save[each] = self.retry_delay

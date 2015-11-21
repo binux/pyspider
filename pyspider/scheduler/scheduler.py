@@ -685,8 +685,8 @@ class Scheduler(object):
         retried = task['schedule'].get('retried', 0)
 
         project_info = self.projects.get(task['project'], {})
-        retry_delay = project_info.get('retry_delay', self.DEFAULT_RETRY_DELAY)
-        next_exetime = retry_delay.get(retried, retry_delay[''])
+        retry_delay = project_info.get('retry_delay', None) or self.DEFAULT_RETRY_DELAY
+        next_exetime = retry_delay.get(retried, retry_delay.get('', self.DEFAULT_RETRY_DELAY['']))
 
         if task['schedule'].get('auto_recrawl') and 'age' in task['schedule']:
             next_exetime = min(next_exetime, task['schedule'].get('age'))
