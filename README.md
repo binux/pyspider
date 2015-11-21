@@ -10,9 +10,9 @@ A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
 - Task priority, retry, periodical, recrawl by age, etc...
 - Distributed architecture, Crawl Javascript pages, Python 2&3, etc...
 
-Tutorial: [http://docs.pyspider.org/en/latest/tutorial/](http://docs.pyspider.org/en/latest/tutorial/)
+Tutorial: [http://docs.pyspider.org/en/latest/tutorial/](http://docs.pyspider.org/en/latest/tutorial/)  
 Documentation: [http://docs.pyspider.org/](http://docs.pyspider.org/)  
-Release notes: [https://github.com/binux/pyspider/releases](https://github.com/binux/pyspider/releases)
+Release notes: [https://github.com/binux/pyspider/releases](https://github.com/binux/pyspider/releases)  
 
 Sample Code 
 -----------
