@@ -229,10 +229,16 @@ class BaseHandler(object):
                 raise NotImplementedError("self.%s() not implemented!" % callback)
             if hasattr(func, '_config'):
                 for k, v in iteritems(func._config):
-                    kwargs.setdefault(k, v)
+                    if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
+                        kwargs[k].update(v)
+                    else:
+                        kwargs.setdefault(k, v)
 
         for k, v in iteritems(self.crawl_config):
-            kwargs.setdefault(k, v)
+            if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
+                kwargs[k].update(v)
+            else:
+                kwargs.setdefault(k, v)
 
         url = quote_chinese(_build_url(url.strip(), kwargs.pop('params', None)))
         if kwargs.get('files'):
