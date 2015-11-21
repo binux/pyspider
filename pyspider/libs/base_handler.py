@@ -232,7 +232,11 @@ class BaseHandler(object):
                     kwargs.setdefault(k, v)
 
         for k, v in iteritems(self.crawl_config):
-            kwargs.setdefault(k, v)
+            #Merge a key if it's a dict and there is a default dict set in ```crawl_config```
+            if isinstance(v,dict) and isinstance(kwargs.get(k),dict):
+                kwargs[k].update(v)
+            else:
+                kwargs.setdefault(k, v)
 
         url = quote_chinese(_build_url(url.strip(), kwargs.pop('params', None)))
         if kwargs.get('files'):
