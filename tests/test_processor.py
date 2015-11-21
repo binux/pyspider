@@ -165,7 +165,7 @@ class TestProjectModule(unittest.TestCase):
             'project': self.project,
             'url': 'data:,_on_get_info',
             'fetch': {
-                'save': ['min_tick', ],
+                'save': ['min_tick', 'retry_delay'],
             },
             'process': {
                 'callback': '_on_get_info',
@@ -179,6 +179,7 @@ class TestProjectModule(unittest.TestCase):
         for each in ret.follows:
             self.assertEqual(each['url'], 'data:,on_get_info')
             self.assertEqual(each['fetch']['save']['min_tick'], 10)
+            self.assertEqual(each['fetch']['save']['retry_delay'], {})
 
     def test_30_generator(self):
         self.base_task['process']['callback'] = 'generator'

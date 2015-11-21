@@ -131,6 +131,7 @@ class BaseHandler(object):
     _cron_jobs = []
     _min_tick = 0
     __env__ = {'not_inited': True}
+    retry_delay = {}
 
     def _reset(self):
         """
@@ -415,3 +416,7 @@ class BaseHandler(object):
         for each in response.save or []:
             if each == 'min_tick':
                 self.save[each] = self._min_tick
+            elif each == 'retry_delay':
+                if not isinstance(self.retry_delay, dict):
+                    self.retry_delay = {'', self.retry_delay}
+                self.save[each] = self.retry_delay

@@ -36,6 +36,13 @@ class Scheduler(object):
     INQUEUE_LIMIT = 0
     EXCEPTION_LIMIT = 3
     DELETE_TIME = 24 * 60 * 60
+    DEFAULT_RETRY_DELAY = {
+        0: 30,
+        1: 1*60*60,
+        2: 6*60*60,
+        3: 12*60*60,
+        '': 24*60*60
+    }
 
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue,
                  out_queue, data_path='./data', resultdb=None):
@@ -111,7 +118,7 @@ class Scheduler(object):
                 'url': 'data:,_on_get_info',
                 'status': self.taskdb.SUCCESS,
                 'fetch': {
-                    'save': ['min_tick', ],
+                    'save': ['min_tick', 'retry_delay'],
                 },
                 'process': {
                     'callback': '_on_get_info',
@@ -676,12 +683,10 @@ class Scheduler(object):
 
         retries = task['schedule'].get('retries', self.default_schedule['retries'])
         retried = task['schedule'].get('retried', 0)
-        if retried == 0:
-            next_exetime = 0
-        elif retried == 1:
-            next_exetime = 1 * 60 * 60
-        else:
-            next_exetime = 6 * (2 ** retried) * 60 * 60
+
+        project_info = self.projects.get(task['project'], {})
+        retry_delay = project_info.get('retry_delay', self.DEFAULT_RETRY_DELAY)
+        next_exetime = retry_delay.get(retried, retry_delay[''])
 
         if task['schedule'].get('auto_recrawl') and 'age' in task['schedule']:
             next_exetime = min(next_exetime, task['schedule'].get('age'))
