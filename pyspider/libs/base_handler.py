@@ -229,11 +229,13 @@ class BaseHandler(object):
                 raise NotImplementedError("self.%s() not implemented!" % callback)
             if hasattr(func, '_config'):
                 for k, v in iteritems(func._config):
-                    kwargs.setdefault(k, v)
+                    if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
+                        kwargs[k].update(v)
+                    else:
+                        kwargs.setdefault(k, v)
 
         for k, v in iteritems(self.crawl_config):
-            #Merge a key if it's a dict and there is a default dict set in ```crawl_config```
-            if isinstance(v,dict) and isinstance(kwargs.get(k),dict):
+            if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
                 kwargs[k].update(v)
             else:
                 kwargs.setdefault(k, v)
