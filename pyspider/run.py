@@ -381,6 +381,8 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     """
     Run phantomjs fetcher if phantomjs is installed.
     """
+    args = args or ctx.default_map.get('args', [])
+
     import subprocess
     g = ctx.obj
     _quit = []
