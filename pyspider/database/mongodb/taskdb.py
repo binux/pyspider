@@ -86,10 +86,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             }
             }])
         result = {}
-        if ret.get('result'):
-            for each in ret['result']:
-                result[each['_id']] = each['total']
-            return result
+        if isinstance(ret, dict):
+            ret = ret.get('result', [])
+        for each in ret:
+            result[each['_id']] = each['total']
         return result
 
     def insert(self, project, taskid, obj={}):
