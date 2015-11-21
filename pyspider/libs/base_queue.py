@@ -54,10 +54,10 @@ class Queue(BaseQueue.Queue, object):
 
     def _put(self, *args, **kwargs):
         self.size.increment(1)
-        super(Queue, self).put(*args, **kwargs)
+        super(Queue, self)._put(*args, **kwargs)
 
     def _get(self, *args, **kwargs):
-        v = super(Queue, self).get(*args, **kwargs)
+        v = super(Queue, self)._get(*args, **kwargs)
         self.size.increment(-1)
         return v
 
@@ -73,10 +73,10 @@ class MultiProcessingQueue(MPQueue, object):
 
     def _put(self, *args, **kwargs):
         self.size.increment(1)
-        super(MultiProcessingQueue, self).put(*args, **kwargs)
+        super(MultiProcessingQueue, self)._put(*args, **kwargs)
 
     def _get(self, *args, **kwargs):
-        v = super(MultiProcessingQueue, self).get(*args, **kwargs)
+        v = super(MultiProcessingQueue, self)._get(*args, **kwargs)
         self.size.increment(-1)
         return v
 

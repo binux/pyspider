@@ -230,8 +230,8 @@ class Fetcher(object):
                 _t = task_fetch.get('etag')
             elif track_ok:
                 _t = track_headers.get('etag')
-            if _t:
-                fetch['headers'].setdefault('If-None-Match', _t)
+            if _t and 'If-None-Match' not in fetch['headers']:
+                fetch['headers']['If-None-Match'] = _t
         # last modifed
         if task_fetch.get('last_modified', True):
             _t = None
@@ -239,8 +239,8 @@ class Fetcher(object):
                 _t = task_fetch.get('last_modifed')
             elif track_ok:
                 _t = track_headers.get('last-modified')
-            if _t:
-                fetch['headers'].setdefault('If-Modified-Since', _t)
+            if _t and 'If-Modified-Since' not in fetch['headers']:
+                fetch['headers']['If-Modified-Since'] = _t
 
         session = cookies.RequestsCookieJar()
 
