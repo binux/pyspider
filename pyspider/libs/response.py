@@ -149,19 +149,26 @@ class Response(object):
         """Returns a PyQuery object of the response's content"""
         if hasattr(self, '_doc'):
             return self._doc
-        try:
-            parser = lxml.html.HTMLParser(encoding=self.encoding)
-            elements = lxml.html.fromstring(self.content, parser=parser)
-        except LookupError:
-            # lxml would raise LookupError when encoding not supported
-            # try fromstring without encoding instead.
-            # on windows, unicode is not availabe as encoding for lxml
-            elements = lxml.html.fromstring(self.content)
-        if isinstance(elements, lxml.etree._ElementTree):
-            elements = elements.getroot()
+        elements = self.etree
         doc = self._doc = PyQuery(elements)
         doc.make_links_absolute(self.url)
         return doc
+
+    @property
+    def etree(self):
+        """Returns a lxml object of the response's content that can be selected by xpath"""
+        if not hasattr(self, '_elements'):
+            try:
+                parser = lxml.html.HTMLParser(encoding=self.encoding)
+                self._elements = lxml.html.fromstring(self.content, parser=parser)
+            except LookupError:
+                # lxml would raise LookupError when encoding not supported
+                # try fromstring without encoding instead.
+                # on windows, unicode is not availabe as encoding for lxml
+                self._elements = lxml.html.fromstring(self.content)
+        if isinstance(self._elements, lxml.etree._ElementTree):
+            self._elements = self._elements.getroot()
+        return self._elements
 
     def raise_for_status(self, allow_redirects=True):
         """Raises stored :class:`HTTPError` or :class:`URLError`, if one occurred."""
