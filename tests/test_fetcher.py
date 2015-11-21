@@ -331,3 +331,12 @@ class TestFetcher(unittest.TestCase):
         response = rebuild_response(result)
 
         self.assertEqual(response.status_code, 200, result)
+
+    def test_a180_max_redirects(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['fetch']['max_redirects'] = 10
+        request['url'] = self.httpbin+'/redirect/10'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
