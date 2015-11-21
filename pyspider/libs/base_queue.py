@@ -52,22 +52,18 @@ class Queue(BaseQueue.Queue, object):
         super(Queue, self).__init__(*args, **kwargs)
         self.size = SharedCounter(0)
 
-    def put(self, *args, **kwargs):
+    def _put(self, *args, **kwargs):
         self.size.increment(1)
         super(Queue, self).put(*args, **kwargs)
 
-    def get(self, *args, **kwargs):
+    def _get(self, *args, **kwargs):
         v = super(Queue, self).get(*args, **kwargs)
         self.size.increment(-1)
         return v
 
-    def qsize(self):
+    def _qsize(self):
         """ Reliable implementation of multiprocessing.Queue.qsize() """
         return self.size.value
-
-    def empty(self):
-        """ Reliable implementation of multiprocessing.Queue.empty() """
-        return not self.qsize()
 
 
 class MultiProcessingQueue(MPQueue, object):
@@ -75,22 +71,18 @@ class MultiProcessingQueue(MPQueue, object):
         super(MultiProcessingQueue, self).__init__(*args, **kwargs)
         self.size = SharedCounter(0)
 
-    def put(self, *args, **kwargs):
+    def _put(self, *args, **kwargs):
         self.size.increment(1)
         super(MultiProcessingQueue, self).put(*args, **kwargs)
 
-    def get(self, *args, **kwargs):
+    def _get(self, *args, **kwargs):
         v = super(MultiProcessingQueue, self).get(*args, **kwargs)
         self.size.increment(-1)
         return v
 
-    def qsize(self):
+    def _qsize(self):
         """ Reliable implementation of multiprocessing.Queue.qsize() """
         return self.size.value
-
-    def empty(self):
-        """ Reliable implementation of multiprocessing.Queue.empty() """
-        return not self.qsize()
 
 
 def get_multiprocessing_queue(maxsize=0):
