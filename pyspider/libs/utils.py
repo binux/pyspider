@@ -250,7 +250,7 @@ def unicode_dict(_dict):
     """
     r = {}
     for k, v in iteritems(_dict):
-        r[unicode_string(k)] = unicode_obj(v)
+        r[unicode_obj(k)] = unicode_obj(v)
     return r
 
 
