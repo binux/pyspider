@@ -84,6 +84,10 @@ class MultiProcessingQueue(MPQueue, object):
         """ Reliable implementation of multiprocessing.Queue.qsize() """
         return self.size.value
 
+    def qsize(self):
+        """ Reliable implementation of multiprocessing.Queue.qsize() """
+        return self.size.value
+
 
 def get_multiprocessing_queue(maxsize=0):
     if hasattr(multiprocessing, 'get_context'):  # python 3.4
