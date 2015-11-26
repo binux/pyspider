@@ -143,6 +143,7 @@ class TestFetcher(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.text, 'hello')
+        self.assertEqual(self.outqueue.qsize(), 0)
 
     def test_40_with_rpc(self):
         request = copy.deepcopy(self.sample_task_http)
