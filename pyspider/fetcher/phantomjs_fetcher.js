@@ -168,6 +168,10 @@ if (system.args.length !== 2) {
     }
 
     function _make_result(page) {
+      if (first_response === null) {
+        throw "No response received!";
+      }
+
       var cookies = {};
       page.cookies.forEach(function(e) {
         cookies[e.name] = e.value;
