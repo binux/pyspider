@@ -70,4 +70,4 @@ if platform.system() == 'Darwin':
         def Queue(maxsize=0):
             return MultiProcessingQueue(maxsize)
 else:
-    from MultiProcessingQueue import Queue  # flake8: noqa
+    from multiprocessing import Queue  # flake8: noqa
