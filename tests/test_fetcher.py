@@ -22,7 +22,7 @@ try:
 except ImportError:
     import xmlrpclib as xmlrpc_client
 from pyspider.libs import utils
-from pyspider.libs.queue import get_queue as Queue
+from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.response import rebuild_response
 from pyspider.fetcher.tornado_fetcher import Fetcher
 

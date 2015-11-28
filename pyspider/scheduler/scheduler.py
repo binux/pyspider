@@ -16,7 +16,7 @@ from collections import deque
 from six import iteritems, itervalues
 
 from pyspider.libs import counter, utils
-from pyspider.libs.queue import Queue
+from six.moves import queue as Queue
 from .task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 

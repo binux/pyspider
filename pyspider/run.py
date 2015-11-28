@@ -519,8 +519,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     In bench mode, in-memory sqlite database is used instead of on-disk sqlite database.
     """
     from pyspider.libs import bench
-    from pyspider.webui import bench_test
-    bench_test  # make pyflake happy
+    from pyspider.webui import bench_test  # flake8: noqa
 
     ctx.obj['debug'] = False
     g = ctx.obj
