@@ -18,13 +18,12 @@ import tornado.httputil
 import tornado.httpclient
 import pyspider
 
-from six.moves import http_cookies
+from six.moves import queue, http_cookies
 from requests import cookies
 from six.moves.urllib.parse import urljoin, urlsplit
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from pyspider.libs import utils, dataurl, counter
-from pyspider.libs.queue import Queue as queue
 from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
@@ -176,7 +175,7 @@ class Fetcher(object):
         self.on_result(type, task, result)
         return task, result
 
-    allowed_options = ['method', 'data', 'timeout', 'cookies', 'use_gzip']
+    allowed_options = ['method', 'data', 'timeout', 'cookies', 'use_gzip', 'validate_cert']
 
     def http_fetch(self, url, task, callback):
         '''HTTP fetcher'''
@@ -230,8 +229,8 @@ class Fetcher(object):
                 _t = task_fetch.get('etag')
             elif track_ok:
                 _t = track_headers.get('etag')
-            if _t:
-                fetch['headers'].setdefault('If-None-Match', _t)
+            if _t and 'If-None-Match' not in fetch['headers']:
+                fetch['headers']['If-None-Match'] = _t
         # last modifed
         if task_fetch.get('last_modified', True):
             _t = None
@@ -239,8 +238,8 @@ class Fetcher(object):
                 _t = task_fetch.get('last_modifed')
             elif track_ok:
                 _t = track_headers.get('last-modified')
-            if _t:
-                fetch['headers'].setdefault('If-Modified-Since', _t)
+            if _t and 'If-Modified-Since' not in fetch['headers']:
+                fetch['headers']['If-Modified-Since'] = _t
 
         session = cookies.RequestsCookieJar()
 

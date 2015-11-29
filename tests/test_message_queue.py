@@ -11,6 +11,7 @@ import time
 import unittest2 as unittest
 
 from pyspider.libs import utils
+from six.moves import queue as Queue
 
 
 class TestMessageQueue(object):
@@ -31,9 +32,9 @@ class TestMessageQueue(object):
     def test_20_get(self):
         self.assertEqual(self.q1.get(timeout=0.01), 'TEST_DATA1')
         self.assertEqual(self.q2.get_nowait(), 'TEST_DATA2_中文')
-        with self.assertRaises(self.q1.Empty):
+        with self.assertRaises(Queue.Empty):
             self.q2.get(timeout=0.01)
-        with self.assertRaises(self.q1.Empty):
+        with self.assertRaises(Queue.Empty):
             self.q2.get_nowait()
 
     def test_30_full(self):
@@ -43,9 +44,9 @@ class TestMessageQueue(object):
             self.q1.put_nowait('TEST_DATA%d' % i)
         for i in range(3):
             self.q2.put('TEST_DATA%d' % i)
-        with self.assertRaises(self.q1.Full):
+        with self.assertRaises(Queue.Full):
             self.q1.put('TEST_DATA6', timeout=0.01)
-        with self.assertRaises(self.q1.Full):
+        with self.assertRaises(Queue.Full):
             self.q1.put_nowait('TEST_DATA6')
 
     def test_40_multiple_threading_error(self):
@@ -59,6 +60,15 @@ class TestMessageQueue(object):
 
         utils.run_in_thread(put, self.q3)
         get(self.q3)
+
+
+class BuiltinQueue(TestMessageQueue, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        from pyspider.message_queue import connect_message_queue
+        with utils.timeout(3):
+            self.q1 = self.q2 = connect_message_queue('test_queue', maxsize=5)
+            self.q3 = connect_message_queue('test_queue_for_threading_test')
 
 
 @unittest.skipIf(six.PY3, 'pika not suport python 3')

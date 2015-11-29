@@ -22,7 +22,7 @@ try:
 except ImportError:
     import xmlrpclib as xmlrpc_client
 from pyspider.libs import utils
-from pyspider.libs.queue import get_queue as Queue
+from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.response import rebuild_response
 from pyspider.fetcher.tornado_fetcher import Fetcher
 
@@ -322,3 +322,21 @@ class TestFetcher(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200, result)
         self.assertEqual(response.cookies, {'a': 'b', 'k1': 'v1', 'k2': 'v2', 'c': 'd'}, result)
+
+    def test_a170_validate_cert(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['fetch']['validate_cert'] = False
+        request['url'] = self.httpbin+'/get'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+
+    def test_a180_max_redirects(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['fetch']['max_redirects'] = 10
+        request['url'] = self.httpbin+'/redirect/10'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)

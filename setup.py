@@ -40,7 +40,7 @@ if sys.version_info < (3, 0):
 extras_require_all = [
     'mysql-connector-python>=1.2.2',
     'amqp>=1.3.0',
-    'pymongo>=2.7.2,<3.0',
+    'pymongo>=2.7.2',
     'SQLAlchemy>=0.9.7',
     'redis',
     'kombu',

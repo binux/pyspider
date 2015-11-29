@@ -97,7 +97,7 @@ except ImportError:
     import xmlrpclib as xmlrpc_client
 from pyspider.scheduler.scheduler import Scheduler
 from pyspider.database.sqlite import taskdb, projectdb, resultdb
-from pyspider.libs.queue import get_queue as Queue
+from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
 
 
@@ -138,7 +138,8 @@ class TestScheduler(unittest.TestCase):
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
             scheduler.INQUEUE_LIMIT = 10
-            Scheduler.DELETE_TIME = 0
+            scheduler.DELETE_TIME = 0
+            scheduler.DEFAULT_RETRY_DELAY = {'': 5}
             scheduler._last_tick = int(time.time())  # not dispatch cronjob
             run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
@@ -176,7 +177,7 @@ class TestScheduler(unittest.TestCase):
         })
 
     def test_30_update_project(self):
-        from pyspider.libs.queue import Queue
+        from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=1)
         self.projectdb.update('test_project', status="DEBUG")
@@ -281,7 +282,10 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        task = self.scheduler2fetcher.get(timeout=10)
+        from six.moves import queue as Queue
+        with self.assertRaises(Queue.Empty):
+            task = self.scheduler2fetcher.get(timeout=4)
+        task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
     def test_70_taskdone_ok(self):
@@ -392,7 +396,10 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        task = self.scheduler2fetcher.get(timeout=10)
+        from six.moves import queue as Queue
+        with self.assertRaises(Queue.Empty):
+            task = self.scheduler2fetcher.get(timeout=4)
+        task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
         self.status_queue.put({
@@ -409,7 +416,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from pyspider.libs.queue import Queue
+        from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 
@@ -523,7 +530,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from pyspider.libs.queue import Queue
+        from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 
