@@ -235,7 +235,7 @@ class TestScheduler(unittest.TestCase):
             'project': 'test_project',
             'url': 'url_force_update',
             'schedule': {
-                'age': 0,
+                'age': 10,
                 'force_update': True,
             },
         })
@@ -396,9 +396,6 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        from six.moves import queue as Queue
-        with self.assertRaises(Queue.Empty):
-            task = self.scheduler2fetcher.get(timeout=4)
         task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 

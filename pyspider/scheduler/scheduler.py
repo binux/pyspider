@@ -690,8 +690,12 @@ class Scheduler(object):
 
         if task['schedule'].get('auto_recrawl') and 'age' in task['schedule']:
             next_exetime = min(next_exetime, task['schedule'].get('age'))
-        elif retried >= retries:
-            next_exetime = -1
+        else:
+            if retried >= retries:
+                next_exetime = -1
+            elif 'age' in task['schedule'] and next_exetime > task['schedule'].get('age'):
+                print task['schedule'].get('age'), '!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                next_exetime = task['schedule'].get('age')
 
         if next_exetime < 0:
             task['status'] = self.taskdb.FAILED
