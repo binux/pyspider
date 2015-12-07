@@ -26,6 +26,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for project in self.projects:
             collection_name = self._collection_name(project)
             self.database[collection_name].ensure_index('status')
+            self.database[collection_name].ensure_index('taskid')
 
     def _parse(self, data):
         if '_id' in data:

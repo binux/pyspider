@@ -22,6 +22,9 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.projects = set()
 
         self._list_project()
+        for project in self.projects:
+            collection_name = self._collection_name(project)
+            self.database[collection_name].ensure_index('taskid')
 
     def _parse(self, data):
         data['_id'] = str(data['_id'])
