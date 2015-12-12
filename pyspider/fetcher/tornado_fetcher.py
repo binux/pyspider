@@ -27,6 +27,12 @@ from pyspider.libs import utils, dataurl, counter
 from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
+try:
+    from ghost import Ghost, TimeoutError
+except ImportError:
+    Ghost = None
+    TimeoutError = None
+
 
 class MyCurlAsyncHTTPClient(CurlAsyncHTTPClient):
 
@@ -76,6 +82,10 @@ class Fetcher(object):
         self.proxy = proxy
         self.async = async
         self.ioloop = tornado.ioloop.IOLoop()
+        if Ghost:
+            self.ghost = Ghost()
+        else:
+            self.ghost = None
 
         # binding io_loop to http_client here
         if self.async:
@@ -108,7 +118,9 @@ class Fetcher(object):
             callback = self.send_result
         if url.startswith('data:'):
             return self.data_fetch(url, task, callback)
-        elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
+        elif task.get('fetch', {}).get('fetch_type') in ('js', 'ghost'):
+            return self.ghost_fetch(url, task, callback)
+        elif task.get('fetch', {}).get('fetch_type') in ('phantomjs', ):
             return self.phantomjs_fetch(url, task, callback)
         else:
             return self.http_fetch(url, task, callback)
@@ -335,6 +347,144 @@ class Fetcher(object):
                 return handle_error(e)
 
         return make_request(fetch)
+
+    def ghost_fetch(self, url, task, callback):
+        '''Fetch with ghost.py'''
+        start_time = time.time()
+
+        self.on_fetch('ghost', task)
+        if not self.ghost:
+            result = {
+                "orig_url": url,
+                "content": "ghost is not enabled.",
+                "headers": {},
+                "status_code": 501,
+                "url": url,
+                "cookies": {},
+                "time": 0,
+                "save": task.get('fetch', {}).get('save')
+            }
+            logger.warning("[501] %s:%s %s 0s", task.get('project'), task.get('taskid'), url)
+            callback('http', task, result)
+            self.on_result('http', task, result)
+            return task, result
+
+        fetch = copy.deepcopy(self.default_options)
+        fetch['url'] = url
+        fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
+        fetch['headers']['User-Agent'] = self.user_agent
+        task_fetch = task.get('fetch', {})
+        for each in task_fetch:
+            if each != 'headers':
+                fetch[each] = task_fetch[each]
+        fetch['headers'].update(task_fetch.get('headers', {}))
+
+        ghost_config = {
+            'user_agent': fetch['headers']['User-Agent'],
+            'viewport_size': (fetch.get('js_viewport_height', 768*3), fetch.get('js_viewport_width', 1024)),
+            'wait_timeout': 0,
+            'display': False,
+            'ignore_ssl_errors': True,
+            'download_images': fetch.get('load_images', False),
+        }
+
+        def handle_response(session):
+            page = get_page_from_session(session)
+            if not page:
+                return handle_error('Unable to load requested page')
+
+            result = {
+                'orig_url': url,
+                'status_code': page.http_status,
+                'error': None,
+                'content': session.content,
+                'headers': page.headers,
+                'url': page.url,
+                'cookies': session.cookies,
+                'time': time.time() - start_time,
+                'js_script_result': session.js_script_result,
+                'save': task_fetch.get('save'),
+            }
+            session.exit()
+
+            if 200 <= result['status_code'] < 300:
+                logger.info("[%d] %s:%s %s %.2fs", result['status_code'],
+                            task.get('project'), task.get('taskid'),
+                            url, result['time'])
+            else:
+                logger.warning("[%d] %s:%s %s %.2fs", result['status_code'],
+                               task.get('project'), task.get('taskid'),
+                               url, result['time'])
+            callback('ghost', task, result)
+            self.on_result('ghost', task, result)
+            return task, result
+
+        handle_error = lambda x: self.handle_error('ghost', url, task, start_time, callback, x)
+
+        def check_output(session):
+            if time.time() - start_time > fetch.get('timeout', 120) or session.loaded:
+                if fetch.get('js_script', None) and fetch.get('js_run_at', 'document-end') != 'document-start' \
+                        and not getattr(session, 'js_run', False):
+                    session.js_script_result, resources = session.evaluate(fetch.get('js_script', None))
+                    session.http_resources = resources
+                    session.js_run = True
+                    self.ioloop.call_later(1, check_output, session)
+                    return
+                return handle_response(session)
+            self.ioloop.call_later(1, check_output, session)
+
+        def get_page_from_session(session):
+            resources = session.http_resources
+
+            url = self.main_frame.url().toString()
+            url_without_hash = url.split("#")[0]
+
+            for resource in resources:
+                if url == resource.url or url_without_hash == resource.url:
+                    return resource
+
+        session = self.ghost.start(**ghost_config)
+
+        try:
+            # proxy
+            proxy_string = None
+            if isinstance(task_fetch.get('proxy'), six.string_types):
+                proxy_string = task_fetch['proxy']
+            elif self.proxy and task_fetch.get('proxy', True):
+                proxy_string = self.proxy
+            if proxy_string:
+                if '://' not in proxy_string:
+                    proxy_string = 'http://' + proxy_string
+                proxy_splited = urlsplit(proxy_string)
+                session.set_proxy(proxy_splited.schema, host=proxy_splited.hostname, port=(proxy_splited.port or 8080),
+                                  user=proxy_splited.username, password=proxy_splited.password)
+
+            session.js_script_result = None
+            session.open(fetch['url'], method=fetch['method'], headers=dict(fetch['headers']),
+                         body=fetch.get('data', None), wait=False, user_agent=fetch['headers']['User-Agent'])
+
+            # document-start
+            if fetch.get('js_script', None) and fetch.get('js_run_at', 'document-end') == 'document-start':
+                session.js_script_result, resources = session.evaluate(fetch.get('js_script', None))
+                session.js_run = True
+
+            if self.async:
+                check_output(session)
+            else:
+                session.wait_for(lambda: session.loaded, 'Unable to load requested page', fetch.get('timeout', 120))
+                if fetch.get('js_script', None) and fetch.get('js_run_at', 'document-end') != 'document-start':
+                    session.js_script_result, resources = session.evaluate(fetch.get('js_script', None))
+                    session.http_resources = resources
+                    session.js_run = True
+                time.sleep(1)
+                session.wait_for(lambda: session.loaded, 'Unable to load requested page',
+                                 fetch.get('timeout', 120) - (time.time() - start_time))
+                return handle_response(session)
+        except TimeoutError:
+            return handle_response(session)
+        except Exception as e:
+            session.exit()
+            return handle_error(e)
 
     def phantomjs_fetch(self, url, task, callback):
         '''Fetch with phantomjs proxy'''
