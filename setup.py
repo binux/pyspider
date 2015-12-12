@@ -48,6 +48,8 @@ extras_require_all = [
 ]
 if sys.version_info < (3, 0):
     extras_require_all.extend([
+        'PySide',
+        'Ghost.py',
         'pika>=0.9.14',
         'beanstalkc',
     ])
