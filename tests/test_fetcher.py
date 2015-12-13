@@ -206,7 +206,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'phantomjs'
+        request['fetch']['fetch_type'] = 'js'
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
 
@@ -223,7 +223,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin+'/delay/5'
-        request['fetch']['fetch_type'] = 'phantomjs'
+        request['fetch']['fetch_type'] = 'js'
         request['fetch']['timeout'] = 3
         start_time = time.time()
         result = self.fetcher.sync_fetch(request)
@@ -236,7 +236,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/html'
-        request['fetch']['fetch_type'] = 'phantomjs'
+        request['fetch']['fetch_type'] = 'js'
         request['fetch']['js_script'] = 'function() { document.write("binux") }'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
@@ -247,7 +247,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin+'/pyspider/ajax.html'
-        request['fetch']['fetch_type'] = 'phantomjs'
+        request['fetch']['fetch_type'] = 'js'
         request['fetch']['headers']['User-Agent'] = 'pyspider-test'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
@@ -340,50 +340,3 @@ class TestFetcher(unittest.TestCase):
         response = rebuild_response(result)
 
         self.assertEqual(response.status_code, 200, result)
-
-    def test_b010_ghost_url(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'ghost'
-        result = self.fetcher.sync_fetch(request)
-        response = rebuild_response(result)
-
-        self.assertEqual(response.status_code, 200, result)
-        self.assertEqual(response.orig_url, request['url'])
-        self.assertEqual(response.save, request['fetch']['save'])
-        data = json.loads(response.doc('pre').text())
-        self.assertIsNotNone(data, response.content)
-        self.assertEqual(data['headers'].get('A'), 'b', response.json)
-        self.assertEqual(data['headers'].get('Cookie'), 'c=d', response.json)
-
-    def test_b020_ghost_timeout(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/delay/5'
-        request['fetch']['fetch_type'] = 'ghost'
-        request['fetch']['timeout'] = 3
-        start_time = time.time()
-        result = self.fetcher.sync_fetch(request)
-        end_time = time.time()
-        self.assertGreater(end_time - start_time, 2)
-        self.assertLess(end_time - start_time, 5)
-
-    def test_b030_ghost_js_script(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin + '/html'
-        request['fetch']['fetch_type'] = 'ghost'
-        request['fetch']['js_script'] = 'function() { document.write("binux") }'
-        result = self.fetcher.sync_fetch(request)
-        self.assertEqual(result['status_code'], 200)
-        self.assertIn('binux', result['content'])
-
-    def test_b040_ghost_sharp_url(self):
-        request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/pyspider/ajax.html'
-        request['fetch']['fetch_type'] = 'ghost'
-        request['fetch']['headers']['User-Agent'] = 'pyspider-test'
-        result = self.fetcher.sync_fetch(request)
-        self.assertEqual(result['status_code'], 200)
-        self.assertNotIn('loading', result['content'])
-        self.assertIn('done', result['content'])
-        self.assertIn('pyspider-test', result['content'])
-
