@@ -694,7 +694,6 @@ class Scheduler(object):
             if retried >= retries:
                 next_exetime = -1
             elif 'age' in task['schedule'] and next_exetime > task['schedule'].get('age'):
-                print task['schedule'].get('age'), '!!!!!!!!!!!!!!!!!!!!!!!!!!'
                 next_exetime = task['schedule'].get('age')
 
         if next_exetime < 0:
