@@ -55,6 +55,11 @@ if (system.args.length !== 2) {
       width: fetch.js_viewport_width || 1024,
       height: fetch.js_viewport_height || 768*3
     }
+    if (fetch.headers) {
+      fetch.headers['Accept-Encoding'] = undefined;
+      fetch.headers['Connection'] = undefined;
+      fetch.headers['Content-Length'] = undefined;
+    }
     if (fetch.headers && fetch.headers['User-Agent']) {
       page.settings.userAgent = fetch.headers['User-Agent'];
     }
