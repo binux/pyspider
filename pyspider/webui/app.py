@@ -7,8 +7,10 @@
 
 import os
 import sys
+import signal
 import logging
 logger = logging.getLogger("webui")
+import gunicorn.app.base
 
 from six import reraise
 from six.moves import builtins
@@ -84,9 +86,44 @@ class QuitableFlask(Flask):
         self.logger.info('webui exiting...')
 
 
-app = QuitableFlask('webui',
-                    static_folder=os.path.join(os.path.dirname(__file__), 'static'),
-                    template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+class GunicornApplication(gunicorn.app.base.Application):
+    def __init__(self, app, options=None):
+        self.options = options or {}
+        self.application = app
+        super(GunicornApplication, self).__init__()
+
+    def load_config(self):
+        pass
+
+    def init(self, parser, opts, args):
+        config = dict([(key, value) for key, value in self.options.iteritems()
+                       if key in self.cfg.settings and value is not None])
+        for key, value in config.iteritems():
+            self.cfg.set(key.lower(), value)
+
+    def load(self):
+        return self.application
+
+
+class GunicornFlask(QuitableFlask):
+    def run(self, host=None, port=None, debug=None, **options):
+        options.update({
+            'bind': '%s:%s' % (host or '0.0.0.0', port or 5000),
+            'reload': debug or False,
+            'preload': True
+        })
+        self.pid = os.getpid()
+        self.gunicorn_server = GunicornApplication(self, options)
+        self.gunicorn_server.run()
+
+    def quit(self):
+        if hasattr(self, 'pid'):
+            os.kill(self.pid, signal.SIGTERM)
+
+
+app = GunicornFlask('webui',
+                    static_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), 'static')),
+                    template_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates')))
 app.secret_key = os.urandom(24)
 app.jinja_env.line_statement_prefix = '#'
 app.jinja_env.globals.update(builtins.__dict__)

@@ -31,6 +31,7 @@ install_requires = [
     'u-msgpack-python>=1.6',
     'click>=3.3',
     'six',
+    'gunicorn>=19'
 ]
 if sys.version_info < (3, 0):
     install_requires.extend([

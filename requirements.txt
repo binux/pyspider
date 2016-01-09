@@ -20,3 +20,4 @@ amqp>=1.3.0
 redis
 kombu
 psycopg2
+gunicorn

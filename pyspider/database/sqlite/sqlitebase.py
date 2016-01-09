@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-11-22 20:30:44
 
+import os
 import time
 import sqlite3
 import threading
@@ -14,7 +15,7 @@ class SQLiteMixin(object):
 
     @property
     def dbcur(self):
-        pid = threading.current_thread().ident
+        pid = (os.getpid(), threading.current_thread().ident)
         if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
             self.conn = sqlite3.connect(self.path, isolation_level=None)
