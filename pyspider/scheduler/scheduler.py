@@ -130,6 +130,9 @@ class Scheduler(object):
                 self.task_queue[project['name']].burst = 0
                 del self.task_queue[project['name']]
 
+            if project not in self._cnt['all']:
+                self._update_project_cnt(project['name'])
+
     scheduler_task_fields = ['taskid', 'project', 'schedule', ]
 
     def _load_tasks(self, project):
@@ -153,16 +156,23 @@ class Scheduler(object):
             self.task_queue[project].burst = 0
 
         if project not in self._cnt['all']:
-            status_count = self.taskdb.status_count(project)
-            self._cnt['all'].value(
-                (project, 'success'),
-                status_count.get(self.taskdb.SUCCESS, 0)
-            )
-            self._cnt['all'].value(
-                (project, 'failed'),
-                status_count.get(self.taskdb.FAILED, 0) + status_count.get(self.taskdb.BAD, 0)
-            )
+            self._update_project_cnt(project)
         self._cnt['all'].value((project, 'pending'), len(self.task_queue[project]))
+
+    def _update_project_cnt(self, project):
+        status_count = self.taskdb.status_count(project)
+        self._cnt['all'].value(
+            (project, 'success'),
+            status_count.get(self.taskdb.SUCCESS, 0)
+        )
+        self._cnt['all'].value(
+            (project, 'failed'),
+            status_count.get(self.taskdb.FAILED, 0) + status_count.get(self.taskdb.BAD, 0)
+        )
+        self._cnt['all'].value(
+            (project, 'pending'),
+            status_count.get(self.taskdb.ACTIVE, 0)
+        )
 
     def task_verify(self, task):
         '''
