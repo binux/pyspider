@@ -38,3 +38,13 @@ class ResultDB(object):
 
     def drop(self, project):
         raise NotImplementedError
+
+    def copy(self):
+        '''
+        database should be able to copy itself to create new connection
+
+        it's implemented automatically by pyspider.database.connect_database
+        if you are not create database connection via connect_database method,
+        you should implement this
+        '''
+        raise NotImplementedError

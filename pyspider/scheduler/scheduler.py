@@ -272,16 +272,7 @@ class Scheduler(object):
                 tasks[task['taskid']] = task
 
         for task in itervalues(tasks):
-            if self.INQUEUE_LIMIT and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT:
-                logger.debug('overflow task %(project)s:%(taskid)s %(url)s', task)
-                continue
-
-            oldtask = self.taskdb.get_task(task['project'], task['taskid'],
-                                           fields=self.merge_task_fields)
-            if oldtask:
-                task = self.on_old_request(task, oldtask)
-            else:
-                task = self.on_new_request(task)
+            self.on_request(task)
 
         return len(tasks)
 
@@ -365,12 +356,15 @@ class Scheduler(object):
             cnt_dict[project] = project_cnt
 
         for project, taskid in taskids:
-            task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
-            if not task:
-                continue
-            task = self.on_select_task(task)
+            self._load_put_task(project, taskid)
 
         return cnt_dict
+
+    def _load_put_task(self, project, taskid):
+        task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
+        if not task:
+            return
+        task = self.on_select_task(task)
 
     def _print_counter_log(self):
         # print top 5 active counters
@@ -582,6 +576,18 @@ class Scheduler(object):
         while not self._quit:
             server.handle_request()
         server.server_close()
+
+    def on_request(self, task):
+        if self.INQUEUE_LIMIT and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT:
+            logger.debug('overflow task %(project)s:%(taskid)s %(url)s', task)
+            return
+
+        oldtask = self.taskdb.get_task(task['project'], task['taskid'],
+                                       fields=self.merge_task_fields)
+        if oldtask:
+            return self.on_old_request(task, oldtask)
+        else:
+            return self.on_new_request(task)
 
     def on_new_request(self, task):
         '''Called when a new request is arrived'''
@@ -912,3 +918,119 @@ class OneScheduler(Scheduler):
     def quit(self):
         self.ioloop.stop()
         logger.info("scheduler exiting...")
+
+
+import random
+import hashlib
+import threading
+
+
+class ThreadBaseScheduler(Scheduler):
+    def __init__(self, threads=4, *args, **kwargs):
+        self.threads = threads
+        self.local = threading.local()
+
+        super(ThreadBaseScheduler, self).__init__(*args, **kwargs)
+
+        self._taskdb = self.taskdb
+        self._projectdb = self.projectdb
+        self._resultdb = self.resultdb
+
+        self.thread_objs = []
+        self.thread_queues = []
+        self._start_threads()
+        assert len(self.thread_queues) > 0
+
+    @property
+    def taskdb(self):
+        return self.local.taskdb
+
+    @taskdb.setter
+    def taskdb(self, taskdb):
+        self.local.taskdb = taskdb
+
+    @property
+    def projectdb(self):
+        return self.local.projectdb
+
+    @projectdb.setter
+    def projectdb(self, projectdb):
+        self.local.projectdb = projectdb
+
+    @property
+    def resultdb(self):
+        return self.local.resultdb
+
+    @resultdb.setter
+    def resultdb(self, resultdb):
+        self.local.resultdb = resultdb
+
+    def _start_threads(self):
+        for i in range(self.threads):
+            queue = Queue.Queue()
+            thread = threading.Thread(target=self._thread_worker, args=(queue, ))
+            thread.daemon = True
+            thread.start()
+            self.thread_objs.append(thread)
+            self.thread_queues.append(queue)
+
+    def _thread_worker(self, queue):
+        self.taskdb = self._taskdb.copy()
+        self.projectdb = self._projectdb.copy()
+        self.resultdb = self._resultdb.copy()
+
+        while True:
+            method, args, kwargs = queue.get()
+            try:
+                method(*args, **kwargs)
+            except Exception as e:
+                logger.exception(e)
+
+    def _run_in_thread(self, method, *args, **kwargs):
+        i = kwargs.pop('_i', None)
+        block = kwargs.pop('_block', False)
+
+        if i is None:
+            while True:
+                for queue in self.thread_queues:
+                    if queue.empty():
+                        break
+                else:
+                    if block:
+                        time.sleep(0.1)
+                        continue
+                    else:
+                        queue = self.thread_queues[random.randint(0, len(self.thread_queues)-1)]
+                break
+        else:
+            queue = self.thread_queues[i % len(self.thread_queues)]
+
+        queue.put((method, args, kwargs))
+
+        if block:
+            self._wait_thread()
+
+    def _wait_thread(self):
+        while True:
+            if all(queue.empty() for queue in self.thread_queues):
+                break
+            time.sleep(0.1)
+
+    def _update_project(self, project):
+        self._run_in_thread(Scheduler._update_project, self, project)
+
+    def on_task_status(self, task):
+        i = ord(hashlib.md5(task['taskid']).digest()[-1])
+        self._run_in_thread(Scheduler.on_task_status, self, task, _i=i)
+
+    def on_request(self, task):
+        i = ord(hashlib.md5(task['taskid']).digest()[-1])
+        self._run_in_thread(Scheduler.on_request, self, task, _i=i)
+
+    def _load_put_task(self, project, taskid):
+        i = ord(hashlib.md5(taskid).digest()[-1])
+        self._run_in_thread(Scheduler._load_put_task, self, project, taskid, _i=i)
+
+    def run_once(self):
+        super(ThreadBaseScheduler, self).run_once()
+        self._wait_thread()

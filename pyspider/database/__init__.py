@@ -42,6 +42,12 @@ def connect_database(url):
         resultdb
 
     """
+    db = _connect_database(url)
+    db.copy = lambda: _connect_database(url)
+    return db
+
+
+def _connect_database(url):  # NOQA
     parsed = urlparse.urlparse(url)
 
     scheme = parsed.scheme.split('+')
