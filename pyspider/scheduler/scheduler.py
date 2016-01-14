@@ -943,6 +943,8 @@ class ThreadBaseScheduler(Scheduler):
 
     @property
     def taskdb(self):
+        if not hasattr(self.local, 'taskdb'):
+            self.taskdb = self._taskdb.copy()
         return self.local.taskdb
 
     @taskdb.setter
@@ -951,6 +953,8 @@ class ThreadBaseScheduler(Scheduler):
 
     @property
     def projectdb(self):
+        if not hasattr(self.local, 'projectdb'):
+            self.projectdb = self._projectdb.copy()
         return self.local.projectdb
 
     @projectdb.setter
@@ -959,6 +963,8 @@ class ThreadBaseScheduler(Scheduler):
 
     @property
     def resultdb(self):
+        if not hasattr(self.local, 'resultdb'):
+            self.resultdb = self._resultdb.copy()
         return self.local.resultdb
 
     @resultdb.setter
@@ -975,10 +981,6 @@ class ThreadBaseScheduler(Scheduler):
             self.thread_queues.append(queue)
 
     def _thread_worker(self, queue):
-        self.taskdb = self._taskdb.copy()
-        self.projectdb = self._projectdb.copy()
-        self.resultdb = self._resultdb.copy()
-
         while True:
             method, args, kwargs = queue.get()
             try:
