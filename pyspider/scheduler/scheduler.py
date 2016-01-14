@@ -921,7 +921,6 @@ class OneScheduler(Scheduler):
 
 
 import random
-import hashlib
 import threading
 
 
@@ -1022,15 +1021,15 @@ class ThreadBaseScheduler(Scheduler):
         self._run_in_thread(Scheduler._update_project, self, project)
 
     def on_task_status(self, task):
-        i = ord(hashlib.md5(task['taskid']).digest()[-1])
+        i = hash(task['taskid'])
         self._run_in_thread(Scheduler.on_task_status, self, task, _i=i)
 
     def on_request(self, task):
-        i = ord(hashlib.md5(task['taskid']).digest()[-1])
+        i = hash(task['taskid'])
         self._run_in_thread(Scheduler.on_request, self, task, _i=i)
 
     def _load_put_task(self, project, taskid):
-        i = ord(hashlib.md5(taskid).digest()[-1])
+        i = hash(taskid)
         self._run_in_thread(Scheduler._load_put_task, self, project, taskid, _i=i)
 
     def run_once(self):
