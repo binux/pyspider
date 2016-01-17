@@ -108,17 +108,25 @@ class Fetcher(object):
         else:
             return self.ioloop.run_sync(functools.partial(self.async_fetch, task, callback))
 
+    @gen.coroutine
     def async_fetch(self, task, callback=None):
         '''Do one fetch'''
         url = task.get('url', 'data:,')
         if callback is None:
             callback = self.send_result
-        if url.startswith('data:'):
-            return gen.maybe_future(self.data_fetch(url, task, callback))
-        elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
-            return gen.maybe_future(self.phantomjs_fetch(url, task, callback))
-        else:
-            return gen.maybe_future(self.http_fetch(url, task, callback))
+
+        try:
+            if url.startswith('data:'):
+                ret = yield gen.maybe_future(self.data_fetch(url, task, callback))
+            elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
+                ret = yield self.phantomjs_fetch(url, task, callback)
+            else:
+                ret = yield self.http_fetch(url, task, callback)
+        except Exception as e:
+            logger.exception(e)
+            raise e
+
+        raise gen.Return(ret)
 
     def sync_fetch(self, task):
         '''Synchronization fetch, usually used in xmlrpc thread'''
@@ -276,6 +284,11 @@ class Fetcher(object):
                 content = response.body
             except tornado.httpclient.HTTPError as e:
                 logger.error('load robots.txt from %s error: %r', domain, e)
+                content = ''
+
+            try:
+                content = content.decode('utf8', 'ignore')
+            except UnicodeDecodeError:
                 content = ''
 
             robot_txt.parse(content.splitlines())
