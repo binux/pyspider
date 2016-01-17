@@ -20,6 +20,7 @@ import tornado.httpclient
 import pyspider
 
 from six.moves import queue, http_cookies
+from six.moves.urllib.robotparser import RobotFileParser
 from requests import cookies
 from six.moves.urllib.parse import urljoin, urlsplit
 from tornado import gen
@@ -67,6 +68,7 @@ class Fetcher(object):
         'timeout': 120,
     }
     phantomjs_proxy = None
+    robot_txt_age = 60*60  # 1h
 
     def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True):
         self.inqueue = inqueue
@@ -78,6 +80,8 @@ class Fetcher(object):
         self.proxy = proxy
         self.async = async
         self.ioloop = tornado.ioloop.IOLoop()
+
+        self.robots_txt_cache = {}
 
         # binding io_loop to http_client here
         self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
@@ -254,11 +258,44 @@ class Fetcher(object):
         return fetch
 
     @gen.coroutine
+    def can_fetch(self, user_agent, url):
+        parsed = urlsplit(url)
+        domain = parsed.netloc
+        if domain in self.robots_txt_cache:
+            robot_txt = self.robots_txt_cache[domain]
+            if time.time() - robot_txt.mtime() > self.robot_txt_age:
+                robot_txt = None
+        else:
+            robot_txt = None
+
+        if robot_txt is None:
+            robot_txt = RobotFileParser()
+            try:
+                response = yield self.http_client.fetch(urljoin(url, '/robots.txt'),
+                                                        connect_timeout=10, request_timeout=30)
+                content = response.body
+            except tornado.httpclient.HTTPError as e:
+                logger.error('load robots.txt from %s error: %r', domain, e)
+                content = ''
+
+            robot_txt.parse(content.splitlines())
+            self.robots_txt_cache[domain] = robot_txt
+
+        raise gen.Return(robot_txt.can_fetch(user_agent, url))
+
+    def clear_robot_txt_cache(self):
+        now = time.time()
+        for domain, robot_txt in self.robots_txt_cache.items():
+            if now - robot_txt.mtime() > self.robot_txt_age:
+                del self.robots_txt_cache[domain]
+
+    @gen.coroutine
     def http_fetch(self, url, task, callback):
         '''HTTP fetcher'''
         start_time = time.time()
 
         self.on_fetch('http', task)
+        handle_error = lambda x: self.handle_error('http', url, task, start_time, callback, x)
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
@@ -283,10 +320,17 @@ class Fetcher(object):
         # we will handle redirects by hand to capture cookies
         fetch['follow_redirects'] = False
 
-        handle_error = lambda x: self.handle_error('http', url, task, start_time, callback, x)
-
         # making requests
         while True:
+            # robots.txt
+            if task_fetch.get('robots_txt', False):
+                can_fetch = yield self.can_fetch(fetch['headers']['User-Agent'], fetch['url'])
+                print can_fetch
+                if not can_fetch:
+                    error = tornado.httpclient.HTTPError(403, 'Disallowed by robots.txt')
+                    print error
+                    raise gen.Return(handle_error(error))
+
             try:
                 request = tornado.httpclient.HTTPRequest(**fetch)
                 cookie_header = cookies.get_cookie_header(session, request)
@@ -355,6 +399,7 @@ class Fetcher(object):
         start_time = time.time()
 
         self.on_fetch('phantomjs', task)
+        handle_error = lambda x: self.handle_error('phantomjs', url, task, start_time, callback, x)
 
         # check phantomjs proxy is enabled
         if not self.phantomjs_proxy:
@@ -380,6 +425,14 @@ class Fetcher(object):
             if each not in fetch:
                 fetch[each] = task_fetch[each]
 
+        # robots.txt
+        if task_fetch.get('robots_txt', False):
+            user_agent = fetch['headers']['User-Agent']
+            can_fetch = yield self.can_fetch(user_agent, url)
+            if not can_fetch:
+                error = tornado.httpclient.HTTPError(403, 'Disallowed by robots.txt')
+                raise gen.Return(handle_error(error))
+
         request_conf = {
             'follow_redirects': False
         }
@@ -394,8 +447,6 @@ class Fetcher(object):
             if 'Cookie' in request.headers:
                 del request.headers['Cookie']
             fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
-
-        handle_error = lambda x: self.handle_error('phantomjs', url, task, start_time, callback, x)
 
         # making requests
         fetch['headers'] = dict(fetch['headers'])
@@ -461,6 +512,7 @@ class Fetcher(object):
                     break
 
         tornado.ioloop.PeriodicCallback(queue_loop, 100, io_loop=self.ioloop).start()
+        tornado.ioloop.PeriodicCallback(self.clear_robot_txt_cache, 10000, io_loop=self.ioloop).start()
         self._running = True
 
         try:

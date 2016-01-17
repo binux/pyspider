@@ -340,3 +340,18 @@ class TestFetcher(unittest.TestCase):
         response = rebuild_response(result)
 
         self.assertEqual(response.status_code, 200, result)
+
+    def test_a200_robots_txt(self):
+        request = copy.deepcopy(self.sample_task_http)
+        request['fetch']['robots_txt'] = False
+        request['url'] = self.httpbin+'/deny'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+
+        request['fetch']['robots_txt'] = True
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
