@@ -325,10 +325,8 @@ class Fetcher(object):
             # robots.txt
             if task_fetch.get('robots_txt', False):
                 can_fetch = yield self.can_fetch(fetch['headers']['User-Agent'], fetch['url'])
-                print can_fetch
                 if not can_fetch:
                     error = tornado.httpclient.HTTPError(403, 'Disallowed by robots.txt')
-                    print error
                     raise gen.Return(handle_error(error))
 
             try:
