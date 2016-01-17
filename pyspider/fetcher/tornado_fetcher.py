@@ -398,6 +398,7 @@ class Fetcher(object):
         handle_error = lambda x: self.handle_error('phantomjs', url, task, start_time, callback, x)
 
         # making requests
+        fetch['headers'] = dict(fetch['headers'])
         try:
             request = tornado.httpclient.HTTPRequest(
                 url="%s" % self.phantomjs_proxy, method="POST",
