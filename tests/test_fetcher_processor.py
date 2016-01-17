@@ -472,5 +472,4 @@ class TestFetcherProcessor(unittest.TestCase):
     def test_zzz_robots_txt(self):
         status, newtasks, result = self.crawl(self.httpbin+'/deny', robots_txt=True, callback=self.catch_http_error)
 
-        self.assertStatusOk(status)
         self.assertEqual(result, 403)
