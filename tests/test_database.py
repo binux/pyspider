@@ -588,7 +588,7 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.projectdb.es.indices.delete(index='test_pyspider')
+        self.projectdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
 
 if __name__ == '__main__':
     unittest.main()
