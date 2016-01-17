@@ -175,7 +175,9 @@ class ProjectDBCase(object):
     def test_20_get_all(self):
         projects = list(self.projectdb.get_all())
         self.assertEqual(len(projects), 2)
-        project = projects[0]
+        for project in projects:
+            if project['name'] == 'abc':
+                break
         for key in ('name', 'group', 'status', 'script', 'comments', 'rate', 'burst', 'updatetime'):
             self.assertIn(key, project)
 
@@ -532,7 +534,6 @@ class TestPGTaskDB(TaskDBCase, unittest.TestCase):
 @unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
 class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
 
-
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database(
@@ -574,6 +575,20 @@ class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
     def tearDownClass(self):
         for project in self.taskdb.projects:
             self.taskdb.drop(project)
+
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH'), 'no elasticsearch server for test.')
+class TestESProjectDB(ProjectDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb.es.indices.delete(index='test_pyspider')
 
 if __name__ == '__main__':
     unittest.main()
