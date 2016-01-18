@@ -18,7 +18,6 @@
 
 
 class ResultDB(object):
-
     """
     database for result
     """
