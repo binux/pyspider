@@ -105,6 +105,11 @@ class Fetcher(object):
     def fetch(self, task, callback=None):
         if self.async:
             return self.async_fetch(task, callback)
+        elif self.ioloop._running:
+            future = self.async_fetch(task, callback)
+            while not future.done():
+                time.sleep(0.1)
+            return future.result()
         else:
             return self.ioloop.run_sync(functools.partial(self.async_fetch, task, callback))
 
