@@ -484,9 +484,9 @@ class Fetcher(object):
 
         try:
             result = json.loads(utils.text(response.body))
+        except Exception as e:
             if response.error:
                 result['error'] = utils.text(response.error)
-        except Exception as e:
             raise gen.Return(handle_error(e))
 
         if result.get('status_code', 200):
