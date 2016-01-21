@@ -1,1 +1,1 @@
-from .scheduler import Scheduler, OneScheduler
+from .scheduler import Scheduler, OneScheduler, ThreadBaseScheduler  # NOQA

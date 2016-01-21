@@ -175,7 +175,9 @@ class ProjectDBCase(object):
     def test_20_get_all(self):
         projects = list(self.projectdb.get_all())
         self.assertEqual(len(projects), 2)
-        project = projects[0]
+        for project in projects:
+            if project['name'] == 'abc':
+                break
         for key in ('name', 'group', 'status', 'script', 'comments', 'rate', 'burst', 'updatetime'):
             self.assertIn(key, project)
 
@@ -297,9 +299,8 @@ class ResultDBCase(object):
         self.assertEqual(self.resultdb.count('test_project'), 6)
 
     def test_60_relist_projects(self):
-        if hasattr(self.resultdb, '_list_project'):
-            self.resultdb._list_project()
-            self.assertNotIn('system.indexes', self.resultdb.projects)
+        self.resultdb._list_project()
+        self.assertNotIn('system.indexes', self.resultdb.projects)
 
     def test_z10_drop(self):
         self.resultdb.save('drop_project2', 'test_taskid', 'test_url', 'result')
@@ -532,7 +533,6 @@ class TestPGTaskDB(TaskDBCase, unittest.TestCase):
 @unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
 class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
 
-
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database(
@@ -574,6 +574,60 @@ class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
     def tearDownClass(self):
         for project in self.taskdb.projects:
             self.taskdb.drop(project)
+
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH'), 'no elasticsearch server for test.')
+class TestESProjectDB(ProjectDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH'), 'no elasticsearch server for test.')
+class TestESResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database(
+            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.resultdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+
+    def test_15_save(self):
+        self.resultdb.refresh()
+
+    def test_30_select(self):
+        for i in range(5):
+            self.resultdb.save('test_project', 'test_taskid-%d' % i,
+                               'test_url', 'result-%d' % i)
+        self.resultdb.refresh()
+
+        ret = list(self.resultdb.select('test_project'))
+        self.assertEqual(len(ret), 6)
+
+        ret = list(self.resultdb.select('test_project', limit=4))
+        self.assertEqual(len(ret), 4)
+
+        for ret in self.resultdb.select('test_project', fields=('url', ), limit=1):
+            self.assertIn('url', ret)
+            self.assertNotIn('result', ret)
+
+    def test_60_relist_projects(self):
+        pass
+
+    def test_z20_update_projects(self):
+        self.resultdb.refresh()
+        self.assertEqual(self.resultdb.count("drop_project3"), 0)
 
 if __name__ == '__main__':
     unittest.main()

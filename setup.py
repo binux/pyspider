@@ -45,6 +45,7 @@ extras_require_all = [
     'redis',
     'kombu',
     'psycopg2',
+    'elasticsearch',
 ]
 if sys.version_info < (3, 0):
     extras_require_all.extend([
