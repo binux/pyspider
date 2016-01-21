@@ -84,8 +84,11 @@ class Fetcher(object):
         self.robots_txt_cache = {}
 
         # binding io_loop to http_client here
-        self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
-                                                 io_loop=self.ioloop)
+        if self.async:
+            self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
+                                                     io_loop=self.ioloop)
+        else:
+            self.http_client = tornado.httpclient.HTTPClient(MyCurlAsyncHTTPClient, max_clients=self.poolsize)
 
         self._cnt = {
             '5m': counter.CounterManager(
@@ -105,13 +108,8 @@ class Fetcher(object):
     def fetch(self, task, callback=None):
         if self.async:
             return self.async_fetch(task, callback)
-        elif self.ioloop._running:
-            future = self.async_fetch(task, callback)
-            while not future.done():
-                time.sleep(0.1)
-            return future.result()
         else:
-            return self.ioloop.run_sync(functools.partial(self.async_fetch, task, callback))
+            return self.async_fetch(task, callback).result()
 
     @gen.coroutine
     def async_fetch(self, task, callback=None):
@@ -284,8 +282,8 @@ class Fetcher(object):
         if robot_txt is None:
             robot_txt = RobotFileParser()
             try:
-                response = yield self.http_client.fetch(urljoin(url, '/robots.txt'),
-                                                        connect_timeout=10, request_timeout=30)
+                response = yield gen.maybe_future(self.http_client.fetch(
+                    urljoin(url, '/robots.txt'), connect_timeout=10, request_timeout=30))
                 content = response.body
             except tornado.httpclient.HTTPError as e:
                 logger.error('load robots.txt from %s error: %r', domain, e)
@@ -357,7 +355,7 @@ class Fetcher(object):
                 raise gen.Return(handle_error(e))
 
             try:
-                response = yield self.http_client.fetch(request)
+                response = yield gen.maybe_future(self.http_client.fetch(request))
             except tornado.httpclient.HTTPError as e:
                 if e.response:
                     response = e.response
@@ -474,7 +472,7 @@ class Fetcher(object):
             raise gen.Return(handle_error(e))
 
         try:
-            response = yield self.http_client.fetch(request)
+            response = yield gen.maybe_future(self.http_client.fetch(request))
         except tornado.httpclient.HTTPError as e:
             if e.response:
                 response = e.response
