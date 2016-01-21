@@ -355,3 +355,19 @@ class TestFetcher(unittest.TestCase):
         response = rebuild_response(result)
 
         self.assertEqual(response.status_code, 403, result)
+
+    def test_zzzz_issue375(self):
+        phantomjs_proxy = self.fetcher.phantomjs_proxy
+        self.fetcher.phantomjs_proxy = '127.0.0.1:20000'
+
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/get'
+        request['fetch']['fetch_type'] = 'js'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 599, result)
+
+        self.fetcher.phantomjs_proxy = phantomjs_proxy

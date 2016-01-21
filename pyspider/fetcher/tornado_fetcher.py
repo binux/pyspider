@@ -473,6 +473,8 @@ class Fetcher(object):
         except tornado.httpclient.HTTPError as e:
             if e.response:
                 response = e.response
+            else:
+                raise gen.Return(handle_error(e))
 
         if not response.body:
             raise gen.Return(handle_error(Exception('no response from phantomjs')))
