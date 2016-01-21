@@ -7,6 +7,7 @@ RUN apt-get update && \
         apt-get install -y libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml python-mysqldb libpq-dev
 
 # install requirements
+RUN pip install http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.0.4.zip#md5=3df394d89300db95163f17c843ef49df
 ADD requirements.txt /opt/pyspider/requirements.txt
 RUN pip install -r /opt/pyspider/requirements.txt
 RUN pip install -U pip
