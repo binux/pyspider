@@ -450,9 +450,8 @@ class Fetcher(object):
         request_conf = {
             'follow_redirects': False
         }
-        if 'timeout' in task_fetch:
-            request_conf['connect_timeout'] = task_fetch['timeout']
-            request_conf['request_timeout'] = task_fetch['timeout'] + 1
+        request_conf['connect_timeout'] = fetch.get('connect_timeout', 120)
+        request_conf['request_timeout'] = fetch.get('request_timeout', 120)
 
         session = cookies.RequestsCookieJar()
         request = tornado.httpclient.HTTPRequest(url=fetch['url'])
