@@ -67,7 +67,8 @@ class TaskDB(BaseTaskDB):
             for record in elasticsearch.helpers.scan(self.es, index=self.index, doc_type=self.__type__,
                                                      query={'query': {'bool': {
                                                          'must': {'term': {'project': project}},
-                                                         'filter': {'term': {'status': status}},
+                                                         'should': [{'term': {'status': status}}],
+                                                         'minimum_should_match': 1,
                                                      }}}, _source_include=fields or []):
                 yield self._parse(record['_source'])
 
