@@ -120,7 +120,8 @@ class TaskDBCase(object):
         tasks = list(self.taskdb.load_tasks(self.taskdb.ACTIVE))
         self.assertEqual(len(tasks), 1)
         task = tasks[0]
-        self.assertEqual(task['taskid'], 'taskid')
+        self.assertIn('taskid', task, task)
+        self.assertEqual(task['taskid'], 'taskid', task)
         self.assertEqual(task['schedule'], self.sample_task['schedule'])
         self.assertEqual(task['fetch'], self.sample_task['fetch'])
         self.assertEqual(task['process'], self.sample_task['process'])
@@ -145,7 +146,7 @@ class TaskDBCase(object):
         self.assertIsNone(self.taskdb.get_task('drop_project3', 'taskid'), None)
 
     def test_z20_update_projects(self):
-        saved = self.taskdb.UPDATE_PROJECTS_TIME
+        saved = getattr(self.taskdb, 'UPDATE_PROJECTS_TIME', None)
         self.taskdb.UPDATE_PROJECTS_TIME = 0.1
         time.sleep(0.2)
         self.assertIn('drop_project2', self.taskdb.projects)
@@ -299,8 +300,9 @@ class ResultDBCase(object):
         self.assertEqual(self.resultdb.count('test_project'), 6)
 
     def test_60_relist_projects(self):
-        self.resultdb._list_project()
-        self.assertNotIn('system.indexes', self.resultdb.projects)
+        if hasattr(self.resultdb, '_list_project'):
+            self.resultdb._list_project()
+            self.assertNotIn('system.indexes', self.resultdb.projects)
 
     def test_z10_drop(self):
         self.resultdb.save('drop_project2', 'test_taskid', 'test_url', 'result')
@@ -622,12 +624,23 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
             self.assertIn('url', ret)
             self.assertNotIn('result', ret)
 
-    def test_60_relist_projects(self):
-        pass
-
     def test_z20_update_projects(self):
         self.resultdb.refresh()
-        self.assertEqual(self.resultdb.count("drop_project3"), 0)
+        self.assertIn('drop_project2', self.resultdb.projects)
+        self.assertNotIn('drop_project3', self.resultdb.projects)
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH'), 'no elasticsearch server for test.')
+class TestESTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database(
+            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.taskdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
 
 if __name__ == '__main__':
     unittest.main()

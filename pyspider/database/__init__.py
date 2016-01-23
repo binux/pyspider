@@ -165,5 +165,8 @@ def _connect_database(url):  # NOQA
         elif dbtype == 'resultdb':
             from .elasticsearch.resultdb import ResultDB
             return ResultDB([parsed.netloc], index=index)
+        elif dbtype == 'taskdb':
+            from .elasticsearch.taskdb import TaskDB
+            return TaskDB([parsed.netloc], index=index)
     else:
         raise Exception('unknown engine: %s' % engine)

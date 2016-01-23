@@ -44,15 +44,11 @@ class ProjectDB(BaseProjectDB):
                              refresh=True)
 
     def update(self, name, obj={}, **kwargs):
-        kwargs.update(obj)
-        obj = self.get(name)
-        if obj is None:
-            return
-
+        obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        return self.es.index(index=self.index, doc_type=self.__type__, body=obj, id=name,
-                             refresh=True)
+        return self.es.update(index=self.index, doc_type=self.__type__,
+                              body={'doc': obj}, id=name, refresh=True, ignore=404)
 
     def get_all(self, fields=None):
         for record in elasticsearch.helpers.scan(self.es, index=self.index, doc_type=self.__type__,

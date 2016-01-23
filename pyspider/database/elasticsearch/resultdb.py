@@ -31,6 +31,14 @@ class ResultDB(BaseResultDB):
                 }
             })
 
+    @property
+    def projects(self):
+        ret = self.es.search(index=self.index, doc_type=self.__type__,
+                             body={"aggs": {"projects": {
+                                 "terms": {"field": "project"}
+                             }}}, _source=False)
+        return [each['key'] for each in ret['aggregations']['projects'].get('buckets', [])]
+
     def save(self, project, taskid, url, result):
         obj = {
             'taskid': taskid,
