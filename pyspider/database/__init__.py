@@ -110,6 +110,8 @@ def _connect_database(url):  # NOQA
         parames = {}
         if parsed.path.strip('/'):
             parames['database'] = parsed.path.strip('/')
+            pos = url.rindex('/')
+            url = url[:pos]
 
         if dbtype == 'taskdb':
             from .mongodb.taskdb import TaskDB
