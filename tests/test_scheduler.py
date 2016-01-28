@@ -564,6 +564,7 @@ class TestScheduler(unittest.TestCase):
         self.assertIsNone(self.projectdb.get('test_inqueue_project'))
         self.taskdb._list_project()
         self.assertIsNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
+        self.assertNotIn('test_inqueue_project', self.rpc.counter('5m', 'sum'))
 
     def test_z10_startup(self):
         self.assertTrue(self.process.is_alive())

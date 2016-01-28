@@ -439,6 +439,8 @@ class Scheduler(object):
             self.projectdb.drop(project['name'])
             if self.resultdb:
                 self.resultdb.drop(project['name'])
+            for each in self._cnt.values():
+                del each[project['name']]
 
     def __len__(self):
         return sum(len(x) for x in itervalues(self.task_queue))
