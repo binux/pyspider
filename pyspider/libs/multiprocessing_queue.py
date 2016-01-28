@@ -1,10 +1,7 @@
+import six
+import platform
 import multiprocessing
-from multiprocessing.queues import Queue as MPQueue
-from six.moves import queue as BaseQueue
-
-
-Empty = BaseQueue.Empty
-Full = BaseQueue.Full
+from multiprocessing.queues import Queue as BaseQueue
 
 
 # The SharedCounter and Queue classes come from:
@@ -36,7 +33,7 @@ class SharedCounter(object):
         return self.count.value
 
 
-class Queue(BaseQueue.Queue, object):
+class MultiProcessingQueue(BaseQueue):
     """ A portable implementation of multiprocessing.Queue.
     Because of multithreading / multiprocessing semantics, Queue.qsize() may
     raise the NotImplementedError exception on Unix platforms like Mac OS X
@@ -47,47 +44,30 @@ class Queue(BaseQueue.Queue, object):
     being raised, but also allows us to implement a reliable version of both
     qsize() and empty().
     """
-
-    def __init__(self, *args, **kwargs):
-        super(Queue, self).__init__(*args, **kwargs)
-        self.size = SharedCounter(0)
-
-    def _put(self, *args, **kwargs):
-        self.size.increment(1)
-        super(Queue, self)._put(*args, **kwargs)
-
-    def _get(self, *args, **kwargs):
-        v = super(Queue, self)._get(*args, **kwargs)
-        self.size.increment(-1)
-        return v
-
-    def _qsize(self):
-        """ Reliable implementation of multiprocessing.Queue.qsize() """
-        return self.size.value
-
-
-class MultiProcessingQueue(MPQueue, object):
     def __init__(self, *args, **kwargs):
         super(MultiProcessingQueue, self).__init__(*args, **kwargs)
         self.size = SharedCounter(0)
 
-    def _put(self, *args, **kwargs):
+    def put(self, *args, **kwargs):
         self.size.increment(1)
-        super(MultiProcessingQueue, self)._put(*args, **kwargs)
+        super(MultiProcessingQueue, self).put(*args, **kwargs)
 
-    def _get(self, *args, **kwargs):
-        v = super(MultiProcessingQueue, self)._get(*args, **kwargs)
+    def get(self, *args, **kwargs):
+        v = super(MultiProcessingQueue, self).get(*args, **kwargs)
         self.size.increment(-1)
         return v
 
-    def _qsize(self):
+    def qsize(self):
         """ Reliable implementation of multiprocessing.Queue.qsize() """
         return self.size.value
 
 
-def get_multiprocessing_queue(maxsize=0):
-    if hasattr(multiprocessing, 'get_context'):  # python 3.4
-        return MultiProcessingQueue(maxsize,
-                                    ctx=multiprocessing.get_context())
+if platform.system() == 'Darwin':
+    if hasattr(multiprocessing, 'get_context'):  # for py34
+        def Queue(maxsize=0):
+            return MultiProcessingQueue(maxsize, ctx=multiprocessing.get_context())
     else:
-        return MultiProcessingQueue(maxsize=maxsize)
+        def Queue(maxsize=0):
+            return MultiProcessingQueue(maxsize)
+else:
+    from multiprocessing import Queue  # flake8: noqa

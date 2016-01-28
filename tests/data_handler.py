@@ -11,6 +11,10 @@ class IgnoreHandler(object):
     pass
 
 class TestHandler(BaseHandler):
+    retry_delay = {
+        1: 10,
+        '': -1
+    }
 
     def hello(self):
         return "hello world!"

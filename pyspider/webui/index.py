@@ -17,8 +17,9 @@ index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', 'updatet
 @app.route('/')
 def index():
     projectdb = app.config['projectdb']
-
-    return render_template("index.html", projects=projectdb.get_all(fields=index_fields))
+    projects = sorted(projectdb.get_all(fields=index_fields),
+                      key=lambda k: (0 if k['group'] else 1, k['group'], k['name']))
+    return render_template("index.html", projects=projects)
 
 
 @app.route('/queues')

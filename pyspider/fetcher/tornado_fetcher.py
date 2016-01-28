@@ -12,19 +12,21 @@ import copy
 import time
 import json
 import logging
+import functools
 import threading
 import tornado.ioloop
 import tornado.httputil
 import tornado.httpclient
 import pyspider
 
-from six.moves import http_cookies
+from six.moves import queue, http_cookies
+from six.moves.urllib.robotparser import RobotFileParser
 from requests import cookies
 from six.moves.urllib.parse import urljoin, urlsplit
+from tornado import gen
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from pyspider.libs import utils, dataurl, counter
-from pyspider.libs.queue import Queue as queue
 from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
@@ -66,6 +68,7 @@ class Fetcher(object):
         'timeout': 120,
     }
     phantomjs_proxy = None
+    robot_txt_age = 60*60  # 1h
 
     def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True):
         self.inqueue = inqueue
@@ -78,14 +81,14 @@ class Fetcher(object):
         self.async = async
         self.ioloop = tornado.ioloop.IOLoop()
 
+        self.robots_txt_cache = {}
+
         # binding io_loop to http_client here
         if self.async:
             self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
                                                      io_loop=self.ioloop)
         else:
-            self.http_client = tornado.httpclient.HTTPClient(
-                MyCurlAsyncHTTPClient, max_clients=self.poolsize
-            )
+            self.http_client = tornado.httpclient.HTTPClient(MyCurlAsyncHTTPClient, max_clients=self.poolsize)
 
         self._cnt = {
             '5m': counter.CounterManager(
@@ -103,19 +106,36 @@ class Fetcher(object):
                 logger.exception(e)
 
     def fetch(self, task, callback=None):
+        if self.async:
+            return self.async_fetch(task, callback)
+        else:
+            return self.async_fetch(task, callback).result()
+
+    @gen.coroutine
+    def async_fetch(self, task, callback=None):
         '''Do one fetch'''
         url = task.get('url', 'data:,')
         if callback is None:
             callback = self.send_result
-        if url.startswith('data:'):
-            return self.data_fetch(url, task, callback)
-        elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
-            return self.phantomjs_fetch(url, task, callback)
-        else:
-            return self.http_fetch(url, task, callback)
+
+        try:
+            if url.startswith('data:'):
+                ret = yield gen.maybe_future(self.data_fetch(url, task, callback))
+            elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
+                ret = yield self.phantomjs_fetch(url, task, callback)
+            else:
+                ret = yield self.http_fetch(url, task, callback)
+        except Exception as e:
+            logger.exception(e)
+            raise e
+
+        raise gen.Return(ret)
 
     def sync_fetch(self, task):
-        '''Synchronization fetch'''
+        '''Synchronization fetch, usually used in xmlrpc thread'''
+        if not self._running:
+            return self.ioloop.run_sync(functools.partial(self.async_fetch, task, lambda t, _, r: True))
+
         wait_result = threading.Condition()
         _result = {}
 
@@ -178,11 +198,7 @@ class Fetcher(object):
 
     allowed_options = ['method', 'data', 'timeout', 'cookies', 'use_gzip', 'validate_cert']
 
-    def http_fetch(self, url, task, callback):
-        '''HTTP fetcher'''
-        start_time = time.time()
-
-        self.on_fetch('http', task)
+    def pack_tornado_request_parameters(self, url, task):
         fetch = copy.deepcopy(self.default_options)
         fetch['url'] = url
         fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
@@ -241,9 +257,67 @@ class Fetcher(object):
                 _t = track_headers.get('last-modified')
             if _t and 'If-Modified-Since' not in fetch['headers']:
                 fetch['headers']['If-Modified-Since'] = _t
+        # timeout
+        if 'timeout' in fetch:
+            fetch['connect_timeout'] = fetch['request_timeout'] = fetch['timeout']
+            del fetch['timeout']
+        # data rename to body
+        if 'data' in fetch:
+            fetch['body'] = fetch['data']
+            del fetch['data']
+
+        return fetch
+
+    @gen.coroutine
+    def can_fetch(self, user_agent, url):
+        parsed = urlsplit(url)
+        domain = parsed.netloc
+        if domain in self.robots_txt_cache:
+            robot_txt = self.robots_txt_cache[domain]
+            if time.time() - robot_txt.mtime() > self.robot_txt_age:
+                robot_txt = None
+        else:
+            robot_txt = None
+
+        if robot_txt is None:
+            robot_txt = RobotFileParser()
+            try:
+                response = yield gen.maybe_future(self.http_client.fetch(
+                    urljoin(url, '/robots.txt'), connect_timeout=10, request_timeout=30))
+                content = response.body
+            except tornado.httpclient.HTTPError as e:
+                logger.error('load robots.txt from %s error: %r', domain, e)
+                content = ''
+
+            try:
+                content = content.decode('utf8', 'ignore')
+            except UnicodeDecodeError:
+                content = ''
+
+            robot_txt.parse(content.splitlines())
+            self.robots_txt_cache[domain] = robot_txt
+
+        raise gen.Return(robot_txt.can_fetch(user_agent, url))
+
+    def clear_robot_txt_cache(self):
+        now = time.time()
+        for domain, robot_txt in self.robots_txt_cache.items():
+            if now - robot_txt.mtime() > self.robot_txt_age:
+                del self.robots_txt_cache[domain]
+
+    @gen.coroutine
+    def http_fetch(self, url, task, callback):
+        '''HTTP fetcher'''
+        start_time = time.time()
+
+        self.on_fetch('http', task)
+        handle_error = lambda x: self.handle_error('http', url, task, start_time, callback, x)
+
+        # setup request parameters
+        fetch = self.pack_tornado_request_parameters(url, task)
+        task_fetch = task.get('fetch', {})
 
         session = cookies.RequestsCookieJar()
-
         # fix for tornado request obj
         if 'Cookie' in fetch['headers']:
             c = http_cookies.SimpleCookie()
@@ -254,30 +328,49 @@ class Fetcher(object):
             for key in c:
                 session.set(key, c[key])
             del fetch['headers']['Cookie']
-        fetch['follow_redirects'] = False
-        if 'timeout' in fetch:
-            fetch['connect_timeout'] = fetch['request_timeout'] = fetch['timeout']
-            del fetch['timeout']
-        if 'data' in fetch:
-            fetch['body'] = fetch['data']
-            del fetch['data']
         if 'cookies' in fetch:
             session.update(fetch['cookies'])
             del fetch['cookies']
 
-        store = {}
-        store['max_redirects'] = task_fetch.get('max_redirects', 5)
+        max_redirects = task_fetch.get('max_redirects', 5)
+        # we will handle redirects by hand to capture cookies
+        fetch['follow_redirects'] = False
 
-        def handle_response(response):
+        # making requests
+        while True:
+            # robots.txt
+            if task_fetch.get('robots_txt', False):
+                can_fetch = yield self.can_fetch(fetch['headers']['User-Agent'], fetch['url'])
+                if not can_fetch:
+                    error = tornado.httpclient.HTTPError(403, 'Disallowed by robots.txt')
+                    raise gen.Return(handle_error(error))
+
+            try:
+                request = tornado.httpclient.HTTPRequest(**fetch)
+                cookie_header = cookies.get_cookie_header(session, request)
+                if cookie_header:
+                    request.headers['Cookie'] = cookie_header
+            except Exception as e:
+                logger.exception(fetch)
+                raise gen.Return(handle_error(e))
+
+            try:
+                response = yield gen.maybe_future(self.http_client.fetch(request))
+            except tornado.httpclient.HTTPError as e:
+                if e.response:
+                    response = e.response
+                else:
+                    raise gen.Return(handle_error(e))
+
             extract_cookies_to_jar(session, response.request, response.headers)
             if (response.code in (301, 302, 303, 307)
                     and response.headers.get('Location')
                     and task_fetch.get('allow_redirects', True)):
-                if store['max_redirects'] <= 0:
+                if max_redirects <= 0:
                     error = tornado.httpclient.HTTPError(
                         599, 'Maximum (%d) redirects followed' % task_fetch.get('max_redirects', 5),
                         response)
-                    return handle_error(error)
+                    raise gen.Return(handle_error(error))
                 if response.code in (302, 303):
                     fetch['method'] = 'GET'
                     if 'body' in fetch:
@@ -287,8 +380,8 @@ class Fetcher(object):
                 if fetch['request_timeout'] < 0:
                     fetch['request_timeout'] = 0.1
                 fetch['connect_timeout'] = fetch['request_timeout']
-                store['max_redirects'] -= 1
-                return make_request(fetch)
+                max_redirects -= 1
+                continue
 
             result = {}
             result['orig_url'] = url
@@ -309,39 +402,20 @@ class Fetcher(object):
                 logger.warning("[%d] %s:%s %s %.2fs", response.code,
                                task.get('project'), task.get('taskid'),
                                url, result['time'])
+
             callback('http', task, result)
             self.on_result('http', task, result)
-            return task, result
+            raise gen.Return((task, result))
 
-        handle_error = lambda x: self.handle_error('http',
-                                                   url, task, start_time, callback, x)
-
-        def make_request(fetch):
-            try:
-                request = tornado.httpclient.HTTPRequest(**fetch)
-                cookie_header = cookies.get_cookie_header(session, request)
-                if cookie_header:
-                    request.headers['Cookie'] = cookie_header
-                if self.async:
-                    self.http_client.fetch(request, handle_response)
-                else:
-                    return handle_response(self.http_client.fetch(request))
-            except tornado.httpclient.HTTPError as e:
-                if e.response:
-                    return handle_response(e.response)
-                else:
-                    return handle_error(e)
-            except Exception as e:
-                logger.exception(fetch)
-                return handle_error(e)
-
-        return make_request(fetch)
-
+    @gen.coroutine
     def phantomjs_fetch(self, url, task, callback):
         '''Fetch with phantomjs proxy'''
         start_time = time.time()
 
         self.on_fetch('phantomjs', task)
+        handle_error = lambda x: self.handle_error('phantomjs', url, task, start_time, callback, x)
+
+        # check phantomjs proxy is enabled
         if not self.phantomjs_proxy:
             result = {
                 "orig_url": url,
@@ -356,25 +430,28 @@ class Fetcher(object):
             logger.warning("[501] %s:%s %s 0s", task.get('project'), task.get('taskid'), url)
             callback('http', task, result)
             self.on_result('http', task, result)
-            return task, result
+            raise gen.Return((task, result))
+
+        # setup request parameters
+        fetch = self.pack_tornado_request_parameters(url, task)
+        task_fetch = task.get('fetch', {})
+        for each in task_fetch:
+            if each not in fetch:
+                fetch[each] = task_fetch[each]
+
+        # robots.txt
+        if task_fetch.get('robots_txt', False):
+            user_agent = fetch['headers']['User-Agent']
+            can_fetch = yield self.can_fetch(user_agent, url)
+            if not can_fetch:
+                error = tornado.httpclient.HTTPError(403, 'Disallowed by robots.txt')
+                raise gen.Return(handle_error(error))
 
         request_conf = {
             'follow_redirects': False
         }
-
-        fetch = copy.deepcopy(self.default_options)
-        fetch['url'] = url
-        fetch['headers'] = tornado.httputil.HTTPHeaders(fetch['headers'])
-        fetch['headers']['User-Agent'] = self.user_agent
-        task_fetch = task.get('fetch', {})
-        for each in task_fetch:
-            if each != 'headers':
-                fetch[each] = task_fetch[each]
-        fetch['headers'].update(task_fetch.get('headers', {}))
-
-        if 'timeout' in fetch:
-            request_conf['connect_timeout'] = fetch['timeout']
-            request_conf['request_timeout'] = fetch['timeout'] + 1
+        request_conf['connect_timeout'] = fetch.get('connect_timeout', 120)
+        request_conf['request_timeout'] = fetch.get('request_timeout', 120)
 
         session = cookies.RequestsCookieJar()
         request = tornado.httpclient.HTTPRequest(url=fetch['url'])
@@ -384,47 +461,44 @@ class Fetcher(object):
                 del request.headers['Cookie']
             fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
 
-        def handle_response(response):
-            if not response.body:
-                return handle_error(Exception('no response from phantomjs'))
-
-            try:
-                result = json.loads(utils.text(response.body))
-                if response.error:
-                    result['error'] = utils.text(response.error)
-            except Exception as e:
-                return handle_error(e)
-
-            if result.get('status_code', 200):
-                logger.info("[%d] %s:%s %s %.2fs", result['status_code'],
-                            task.get('project'), task.get('taskid'), url, result['time'])
-            else:
-                logger.error("[%d] %s:%s %s, %r %.2fs", result['status_code'],
-                             task.get('project'), task.get('taskid'),
-                             url, result['content'], result['time'])
-            callback('phantomjs', task, result)
-            self.on_result('phantomjs', task, result)
-            return task, result
-
-        handle_error = lambda x: self.handle_error('phantomjs',
-                                                   url, task, start_time, callback, x)
-
+        # making requests
         fetch['headers'] = dict(fetch['headers'])
         try:
             request = tornado.httpclient.HTTPRequest(
                 url="%s" % self.phantomjs_proxy, method="POST",
                 body=json.dumps(fetch), **request_conf)
-            if self.async:
-                self.http_client.fetch(request, handle_response)
-            else:
-                return handle_response(self.http_client.fetch(request))
+        except Exception as e:
+            raise gen.Return(handle_error(e))
+
+        try:
+            response = yield gen.maybe_future(self.http_client.fetch(request))
         except tornado.httpclient.HTTPError as e:
             if e.response:
-                return handle_response(e.response)
+                response = e.response
             else:
-                return handle_error(e)
+                raise gen.Return(handle_error(e))
+
+        if not response.body:
+            raise gen.Return(handle_error(Exception('no response from phantomjs')))
+
+        try:
+            result = json.loads(utils.text(response.body))
         except Exception as e:
-            return handle_error(e)
+            if response.error:
+                result['error'] = utils.text(response.error)
+            raise gen.Return(handle_error(e))
+
+        if result.get('status_code', 200):
+            logger.info("[%d] %s:%s %s %.2fs", result['status_code'],
+                        task.get('project'), task.get('taskid'), url, result['time'])
+        else:
+            logger.error("[%d] %s:%s %s, %r %.2fs", result['status_code'],
+                         task.get('project'), task.get('taskid'),
+                         url, result['content'], result['time'])
+
+        callback('phantomjs', task, result)
+        self.on_result('phantomjs', task, result)
+        raise gen.Return((task, result))
 
     def run(self):
         '''Run loop'''
@@ -453,6 +527,7 @@ class Fetcher(object):
                     break
 
         tornado.ioloop.PeriodicCallback(queue_loop, 100, io_loop=self.ioloop).start()
+        tornado.ioloop.PeriodicCallback(self.clear_robot_txt_cache, 10000, io_loop=self.ioloop).start()
         self._running = True
 
         try:

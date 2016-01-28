@@ -14,7 +14,7 @@ logging.config.fileConfig("pyspider/logging.conf")
 import shutil
 from pyspider.database.sqlite import resultdb
 from pyspider.result.result_worker import ResultWorker
-from pyspider.libs.queue import get_queue as Queue
+from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
 
 

@@ -107,14 +107,25 @@ def dump_as_csv(results):
                         + [toString(x) for x in common_fields_l]
                         + [toString('...')])
     for result in itertools.chain(first_30, it):
-        other = {}
-        for k, v in iteritems(result['result']):
-            if k not in common_fields:
-                other[k] = v
+        result['result_formated'] = {}
+        if not common_fields:
+            result['others'] = result['result']
+        elif not isinstance(result['result'], dict):
+            result['others'] = result['result']
+        else:
+            result_formated = {}
+            others = {}
+            for key, value in iteritems(result['result']):
+                if key in common_fields:
+                    result_formated[key] = value
+                else:
+                    others[key] = value
+            result['result_formated'] = result_formated
+            result['others'] = others
         csv_writer.writerow(
             [toString(result['url'])]
-            + [toString(result['result'].get(k, '')) for k in common_fields_l]
-            + [toString(other)]
+            + [toString(result['result_formated'].get(k, '')) for k in common_fields_l]
+            + [toString(result['others'])]
         )
         yield stringio.getvalue()
         stringio.truncate(0)

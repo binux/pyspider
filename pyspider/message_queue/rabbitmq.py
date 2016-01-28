@@ -18,7 +18,7 @@ try:
     from urllib import parse as urlparse
 except ImportError:
     import urlparse
-from pyspider.libs.queue import Queue as BaseQueue
+from six.moves import queue as BaseQueue
 
 
 def catch_error(func):

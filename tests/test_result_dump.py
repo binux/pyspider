@@ -35,6 +35,13 @@ results_error = results2 + [
     {'taskid': 'taskid1', 'pdatetime': time.time() },
 ]
 
+result_list_error = [
+    {'taskid': 'taskid1', 'url': 'http://example.org/url1', 'pdatetime': time.time(),
+     'result': [{"rate": "8.2", "title": '1'}, {"rate": "8.2", "title": '1'}]},
+    {'taskid': 'taskid1', 'url': 'http://example.org/url1', 'pdatetime': time.time(),
+     'result': [{"rate": "8.2", "title": '1'}, {"rate": "8.2", "title": '1'}]},
+]
+
 class TestResultDump(unittest.TestCase):
     def test_result_formater_1(self):
         common_fields, results = result_dump.result_formater(results1)
@@ -68,3 +75,8 @@ class TestResultDump(unittest.TestCase):
         reader = csv.reader(StringIO(''.join(result_dump.dump_as_csv(results1))))
         for row in reader:
             self.assertEqual(len(row), 4)
+
+    def test_dump_as_csv_case_1(self):
+        reader = csv.reader(StringIO(''.join(result_dump.dump_as_csv(result_list_error))))
+        for row in reader:
+            self.assertEqual(len(row), 2)

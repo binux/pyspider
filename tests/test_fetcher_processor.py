@@ -15,7 +15,7 @@ from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.libs import utils, dataurl
-from pyspider.libs.base_queue import Queue
+from six.moves.queue import Queue
 
 
 class TestFetcherProcessor(unittest.TestCase):
@@ -468,3 +468,8 @@ class TestFetcherProcessor(unittest.TestCase):
                 '''curl '%s/put' -X PUT -v -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' ''' % self.httpbin,
                 callback=self.json)
 
+
+    def test_zzz_robots_txt(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/deny', robots_txt=True, callback=self.catch_http_error)
+
+        self.assertEqual(result, 403)

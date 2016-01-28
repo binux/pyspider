@@ -30,9 +30,9 @@ class TestWebUI(unittest.TestCase):
         self.httpbin = 'http://127.0.0.1:14887'
 
         ctx = run.cli.make_context('test', [
-            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
-            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
-            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+            '--taskdb', 'sqlalchemy+sqlite+taskdb:///data/tests/task.db',
+            '--projectdb', 'sqlalchemy+sqlite+projectdb:///data/tests/projectdb.db',
+            '--resultdb', 'sqlalchemy+sqlite+resultdb:///data/tests/resultdb.db',
         ], None, obj=ObjectDict(testing_mode=True))
         self.ctx = run.cli.invoke(ctx)
 
