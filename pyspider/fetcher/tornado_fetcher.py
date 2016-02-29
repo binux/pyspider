@@ -148,7 +148,7 @@ class Fetcher(object):
             wait_result.release()
 
         wait_result.acquire()
-        self.fetch(task, callback=callback)
+        self.ioloop.add_callback(self.fetch, task, callback)
         while 'result' not in _result:
             wait_result.wait()
         wait_result.release()
