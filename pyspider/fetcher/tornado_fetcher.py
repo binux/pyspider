@@ -542,6 +542,8 @@ class Fetcher(object):
         self._running = False
         self._quit = True
         self.ioloop.add_callback(self.ioloop.stop)
+        if hasattr(self, 'xmlrpc_ioloop'):
+            self.xmlrpc_ioloop.add_callback(self.xmlrpc_ioloop.stop)
 
     def size(self):
         return self.http_client.size()
@@ -549,34 +551,36 @@ class Fetcher(object):
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         '''Run xmlrpc server'''
         import umsgpack
+        from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
         try:
-            from xmlrpc.server import SimpleXMLRPCServer
             from xmlrpc.client import Binary
         except ImportError:
-            from SimpleXMLRPCServer import SimpleXMLRPCServer
             from xmlrpclib import Binary
 
-        server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
-        server.register_introspection_functions()
-        server.register_multicall_functions()
+        application = WSGIXMLRPCApplication()
 
-        server.register_function(self.quit, '_quit')
-        server.register_function(self.size)
+        application.register_function(self.quit, '_quit')
+        application.register_function(self.size)
 
         def sync_fetch(task):
             result = self.sync_fetch(task)
             result = Binary(umsgpack.packb(result))
             return result
-        server.register_function(sync_fetch, 'fetch')
+        application.register_function(sync_fetch, 'fetch')
 
         def dump_counter(_time, _type):
             return self._cnt[_time].to_dict(_type)
-        server.register_function(dump_counter, 'counter')
+        application.register_function(dump_counter, 'counter')
 
-        server.timeout = 0.5
-        while not self._quit:
-            server.handle_request()
-        server.server_close()
+        import tornado.wsgi
+        import tornado.ioloop
+        import tornado.httpserver
+
+        container = tornado.wsgi.WSGIContainer(application)
+        self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
+        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
+        http_server.listen(port=port, address=bind)
+        self.xmlrpc_ioloop.start()
 
     def on_fetch(self, type, task):
         '''Called before task fetch'''

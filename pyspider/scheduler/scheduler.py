@@ -6,18 +6,19 @@
 # Created on 2014-02-07 17:05:11
 
 
-import os
-import json
-import time
-import logging
 import itertools
+import json
+import logging
+import os
+import time
 from collections import deque
 
 from six import iteritems, itervalues
+from six.moves import queue as Queue
 
 from pyspider.libs import counter, utils
-from six.moves import queue as Queue
 from .task_queue import TaskQueue
+
 logger = logging.getLogger('scheduler')
 
 
@@ -448,6 +449,9 @@ class Scheduler(object):
     def quit(self):
         '''Set quit signal'''
         self._quit = True
+        # stop xmlrpc server
+        if hasattr(self, 'ioloop'):
+            self.ioloop.add_callback(self.ioloop.stop)
 
     def run_once(self):
         '''comsume queues and feed tasks to fetcher, once'''
@@ -495,41 +499,36 @@ class Scheduler(object):
 
     def xmlrpc_run(self, port=23333, bind='127.0.0.1', logRequests=False):
         '''Start xmlrpc interface'''
-        try:
-            from six.moves.xmlrpc_server import SimpleXMLRPCServer
-        except ImportError:
-            from SimpleXMLRPCServer import SimpleXMLRPCServer
+        from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
 
-        server = SimpleXMLRPCServer((bind, port), allow_none=True, logRequests=logRequests)
-        server.register_introspection_functions()
-        server.register_multicall_functions()
+        application = WSGIXMLRPCApplication()
 
-        server.register_function(self.quit, '_quit')
-        server.register_function(self.__len__, 'size')
+        application.register_function(self.quit, '_quit')
+        application.register_function(self.__len__, 'size')
 
         def dump_counter(_time, _type):
             try:
                 return self._cnt[_time].to_dict(_type)
             except:
                 logger.exception('')
-        server.register_function(dump_counter, 'counter')
+        application.register_function(dump_counter, 'counter')
 
         def new_task(task):
             if self.task_verify(task):
                 self.newtask_queue.put(task)
                 return True
             return False
-        server.register_function(new_task, 'newtask')
+        application.register_function(new_task, 'newtask')
 
         def send_task(task):
             '''dispatch task to fetcher'''
             self.send_task(task)
             return True
-        server.register_function(send_task, 'send_task')
+        application.register_function(send_task, 'send_task')
 
         def update_project():
             self._force_update_project = True
-        server.register_function(update_project, 'update_project')
+        application.register_function(update_project, 'update_project')
 
         def get_active_tasks(project=None, limit=100):
             allowed_keys = set((
@@ -572,12 +571,17 @@ class Scheduler(object):
             # fix for "<type 'exceptions.TypeError'>:dictionary key must be string"
             # have no idea why
             return json.loads(json.dumps(result))
-        server.register_function(get_active_tasks, 'get_active_tasks')
+        application.register_function(get_active_tasks, 'get_active_tasks')
 
-        server.timeout = 0.5
-        while not self._quit:
-            server.handle_request()
-        server.server_close()
+        import tornado.wsgi
+        import tornado.ioloop
+        import tornado.httpserver
+
+        container = tornado.wsgi.WSGIContainer(application)
+        self.ioloop = tornado.ioloop.IOLoop()
+        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.ioloop)
+        http_server.listen(port=port, address=bind)
+        self.ioloop.start()
 
     def on_request(self, task):
         if self.INQUEUE_LIMIT and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT:

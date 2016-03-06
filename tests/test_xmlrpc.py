@@ -40,7 +40,7 @@ class TestXMLRPCServer(unittest.TestCase):
 
         container = tornado.wsgi.WSGIContainer(application)
         self.io_loop = tornado.ioloop.IOLoop.current()
-        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.io_loop.current())
+        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.io_loop)
         http_server.listen(3423)
         self.thread = utils.run_in_thread(self.io_loop.start)
 
