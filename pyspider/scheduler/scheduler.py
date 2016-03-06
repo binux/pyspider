@@ -228,6 +228,8 @@ class Scheduler(object):
                 task = self.status_queue.get_nowait()
                 # check _on_get_info result here
                 if task.get('taskid') == '_on_get_info' and 'project' in task and 'track' in task:
+                    if task['project'] not in self.projects:
+                        continue
                     self.projects[task['project']].update(task['track'].get('save') or {})
                     logger.info(
                         '%s on_get_info %r', task['project'], task['track'].get('save', {})
