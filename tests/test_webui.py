@@ -39,7 +39,7 @@ class TestWebUI(unittest.TestCase):
         self.threads = []
 
         ctx = run.scheduler.make_context('scheduler', [], self.ctx)
-        scheduler = run.scheduler.invoke(ctx)
+        self.scheduler = scheduler = run.scheduler.invoke(ctx)
         self.threads.append(run_in_thread(scheduler.xmlrpc_run))
         self.threads.append(run_in_thread(scheduler.run))
 
@@ -80,6 +80,12 @@ class TestWebUI(unittest.TestCase):
 
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 

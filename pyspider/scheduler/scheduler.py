@@ -450,8 +450,9 @@ class Scheduler(object):
         '''Set quit signal'''
         self._quit = True
         # stop xmlrpc server
-        if hasattr(self, 'ioloop'):
-            self.ioloop.add_callback(self.ioloop.stop)
+        if hasattr(self, 'xmlrpc_server'):
+            self.xmlrpc_ioloop.add_callback(self.xmlrpc_server.stop)
+            self.xmlrpc_ioloop.add_callback(self.xmlrpc_ioloop.stop)
 
     def run_once(self):
         '''comsume queues and feed tasks to fetcher, once'''
@@ -578,10 +579,10 @@ class Scheduler(object):
         import tornado.httpserver
 
         container = tornado.wsgi.WSGIContainer(application)
-        self.ioloop = tornado.ioloop.IOLoop()
-        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.ioloop)
-        http_server.listen(port=port, address=bind)
-        self.ioloop.start()
+        self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
+        self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
+        self.xmlrpc_server.listen(port=port, address=bind)
+        self.xmlrpc_ioloop.start()
 
     def on_request(self, task):
         if self.INQUEUE_LIMIT and len(self.task_queue[task['project']]) >= self.INQUEUE_LIMIT:

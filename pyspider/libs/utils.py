@@ -8,6 +8,7 @@
 import logging
 import hashlib
 import datetime
+import socket
 import base64
 
 import six
@@ -409,3 +410,12 @@ def python_console(namespace=None):
         namespace.update(caller.f_locals)
 
     return get_python_console(namespace=namespace).interact()
+
+
+def check_port_open(port, addr='127.0.0.1'):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex((addr, port))
+    if result == 0:
+        return True
+    else:
+        return False

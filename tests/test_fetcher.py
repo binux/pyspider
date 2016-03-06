@@ -90,6 +90,13 @@ class TestFetcher(unittest.TestCase):
             self.phantomjs.wait()
         self.rpc._quit()
         self.thread.join()
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
+
         time.sleep(1)
 
     def test_10_http_get(self):

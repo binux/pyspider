@@ -14,6 +14,7 @@ import logging.config
 logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.scheduler.task_queue import TaskQueue
+from pyspider.libs import utils
 
 
 class TestTaskQueue(unittest.TestCase):
@@ -156,6 +157,11 @@ class TestScheduler(unittest.TestCase):
         assert not self.process.is_alive()
         shutil.rmtree('./data/tests', ignore_errors=True)
         time.sleep(1)
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(self.scheduler_xmlrpc_port)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
 
     def test_10_new_task_ignore(self):
         self.newtask_queue.put({

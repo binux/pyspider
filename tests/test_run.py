@@ -39,6 +39,12 @@ class TestRun(unittest.TestCase):
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
+
         shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_cli(self):
@@ -322,6 +328,11 @@ class TestSendMessage(unittest.TestCase):
         self.xmlrpc_thread.join()
         self.scheduler_thread.join()
         time.sleep(1)
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 

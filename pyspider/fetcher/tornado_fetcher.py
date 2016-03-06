@@ -542,7 +542,8 @@ class Fetcher(object):
         self._running = False
         self._quit = True
         self.ioloop.add_callback(self.ioloop.stop)
-        if hasattr(self, 'xmlrpc_ioloop'):
+        if hasattr(self, 'xmlrpc_server'):
+            self.xmlrpc_ioloop.add_callback(self.xmlrpc_server.stop)
             self.xmlrpc_ioloop.add_callback(self.xmlrpc_ioloop.stop)
 
     def size(self):
@@ -578,8 +579,8 @@ class Fetcher(object):
 
         container = tornado.wsgi.WSGIContainer(application)
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
-        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
-        http_server.listen(port=port, address=bind)
+        self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
+        self.xmlrpc_server.listen(port=port, address=bind)
         self.xmlrpc_ioloop.start()
 
     def on_fetch(self, type, task):
