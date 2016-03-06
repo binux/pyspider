@@ -39,15 +39,17 @@ class TestXMLRPCServer(unittest.TestCase):
         application.register_function(test_1)
 
         container = tornado.wsgi.WSGIContainer(application)
-        http_server = tornado.httpserver.HTTPServer(container)
+        self.io_loop = tornado.ioloop.IOLoop.current()
+        http_server = tornado.httpserver.HTTPServer(container, io_loop=self.io_loop.current())
         http_server.listen(3423)
-        utils.run_in_thread(tornado.ioloop.IOLoop.current().start)
+        self.thread = utils.run_in_thread(self.io_loop.start)
 
     @classmethod
     def tearDownClass(self):
-        tornado.ioloop.IOLoop.current().stop()
+        self.io_loop.add_callback(self.io_loop.stop)
+        self.thread.join()
     
-    def test_xmlrpc_server(self, uri='http://localhost:3423'):
+    def test_xmlrpc_server(self, uri='http://127.0.0.1:3423'):
         from six.moves.xmlrpc_client import ServerProxy
         
         client = ServerProxy(uri)

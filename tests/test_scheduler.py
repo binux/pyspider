@@ -141,7 +141,7 @@ class TestScheduler(unittest.TestCase):
             scheduler.DELETE_TIME = 0
             scheduler.DEFAULT_RETRY_DELAY = {'': 5}
             scheduler._last_tick = int(time.time())  # not dispatch cronjob
-            run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
+            self.xmlrpc_thread = run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
 
         self.process = run_in_thread(run_scheduler)
@@ -152,6 +152,7 @@ class TestScheduler(unittest.TestCase):
         if self.process.is_alive():
             self.rpc._quit()
             self.process.join(5)
+        self.xmlrpc_thread.join()
         assert not self.process.is_alive()
         shutil.rmtree('./data/tests', ignore_errors=True)
         time.sleep(1)

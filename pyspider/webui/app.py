@@ -74,12 +74,12 @@ class QuitableFlask(Flask):
             autoreload.start()
 
         self.logger.info('webui running on %s:%s', hostname, port)
-        tornado.ioloop.IOLoop.current().start()
+        self.ioloop = tornado.ioloop.IOLoop.current()
+        self.ioloop.start()
 
     def quit(self):
-        import tornado.ioloop
-
-        tornado.ioloop.IOLoop.current().stop()
+        if hasattr(self, 'ioloop'):
+            self.ioloop.add_callback(self.ioloop.stop)
         self.logger.info('webui exiting...')
 
 

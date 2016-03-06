@@ -36,26 +36,28 @@ class TestWebUI(unittest.TestCase):
         ], None, obj=ObjectDict(testing_mode=True))
         self.ctx = run.cli.invoke(ctx)
 
+        self.threads = []
+
         ctx = run.scheduler.make_context('scheduler', [], self.ctx)
         scheduler = run.scheduler.invoke(ctx)
-        run_in_thread(scheduler.xmlrpc_run)
-        run_in_thread(scheduler.run)
+        self.threads.append(run_in_thread(scheduler.xmlrpc_run))
+        self.threads.append(run_in_thread(scheduler.run))
 
         ctx = run.fetcher.make_context('fetcher', [
             '--xmlrpc',
             '--xmlrpc-port', '24444',
         ], self.ctx)
         fetcher = run.fetcher.invoke(ctx)
-        run_in_thread(fetcher.xmlrpc_run)
-        run_in_thread(fetcher.run)
+        self.threads.append(run_in_thread(fetcher.xmlrpc_run))
+        self.threads.append(run_in_thread(fetcher.run))
 
         ctx = run.processor.make_context('processor', [], self.ctx)
         processor = run.processor.invoke(ctx)
-        run_in_thread(processor.run)
+        self.threads.append(run_in_thread(processor.run))
 
         ctx = run.result_worker.make_context('result_worker', [], self.ctx)
         result_worker = run.result_worker.invoke(ctx)
-        run_in_thread(result_worker.run)
+        self.threads.append(run_in_thread(result_worker.run))
 
         ctx = run.webui.make_context('webui', [
             '--scheduler-rpc', 'http://localhost:23333/'
@@ -72,6 +74,9 @@ class TestWebUI(unittest.TestCase):
         for each in self.ctx.obj.instances:
             each.quit()
         time.sleep(1)
+
+        for thread in self.threads:
+            thread.join()
 
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()

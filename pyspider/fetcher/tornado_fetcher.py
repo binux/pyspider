@@ -541,7 +541,7 @@ class Fetcher(object):
         '''Quit fetcher'''
         self._running = False
         self._quit = True
-        self.ioloop.stop()
+        self.ioloop.add_callback(self.ioloop.stop)
 
     def size(self):
         return self.http_client.size()

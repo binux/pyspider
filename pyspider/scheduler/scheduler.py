@@ -845,7 +845,7 @@ class OneScheduler(Scheduler):
             'quit_pyspider() - Close pyspider'
         )
         if not is_crawled:
-            self.ioloop.stop()
+            self.ioloop.add_callback(self.ioloop.stop)
 
     def __getattr__(self, name):
         """patch for crawl(url, callback=self.index_page) API"""
