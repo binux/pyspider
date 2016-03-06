@@ -67,8 +67,8 @@ class QuitableFlask(Flask):
             })
 
         container = tornado.wsgi.WSGIContainer(application)
-        http_server = tornado.httpserver.HTTPServer(container)
-        http_server.listen(port, hostname)
+        self.http_server = tornado.httpserver.HTTPServer(container)
+        self.http_server.listen(port, hostname)
         if use_reloader:
             from tornado import autoreload
             autoreload.start()
@@ -79,6 +79,7 @@ class QuitableFlask(Flask):
 
     def quit(self):
         if hasattr(self, 'ioloop'):
+            self.ioloop.add_callback(self.http_server.stop)
             self.ioloop.add_callback(self.ioloop.stop)
         self.logger.info('webui exiting...')
 

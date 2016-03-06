@@ -52,6 +52,12 @@ class TestWebDav(unittest.TestCase):
         self.app_thread.join()
         time.sleep(1)
 
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
+
         shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_ls(self):
