@@ -481,6 +481,7 @@ class Fetcher(object):
         if not response.body:
             raise gen.Return(handle_error(Exception('no response from phantomjs')))
 
+        result = {}
         try:
             result = json.loads(utils.text(response.body))
         except Exception as e:
