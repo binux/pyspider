@@ -381,6 +381,15 @@ class CounterManager(DictMixin):
         else:
             return CounterValue(self, key)
 
+    def __delitem__(self, key):
+        key = (key, )
+        available_keys = []
+        for _key in self.counters:
+            if _key[:len(key)] == key:
+                available_keys.append(_key)
+        for _key in available_keys:
+            del self.counters[_key]
+
     def __iter__(self):
         return iter(self.keys())
 

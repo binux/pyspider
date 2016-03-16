@@ -17,10 +17,14 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def __init__(self, url, database='resultdb'):
         self.conn = MongoClient(url)
+        self.conn.admin.command("ismaster")
         self.database = self.conn[database]
         self.projects = set()
 
         self._list_project()
+        for project in self.projects:
+            collection_name = self._collection_name(project)
+            self.database[collection_name].ensure_index('taskid')
 
     def _parse(self, data):
         data['_id'] = str(data['_id'])
@@ -51,7 +55,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if project not in self.projects:
             return
         collection_name = self._collection_name(project)
-        for result in self.database[collection_name].find(fields=fields, skip=offset, limit=limit):
+        for result in self.database[collection_name].find({}, fields, skip=offset, limit=limit):
             yield self._parse(result)
 
     def count(self, project):
@@ -68,7 +72,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if project not in self.projects:
             return
         collection_name = self._collection_name(project)
-        ret = self.database[collection_name].find_one({'taskid': taskid}, fields=fields)
+        ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if not ret:
             return ret
         return self._parse(ret)

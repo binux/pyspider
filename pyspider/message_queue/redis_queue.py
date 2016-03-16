@@ -8,7 +8,7 @@
 import time
 import redis
 import umsgpack
-from pyspider.libs.queue import Queue as BaseQueue
+from six.moves import queue as BaseQueue
 
 
 class RedisQueue(object):

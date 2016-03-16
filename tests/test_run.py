@@ -39,6 +39,12 @@ class TestRun(unittest.TestCase):
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
+
         shutil.rmtree('./data/tests', ignore_errors=True)
 
     def test_10_cli(self):
@@ -97,7 +103,7 @@ class TestRun(unittest.TestCase):
         finally:
             del os.environ['RESULTDB']
 
-    @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
+    @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
     def test_50_docker_rabbitmq(self):
         try:
             os.environ['RABBITMQ_NAME'] = 'rabbitmq'
@@ -116,7 +122,7 @@ class TestRun(unittest.TestCase):
             del os.environ['RABBITMQ_PORT_5672_TCP_ADDR']
             del os.environ['RABBITMQ_PORT_5672_TCP_PORT']
 
-    @unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
+    @unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
     def test_60_docker_mongodb(self):
         try:
             os.environ['MONGODB_NAME'] = 'mongodb'
@@ -134,7 +140,7 @@ class TestRun(unittest.TestCase):
             del os.environ['MONGODB_PORT_27017_TCP_PORT']
 
     @unittest.skip('noly available in docker')
-    @unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+    @unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
     def test_70_docker_mysql(self):
         try:
             os.environ['MYSQL_NAME'] = 'mysql'
@@ -310,8 +316,8 @@ class TestSendMessage(unittest.TestCase):
 
         ctx = run.scheduler.make_context('scheduler', [], self.ctx)
         scheduler = run.scheduler.invoke(ctx)
-        utils.run_in_thread(scheduler.xmlrpc_run)
-        utils.run_in_thread(scheduler.run)
+        self.xmlrpc_thread = utils.run_in_thread(scheduler.xmlrpc_run)
+        self.scheduler_thread = utils.run_in_thread(scheduler.run)
 
         time.sleep(1)
 
@@ -319,7 +325,14 @@ class TestSendMessage(unittest.TestCase):
     def tearDownClass(self):
         for each in self.ctx.obj.instances:
             each.quit()
+        self.xmlrpc_thread.join()
+        self.scheduler_thread.join()
         time.sleep(1)
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 

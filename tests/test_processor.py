@@ -165,7 +165,7 @@ class TestProjectModule(unittest.TestCase):
             'project': self.project,
             'url': 'data:,_on_get_info',
             'fetch': {
-                'save': ['min_tick', ],
+                'save': ['min_tick', 'retry_delay'],
             },
             'process': {
                 'callback': '_on_get_info',
@@ -175,10 +175,11 @@ class TestProjectModule(unittest.TestCase):
         fetch_result['save'] = task['fetch']['save']
 
         ret = self.instance.run_task(self.module, task, fetch_result)
-        self.assertEqual(len(ret.save), 1, ret.logstr())
+        self.assertEqual(len(ret.save), 2, ret.logstr())
         for each in ret.follows:
             self.assertEqual(each['url'], 'data:,on_get_info')
             self.assertEqual(each['fetch']['save']['min_tick'], 10)
+            self.assertEqual(each['fetch']['save']['retry_delay'], {})
 
     def test_30_generator(self):
         self.base_task['process']['callback'] = 'generator'
@@ -190,7 +191,7 @@ import shutil
 import inspect
 from pyspider.database.sqlite import projectdb
 from pyspider.processor.processor import Processor
-from pyspider.libs.queue import get_queue as Queue
+from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
 from pyspider.libs import sample_handler
 

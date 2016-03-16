@@ -13,7 +13,7 @@ import beanstalkc
 import threading
 import logging
 
-from pyspider.libs.queue import Queue as BaseQueue
+from six.moves import queue as BaseQueue
 
 
 class BeanstalkQueue(object):

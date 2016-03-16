@@ -29,7 +29,10 @@ class QuitableFlask(Flask):
         return logger
 
     def run(self, host=None, port=None, debug=None, **options):
-        from werkzeug.serving import make_server, run_with_reloader
+        import tornado.wsgi
+        import tornado.ioloop
+        import tornado.httpserver
+        import tornado.web
 
         if host is None:
             host = '127.0.0.1'
@@ -63,24 +66,21 @@ class QuitableFlask(Flask):
                 '/dav': dav_app
             })
 
-        def inner():
-            self.server = make_server(hostname, port, application)
-            self.server.serve_forever()
-
-        if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-            display_hostname = hostname != '*' and hostname or 'localhost'
-            if ':' in display_hostname:
-                display_hostname = '[%s]' % display_hostname
-            self.logger.info('webui running on http://%s:%d/', display_hostname, port)
-
+        container = tornado.wsgi.WSGIContainer(application)
+        self.http_server = tornado.httpserver.HTTPServer(container)
+        self.http_server.listen(port, hostname)
         if use_reloader:
-            run_with_reloader(inner)
-        else:
-            inner()
+            from tornado import autoreload
+            autoreload.start()
+
+        self.logger.info('webui running on %s:%s', hostname, port)
+        self.ioloop = tornado.ioloop.IOLoop.current()
+        self.ioloop.start()
 
     def quit(self):
-        if hasattr(self, 'server'):
-            self.server.shutdown_signal = True
+        if hasattr(self, 'ioloop'):
+            self.ioloop.add_callback(self.http_server.stop)
+            self.ioloop.add_callback(self.ioloop.stop)
         self.logger.info('webui exiting...')
 
 

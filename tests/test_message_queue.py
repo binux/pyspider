@@ -11,6 +11,7 @@ import time
 import unittest2 as unittest
 
 from pyspider.libs import utils
+from six.moves import queue as Queue
 
 
 class TestMessageQueue(object):
@@ -31,9 +32,9 @@ class TestMessageQueue(object):
     def test_20_get(self):
         self.assertEqual(self.q1.get(timeout=0.01), 'TEST_DATA1')
         self.assertEqual(self.q2.get_nowait(), 'TEST_DATA2_中文')
-        with self.assertRaises(self.q1.Empty):
+        with self.assertRaises(Queue.Empty):
             self.q2.get(timeout=0.01)
-        with self.assertRaises(self.q1.Empty):
+        with self.assertRaises(Queue.Empty):
             self.q2.get_nowait()
 
     def test_30_full(self):
@@ -43,9 +44,9 @@ class TestMessageQueue(object):
             self.q1.put_nowait('TEST_DATA%d' % i)
         for i in range(3):
             self.q2.put('TEST_DATA%d' % i)
-        with self.assertRaises(self.q1.Full):
+        with self.assertRaises(Queue.Full):
             self.q1.put('TEST_DATA6', timeout=0.01)
-        with self.assertRaises(self.q1.Full):
+        with self.assertRaises(Queue.Full):
             self.q1.put_nowait('TEST_DATA6')
 
     def test_40_multiple_threading_error(self):
@@ -57,12 +58,22 @@ class TestMessageQueue(object):
             for i in range(100):
                 q.get()
 
-        utils.run_in_thread(put, self.q3)
+        t = utils.run_in_thread(put, self.q3)
         get(self.q3)
+        t.join()
+
+
+class BuiltinQueue(TestMessageQueue, unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        from pyspider.message_queue import connect_message_queue
+        with utils.timeout(3):
+            self.q1 = self.q2 = connect_message_queue('test_queue', maxsize=5)
+            self.q3 = connect_message_queue('test_queue_for_threading_test')
 
 
 @unittest.skipIf(six.PY3, 'pika not suport python 3')
-@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
@@ -85,7 +96,7 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
         del self.q2
         del self.q3
 
-@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
@@ -113,7 +124,7 @@ class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
 #@unittest.skipIf(True, "beanstalk queue can't pass the test currently")
 @unittest.skipIf(six.PY3, 'beanstalkc not suport python 3')
-@unittest.skipIf(os.environ.get('IGNORE_BEANSTALK'), 'no beanstalk server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_BEANSTALK') or os.environ.get('IGNORE_ALL'), 'no beanstalk server for test.')
 class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
@@ -142,7 +153,7 @@ class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
         while not self.q3.empty():
             self.q3.get()
 
-@unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_REDIS') or os.environ.get('IGNORE_ALL'), 'no redis server for test.')
 class TestRedisQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
@@ -200,20 +211,20 @@ class TestKombuQueue(TestMessageQueue, unittest.TestCase):
         self.q3.delete()
 
 @unittest.skip('test cannot pass, get is buffered')
-@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestKombuAmpqQueue(TestKombuQueue):
     kombu_url = 'kombu+amqp://'
 
 @unittest.skip('test cannot pass, put is buffered')
-@unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_REDIS') or os.environ.get('IGNORE_ALL'), 'no redis server for test.')
 class TestKombuRedisQueue(TestKombuQueue):
     kombu_url = 'kombu+redis://'
 
 @unittest.skip('test cannot pass, get is buffered')
-@unittest.skipIf(os.environ.get('IGNORE_BEANSTALK'), 'no beanstalk server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_BEANSTALK') or os.environ.get('IGNORE_ALL'), 'no beanstalk server for test.')
 class TestKombuBeanstalkQueue(TestKombuQueue):
     kombu_url = 'kombu+beanstalk://'
 
-@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestKombuMongoDBQueue(TestKombuQueue):
     kombu_url = 'kombu+mongodb://'

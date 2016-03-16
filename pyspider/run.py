@@ -177,20 +177,26 @@ def cli(ctx, **kwargs):
               help='delete time before marked as delete')
 @click.option('--active-tasks', default=100, help='active log size')
 @click.option('--loop-limit', default=1000, help='maximum number of tasks due with in a loop')
-@click.option('--scheduler-cls', default='pyspider.scheduler.Scheduler', callback=load_cls,
+@click.option('--scheduler-cls', default='pyspider.scheduler.ThreadBaseScheduler', callback=load_cls,
               help='scheduler class to be used.')
+@click.option('--threads', default=None, help='thread number for ThreadBaseScheduler, default: 4')
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
-              inqueue_limit, delete_time, active_tasks, loop_limit, scheduler_cls):
+              inqueue_limit, delete_time, active_tasks, loop_limit, scheduler_cls,
+              threads):
     """
     Run Scheduler, only one scheduler is allowed.
     """
     g = ctx.obj
     Scheduler = load_cls(None, None, scheduler_cls)
 
-    scheduler = Scheduler(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
-                          newtask_queue=g.newtask_queue, status_queue=g.status_queue,
-                          out_queue=g.scheduler2fetcher, data_path=g.get('data_path', 'data'))
+    kwargs = dict(taskdb=g.taskdb, projectdb=g.projectdb, resultdb=g.resultdb,
+                  newtask_queue=g.newtask_queue, status_queue=g.status_queue,
+                  out_queue=g.scheduler2fetcher, data_path=g.get('data_path', 'data'))
+    if threads:
+        kwargs['threads'] = int(threads)
+
+    scheduler = Scheduler(**kwargs)
     scheduler.INQUEUE_LIMIT = inqueue_limit
     scheduler.DELETE_TIME = delete_time
     scheduler.ACTIVE_TASKS = active_tasks
@@ -375,22 +381,24 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 @click.option('--phantomjs-path', default='phantomjs', help='phantomjs path')
 @click.option('--port', default=25555, help='phantomjs port')
 @click.option('--auto-restart', default=False, help='auto restart phantomjs if crashed')
+@click.argument('args', nargs=-1)
 @click.pass_context
-def phantomjs(ctx, phantomjs_path, port, auto_restart):
+def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     """
     Run phantomjs fetcher if phantomjs is installed.
     """
+    args = args or ctx.default_map and ctx.default_map.get('args', [])
+
     import subprocess
     g = ctx.obj
     _quit = []
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     cmd = [phantomjs_path,
-           '--ssl-protocol=any',
-           '--disk-cache=true',
            # this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
            #'--load-images=false',
-           phantomjs_fetcher, str(port)]
+           '--ssl-protocol=any',
+           '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
     try:
         _phantomjs = subprocess.Popen(cmd)
@@ -517,8 +525,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     In bench mode, in-memory sqlite database is used instead of on-disk sqlite database.
     """
     from pyspider.libs import bench
-    from pyspider.webui import bench_test
-    bench_test  # make pyflake happy
+    from pyspider.webui import bench_test  # flake8: noqa
 
     ctx.obj['debug'] = False
     g = ctx.obj

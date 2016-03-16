@@ -19,11 +19,15 @@ Content of response, in bytes.
 
 ### Response.doc
 
-A [PyQuery](https://pythonhosted.org/pyquery/) object of the request's content. Links have made as absolute by default.
+A [PyQuery](https://pythonhosted.org/pyquery/) object of the response's content. Links have made as absolute by default.
 
 Refer to the documentation of PyQuery: [https://pythonhosted.org/pyquery/](https://pythonhosted.org/pyquery/)
 
 It's important that I will repeat, refer to the documentation of PyQuery: [https://pythonhosted.org/pyquery/](https://pythonhosted.org/pyquery/)
+
+### Response.etree
+
+A [lxml](http://lxml.de/) object of the response's content.
 
 ### Response.json
 

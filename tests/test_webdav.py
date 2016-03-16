@@ -38,7 +38,7 @@ class TestWebDav(unittest.TestCase):
             '--password', '4321',
         ], self.ctx)
         self.app = run.webui.invoke(ctx)
-        utils.run_in_thread(self.app.run)
+        self.app_thread = utils.run_in_thread(self.app.run)
         time.sleep(5)
 
         self.webdav = easywebdav.connect('localhost', port=5000, path='dav')
@@ -49,7 +49,14 @@ class TestWebDav(unittest.TestCase):
     def tearDownClass(self):
         for each in self.ctx.obj.instances:
             each.quit()
+        self.app_thread.join()
         time.sleep(1)
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
 
         shutil.rmtree('./data/tests', ignore_errors=True)
 

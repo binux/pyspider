@@ -12,10 +12,24 @@ import unittest2 as unittest
 from pyspider.libs import counter
 
 class TestCounter(unittest.TestCase):
-    def test_TimebaseAverageEventCounter(self):
+    def test_010_TimebaseAverageEventCounter(self):
         c = counter.TimebaseAverageEventCounter(2, 1)
         for i in range(100):
             time.sleep(0.1)
             c.event(100+i)
         self.assertEqual(c.sum, float(180+199)*20/2)
         self.assertEqual(c.avg, float(180+199)/2)
+
+    def test_020_delete(self):
+        c = counter.CounterManager()
+        c.event(('a', 'b'), 1)
+        c.event(('a', 'c'), 1)
+        c.event(('b', 'c'), 1)
+        
+        self.assertIsNotNone(c['a'])
+        self.assertIsNotNone(c['b'])
+
+        del c['a']
+
+        self.assertNotIn('a', c)
+        self.assertIsNotNone(c['b'])

@@ -5,13 +5,14 @@ A Powerful Spider(Web Crawler) System in Python. **[TRY IT NOW!][Demo]**
 
 - Write script in Python
 - Powerful WebUI with script editor, task monitor, project manager and result viewer
-- [MySQL](https://www.mysql.com/), [MongoDB](https://www.mongodb.org/), [Redis](http://redis.io/), [SQLite](https://www.sqlite.org/), [PostgreSQL](http://www.postgresql.org/) with [SQLAlchemy](http://www.sqlalchemy.org/) as database backend
+- [MySQL](https://www.mysql.com/), [MongoDB](https://www.mongodb.org/), [Redis](http://redis.io/), [SQLite](https://www.sqlite.org/), [Elasticsearch](https://www.elastic.co/products/elasticsearch); [PostgreSQL](http://www.postgresql.org/) with [SQLAlchemy](http://www.sqlalchemy.org/) as database backend
 - [RabbitMQ](http://www.rabbitmq.com/), [Beanstalk](http://kr.github.com/beanstalkd/), [Redis](http://redis.io/) and [Kombu](http://kombu.readthedocs.org/) as message queue
 - Task priority, retry, periodical, recrawl by age, etc...
 - Distributed architecture, Crawl Javascript pages, Python 2&3, etc...
 
+Tutorial: [http://docs.pyspider.org/en/latest/tutorial/](http://docs.pyspider.org/en/latest/tutorial/)  
 Documentation: [http://docs.pyspider.org/](http://docs.pyspider.org/)  
-Tutorial: [http://docs.pyspider.org/en/latest/tutorial/](http://docs.pyspider.org/en/latest/tutorial/)
+Release notes: [https://github.com/binux/pyspider/releases](https://github.com/binux/pyspider/releases)  
 
 Sample Code 
 -----------
@@ -75,7 +76,6 @@ TODO
 ### more
 
 - [x] edit script with vim via [WebDAV](http://en.wikipedia.org/wiki/WebDAV)
-- [ ] in-browser debugger like [Werkzeug](http://werkzeug.pocoo.org/)
 
 
 License

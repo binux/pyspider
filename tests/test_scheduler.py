@@ -14,6 +14,7 @@ import logging.config
 logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.scheduler.task_queue import TaskQueue
+from pyspider.libs import utils
 
 
 class TestTaskQueue(unittest.TestCase):
@@ -97,7 +98,7 @@ except ImportError:
     import xmlrpclib as xmlrpc_client
 from pyspider.scheduler.scheduler import Scheduler
 from pyspider.database.sqlite import taskdb, projectdb, resultdb
-from pyspider.libs.queue import get_queue as Queue
+from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
 
 
@@ -138,9 +139,10 @@ class TestScheduler(unittest.TestCase):
             scheduler.UPDATE_PROJECT_INTERVAL = 0.1
             scheduler.LOOP_INTERVAL = 0.1
             scheduler.INQUEUE_LIMIT = 10
-            Scheduler.DELETE_TIME = 0
+            scheduler.DELETE_TIME = 0
+            scheduler.DEFAULT_RETRY_DELAY = {'': 5}
             scheduler._last_tick = int(time.time())  # not dispatch cronjob
-            run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
+            self.xmlrpc_thread = run_in_thread(scheduler.xmlrpc_run, port=self.scheduler_xmlrpc_port)
             scheduler.run()
 
         self.process = run_in_thread(run_scheduler)
@@ -151,9 +153,15 @@ class TestScheduler(unittest.TestCase):
         if self.process.is_alive():
             self.rpc._quit()
             self.process.join(5)
+        self.xmlrpc_thread.join()
         assert not self.process.is_alive()
         shutil.rmtree('./data/tests', ignore_errors=True)
         time.sleep(1)
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(self.scheduler_xmlrpc_port)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
 
     def test_10_new_task_ignore(self):
         self.newtask_queue.put({
@@ -176,7 +184,7 @@ class TestScheduler(unittest.TestCase):
         })
 
     def test_30_update_project(self):
-        from pyspider.libs.queue import Queue
+        from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=1)
         self.projectdb.update('test_project', status="DEBUG")
@@ -234,7 +242,7 @@ class TestScheduler(unittest.TestCase):
             'project': 'test_project',
             'url': 'url_force_update',
             'schedule': {
-                'age': 0,
+                'age': 10,
                 'force_update': True,
             },
         })
@@ -281,7 +289,10 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        task = self.scheduler2fetcher.get(timeout=10)
+        from six.moves import queue as Queue
+        with self.assertRaises(Queue.Empty):
+            task = self.scheduler2fetcher.get(timeout=4)
+        task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
     def test_70_taskdone_ok(self):
@@ -392,7 +403,7 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })
-        task = self.scheduler2fetcher.get(timeout=10)
+        task = self.scheduler2fetcher.get(timeout=5)
         self.assertIsNotNone(task)
 
         self.status_queue.put({
@@ -409,7 +420,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from pyspider.libs.queue import Queue
+        from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 
@@ -523,7 +534,7 @@ class TestScheduler(unittest.TestCase):
             }
         })
 
-        from pyspider.libs.queue import Queue
+        from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             self.scheduler2fetcher.get(timeout=5)
 
@@ -560,6 +571,7 @@ class TestScheduler(unittest.TestCase):
         self.assertIsNone(self.projectdb.get('test_inqueue_project'))
         self.taskdb._list_project()
         self.assertIsNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
+        self.assertNotIn('test_inqueue_project', self.rpc.counter('5m', 'sum'))
 
     def test_z10_startup(self):
         self.assertTrue(self.process.is_alive())

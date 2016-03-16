@@ -120,7 +120,8 @@ class TaskDBCase(object):
         tasks = list(self.taskdb.load_tasks(self.taskdb.ACTIVE))
         self.assertEqual(len(tasks), 1)
         task = tasks[0]
-        self.assertEqual(task['taskid'], 'taskid')
+        self.assertIn('taskid', task, task)
+        self.assertEqual(task['taskid'], 'taskid', task)
         self.assertEqual(task['schedule'], self.sample_task['schedule'])
         self.assertEqual(task['fetch'], self.sample_task['fetch'])
         self.assertEqual(task['process'], self.sample_task['process'])
@@ -145,7 +146,7 @@ class TaskDBCase(object):
         self.assertIsNone(self.taskdb.get_task('drop_project3', 'taskid'), None)
 
     def test_z20_update_projects(self):
-        saved = self.taskdb.UPDATE_PROJECTS_TIME
+        saved = getattr(self.taskdb, 'UPDATE_PROJECTS_TIME', None)
         self.taskdb.UPDATE_PROJECTS_TIME = 0.1
         time.sleep(0.2)
         self.assertIn('drop_project2', self.taskdb.projects)
@@ -175,7 +176,9 @@ class ProjectDBCase(object):
     def test_20_get_all(self):
         projects = list(self.projectdb.get_all())
         self.assertEqual(len(projects), 2)
-        project = projects[0]
+        for project in projects:
+            if project['name'] == 'abc':
+                break
         for key in ('name', 'group', 'status', 'script', 'comments', 'rate', 'burst', 'updatetime'):
             self.assertIn(key, project)
 
@@ -350,7 +353,7 @@ class TestSqliteResultDB(ResultDBCase, unittest.TestCase):
         del self.resultdb
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
 class TestMysqlTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -362,7 +365,7 @@ class TestMysqlTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb._execute('DROP DATABASE pyspider_test_taskdb')
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
 class TestMysqlProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
@@ -376,7 +379,7 @@ class TestMysqlProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb._execute('DROP DATABASE pyspider_test_projectdb')
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
 class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
@@ -390,7 +393,7 @@ class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb._execute('DROP DATABASE pyspider_test_resultdb')
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
 class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -404,7 +407,7 @@ class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
 class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
@@ -418,7 +421,7 @@ class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb.conn.drop_database(self.projectdb.database.name)
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MONGODB'), 'no mongodb server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
 class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
@@ -432,7 +435,7 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb.conn.drop_database(self.resultdb.database.name)
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
 class TestSQLAlchemyMySQLTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -446,7 +449,7 @@ class TestSQLAlchemyMySQLTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb.engine.execute('DROP DATABASE pyspider_test_taskdb')
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
 class TestSQLAlchemyMySQLProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
@@ -460,7 +463,7 @@ class TestSQLAlchemyMySQLProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb.engine.execute('DROP DATABASE pyspider_test_projectdb')
 
 
-@unittest.skipIf(os.environ.get('IGNORE_MYSQL'), 'no mysql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
 class TestSQLAlchemyMySQLResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
@@ -513,7 +516,7 @@ class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
         del self.resultdb
 
 
-@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL') or os.environ.get('IGNORE_ALL'), 'no postgresql server for test.')
 class TestPGTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -529,9 +532,8 @@ class TestPGTaskDB(TaskDBCase, unittest.TestCase):
             self.taskdb.drop(project)
 
 
-@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL') or os.environ.get('IGNORE_ALL'), 'no postgresql server for test.')
 class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
-
 
     @classmethod
     def setUpClass(self):
@@ -546,7 +548,7 @@ class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
             self.projectdb.drop(project['name'])
 
 
-@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL'), 'no postgresql server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_POSTGRESQL') or os.environ.get('IGNORE_ALL'), 'no postgresql server for test.')
 class TestPGResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
@@ -562,7 +564,7 @@ class TestPGResultDB(ResultDBCase, unittest.TestCase):
             self.resultdb.drop(project)
 
 
-@unittest.skipIf(os.environ.get('IGNORE_REDIS'), 'no redis server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_REDIS') or os.environ.get('IGNORE_ALL'), 'no redis server for test.')
 class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
@@ -574,6 +576,71 @@ class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
     def tearDownClass(self):
         for project in self.taskdb.projects:
             self.taskdb.drop(project)
+
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH') or os.environ.get('IGNORE_ALL'), 'no elasticsearch server for test.')
+class TestESProjectDB(ProjectDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH') or os.environ.get('IGNORE_ALL'), 'no elasticsearch server for test.')
+class TestESResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database(
+            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.resultdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+
+    def test_15_save(self):
+        self.resultdb.refresh()
+
+    def test_30_select(self):
+        for i in range(5):
+            self.resultdb.save('test_project', 'test_taskid-%d' % i,
+                               'test_url', 'result-%d' % i)
+        self.resultdb.refresh()
+
+        ret = list(self.resultdb.select('test_project'))
+        self.assertEqual(len(ret), 6)
+
+        ret = list(self.resultdb.select('test_project', limit=4))
+        self.assertEqual(len(ret), 4)
+
+        for ret in self.resultdb.select('test_project', fields=('url', ), limit=1):
+            self.assertIn('url', ret)
+            self.assertNotIn('result', ret)
+
+    def test_z20_update_projects(self):
+        self.resultdb.refresh()
+        self.assertIn('drop_project2', self.resultdb.projects)
+        self.assertNotIn('drop_project3', self.resultdb.projects)
+
+@unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH') or os.environ.get('IGNORE_ALL'), 'no elasticsearch server for test.')
+class TestESTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database(
+            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider'
+        )
+
+    @classmethod
+    def tearDownClass(self):
+        self.taskdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
 
 if __name__ == '__main__':
     unittest.main()
