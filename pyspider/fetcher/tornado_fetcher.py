@@ -26,7 +26,9 @@ from six.moves.urllib.parse import urljoin, urlsplit
 from tornado import gen
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
+
 from pyspider.libs import utils, dataurl, counter
+from pyspider.libs.url import quote_chinese
 from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
@@ -381,7 +383,7 @@ class Fetcher(object):
                     fetch['method'] = 'GET'
                     if 'body' in fetch:
                         del fetch['body']
-                fetch['url'] = urljoin(fetch['url'], response.headers['Location'])
+                fetch['url'] = quote_chinese(urljoin(fetch['url'], response.headers['Location']))
                 fetch['request_timeout'] -= time.time() - start_time
                 if fetch['request_timeout'] < 0:
                     fetch['request_timeout'] = 0.1
