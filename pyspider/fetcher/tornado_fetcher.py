@@ -347,9 +347,15 @@ class Fetcher(object):
 
             try:
                 request = tornado.httpclient.HTTPRequest(**fetch)
+                # if cookie already in header, get_cookie_header wouldn't work
+                old_cookie_header = request.headers.get('Cookie')
+                if old_cookie_header:
+                    del request.headers['Cookie']
                 cookie_header = cookies.get_cookie_header(session, request)
                 if cookie_header:
                     request.headers['Cookie'] = cookie_header
+                elif old_cookie_header:
+                    request.headers['Cookie'] = old_cookie_header
             except Exception as e:
                 logger.exception(fetch)
                 raise gen.Return(handle_error(e))
