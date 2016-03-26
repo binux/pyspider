@@ -212,7 +212,10 @@ class TaskQueue(object):
     def done(self, taskid):
         '''Mark task done'''
         if taskid in self.processing:
-            del self.processing[taskid]
+            self.mutex.acquire()
+            if taskid in self.processing:
+                del self.processing[taskid]
+            self.mutex.release()
             return True
         return False
 
