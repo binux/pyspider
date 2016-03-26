@@ -1,3 +1,4 @@
+(node) util.print is deprecated. Use console.log instead.
 /* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
 /* Author: Binux<i@binux.me> */
 /*         http://binux.me */
@@ -16,6 +17,7 @@ h1 {
 }
 .projects {
   min-width: 850px;
+  border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
 }
 .projects .project-group {
@@ -104,5 +106,11 @@ h1 {
 }
 .global-btn {
   margin-top: -5px;
-  padding: 0 60px 10px 10px;
+  padding: 10px 10px 10px 10px;
+}
+.global-btn .create-btn-div {
+  float: right;
+}
+.global-btn .active-btn-div {
+  float: left;
 }
