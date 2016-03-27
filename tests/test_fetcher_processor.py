@@ -60,7 +60,7 @@ class TestFetcherProcessor(unittest.TestCase):
         if isinstance(task, list):
             task = task[0]
         task['track'] = track
-        task, result = self.fetcher.fetch(task)
+        result = self.fetcher.fetch(task)
         self.processor.on_task(task, result)
 
         status = None

@@ -44,7 +44,7 @@ class TestResponse(unittest.TestCase):
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = url
         request.update(kwargs)
-        task, result = self.fetcher.fetch(request)
+        result = self.fetcher.fetch(request)
         response = rebuild_response(result)
         return response
 

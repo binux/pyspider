@@ -120,18 +120,24 @@ class Fetcher(object):
         if callback is None:
             callback = self.send_result
 
+        type = 'None'
         try:
             if url.startswith('data:'):
-                ret = yield gen.maybe_future(self.data_fetch(url, task, callback))
+                type = 'data'
+                result = yield gen.maybe_future(self.data_fetch(url, task))
             elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
-                ret = yield self.phantomjs_fetch(url, task, callback)
+                type = 'phantomjs'
+                result = yield self.phantomjs_fetch(url, task)
             else:
-                ret = yield self.http_fetch(url, task, callback)
+                type = 'http'
+                result = yield self.http_fetch(url, task)
         except Exception as e:
             logger.exception(e)
-            raise e
+            result = self.handle_error(type, url, task, e)
 
-        raise gen.Return(ret)
+        callback(type, task, result)
+        self.on_result(type, task, result)
+        raise gen.Return(result)
 
     def sync_fetch(self, task):
         '''Synchronization fetch, usually used in xmlrpc thread'''
@@ -156,7 +162,7 @@ class Fetcher(object):
         wait_result.release()
         return _result['result']
 
-    def data_fetch(self, url, task, callback):
+    def data_fetch(self, url, task):
         '''A fake fetcher for dataurl'''
         self.on_fetch('data', task)
         result = {}
@@ -178,11 +184,9 @@ class Fetcher(object):
                 len(result['content'])
             )
 
-        callback('data', task, result)
-        self.on_result('data', task, result)
-        return task, result
+        return result
 
-    def handle_error(self, type, url, task, start_time, callback, error):
+    def handle_error(self, type, url, task, start_time, error):
         result = {
             'status_code': getattr(error, 'code', 599),
             'error': utils.text(error),
@@ -194,9 +198,7 @@ class Fetcher(object):
         logger.error("[%d] %s:%s %s, %r %.2fs",
                      result['status_code'], task.get('project'), task.get('taskid'),
                      url, error, result['time'])
-        callback(type, task, result)
-        self.on_result(type, task, result)
-        return task, result
+        return result
 
     allowed_options = ['method', 'data', 'timeout', 'cookies', 'use_gzip', 'validate_cert']
 
@@ -308,12 +310,11 @@ class Fetcher(object):
                 del self.robots_txt_cache[domain]
 
     @gen.coroutine
-    def http_fetch(self, url, task, callback):
+    def http_fetch(self, url, task):
         '''HTTP fetcher'''
         start_time = time.time()
-
         self.on_fetch('http', task)
-        handle_error = lambda x: self.handle_error('http', url, task, start_time, callback, x)
+        handle_error = lambda x: self.handle_error('http', url, task, start_time, x)
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
@@ -397,8 +398,8 @@ class Fetcher(object):
             result['headers'] = dict(response.headers)
             result['status_code'] = response.code
             result['url'] = response.effective_url or url
-            result['cookies'] = session.get_dict()
             result['time'] = time.time() - start_time
+            result['cookies'] = session.get_dict()
             result['save'] = task_fetch.get('save')
             if response.error:
                 result['error'] = utils.text(response.error)
@@ -411,17 +412,14 @@ class Fetcher(object):
                                task.get('project'), task.get('taskid'),
                                url, result['time'])
 
-            callback('http', task, result)
-            self.on_result('http', task, result)
-            raise gen.Return((task, result))
+            raise gen.Return(result)
 
     @gen.coroutine
-    def phantomjs_fetch(self, url, task, callback):
+    def phantomjs_fetch(self, url, task):
         '''Fetch with phantomjs proxy'''
         start_time = time.time()
-
         self.on_fetch('phantomjs', task)
-        handle_error = lambda x: self.handle_error('phantomjs', url, task, start_time, callback, x)
+        handle_error = lambda x: self.handle_error('phantomjs', url, task, start_time, x)
 
         # check phantomjs proxy is enabled
         if not self.phantomjs_proxy:
@@ -431,14 +429,12 @@ class Fetcher(object):
                 "headers": {},
                 "status_code": 501,
                 "url": url,
+                "time": time.time() - start_time,
                 "cookies": {},
-                "time": 0,
                 "save": task.get('fetch', {}).get('save')
             }
             logger.warning("[501] %s:%s %s 0s", task.get('project'), task.get('taskid'), url)
-            callback('http', task, result)
-            self.on_result('http', task, result)
-            raise gen.Return((task, result))
+            raise gen.Return(result)
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
@@ -505,9 +501,7 @@ class Fetcher(object):
                          task.get('project'), task.get('taskid'),
                          url, result['content'], result['time'])
 
-        callback('phantomjs', task, result)
-        self.on_result('phantomjs', task, result)
-        raise gen.Return((task, result))
+        raise gen.Return(result)
 
     def run(self):
         '''Run loop'''
@@ -604,7 +598,7 @@ class Fetcher(object):
         self._cnt['5m'].event((task.get('project'), status_code), +1)
         self._cnt['1h'].event((task.get('project'), status_code), +1)
 
-        if type == 'http' and result.get('time'):
+        if type in ('http', 'phantomjs') and result.get('time'):
             content_len = len(result.get('content', ''))
             self._cnt['5m'].event((task.get('project'), 'speed'),
                                   float(content_len) / result.get('time'))

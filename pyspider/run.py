@@ -357,7 +357,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
         g['fetcher2processor'] = fetcher2processor
         g['testing_mode'] = testing_mode
 
-        app.config['fetch'] = lambda x: webui_fetcher.fetch(x)[1]
+        app.config['fetch'] = lambda x: webui_fetcher.fetch(x)
 
     if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
