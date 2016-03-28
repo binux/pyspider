@@ -63,6 +63,7 @@ class Scheduler(object):
         self._last_update_project = 0
         self.task_queue = dict()
         self._last_tick = int(time.time())
+        self._sent_finished_event = dict()
 
         self._cnt = {
             "5m_time": counter.CounterManager(
@@ -356,7 +357,22 @@ class Scheduler(object):
                 taskids.append((project, taskid))
                 project_cnt += 1
                 cnt += 1
+
             cnt_dict[project] = project_cnt
+            if project_cnt:
+                self._sent_finished_event[project] = 'need'
+            # check and send finished event to project
+            elif len(task_queue) == 0 and self._sent_finished_event.get(project) == 'need':
+                self._sent_finished_event[project] = 'sent'
+                self.on_select_task({
+                    'taskid': 'on_finished',
+                    'project': project,
+                    'url': 'data:,on_finished',
+                    'status': self.taskdb.SUCCESS,
+                    'process': {
+                        'callback': 'on_finished',
+                    },
+                })
 
         for project, taskid in taskids:
             self._load_put_task(project, taskid)
