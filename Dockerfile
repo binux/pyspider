@@ -17,7 +17,7 @@ ADD ./ /opt/pyspider
 
 # run test
 WORKDIR /opt/pyspider
-RUN git pull && pip install -e .[all]
+RUN pip install -e .[all]
 
 VOLUME ["/opt/pyspider"]
 ENTRYPOINT ["pyspider"]
