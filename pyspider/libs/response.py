@@ -151,7 +151,7 @@ class Response(object):
             return self._doc
         elements = self.etree
         doc = self._doc = PyQuery(elements)
-        doc.make_links_absolute(self.url)
+        doc.make_links_absolute(utils.text(self.url))
         return doc
 
     @property
