@@ -253,10 +253,11 @@ class Fetcher(object):
             if _t and 'If-None-Match' not in fetch['headers']:
                 fetch['headers']['If-None-Match'] = _t
         # last modifed
-        if task_fetch.get('last_modified', True):
+        if task_fetch.get('last_modified', task_fetch.get('last_modifed', True)):
+            last_modified = task_fetch.get('last_modified', task_fetch.get('last_modifed', True))
             _t = None
-            if isinstance(task_fetch.get('last_modifed'), six.string_types):
-                _t = task_fetch.get('last_modifed')
+            if isinstance(last_modified, six.string_types):
+                _t = last_modified
             elif track_ok:
                 _t = track_headers.get('last-modified')
             if _t and 'If-Modified-Since' not in fetch['headers']:

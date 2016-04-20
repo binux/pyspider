@@ -276,8 +276,8 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertFalse(newtasks)
         self.assertFalse(result)
 
-    def test_a170_last_modifed(self):
-        status, newtasks, result = self.crawl(self.httpbin+'/cache', last_modifed='0', callback=self.json)
+    def test_a170_last_modified(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/cache', last_modified='0', callback=self.json)
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)

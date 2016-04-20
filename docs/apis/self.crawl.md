@@ -113,7 +113,7 @@ class Handler(BaseHandler):
 > `Handler.crawl_config` can be used with `proxy` to set a proxy for whole project.
 
 * `etag` - use HTTP Etag mechanism to pass the process if the content of the page is not changed. _default: True_ <a name="etag" href="#etag">¶</a>
-* `last_modifed` - use HTTP Last-Modified header mechanism to pass the process if the content of the page is not changed. _default: True_ <a name="last_modifed" href="#last_modifed">¶</a>
+* `last_modified` - use HTTP Last-Modified header mechanism to pass the process if the content of the page is not changed. _default: True_ <a name="last_modified" href="#last_modified">¶</a>
 * `fetch_type` - set to `js` to enable JavaScript fetcher. _default: None_ <a name="fetch_type" href="#fetch_type">¶</a>
 * `js_script` - JavaScript run before or after page loaded, should been wrapped by a function like `function() { document.write("binux"); }`. <a name="js_script" href="#js_script">¶</a>
 

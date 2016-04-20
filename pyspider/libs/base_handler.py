@@ -273,6 +273,7 @@ class BaseHandler(object):
                 'proxy',
                 'etag',
                 'last_modifed',
+                'last_modified',
                 'save',
                 'js_run_at',
                 'js_script',
@@ -332,7 +333,7 @@ class BaseHandler(object):
           cookies
           proxy
           etag
-          last_modifed
+          last_modified
           auto_recrawl
 
           fetch_type
