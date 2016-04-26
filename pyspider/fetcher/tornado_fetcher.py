@@ -194,6 +194,7 @@ class Fetcher(object):
             'time': time.time() - start_time,
             'orig_url': url,
             'url': url,
+            "save": task.get('fetch', {}).get('save')
         }
         logger.error("[%d] %s:%s %s, %r %.2fs",
                      result['status_code'], task.get('project'), task.get('taskid'),
