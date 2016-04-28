@@ -29,3 +29,4 @@ pages:
 - Frequently Asked Questions: Frequently-Asked-Questions.md
 
 theme: readthedocs
+markdown_extensions: ['toc(permalink=true)', ]
