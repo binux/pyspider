@@ -20,5 +20,7 @@ In most case, a project is one script you write for one website.
 You can override `on_finished` method in the project, the method would be triggered when the task_queue goes to 0.
 
 Example 1: when you starts a project to crawl a website with 100 pages, the `on_finished` callback will be fired when 100 pages success crawled or failed after retries.
+
 Example 2: A project with `auto_recrawl` tasks will **NEVER** trigger the `on_finished` callback, because time queue will never become 0 when auto_recrawl tasks in it.
+
 Example 3: A project with `@every` decorated method will trigger the `on_finished` callback every time when the new submitted tasks finished.

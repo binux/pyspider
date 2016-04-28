@@ -186,7 +186,11 @@ class Scheduler(object):
                 logger.error('%s not in task: %.200r', each, task)
                 return False
         if task['project'] not in self.task_queue:
-            logger.error('unknown project: %s', task['project'])
+            if task['project'] in self.projects:
+                logger.error('project %s not started, please set status to RUNNING or DEBUG',
+                             task['project'])
+            else:
+                logger.error('unknown project: %s', task['project'])
             return False
         return True
 
