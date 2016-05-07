@@ -384,7 +384,11 @@ class Scheduler(object):
         return cnt_dict
 
     def _load_put_task(self, project, taskid):
-        task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
+        try:
+            task = self.taskdb.get_task(project, taskid, fields=self.request_task_fields)
+        except ValueError:
+            logger.error('bad task pack %s:%s', project, taskid)
+            return
         if not task:
             return
         task = self.on_select_task(task)
