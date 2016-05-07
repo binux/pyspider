@@ -166,8 +166,9 @@ class ScriptProvider(DAVProvider):
         return "pyspiderScriptProvider"
 
     def getResourceInst(self, path, environ):
-        path = os.path.normpath(path)
+        path = os.path.normpath(path).replace('\\', '/')
         if path in ('/', '.', ''):
+            path = '/'
             return RootCollection(path, environ, self.app)
         else:
             return ScriptResource(path, environ, self.app)
