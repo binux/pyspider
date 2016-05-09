@@ -9,12 +9,12 @@ Although resultdb is only designed for result preview, not suitable for large sc
 ```
 from pyspider.database import connect_database
 resultdb = connect_database("<your resutldb connection url>")
-for project in resultdb:
+for project in resultdb.projects:
     for result in resultdb.select(project):
         assert result['taskid']
         assert result['url']
         assert result['result']
-``` 
+```
 
 The `result['result']` is the object submitted by `return` statement from your script.
 
@@ -71,7 +71,7 @@ def detail_page(self, response):
         self.send_message(self.project_name, {
             ...
         }, url=response.url+"#"+li('a.product-sku').text())
-        
+
 def on_message(self, project, msg):
     return msg
 ```
