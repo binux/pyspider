@@ -177,6 +177,13 @@ def bench_test_message_queue(queue):
         if hasattr(queue, 'channel'):
             queue.channel.queue_purge(queue.name)
 
+        # clear message queue
+        try:
+            while queue.get(False):
+                continue
+        except Queue.Empty:
+            pass
+
 
 class BenchMixin(object):
     """Report to logger for bench test"""

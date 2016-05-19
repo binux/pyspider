@@ -600,6 +600,14 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                                   fetcher_cls='pyspider.libs.bench.BenchFetcher',
                                   **fetcher_config))
 
+        # webui
+        webui_config = g.config.get('webui', {})
+        webui_config.setdefault('scheduler_rpc', 'http://127.0.0.1:%s/'
+                                % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
+        threads.append(run_in(ctx.invoke, webui, **webui_config))
+
+        time.sleep(5)
+
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
         scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
@@ -609,12 +617,6 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                               **scheduler_config))
         scheduler_rpc = connect_rpc(ctx, None,
                                     'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
-
-        # webui
-        webui_config = g.config.get('webui', {})
-        webui_config.setdefault('scheduler_rpc', 'http://127.0.0.1:%s/'
-                                % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
-        threads.append(run_in(ctx.invoke, webui, **webui_config))
 
         # wait bench test finished
         while True:
