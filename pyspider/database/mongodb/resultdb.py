@@ -26,6 +26,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             collection_name = self._collection_name(project)
             self.database[collection_name].ensure_index('taskid')
 
+    def _create_project(self, project):
+        collection_name = self._collection_name(project)
+        self.database[collection_name].ensure_index('taskid')
+        self._list_project()
+
     def _parse(self, data):
         data['_id'] = str(data['_id'])
         if 'result' in data:
@@ -38,6 +43,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         return data
 
     def save(self, project, taskid, url, result):
+        if project not in self.projects:
+            self._create_project(project)
         collection_name = self._collection_name(project)
         obj = {
             'taskid': taskid,

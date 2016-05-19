@@ -28,6 +28,12 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             self.database[collection_name].ensure_index('status')
             self.database[collection_name].ensure_index('taskid')
 
+    def _create_project(self, project):
+        collection_name = self._collection_name(project)
+        self.database[collection_name].ensure_index('status')
+        self.database[collection_name].ensure_index('taskid')
+        self._list_project()
+
     def _parse(self, data):
         if '_id' in data:
             del data['_id']
@@ -94,6 +100,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         return result
 
     def insert(self, project, taskid, obj={}):
+        if project not in self.projects:
+            self._create_project(project)
         obj = dict(obj)
         obj['taskid'] = taskid
         obj['project'] = project

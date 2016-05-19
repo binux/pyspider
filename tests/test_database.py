@@ -406,6 +406,11 @@ class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
     def tearDownClass(self):
         self.taskdb.conn.drop_database(self.taskdb.database.name)
 
+    def test_create_project(self):
+        self.assertNotIn('test_create_project', self.taskdb.projects)
+        self.taskdb._create_project('test_create_project')
+        self.assertIn('test_create_project', self.taskdb.projects)
+
 
 @unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
 class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
@@ -433,6 +438,11 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         self.resultdb.conn.drop_database(self.resultdb.database.name)
+
+    def test_create_project(self):
+        self.assertNotIn('test_create_project', self.resultdb.projects)
+        self.resultdb._create_project('test_create_project')
+        self.assertIn('test_create_project', self.resultdb.projects)
 
 
 @unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
@@ -554,7 +564,7 @@ class TestPGResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database(
-            'sqlalchemy+postgresql+resultdb://postgres@127.0.0.1/pyspider_test_resultdb'
+                'sqlalchemy+postgresql+resultdb://postgres@127.0.0.1/pyspider_test_resultdb'
         )
         self.tearDownClass()
 
