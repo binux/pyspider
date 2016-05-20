@@ -24,7 +24,7 @@
   window.addEventListener("message", function(ev) {
     if (!css_helper_enabled && ev.data.type == "enable_css_selector_helper") {
       var script = document.createElement("script");
-      script.src = "http://{{ host }}/static/css_selector_helper.js";
+      script.src = "//{{ host }}/static/css_selector_helper.js";
       document.body.appendChild(script);
       css_helper_enabled = true;
     }

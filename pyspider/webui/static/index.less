@@ -9,6 +9,13 @@ h1 {
   margin-top: 5px;
 }
 
+header .alert {
+  position: absolute;;
+  width: 50rem;
+  left: 50%;
+  margin-left: -25rem;
+}
+
 .queue-info {
   th, td {
     text-align: center;
@@ -18,6 +25,8 @@ h1 {
 
 .projects {
   min-width: 850px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 
   .project-group {
     width: 80px;
@@ -99,11 +108,18 @@ h1 {
   .project-actions {
     width: 200px;
   }
-
-  border-bottom: 1px solid #ddd;
 }
 
 .global-btn {
   margin-top: -5px;
-  padding: 0 60px 10px 10px;
+  padding: 10px 10px 10px 10px;
+
+  .create-btn-div {
+    float: right;
+  }
+
+  .active-btn-div {
+    float: left;
+  }
 }
+

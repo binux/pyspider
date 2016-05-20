@@ -273,6 +273,7 @@ class BaseHandler(object):
                 'proxy',
                 'etag',
                 'last_modifed',
+                'last_modified',
                 'save',
                 'js_run_at',
                 'js_script',
@@ -332,7 +333,7 @@ class BaseHandler(object):
           cookies
           proxy
           etag
-          last_modifed
+          last_modified
           auto_recrawl
 
           fetch_type
@@ -421,3 +422,7 @@ class BaseHandler(object):
                 if not isinstance(self.retry_delay, dict):
                     self.retry_delay = {'': self.retry_delay}
                 self.save[each] = self.retry_delay
+
+    @not_send_status
+    def on_finished(self, response, task):
+        pass

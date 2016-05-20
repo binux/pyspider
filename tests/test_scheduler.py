@@ -164,15 +164,21 @@ class TestScheduler(unittest.TestCase):
         assert not utils.check_port_open(25555)
 
     def test_10_new_task_ignore(self):
+        '''
+        task_queue = [ ]
+        '''
         self.newtask_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
             'url': 'url'
-        })
+        })  # unknown project: test_project
         self.assertEqual(self.rpc.size(), 0)
         self.assertEqual(len(self.rpc.get_active_tasks()), 0)
 
     def test_20_new_project(self):
+        '''
+        task_queue = [ ]
+        '''
         self.projectdb.insert('test_project', {
             'name': 'test_project',
             'group': 'group',
@@ -184,6 +190,9 @@ class TestScheduler(unittest.TestCase):
         })
 
     def test_30_update_project(self):
+        '''
+        task_queue = [ ]
+        '''
         from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=1)
@@ -193,9 +202,12 @@ class TestScheduler(unittest.TestCase):
 
         task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
-        self.assertEqual(task['url'], 'data:,_on_get_info')
+        self.assertEqual(task['taskid'], '_on_get_info')  # select test_project:_on_get_info data:,_on_get_info
 
     def test_34_new_not_used_project(self):
+        '''
+        task_queue = []
+        '''
         self.projectdb.insert('test_project_not_started', {
             'name': 'test_project_not_started',
             'group': 'group',
@@ -205,10 +217,13 @@ class TestScheduler(unittest.TestCase):
             'rate': 1.0,
             'burst': 10,
         })
-        task = self.scheduler2fetcher.get(timeout=1)
+        task = self.scheduler2fetcher.get(timeout=1)  # select test_project_not_started:_on_get_info data:,_on_get_info
         self.assertEqual(task['taskid'], '_on_get_info')
 
     def test_35_new_task(self):
+        '''
+        task_queue = [ ]
+        '''
         time.sleep(0.2)
         self.newtask_queue.put({
             'taskid': 'taskid',
@@ -223,12 +238,14 @@ class TestScheduler(unittest.TestCase):
             'schedule': {
                 'age': 0,
             },
-        })
+        })  # new task test_project:taskid url
+        # task_queue = [ test_project:taskid ]
 
         time.sleep(0.5)
-        task = self.scheduler2fetcher.get(timeout=10)
+        task = self.scheduler2fetcher.get(timeout=10)  # select test_project:taskid
         self.assertGreater(len(self.rpc.get_active_tasks()), 0)
         self.assertIsNotNone(task)
+        self.assertEqual(task['taskid'], 'taskid')
         self.assertEqual(task['project'], 'test_project')
         self.assertIn('schedule', task)
         self.assertIn('fetch', task)
@@ -237,6 +254,9 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(task['fetch']['data'], 'abc')
 
     def test_37_force_update_processing_task(self):
+        '''
+        processing = [ test_project:taskid ]
+        '''
         self.newtask_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -245,25 +265,31 @@ class TestScheduler(unittest.TestCase):
                 'age': 10,
                 'force_update': True,
             },
-        })
+        })  # restart task test_project:taskid url_force_update
         time.sleep(0.2)
         # it should not block next
 
     def test_40_taskdone_error_no_project(self):
+        '''
+        processing = [ test_project:taskid ]
+        '''
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'no_project',
             'url': 'url'
-        })
+        })  # unknown project: no_project
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 1)
 
     def test_50_taskdone_error_no_track(self):
+        '''
+        processing = [ test_project:taskid ]
+        '''
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
             'url': 'url'
-        })
+        })  # Bad status pack: 'track'
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 1)
         self.status_queue.put({
@@ -271,11 +297,14 @@ class TestScheduler(unittest.TestCase):
             'project': 'test_project',
             'url': 'url',
             'track': {}
-        })
+        })  # Bad status pack: 'process'
         time.sleep(0.1)
         self.assertEqual(self.rpc.size(), 1)
 
     def test_60_taskdone_failed_retry(self):
+        '''
+        processing = [ test_project:taskid ]
+        '''
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -288,14 +317,17 @@ class TestScheduler(unittest.TestCase):
                     'ok': False
                 },
             }
-        })
+        })  # task retry 0/3 test_project:taskid url
         from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
             task = self.scheduler2fetcher.get(timeout=4)
-        task = self.scheduler2fetcher.get(timeout=5)
+        task = self.scheduler2fetcher.get(timeout=5)  # select test_project:taskid url
         self.assertIsNotNone(task)
 
     def test_70_taskdone_ok(self):
+        '''
+        processing = [ test_project:taskid ]
+        '''
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -308,11 +340,19 @@ class TestScheduler(unittest.TestCase):
                     'ok': True
                 },
             }
-        })
+        })  # task done test_project:taskid url
         time.sleep(0.2)
         self.assertEqual(self.rpc.size(), 0)
 
+    def test_75_on_finished_msg(self):
+        task = self.scheduler2fetcher.get(timeout=5)  # select test_project:on_finished data:,on_finished
+
+        self.assertEqual(task['taskid'], 'on_finished')
+
     def test_80_newtask_age_ignore(self):
+        '''
+        processing = [ ]
+        '''
         self.newtask_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -331,6 +371,9 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(self.rpc.size(), 0)
 
     def test_82_newtask_via_rpc(self):
+        '''
+        processing = [ ]
+        '''
         self.rpc.newtask({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -349,6 +392,10 @@ class TestScheduler(unittest.TestCase):
         self.assertEqual(self.rpc.size(), 0)
 
     def test_90_newtask_with_itag(self):
+        '''
+        task_queue = [ ]
+        processing = [ ]
+        '''
         time.sleep(0.1)
         self.newtask_queue.put({
             'taskid': 'taskid',
@@ -364,11 +411,14 @@ class TestScheduler(unittest.TestCase):
                 'itag': "abc",
                 'retries': 1
             },
-        })
-        task = self.scheduler2fetcher.get(timeout=10)
-        self.assertIsNotNone(task)
+        })  # restart task test_project:taskid url
 
-        self.test_70_taskdone_ok()
+        task = self.scheduler2fetcher.get(timeout=10)  # select test_project:taskid url
+        self.assertIsNotNone(task)
+        self.assertEqual(task['taskid'], 'taskid')
+
+        self.test_70_taskdone_ok()  # task done test_project:taskid url
+        self.test_75_on_finished_msg()  # select test_project:on_finished data:,on_finished
 
     def test_a10_newtask_restart_by_age(self):
         self.newtask_queue.put({
@@ -385,11 +435,15 @@ class TestScheduler(unittest.TestCase):
                 'age': 0,
                 'retries': 1
             },
-        })
-        task = self.scheduler2fetcher.get(timeout=10)
+        })  # restart task test_project:taskid url
+        task = self.scheduler2fetcher.get(timeout=10)  # select test_project:taskid url
         self.assertIsNotNone(task)
+        self.assertEqual(task['taskid'], 'taskid')
 
     def test_a20_failed_retry(self):
+        '''
+        processing: [ test_project:taskid ]
+        '''
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -402,9 +456,10 @@ class TestScheduler(unittest.TestCase):
                     'ok': False
                 },
             }
-        })
-        task = self.scheduler2fetcher.get(timeout=5)
+        })  # task retry 0/1 test_project:taskid url
+        task = self.scheduler2fetcher.get(timeout=5)  # select test_project:taskid url
         self.assertIsNotNone(task)
+        self.assertEqual(task['taskid'], 'taskid')
 
         self.status_queue.put({
             'taskid': 'taskid',
@@ -418,7 +473,9 @@ class TestScheduler(unittest.TestCase):
                     'ok': False
                 },
             }
-        })
+        })  # task failed test_project:taskid url
+
+        self.test_75_on_finished_msg()  # select test_project:on_finished data:,on_finished
 
         from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):
@@ -429,29 +486,32 @@ class TestScheduler(unittest.TestCase):
             #'taskid': 'taskid#',
             'project': 'test_project',
             'url': 'url',
-        }))
+        }))  # taskid not in task: {'project': 'test_project', 'url': 'url'}
         self.assertFalse(self.rpc.newtask({
             'taskid': 'taskid#',
             #'project': 'test_project',
             'url': 'url',
-        }))
+        }))  # project not in task: {'url': 'url', 'taskid': 'taskid#'}
         self.assertFalse(self.rpc.newtask({
             'taskid': 'taskid#',
             'project': 'test_project',
             #'url': 'url',
-        }))
+        }))  # url not in task: {'project': 'test_project', 'taskid': 'taskid#'}
         self.assertFalse(self.rpc.newtask({
             'taskid': 'taskid#',
             'project': 'not_exist_project',
             'url': 'url',
-        }))
+        }))  # unknown project: not_exist_project
         self.assertTrue(self.rpc.newtask({
             'taskid': 'taskid#',
             'project': 'test_project',
             'url': 'url',
-        }))
+        }))  # new task test_project:taskid# url
 
     def test_a40_success_recrawl(self):
+        '''
+        task_queue = [ test_project:taskid# ]
+        '''
         self.newtask_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -467,9 +527,12 @@ class TestScheduler(unittest.TestCase):
                 'retries': 1,
                 'auto_recrawl': True,
             },
-        })
-        task = self.scheduler2fetcher.get(timeout=10)
-        self.assertIsNotNone(task)
+        })  # restart task test_project:taskid url
+        task1 = self.scheduler2fetcher.get(timeout=10)  # select test_project:taskid# url
+        task2 = self.scheduler2fetcher.get(timeout=10)  # select test_project:taskid url
+        self.assertIsNotNone(task1)
+        self.assertIsNotNone(task2)
+        self.assertTrue(task1['taskid'] == 'taskid#' or task2['taskid'] == 'taskid#')
 
         self.status_queue.put({
             'taskid': 'taskid',
@@ -488,11 +551,16 @@ class TestScheduler(unittest.TestCase):
                     'ok': True
                 },
             }
-        })
+        })  # task done test_project:taskid url
         task = self.scheduler2fetcher.get(timeout=10)
         self.assertIsNotNone(task)
 
     def test_a50_failed_recrawl(self):
+        '''
+        time_queue = [ test_project:taskid ]
+        scheduler2fetcher = [ test_project:taskid# ]
+        processing = [ test_project:taskid# ]
+        '''
         for i in range(3):
             self.status_queue.put({
                 'taskid': 'taskid',
@@ -512,10 +580,22 @@ class TestScheduler(unittest.TestCase):
                     },
                 }
             })
+            # not processing pack: test_project:taskid url
+            # select test_project:taskid url
+            # task retry 0/1 test_project:taskid url
+            # select test_project:taskid url
+            # task retry 0/1 test_project:taskid url
+            # select test_project:taskid url
             task = self.scheduler2fetcher.get(timeout=10)
             self.assertIsNotNone(task)
+            self.assertEqual(task['taskid'], 'taskid')
 
     def test_a60_disable_recrawl(self):
+        '''
+        time_queue = [ test_project:taskid ]
+        scheduler2fetcher = [ test_project:taskid# ]
+        processing = [ test_project:taskid# ]
+        '''
         self.status_queue.put({
             'taskid': 'taskid',
             'project': 'test_project',
@@ -532,7 +612,7 @@ class TestScheduler(unittest.TestCase):
                     'ok': True
                 },
             }
-        })
+        })  # task done test_project:taskid url
 
         from six.moves import queue as Queue
         with self.assertRaises(Queue.Empty):

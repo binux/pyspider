@@ -8,8 +8,12 @@ self.crawl(url, **kwargs)
 
 ### Parameters:
 
-* `url` - the url or url list to be crawled. <a name="url" href="#url">¶</a>
-* `callback` - the method to parse the response. _default: `__call__` _  <a name="callback" href="#callback">¶</a>
+##### url
+the url or url list to be crawled.
+
+##### callback
+the method to parse the response. _default: `__call__` _
+
 
 ```python
 def on_start(self):
@@ -18,7 +22,9 @@ def on_start(self):
 
 the following parameters are optional
 
-* `age` - the period of validity of the task. The page would be regarded as not modified during the period. _default: -1(never recrawl)_ <a name="age" href="#age">¶</a>
+##### age
+
+the period of validity of the task. The page would be regarded as not modified during the period. _default: -1(never recrawl)_ 
 
 ```python
 @config(age=10 * 24 * 60 * 60)
@@ -27,7 +33,9 @@ def index_page(self, response):
 ```
 > Every pages parsed by the callback `index_page` would be regarded not changed within 10 days. If you submit the task within 10 days since last crawled it would be discarded.
 
-* `priority` - the priority of task to be scheduled, higher the better. _default: 0_ <a name="priority" href="#priority">¶</a>
+##### priority
+
+the priority of task to be scheduled, higher the better. _default: 0_ 
 
 ```python
 def index_page(self):
@@ -37,7 +45,9 @@ def index_page(self):
 ```
 > The page `233.html` would be crawled before `page2.html`. Use this parameter can do a [BFS](http://en.wikipedia.org/wiki/Breadth-first_search) and reduce the number of tasks in queue(which may cost more memory resources).
 
-* `exetime` - the executed time of task in unix timestamp. _default: 0(immediately)_ <a name="exetime" href="#exetime">¶</a>
+##### exetime
+
+the executed time of task in unix timestamp. _default: 0(immediately)_ 
 
 ```python
 import time
@@ -47,8 +57,13 @@ def on_start(self):
 ```
 > The page would be crawled 30 minutes later.
 
-* `retries` - retry times while failed. _default: 3_ <a name="retries" href="#retries">¶</a>
-* `itag` - a marker from frontier page to reveal the potential modification of the task. It will be compared to its last value, recrawl when it's changed. _default: None_ <a name="itag" href="#itag">¶</a>
+##### retries
+
+retry times while failed. _default: 3_ 
+
+##### itag
+
+a marker from frontier page to reveal the potential modification of the task. It will be compared to its last value, recrawl when it's changed. _default: None_ 
 
 ```python
 def index_page(self, response):
@@ -68,7 +83,9 @@ class Handler(BaseHandler):
 ```
 > Change the value of itag after you modified the script and click run button again. It doesn't matter if not set before. 
 
-* `auto_recrawl` - when enabled, task would be recrawled every `age` time. _default: False_ <a name="auto_recrawl" href="#auto_recrawl">¶</a>
+##### auto_recrawl
+
+when enabled, task would be recrawled every `age` time. _default: False_ 
 
 ```python
 def on_start(self):
@@ -77,8 +94,13 @@ def on_start(self):
 ```
 > The page would be restarted every `age` 5 hours.
 
-* `method` - HTTP method to use. _default: GET_ <a name="method" href="#method">¶</a>
-* `params` - dictionary of URL parameters to append to the URL. <a name="params" href="#params">¶</a>
+##### method
+    
+HTTP method to use. _default: GET_ 
+
+##### params
+
+dictionary of URL parameters to append to the URL. 
 
 ```python
 def on_start(self):
@@ -88,7 +110,9 @@ def on_start(self):
 ```
 > The two requests are the same.
 
-* `data` - the body to attach to the request. If a dictionary is provided, form-encoding will take place. <a name="data" href="#data">¶</a>
+##### data
+
+the body to attach to the request. If a dictionary is provided, form-encoding will take place. 
 
 ```python
 def on_start(self):
@@ -96,13 +120,33 @@ def on_start(self):
                method='POST', data={'a': 123, 'b': 'c'})
 ```
 
-* `files` - dictionary of `{field: {filename: 'content'}}` files to multipart upload.` <a name="files" href="#files">¶</a>
-* `headers` - dictionary of headers to send. <a name="headers" href="#headers">¶</a>
-* `cookies` - dictionary of cookies to attach to this request. <a name="cookies" href="#cookies">¶</a>
-* `timeout` - maximum time in seconds to fetch the page. _default: 120_ <a name="timeout" href="#timeout">¶</a>
-* `allow_redirects` - follow `30x` redirect _default: True_ <a name="allow_redirects" href="#allow_redirects">¶</a>
-* `validate_cert` - For HTTPS requests, validate the server’s certificate? _default: True_ <a name="validate_cert" href="#validate_cert">¶</a>
-* `proxy` - proxy server of `username:password@hostname:port` to use, only http proxy is supported currently. <a name="proxy" href="#proxy">¶</a>
+##### files
+
+dictionary of `{field: {filename: 'content'}}` files to multipart upload.` 
+
+##### headers
+
+dictionary of headers to send. 
+
+##### cookies
+
+dictionary of cookies to attach to this request. 
+
+##### timeout
+
+maximum time in seconds to fetch the page. _default: 120_ 
+
+##### allow_redirects
+
+follow `30x` redirect _default: True_ 
+
+##### validate_cert
+
+For HTTPS requests, validate the server’s certificate? _default: True_ 
+
+##### proxy
+
+proxy server of `username:password@hostname:port` to use, only http proxy is supported currently. 
 
 ```python
 class Handler(BaseHandler):
@@ -112,10 +156,21 @@ class Handler(BaseHandler):
 ```
 > `Handler.crawl_config` can be used with `proxy` to set a proxy for whole project.
 
-* `etag` - use HTTP Etag mechanism to pass the process if the content of the page is not changed. _default: True_ <a name="etag" href="#etag">¶</a>
-* `last_modifed` - use HTTP Last-Modified header mechanism to pass the process if the content of the page is not changed. _default: True_ <a name="last_modifed" href="#last_modifed">¶</a>
-* `fetch_type` - set to `js` to enable JavaScript fetcher. _default: None_ <a name="fetch_type" href="#fetch_type">¶</a>
-* `js_script` - JavaScript run before or after page loaded, should been wrapped by a function like `function() { document.write("binux"); }`. <a name="js_script" href="#js_script">¶</a>
+##### etag 
+
+use HTTP Etag mechanism to pass the process if the content of the page is not changed. _default: True_ 
+
+###### last_modified
+
+use HTTP Last-Modified header mechanism to pass the process if the content of the page is not changed. _default: True_ 
+
+##### fetch_type
+
+set to `js` to enable JavaScript fetcher. _default: None_ 
+
+##### js_script
+
+JavaScript run before or after page loaded, should been wrapped by a function like `function() { document.write("binux"); }`. 
 
 
 ```python
@@ -130,13 +185,21 @@ def on_start(self):
 ```
 > The script would scroll the page to bottom. The value returned in function could be captured via `Response.js_script_result`.
 
-* `js_run_at` - run JavaScript specified via `js_script` at `document-start` or `document-end`. _default: `document-end`_ <a name="js_run_at" href="#js_run_at">¶</a>
+##### js_run_at
 
-* `js_viewport_width/js_viewport_height` - set the size of the viewport for the JavaScript fetcher of the layout process. <a name="js_viewport_width"><a name="js_viewport_height" href="#js_viewport_height">¶</a></a>
+run JavaScript specified via `js_script` at `document-start` or `document-end`. _default: `document-end`_ 
 
-* `load_images` - load images when JavaScript fetcher enabled. _default: False_ <a name="load_images" href="#load_images">¶</a>
+##### js_viewport_width/js_viewport_height
 
-* `save` - a object pass to the callback method, can be visit via `response.save`. <a name="save" href="#save">¶</a>
+set the size of the viewport for the JavaScript fetcher of the layout process. 
+
+##### load_images
+
+load images when JavaScript fetcher enabled. _default: False_ 
+
+##### save
+
+a object pass to the callback method, can be visit via `response.save`. 
 
 
 ```python
@@ -149,7 +212,9 @@ def callback(self, response):
 ```
 > `123` would be returned in `callback`
 
-* `taskid` - unique id to identify the task, default is the MD5 check code of the URL, can be overridden by method `def get_taskid(self, task)` <a name="taskid" href="#taskid">¶</a>
+##### taskid
+    
+unique id to identify the task, default is the MD5 check code of the URL, can be overridden by method `def get_taskid(self, task)` 
 
 ```python
 import json
@@ -159,7 +224,10 @@ def get_taskid(self, task):
 ```
 > Only url is md5 -ed as taskid by default, the code above add `data` of POST request as part of taskid.
 
-* `force_update` - force update task params even if the task is in `ACTIVE` status. <a name="force_update" href="#force_update">¶</a>
+##### force_update
+    
+force update task params even if the task is in `ACTIVE` status. 
+
 
 cURL command
 ------------

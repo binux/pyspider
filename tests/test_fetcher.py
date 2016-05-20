@@ -198,6 +198,10 @@ class TestFetcher(unittest.TestCase):
         self.assertGreater(end_time - start_time, 1.5)
         self.assertLess(end_time - start_time, 4.5)
 
+        response = rebuild_response(result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.save, request['fetch']['save'])
+
     def test_65_418(self):
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin+'/status/418'

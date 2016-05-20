@@ -278,7 +278,7 @@ class CounterValue(DictMixin):
             key = self._keys + (key, )
 
         available_keys = []
-        for _key in self.manager.counters:
+        for _key in self.manager.counters.keys():
             if _key[:len(key)] == key:
                 available_keys.append(_key)
 
@@ -303,7 +303,7 @@ class CounterValue(DictMixin):
 
     def keys(self):
         result = set()
-        for key in self.manager.counters:
+        for key in self.manager.counters.keys():
             if key[:len(self._keys)] == self._keys:
                 key = key[len(self._keys):]
                 result.add(key[0] if key else '__value__')
@@ -367,7 +367,7 @@ class CounterManager(DictMixin):
     def __getitem__(self, key):
         key = (key, )
         available_keys = []
-        for _key in self.counters:
+        for _key in self.counters.keys():
             if _key[:len(key)] == key:
                 available_keys.append(_key)
 
@@ -384,7 +384,7 @@ class CounterManager(DictMixin):
     def __delitem__(self, key):
         key = (key, )
         available_keys = []
-        for _key in self.counters:
+        for _key in self.counters.keys():
             if _key[:len(key)] == key:
                 available_keys.append(_key)
         for _key in available_keys:
@@ -398,7 +398,7 @@ class CounterManager(DictMixin):
 
     def keys(self):
         result = set()
-        for key in self.counters:
+        for key in self.counters.keys():
             result.add(key[0] if key else ())
         return result
 

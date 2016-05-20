@@ -9,14 +9,14 @@ Although resultdb is only designed for result preview, not suitable for large sc
 ```
 from pyspider.database import connect_database
 resultdb = connect_database("<your resutldb connection url>")
-for project in resultdb:
+for project in resultdb.projects:
     for result in resultdb.select(project):
         assert result['taskid']
         assert result['url']
         assert result['result']
-``` 
+```
 
-The `result['result']` is the object you submitted by `return` statement from your script.
+The `result['result']` is the object submitted by `return` statement from your script.
 
 Working with ResultWorker
 -------------------------
@@ -34,11 +34,11 @@ Class MyResultWorker(ResultWorker):
         # your processing code goes here
 ```
 
-`result` is the object you submitted by `return` statement from your script.
+`result` is the object submitted by `return` statement from your script.
 
-You can put this script (e.g., `my_result_worder.py`) at the folder where you launch pyspider. Add argument for `result_worker` subcommand:
+You can put this script (e.g., `my_result_worker.py`) at the folder where you launch pyspider. Add argument for `result_worker` subcommand:
 
-`pyspider result_worker --result-cls=my_result_worder. MyResultWorker`
+`pyspider result_worker --result-cls=my_result_worker.MyResultWorker`
 
 Or
 
@@ -46,7 +46,7 @@ Or
 {
   ...
   "result_worker": {
-    "result_cls": "my_result_worder. MyResultWorker"
+    "result_cls": "my_result_worker.MyResultWorker"
   }
   ...
 }
@@ -71,7 +71,7 @@ def detail_page(self, response):
         self.send_message(self.project_name, {
             ...
         }, url=response.url+"#"+li('a.product-sku').text())
-        
+
 def on_message(self, project, msg):
     return msg
 ```
