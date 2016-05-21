@@ -132,6 +132,10 @@ dictionary of headers to send.
 
 dictionary of cookies to attach to this request. 
 
+##### connect_timeout
+
+timeout for initial connection in seconds. _default: 20_
+
 ##### timeout
 
 maximum time in seconds to fetch the page. _default: 120_ 

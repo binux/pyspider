@@ -68,6 +68,7 @@ class Fetcher(object):
         },
         'use_gzip': True,
         'timeout': 120,
+        'connect_timeout': 20,
     }
     phantomjs_proxy = None
     robot_txt_age = 60*60  # 1h
@@ -265,7 +266,7 @@ class Fetcher(object):
                 fetch['headers']['If-Modified-Since'] = _t
         # timeout
         if 'timeout' in fetch:
-            fetch['connect_timeout'] = fetch['request_timeout'] = fetch['timeout']
+            fetch['request_timeout'] = fetch['timeout']
             del fetch['timeout']
         # data rename to body
         if 'data' in fetch:
@@ -390,7 +391,6 @@ class Fetcher(object):
                 fetch['request_timeout'] -= time.time() - start_time
                 if fetch['request_timeout'] < 0:
                     fetch['request_timeout'] = 0.1
-                fetch['connect_timeout'] = fetch['request_timeout']
                 max_redirects -= 1
                 continue
 
@@ -456,7 +456,7 @@ class Fetcher(object):
         request_conf = {
             'follow_redirects': False
         }
-        request_conf['connect_timeout'] = fetch.get('connect_timeout', 120)
+        request_conf['connect_timeout'] = fetch.get('connect_timeout', 20)
         request_conf['request_timeout'] = fetch.get('request_timeout', 120)
 
         session = cookies.RequestsCookieJar()

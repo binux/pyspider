@@ -267,6 +267,7 @@ class BaseHandler(object):
                 'method',
                 'headers',
                 'data',
+                'connect_timeout',
                 'timeout',
                 'allow_redirects',
                 'cookies',
