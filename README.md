@@ -1,5 +1,6 @@
 Now, Bring Me the Horizon!
 ========
+[BlackPearl] 
 
 pyspider [![Build Status]][Travis CI] [![Coverage Status]][Coverage] [![Try]][Demo]
 ========
@@ -95,3 +96,4 @@ Licensed under the Apache License, Version 2.0
 [Demo Img]:             https://github.com/binux/pyspider/blob/master/docs/imgs/demo.png
 [Issue]:                https://github.com/binux/pyspider/issues
 [User Group]:           https://groups.google.com/group/pyspider-users
+[BlackPearl]:			https://github.com/DataKnower/pyspider/favicon.ico
