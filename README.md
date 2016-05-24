@@ -1,6 +1,5 @@
 Now, Bring Me the Horizon!
 ========
-[BlackPearl] 
 
 pyspider [![Build Status]][Travis CI] [![Coverage Status]][Coverage] [![Try]][Demo]
 ========
