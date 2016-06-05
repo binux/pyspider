@@ -26,7 +26,7 @@ class TestWebUI(unittest.TestCase):
 
         import tests.data_test_webpage
         import httpbin
-        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
 
         ctx = run.cli.make_context('test', [
