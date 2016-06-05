@@ -64,6 +64,7 @@ class Scheduler(object):
         self.task_queue = dict()
         self._last_tick = int(time.time())
         self._sent_finished_event = dict()
+        self._postpone_request = []
 
         self._cnt = {
             "5m_time": counter.CounterManager(
@@ -252,6 +253,15 @@ class Scheduler(object):
 
     def _check_request(self):
         '''Check new task queue'''
+        # check _postpone_request first
+        todo = []
+        for task in self._postpone_request:
+            if self.task_queue[task['project']].is_processing(task['taskid']):
+                todo.append(task)
+            else:
+                self.on_request(task)
+        self._postpone_request = todo
+
         tasks = {}
         while len(tasks) < self.LOOP_LIMIT:
             try:
@@ -655,8 +665,15 @@ class Scheduler(object):
         if not restart:
             logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
             return
-
         task['status'] = self.taskdb.ACTIVE
+
+        if _schedule.get('force_update') and self.task_queue[task['project']].is_processing(task['taskid']):
+            # when a task is in processing, the modify may conflict with the running task.
+            # postpone the modify after task finished.
+            logger.info('postpone modify task %(project)s:%(taskid)s %(url)s', task)
+            self._postpone_request.append(task)
+            return
+
         self.update_task(task)
         self.put_task(task)
 

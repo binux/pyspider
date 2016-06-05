@@ -222,6 +222,12 @@ class TaskQueue(object):
     def size(self):
         return self.priority_queue.qsize() + self.time_queue.qsize() + self.processing.qsize()
 
+    def is_processing(self, taskid):
+        '''
+        return True if taskid is in processing
+        '''
+        return taskid in self.processing and self.processing[taskid].taskid
+
     def __len__(self):
         return self.size()
 
