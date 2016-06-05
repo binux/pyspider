@@ -39,7 +39,6 @@ if sys.version_info < (3, 0):
 
 extras_require_all = [
     'mysql-connector-python>=1.2.2',
-    'amqp>=1.3.0',
     'pymongo>=2.7.2',
     'SQLAlchemy>=0.9.7',
     'redis',
@@ -47,6 +46,14 @@ extras_require_all = [
     'psycopg2',
     'elasticsearch',
 ]
+if sys.version_info < (2, 6):
+    extras_require_all.extend([
+        'amqp>=1.3.0,<2.0',
+    ])
+else:
+    extras_require_all.extend([
+        'amqp>=1.3.0',
+    ])
 if sys.version_info < (3, 0):
     extras_require_all.extend([
         'pika>=0.9.14',

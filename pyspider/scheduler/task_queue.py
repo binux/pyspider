@@ -219,6 +219,21 @@ class TaskQueue(object):
             return True
         return False
 
+    def delete(self, taskid):
+        if taskid not in self:
+            return False
+        if taskid in self.priority_queue:
+            self.mutex.acquire()
+            del self.priority_queue[taskid]
+            self.mutex.release()
+        elif taskid in self.time_queue:
+            self.mutex.acquire()
+            del self.time_queue[taskid]
+            self.mutex.release()
+        elif taskid in self.processing:
+            self.done(taskid)
+        return True
+
     def size(self):
         return self.priority_queue.qsize() + self.time_queue.qsize() + self.processing.qsize()
 

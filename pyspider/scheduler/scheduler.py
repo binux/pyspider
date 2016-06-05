@@ -653,6 +653,13 @@ class Scheduler(object):
         _schedule = task.get('schedule', self.default_schedule)
         old_schedule = old_task.get('schedule', {})
 
+        if _schedule.get('force_update') and self.task_queue[task['project']].is_processing(task['taskid']):
+            # when a task is in processing, the modify may conflict with the running task.
+            # postpone the modify after task finished.
+            logger.info('postpone modify task %(project)s:%(taskid)s %(url)s', task)
+            self._postpone_request.append(task)
+            return
+
         restart = False
         schedule_age = _schedule.get('age', self.default_schedule['age'])
         if _schedule.get('itag') and _schedule['itag'] != old_schedule.get('itag'):
@@ -665,15 +672,15 @@ class Scheduler(object):
         if not restart:
             logger.debug('ignore newtask %(project)s:%(taskid)s %(url)s', task)
             return
+
+        if _schedule.get('cancel'):
+            logger.info('cancel task %(project)s:%(taskid)s %(url)s', task)
+            task['status'] = self.taskdb.BAD
+            self.update_task(task)
+            self.task_queue[task['project']].delete(task['taskid'])
+            return task
+
         task['status'] = self.taskdb.ACTIVE
-
-        if _schedule.get('force_update') and self.task_queue[task['project']].is_processing(task['taskid']):
-            # when a task is in processing, the modify may conflict with the running task.
-            # postpone the modify after task finished.
-            logger.info('postpone modify task %(project)s:%(taskid)s %(url)s', task)
-            self._postpone_request.append(task)
-            return
-
         self.update_task(task)
         self.put_task(task)
 
