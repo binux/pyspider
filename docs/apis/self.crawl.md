@@ -232,6 +232,9 @@ def get_taskid(self, task):
     
 force update task params even if the task is in `ACTIVE` status. 
 
+##### cancel
+
+cancel a task, should be used with `force_update` to cancel a active task. To cancel an `auto_recrawl` task, you should set `auto_recrawl=False` as well.
 
 cURL command
 ------------

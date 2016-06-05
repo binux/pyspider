@@ -46,7 +46,7 @@ extras_require_all = [
     'psycopg2',
     'elasticsearch',
 ]
-if sys.version_info < (2, 6):
+if sys.version_info <= (2, 6):
     extras_require_all.extend([
         'amqp>=1.3.0,<2.0',
     ])
