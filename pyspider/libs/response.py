@@ -85,7 +85,7 @@ class Response(object):
 
         # Fallback to auto-detected encoding.
         if not encoding and chardet is not None:
-            encoding = chardet.detect(self.content)['encoding']
+            encoding = chardet.detect(self.content[:600])['encoding']
 
         if encoding and encoding.lower() == 'gb2312':
             encoding = 'gb18030'

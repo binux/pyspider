@@ -140,7 +140,7 @@ class Processor(object):
                         'time': response.time,
                         'error': response.error,
                         'status_code': response.status_code,
-                        'encoding': response.encoding,
+                        'encoding': getattr(response, '_encoding', None),
                         'headers': track_headers,
                         'content': response.text[:500] if ret.exception else None,
                     },
