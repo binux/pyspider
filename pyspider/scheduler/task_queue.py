@@ -136,7 +136,7 @@ class TaskQueue(object):
 
     @property
     def burst(self):
-        return self.burst.burst
+        return self.bucket.burst
 
     @burst.setter
     def burst(self, value):

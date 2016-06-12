@@ -204,6 +204,17 @@ class TestScheduler(unittest.TestCase):
         self.assertIsNotNone(task)
         self.assertEqual(task['taskid'], '_on_get_info')  # select test_project:_on_get_info data:,_on_get_info
 
+    def test_32_get_info(self):
+        self.status_queue.put({
+            'taskid': '_on_get_info',
+            'project': 'test_project',
+            'track': {
+                'save': {
+                    }
+                }
+            })
+        # test_project on_get_info {}
+
     def test_34_new_not_used_project(self):
         '''
         task_queue = []
