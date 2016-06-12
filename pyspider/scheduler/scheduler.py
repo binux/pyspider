@@ -32,7 +32,8 @@ class Project(object):
         self.paused = False
 
         self.active_tasks = deque(maxlen=ACTIVE_TASKS)
-        self.task_queue = None
+        self.task_queue = TaskQueue()
+        self.task_loaded = False
         self._send_finished_event = False
 
         self.md5sum = None
@@ -55,13 +56,12 @@ class Project(object):
             self.waiting_get_info = True
         self.md5sum = md5sum
 
-        if self.task_queue:
-            if self.active:
-                self.task_queue.rate = project_info['rate']
-                self.task_queue.burst = project_info['burst']
-            else:
-                self.task_queue.rate = 0
-                self.task_queue.burst = 0
+        if self.active:
+            self.task_queue.rate = project_info['rate']
+            self.task_queue.burst = project_info['burst']
+        else:
+            self.task_queue.rate = 0
+            self.task_queue.burst = 0
 
     def on_get_info(self, info):
         self.waiting_get_info = False
@@ -173,13 +173,14 @@ class Scheduler(object):
             })
 
         # load task queue when project is running and delete task_queue when project is stoped
-        if project.active and not project.task_queue:
-            self._load_tasks(project)
-            project.task_queue.rate = project.project_info['rate']
-            project.task_queue.burst = project.project_info['burst']
-
-        if not project.active:
-            project.task_queue = None
+        if project.active:
+            if not project.task_loaded:
+                self._load_tasks(project)
+                project.task_loaded = True
+        else:
+            if project.task_loaded:
+                project.task_queue = TaskQueue()
+                project.task_loaded = False
 
             if project not in self._cnt['all']:
                 self._update_project_cnt(project.name)
@@ -188,7 +189,7 @@ class Scheduler(object):
 
     def _load_tasks(self, project):
         '''load tasks from database'''
-        task_queue = project.task_queue = TaskQueue()
+        task_queue = project.task_queue
 
         for task in self.taskdb.load_tasks(
                 self.taskdb.ACTIVE, project.name, self.scheduler_task_fields
