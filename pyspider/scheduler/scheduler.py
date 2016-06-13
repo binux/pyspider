@@ -17,6 +17,7 @@ from six import iteritems, itervalues
 from six.moves import queue as Queue
 
 from pyspider.libs import counter, utils
+from pyspider.libs.base_handler import BaseHandler
 from .task_queue import TaskQueue
 
 logger = logging.getLogger('scheduler')
@@ -67,6 +68,7 @@ class Project(object):
         self.waiting_get_info = False
         self.min_tick = info.get('min_tick', 0)
         self.retry_delay = info.get('retry_delay', {})
+        self.crawl_config = info.get('crawl_config', {})
 
     @property
     def active(self):
@@ -146,6 +148,8 @@ class Scheduler(object):
         self._force_update_project = False
         self._last_update_project = now
 
+    get_info_attributes = ['min_tick', 'retry_delay', 'crawl_config']
+
     def _update_project(self, project):
         '''update one project'''
         if project['name'] not in self.projects:
@@ -165,7 +169,7 @@ class Scheduler(object):
                 'url': 'data:,_on_get_info',
                 'status': self.taskdb.SUCCESS,
                 'fetch': {
-                    'save': ['min_tick', 'retry_delay'],
+                    'save': self.get_info_attributes,
                 },
                 'process': {
                     'callback': '_on_get_info',
@@ -862,6 +866,11 @@ class Scheduler(object):
         task['group'] = project_info.group
         task['project_md5sum'] = project_info.md5sum
         task['project_updatetime'] = project_info.updatetime
+
+        # lazy join project.crawl_config
+        if getattr(project_info, 'crawl_config', None):
+            task = BaseHandler.task_join_crawl_config(task, project_info.crawl_config)
+
         project_info.active_tasks.appendleft((time.time(), task))
         self.send_task(task)
         return task

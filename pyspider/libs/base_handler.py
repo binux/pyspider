@@ -209,6 +209,39 @@ class BaseHandler(object):
         module.log_buffer[:] = []
         return ProcessorResult(result, follows, messages, logs, exception, extinfo, save)
 
+    schedule_fields = ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update', 'auto_recrawl', 'cancel')
+    fetch_fields = ('method', 'headers', 'data', 'connect_timeout', 'timeout', 'allow_redirects', 'cookies',
+                    'proxy', 'etag', 'last_modifed', 'last_modified', 'save', 'js_run_at', 'js_script',
+                    'js_viewport_width', 'js_viewport_height', 'load_images', 'fetch_type', 'use_gzip', 'validate_cert',
+                    'max_redirects', 'robots_txt')
+    process_fields = ('callback', )
+
+    @staticmethod
+    def task_join_crawl_config(task, crawl_config):
+        task_fetch = task.get('fetch', {})
+        for k in BaseHandler.fetch_fields:
+            if k in crawl_config:
+                v = crawl_config[k]
+                if isinstance(v, dict) and isinstance(task_fetch.get(k), dict):
+                    task_fetch[k].update(v)
+                else:
+                    task_fetch.setdefault(k, v)
+        if task_fetch:
+            task['fetch'] = task_fetch
+
+        task_process = task.get('process', {})
+        for k in BaseHandler.process_fields:
+            if k in crawl_config:
+                v = crawl_config[k]
+                if isinstance(v, dict) and isinstance(task_process.get(k), dict):
+                    task_process[k].update(v)
+                else:
+                    task_process.setdefault(k, v)
+        if task_process:
+            task['process'] = task_process
+
+        return task
+
     def _crawl(self, url, **kwargs):
         """
         real crawl API
@@ -235,12 +268,6 @@ class BaseHandler(object):
                     else:
                         kwargs.setdefault(k, v)
 
-        for k, v in iteritems(self.crawl_config):
-            if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
-                kwargs[k].update(v)
-            else:
-                kwargs.setdefault(k, v)
-
         url = quote_chinese(_build_url(url.strip(), kwargs.pop('params', None)))
         if kwargs.get('files'):
             assert isinstance(
@@ -256,50 +283,22 @@ class BaseHandler(object):
             kwargs.setdefault('method', 'POST')
 
         schedule = {}
-        for key in (
-                'priority',
-                'retries',
-                'exetime',
-                'age',
-                'itag',
-                'force_update',
-                'auto_recrawl',
-                'cancel'):
+        for key in self.schedule_fields:
             if key in kwargs:
                 schedule[key] = kwargs.pop(key)
+            elif key in self.crawl_config:
+                schedule[key] = self.crawl_config[key]
+
         task['schedule'] = schedule
 
         fetch = {}
-        for key in (
-                'method',
-                'headers',
-                'data',
-                'connect_timeout',
-                'timeout',
-                'allow_redirects',
-                'cookies',
-                'proxy',
-                'etag',
-                'last_modifed',
-                'last_modified',
-                'save',
-                'js_run_at',
-                'js_script',
-                'js_viewport_width',
-                'js_viewport_height',
-                'load_images',
-                'fetch_type',
-                'use_gzip',
-                'validate_cert',
-                'max_redirects',
-                'robots_txt'
-        ):
+        for key in self.fetch_fields:
             if key in kwargs:
                 fetch[key] = kwargs.pop(key)
         task['fetch'] = fetch
 
         process = {}
-        for key in ('callback', ):
+        for key in self.process_fields:
             if key in kwargs:
                 process[key] = kwargs.pop(key)
         task['process'] = process
@@ -431,6 +430,8 @@ class BaseHandler(object):
                 if not isinstance(self.retry_delay, dict):
                     self.retry_delay = {'': self.retry_delay}
                 self.save[each] = self.retry_delay
+            elif each == 'crawl_config':
+                self.save[each] = self.crawl_config
 
     @not_send_status
     def on_finished(self, response, task):
