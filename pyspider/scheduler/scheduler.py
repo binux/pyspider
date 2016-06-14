@@ -208,20 +208,20 @@ class Scheduler(object):
 
         if project not in self._cnt['all']:
             self._update_project_cnt(project)
-        self._cnt['all'].value((project, 'pending'), len(project.task_queue))
+        self._cnt['all'].value((project.name, 'pending'), len(project.task_queue))
 
-    def _update_project_cnt(self, project):
-        status_count = self.taskdb.status_count(project)
+    def _update_project_cnt(self, project_name):
+        status_count = self.taskdb.status_count(project_name)
         self._cnt['all'].value(
-            (project, 'success'),
+            (project_name, 'success'),
             status_count.get(self.taskdb.SUCCESS, 0)
         )
         self._cnt['all'].value(
-            (project, 'failed'),
+            (project_name, 'failed'),
             status_count.get(self.taskdb.FAILED, 0) + status_count.get(self.taskdb.BAD, 0)
         )
         self._cnt['all'].value(
-            (project, 'pending'),
+            (project_name, 'pending'),
             status_count.get(self.taskdb.ACTIVE, 0)
         )
 
