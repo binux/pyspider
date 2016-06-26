@@ -611,7 +611,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 
         time.sleep(10)
 
-        scheduler_rpc.new_task({
+        scheduler_rpc.newtask({
             "project": project_name,
             "taskid": "on_start",
             "url": "data:,on_start",
