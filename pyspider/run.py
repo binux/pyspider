@@ -566,6 +566,15 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         'updatetime': time.time()
     })
 
+    # disable log
+    logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger('scheduler').setLevel(logging.ERROR)
+    logging.getLogger('fetcher').setLevel(logging.ERROR)
+    logging.getLogger('processor').setLevel(logging.ERROR)
+    logging.getLogger('result').setLevel(logging.ERROR)
+    logging.getLogger('webui').setLevel(logging.ERROR)
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
     try:
         threads = []
 
@@ -597,7 +606,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
         threads.append(run_in(ctx.invoke, webui, **webui_config))
 
-        time.sleep(5)
+        time.sleep(1)
 
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
@@ -609,7 +618,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         scheduler_rpc = connect_rpc(ctx, None,
                                     'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
 
-        time.sleep(10)
+        time.sleep(2)
 
         scheduler_rpc.newtask({
             "project": project_name,
@@ -619,15 +628,6 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                 "callback": "on_start",
             },
         })
-
-        # disable log
-        logging.getLogger().setLevel(logging.ERROR)
-        logging.getLogger('scheduler').setLevel(logging.ERROR)
-        logging.getLogger('fetcher').setLevel(logging.ERROR)
-        logging.getLogger('processor').setLevel(logging.ERROR)
-        logging.getLogger('result').setLevel(logging.ERROR)
-        logging.getLogger('webui').setLevel(logging.ERROR)
-        logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
         # wait bench test finished
         while True:
