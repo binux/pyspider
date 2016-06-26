@@ -566,6 +566,15 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         'updatetime': time.time()
     })
 
+    # disable log
+    logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger('scheduler').setLevel(logging.ERROR)
+    logging.getLogger('fetcher').setLevel(logging.ERROR)
+    logging.getLogger('processor').setLevel(logging.ERROR)
+    logging.getLogger('result').setLevel(logging.ERROR)
+    logging.getLogger('webui').setLevel(logging.ERROR)
+    logging.getLogger('werkzeug').setLevel(logging.ERROR)
+
     try:
         threads = []
 
@@ -608,15 +617,6 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                               **scheduler_config))
         scheduler_rpc = connect_rpc(ctx, None,
                                     'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
-
-        # disable log
-        logging.getLogger().setLevel(logging.ERROR)
-        logging.getLogger('scheduler').setLevel(logging.ERROR)
-        logging.getLogger('fetcher').setLevel(logging.ERROR)
-        logging.getLogger('processor').setLevel(logging.ERROR)
-        logging.getLogger('result').setLevel(logging.ERROR)
-        logging.getLogger('webui').setLevel(logging.ERROR)
-        logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
         # wait bench test finished
         while True:
