@@ -1,9 +1,11 @@
 language: python
+cache: pip
 python:
     - "2.6"
     - "2.7"
     - "3.3"
     - "3.4"
+    - "3.5"
 services:
     - mongodb
     - rabbitmq

@@ -606,7 +606,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
         threads.append(run_in(ctx.invoke, webui, **webui_config))
 
-        time.sleep(5)
+        time.sleep(1)
 
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
@@ -617,6 +617,17 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                               **scheduler_config))
         scheduler_rpc = connect_rpc(ctx, None,
                                     'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
+
+        time.sleep(2)
+
+        scheduler_rpc.newtask({
+            "project": project_name,
+            "taskid": "on_start",
+            "url": "data:,on_start",
+            "process": {
+                "callback": "on_start",
+            },
+        })
 
         # wait bench test finished
         while True:
