@@ -67,7 +67,7 @@ One workaround is using `send_message` API to make a `fake` taskid for each resu
 
 ```
 def detail_page(self, response):
-    for li in response.doc('li'):
+    for li in response.doc('li').items():
         self.send_message(self.project_name, {
             ...
         }, url=response.url+"#"+li('a.product-sku').text())
