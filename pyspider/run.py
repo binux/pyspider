@@ -404,7 +404,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
         _quit.append(1)
         _phantomjs.kill()
         _phantomjs.wait()
-        logging.info('phantomjs existed.')
+        logging.info('phantomjs exited.')
 
     if not g.get('phantomjs_proxy'):
         g['phantomjs_proxy'] = '127.0.0.1:%s' % port
