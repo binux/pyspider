@@ -641,6 +641,9 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
             self.assertIn('url', ret)
             self.assertNotIn('result', ret)
 
+    def test_35_select_limit(self):
+        pass
+
     def test_z20_update_projects(self):
         self.resultdb.refresh()
         self.assertIn('drop_project2', self.resultdb.projects)
