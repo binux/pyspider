@@ -291,6 +291,13 @@ class ResultDBCase(object):
             self.assertIn('url', ret)
             self.assertNotIn('result', ret)
 
+    def test_35_select_limit(self):
+        ret = list(self.resultdb.select('test_project', limit=None, offset=None))
+        self.assertEqual(len(ret), 6)
+
+        ret = list(self.resultdb.select('test_project', limit=None, offset=2))
+        self.assertEqual(len(ret), 4, ret)
+
     def test_40_count(self):
         self.assertEqual(self.resultdb.count('test_project'), 6)
 

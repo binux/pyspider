@@ -46,6 +46,8 @@ class BaseDB:
             sql_query += " WHERE %s" % where
         if limit:
             sql_query += " LIMIT %d, %d" % (offset, limit)
+        elif offset:
+            sql_query += " LIMIT %d, %d" % (offset, -1)
         logger.debug("<sql: %s>", sql_query)
 
         for row in self._execute(sql_query, where_values):
@@ -64,6 +66,8 @@ class BaseDB:
             sql_query += ' ORDER BY %s' % order
         if limit:
             sql_query += " LIMIT %d, %d" % (offset, limit)
+        elif offset:
+            sql_query += " LIMIT %d, %d" % (offset, -1)
         logger.debug("<sql: %s>", sql_query)
 
         dbcur = self._execute(sql_query, where_values)
