@@ -75,7 +75,7 @@ class TestRun(unittest.TestCase):
         with self.assertRaises(mysql.connector.InterfaceError):
             ctx.obj.taskdb
 
-        with self.assertRaisesRegexp(Exception, 'Connection refused'):
+        with self.assertRaises(Exception):
             ctx.obj.newtask_queue
 
     def test_30_cli_command_line(self):

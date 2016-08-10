@@ -51,6 +51,8 @@ class ResultDB(BaseResultDB):
                              body=obj, id='%s:%s' % (project, taskid))
 
     def select(self, project, fields=None, offset=0, limit=0):
+        offset = offset or 0
+        limit = limit or 0
         if not limit:
             for record in elasticsearch.helpers.scan(self.es, index=self.index, doc_type=self.__type__,
                                                      query={'query': {'term': {'project': project}}},

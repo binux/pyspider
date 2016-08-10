@@ -10,6 +10,7 @@ import mysql.connector
 
 
 class MySQLMixin(object):
+    maxlimit = 18446744073709551615
 
     @property
     def dbcur(self):
