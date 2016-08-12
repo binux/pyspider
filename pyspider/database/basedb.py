@@ -133,6 +133,7 @@ if __name__ == "__main__":
 
     class DB(BaseDB):
         __tablename__ = "test"
+        placeholder = "?"
 
         def __init__(self):
             self.conn = sqlite3.connect(":memory:")
@@ -148,12 +149,12 @@ if __name__ == "__main__":
 
     db = DB()
     assert db._insert(db.__tablename__, name="binux", age=23) == 1
-    assert db._select(db.__tablename__, "name, age").fetchone() == ("binux", 23)
-    assert db._select2dic(db.__tablename__, "name, age")[0]["name"] == "binux"
-    assert db._select2dic(db.__tablename__, "name, age")[0]["age"] == 23
+    assert db._select(db.__tablename__, "name, age").next() == ("binux", 23)
+    assert db._select2dic(db.__tablename__, "name, age").next()["name"] == "binux"
+    assert db._select2dic(db.__tablename__, "name, age").next()["age"] == 23
     db._replace(db.__tablename__, id=1, age=24)
-    assert db._select(db.__tablename__, "name, age").fetchone() == (None, 24)
+    assert db._select(db.__tablename__, "name, age").next() == (None, 24)
     db._update(db.__tablename__, "id = 1", age=16)
-    assert db._select(db.__tablename__, "name, age").fetchone() == (None, 16)
+    assert db._select(db.__tablename__, "name, age").next() == (None, 16)
     db._delete(db.__tablename__, "id = 1")
-    assert db._select(db.__tablename__).fetchall() == []
+    assert [row for row in db._select(db.__tablename__)] == []
