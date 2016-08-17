@@ -64,6 +64,9 @@ class Project(object):
             self.task_queue.rate = 0
             self.task_queue.burst = 0
 
+        logger.info('project %s updated, status:%s, paused:%s, %d tasks',
+                    self.name, self.db_status, self.paused, len(self.task_queue))
+
     def on_get_info(self, info):
         self.waiting_get_info = False
         self.min_tick = info.get('min_tick', 0)
@@ -563,7 +566,7 @@ class Scheduler(object):
 
     def run(self):
         '''Start scheduler loop'''
-        logger.info("loading projects")
+        logger.info("starting scheduler...")
 
         while not self._quit:
             try:
