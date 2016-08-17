@@ -584,6 +584,7 @@ class Fetcher(object):
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
         self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
         self.xmlrpc_server.listen(port=port, address=bind)
+        logger.info('fetcher.xmlrpc listening on %s:%s', bind, port)
         self.xmlrpc_ioloop.start()
 
     def on_fetch(self, type, task):

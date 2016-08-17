@@ -566,7 +566,7 @@ class Scheduler(object):
 
     def run(self):
         '''Start scheduler loop'''
-        logger.info("starting scheduler...")
+        logger.info("scheduler starting...")
 
         while not self._quit:
             try:
@@ -680,6 +680,7 @@ class Scheduler(object):
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
         self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
         self.xmlrpc_server.listen(port=port, address=bind)
+        logger.info('scheduler.xmlrpc listening on %s:%s', bind, port)
         self.xmlrpc_ioloop.start()
 
     def on_request(self, task):
