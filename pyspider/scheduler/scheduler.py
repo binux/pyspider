@@ -961,12 +961,17 @@ class OneScheduler(Scheduler):
             shell.ask_exit()
 
         shell = utils.get_python_console()
-        shell.interact(
+        banner = (
             'pyspider shell - Select task\n'
             'crawl(url, project=None, **kwargs) - same parameters as BaseHandler.crawl\n'
             'quit_interactive() - Quit interactive mode\n'
             'quit_pyspider() - Close pyspider'
         )
+        if hasattr(shell, 'show_banner'):
+            shell.show_banner(banner)
+            shell.interact()
+        else:
+            shell.interact(banner)
         if not is_crawled:
             self.ioloop.add_callback(self.ioloop.stop)
 
