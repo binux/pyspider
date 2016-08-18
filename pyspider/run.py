@@ -346,7 +346,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     else:
         # get fetcher instance for webui
         fetcher_config = g.config.get('fetcher', {})
-        mock_g = copy.deepcopy(g)
+        mock_g = copy.copy(g)
         mock_g['scheduler2fetcher'] = None
         mock_g['fetcher2processor'] = None
         webui_fetcher = ctx.invoke(fetcher, async=False, get_object=True, g=mock_g, **fetcher_config)
@@ -599,8 +599,6 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         webui_config.setdefault('scheduler_rpc', 'http://127.0.0.1:%s/'
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
         threads.append(run_in(ctx.invoke, webui, **webui_config))
-
-        time.sleep(1)
 
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
