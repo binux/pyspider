@@ -183,7 +183,7 @@ def cli(ctx, **kwargs):
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
               inqueue_limit, delete_time, active_tasks, loop_limit, scheduler_cls,
-              threads):
+              threads, get_object=False):
     """
     Run Scheduler, only one scheduler is allowed.
     """
@@ -203,7 +203,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     scheduler.LOOP_LIMIT = loop_limit
 
     g.instances.append(scheduler)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return scheduler
 
     if xmlrpc:
@@ -223,11 +223,11 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
               help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, fetcher_cls, async=True):
+            timeout, fetcher_cls, async=True, get_object=False, g=None):
     """
     Run Fetcher.
     """
-    g = ctx.obj
+    g = g or ctx.obj
     Fetcher = load_cls(None, None, fetcher_cls)
 
     fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
@@ -240,7 +240,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
         fetcher.default_options['timeout'] = timeout
 
     g.instances.append(fetcher)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return fetcher
 
     if xmlrpc:
@@ -252,7 +252,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
 @click.option('--processor-cls', default='pyspider.processor.Processor',
               callback=load_cls, help='Processor class to be used.')
 @click.pass_context
-def processor(ctx, processor_cls, enable_stdout_capture=True):
+def processor(ctx, processor_cls, enable_stdout_capture=True, get_object=False):
     """
     Run Processor.
     """
@@ -265,7 +265,7 @@ def processor(ctx, processor_cls, enable_stdout_capture=True):
                           enable_stdout_capture=enable_stdout_capture)
 
     g.instances.append(processor)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return processor
 
     processor.run()
@@ -275,7 +275,7 @@ def processor(ctx, processor_cls, enable_stdout_capture=True):
 @click.option('--result-cls', default='pyspider.result.ResultWorker', callback=load_cls,
               help='ResultWorker class to be used.')
 @click.pass_context
-def result_worker(ctx, result_cls):
+def result_worker(ctx, result_cls, get_object=False):
     """
     Run result worker.
     """
@@ -285,7 +285,7 @@ def result_worker(ctx, result_cls):
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
     g.instances.append(result_worker)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return result_worker
 
     result_worker.run()
@@ -311,7 +311,7 @@ def result_worker(ctx, result_cls):
               help='webui Flask Application instance to be used.')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
-          username, password, need_auth, webui_instance):
+          username, password, need_auth, webui_instance, get_object=False):
     """
     Run WebUI
     """
@@ -346,16 +346,10 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     else:
         # get fetcher instance for webui
         fetcher_config = g.config.get('fetcher', {})
-        scheduler2fetcher = g.scheduler2fetcher
-        fetcher2processor = g.fetcher2processor
-        testing_mode = g.get('testing_mode', False)
-        g['scheduler2fetcher'] = None
-        g['fetcher2processor'] = None
-        g['testing_mode'] = True
-        webui_fetcher = ctx.invoke(fetcher, async=False, **fetcher_config)
-        g['scheduler2fetcher'] = scheduler2fetcher
-        g['fetcher2processor'] = fetcher2processor
-        g['testing_mode'] = testing_mode
+        mock_g = copy.deepcopy(g)
+        mock_g['scheduler2fetcher'] = None
+        mock_g['fetcher2processor'] = None
+        webui_fetcher = ctx.invoke(fetcher, async=False, get_object=True, g=mock_g, **fetcher_config)
 
         app.config['fetch'] = lambda x: webui_fetcher.fetch(x)
 
@@ -371,7 +365,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 
     app.debug = g.debug
     g.instances.append(app)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return app
 
     app.run(host=host, port=port)
