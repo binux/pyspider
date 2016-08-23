@@ -55,7 +55,7 @@ $(function() {
 
   $('.project-run').on('click', function() {
     var project = $(this).parents('tr').data("name");
-    var status = $(this).parents('tr').find(".project-status [data-value]").data("value");
+    var status = $(this).parents('tr').find(".project-status [data-value]").attr("data-value");
 
     $("#need-set-status-alert").hide();
     if (status != "RUNNING" && status != "DEBUG") {
