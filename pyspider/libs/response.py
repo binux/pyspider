@@ -78,7 +78,7 @@ class Response(object):
         # Try charset from content
         if not encoding and get_encodings_from_content:
             if six.PY3:
-                encoding = get_encodings_from_content(utils.pretty_unicode(self.content[:100]))
+                encoding = get_encodings_from_content(utils.pretty_unicode(self.content[:1000]))
             else:
                 encoding = get_encodings_from_content(self.content)
             encoding = encoding and encoding[0] or None
