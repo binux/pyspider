@@ -3,7 +3,7 @@
 //         http://binux.me
 // Created on 2014-03-02 17:53:23
 
-$(function() {
+function init_editable(projects_app) {
   $(".project-group>span").editable({
     name: 'group',
     pk: function(e) {
@@ -11,7 +11,12 @@ $(function() {
     },
     emptytext: '[group]',
     placement: 'right',
-    url: "/update"
+    url: "/update",
+    success: function(response, value) {
+      var project_name = $(this).parents('tr').data("name");
+      projects_app.projects[project_name].group = value;
+      $(this).attr('style', '');
+    }
   });
 
   $(".project-status>span").editable({
@@ -31,6 +36,8 @@ $(function() {
     placement: 'right',
     url: "/update",
     success: function(response, value) {
+      var project_name = $(this).parents('tr').data("name");
+      projects_app.projects[project_name].status = value;
       $(this).removeClass('status-'+$(this).attr('data-value')).addClass('status-'+value).attr('data-value', value).attr('style', '');
     }
   });
@@ -50,9 +57,33 @@ $(function() {
     highlight: false,
     emptytext: '0/0',
     placement: 'right',
-    url: "/update"
+    url: "/update",
+    success: function(response, value) {
+      var project_name = $(this).parents('tr').data("name");
+      var s = value.split('/');
+      projects_app.projects[project_name].rate = parseFloat(s[0]);
+      projects_app.projects[project_name].burst = parseFloat(s[1]);
+      $(this).attr('style', '');
+    }
   });
+}
 
+function init_sortable() {
+  // table sortable
+  Sortable.getColumnType = function(table, i) {
+    var type = $($(table).find('th').get(i)).data('type');
+    if (type == "num") {
+      return Sortable.types.numeric;
+    } else if (type == "date") {
+      return Sortable.types.date;
+    }
+    return Sortable.types.alpha;
+  };
+  $('table.projects').attr('data-sortable', true);
+  Sortable.init();
+}
+
+$(function() {
   $('.project-run').on('click', function() {
     var project = $(this).parents('tr').data("name");
     var status = $(this).parents('tr').find(".project-status [data-value]").attr("data-value");
@@ -104,65 +135,56 @@ $(function() {
     return true;
   });
 
-  // onload
-  function fill_progress(project, type, info) {
-    var $e = $("tr[data-name="+project+"] td.progress-"+type);
-
-    if (!!!info) {
-      $e.attr("title", "");
-      $e.attr('data-value', 0);
-      $e.find(".progress-text").text(type);
-      $e.find(".progress-pending").width("0%");
-      $e.find(".progress-success").width("0%");
-      $e.find(".progress-retry").width("0%");
-      $e.find(".progress-failed").width("0%");
-      return ;
+  // projects vue
+  var projects_map = {};
+  projects.forEach(function(p) {
+    p.time = {};
+    p.progress = {};
+    projects_map[p.name] = p;
+  });
+  projects_app = new Vue({
+    el: '.projects',
+    data: {
+      projects: projects_map
+    },
+    ready: function() {
+      init_editable(this);
+      init_sortable(this);
     }
+  });
 
-    var pending = info.pending || 0,
-    success = info.success || 0,
-    retry = info.retry || 0,
-    failed = info.failed || 0,
-    sum = info.task || pending + success + retry + failed;
-    $e.attr("title", ""+type+" of "+sum+" tasks:\n"
+  function update_counters() {
+    $.get('/counter', function(data) {
+      for (project in data) {
+        var info = data[project];
+        if (projects_app.projects[project] === undefined)
+          continue;
+
+        // data inject
+        var types = "5m,1h,1d,all".split(',');
+        for (type in types) {
+          type = types[type];
+          var d = info[type];
+          if (d === undefined)
+            continue;
+          var pending = d.pending || 0,
+            success = d.success || 0,
+            retry = d.retry || 0,
+            failed = d.failed || 0,
+            sum = d.task || pending + success + retry + failed;
+          d.task = sum;
+          d.title = ""+type+" of "+sum+" tasks:\n"
             +(type == "all"
               ? "pending("+(pending/sum*100).toFixed(1)+"%): \t"+pending+"\n"
               : "new("+(pending/sum*100).toFixed(1)+"%): \t\t"+pending+"\n")
-              +"success("+(success/sum*100).toFixed(1)+"%): \t"+success+"\n"
-              +"retry("+(retry/sum*100).toFixed(1)+"%): \t"+retry+"\n"
-              +"failed("+(failed/sum*100).toFixed(1)+"%): \t"+failed
-           );
-           $e.attr('data-value', sum);
-           $e.find(".progress-text").text(type+": "+sum);
-           $e.find(".progress-pending").width(""+(pending/sum*100)+"%");
-           $e.find(".progress-success").width(""+(success/sum*100)+"%");
-           $e.find(".progress-retry").width(""+(retry/sum*100)+"%");
-           $e.find(".progress-failed").width(""+(failed/sum*100)+"%");
-  }
-  function update_counters() {
-    $.get('/counter', function(data) {
-      //console.log(data);
-      $('tr[data-name]').each(function(i, tr) {
-        var project = $(tr).data('name');
-        var info = data[project];
-        if (info === undefined) {
-          return ;
+            +"success("+(success/sum*100).toFixed(1)+"%): \t"+success+"\n"
+            +"retry("+(retry/sum*100).toFixed(1)+"%): \t"+retry+"\n"
+            +"failed("+(failed/sum*100).toFixed(1)+"%): \t"+failed;
         }
 
-        if (info['5m_time']) {
-          var fetch_time = (info['5m_time']['fetch_time'] || 0) * 1000;
-          var process_time = (info['5m_time']['process_time'] || 0) * 1000;
-          $(tr).find('.project-time').attr('data-value', fetch_time+process_time).text(
-            ''+fetch_time.toFixed(1)+'+'+process_time.toFixed(2)+'ms');
-        } else {
-          $(tr).find('.project-time').attr('data-value', '').text('');
-        }
-
-        fill_progress(project, '5m', info['5m']);
-        fill_progress(project, '1h', info['1h']);
-        fill_progress(project, '1d', info['1d']);
-        fill_progress(project, 'all', info['all']);
-      });
+        projects_app.projects[project].time = info['5m_time'];
+        projects_app.projects[project].progress = info;
+      }
     });
   }
   window.setInterval(update_counters, 15*1000);
@@ -183,17 +205,4 @@ $(function() {
   }
   window.setInterval(update_queues, 15*1000);
   update_queues();
-
-  // table sortable
-  Sortable.getColumnType = function(table, i) {
-    var type = $($(table).find('th').get(i)).data('type');
-    if (type == "num") {
-      return Sortable.types.numeric;
-    } else if (type == "date") {
-      return Sortable.types.date;
-    }
-    return Sortable.types.alpha;
-  };
-  $('table.projects').attr('data-sortable', true);
-  Sortable.init();
 });

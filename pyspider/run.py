@@ -302,7 +302,7 @@ def result_worker(ctx, result_cls, get_object=False):
               help='webui bind to host')
 @click.option('--port', default=5000, envvar='WEBUI_PORT',
               help='webui bind to host')
-@click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/',
+@click.option('--cdn', default='//cdnjs.cloudflare.com/ajax/libs/',
               help='js/css cdn server')
 @click.option('--scheduler-rpc', help='xmlrpc path of scheduler')
 @click.option('--fetcher-rpc', help='xmlrpc path of fetcher')
