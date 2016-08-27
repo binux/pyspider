@@ -199,7 +199,7 @@ class TestWebUI(unittest.TestCase):
     def test_50_index_page_list(self):
         rv = self.app.get('/')
         self.assertEqual(rv.status_code, 200)
-        self.assertIn(b'test_project</a>', rv.data)
+        self.assertIn(b'"test_project"', rv.data)
 
     def test_52_change_status(self):
         rv = self.app.post('/update', data={
