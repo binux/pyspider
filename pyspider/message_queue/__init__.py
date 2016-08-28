@@ -11,7 +11,7 @@ except ImportError:
     import urlparse
 
 
-def connect_message_queue(name, url=None, maxsize=0):
+def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
     """
     create connection to message queue
 
@@ -39,7 +39,7 @@ def connect_message_queue(name, url=None, maxsize=0):
     parsed = urlparse.urlparse(url)
     if parsed.scheme == 'amqp':
         from .rabbitmq import Queue
-        return Queue(name, url, maxsize=maxsize)
+        return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
     elif parsed.scheme == 'beanstalk':
         from .beanstalk import Queue
         return Queue(name, host=parsed.netloc, maxsize=maxsize)
@@ -53,11 +53,11 @@ def connect_message_queue(name, url=None, maxsize=0):
 
         password = parsed.password or None
 
-        return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize, password=password)
+        return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
     else:
         if url.startswith('kombu+'):
             url = url[len('kombu+'):]
         from .kombu_queue import Queue
-        return Queue(name, url, maxsize=maxsize)
+        return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
 
     raise Exception('unknow connection url: %s', url)

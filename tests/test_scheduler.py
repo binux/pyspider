@@ -228,7 +228,7 @@ class TestScheduler(unittest.TestCase):
             'rate': 1.0,
             'burst': 10,
         })
-        task = self.scheduler2fetcher.get(timeout=1)  # select test_project_not_started:_on_get_info data:,_on_get_info
+        task = self.scheduler2fetcher.get(timeout=5)  # select test_project_not_started:_on_get_info data:,_on_get_info
         self.assertEqual(task['taskid'], '_on_get_info')
 
     def test_35_new_task(self):
