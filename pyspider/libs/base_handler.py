@@ -313,6 +313,9 @@ class BaseHandler(object):
         if kwargs:
             raise TypeError('crawl() got unexpected keyword argument: %s' % kwargs.keys())
 
+        if self.is_debugger():
+            task = self.task_join_crawl_config(task, self.crawl_config)
+
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:
             self._follows_keys.add(cache_key)

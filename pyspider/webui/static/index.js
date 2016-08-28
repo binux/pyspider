@@ -150,6 +150,7 @@ $(function() {
     ready: function() {
       init_editable(this);
       init_sortable(this);
+      update_counters();
     }
   });
 
@@ -188,7 +189,6 @@ $(function() {
     });
   }
   window.setInterval(update_counters, 15*1000);
-  update_counters();
 
   function update_queues() {
     $.get('/queues', function(data) {
