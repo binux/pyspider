@@ -724,6 +724,7 @@ from pyspider.scheduler.scheduler import Project
 
 class TestProject(unittest.TestCase):
     task_pack = {
+        'type': Scheduler.TASK_PACK,
         'taskid': 'taskid',
         'project': 'test_project',
         'url': 'url',

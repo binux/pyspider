@@ -55,8 +55,11 @@ class Project(object):
         if not self._paused:
             fail_cnt = 0
             for _, task in self.active_tasks:
-                if 'track' not in task:
+                # ignore select task
+                if task.get('type') == self.scheduler.TASK_PACK:
                     continue
+                if 'process' not in task['track']:
+                    logger.error('process not in task, %r', task)
                 if task['track']['process']['ok']:
                     break
                 else:
@@ -75,7 +78,8 @@ class Project(object):
             for _, task in self.active_tasks:
                 if task is self._unpause_last_seen:
                     break
-                if 'track' not in task:
+                # ignore select task
+                if task.get('type') == self.scheduler.TASK_PACK:
                     continue
                 cnt += 1
                 if task['track']['process']['ok']:
@@ -153,6 +157,10 @@ class Scheduler(object):
     FAIL_PAUSE_NUM = 10
     PAUSE_TIME = 5*60
     UNPAUSE_CHECK_NUM = 3
+
+    TASK_PACK = 1
+    STATUS_PACK = 2  # current not used
+    REQUEST_PACK = 3  # current not used
 
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue,
                  out_queue, data_path='./data', resultdb=None):
@@ -684,6 +692,7 @@ class Scheduler(object):
 
         def get_active_tasks(project=None, limit=100):
             allowed_keys = set((
+                'type',
                 'taskid',
                 'project',
                 'status',
@@ -724,6 +733,26 @@ class Scheduler(object):
             # have no idea why
             return json.loads(json.dumps(result))
         application.register_function(get_active_tasks, 'get_active_tasks')
+
+        def get_projects_pause_status():
+            result = {}
+            for project_name, project in iteritems(self.projects):
+                result[project_name] = project.paused
+            return result
+        application.register_function(get_projects_pause_status, 'get_projects_pause_status')
+
+        def webui_update():
+            return {
+                'pause_status': get_projects_pause_status(),
+                'counter': {
+                    '5m_time': dump_counter('5m_time', 'avg'),
+                    '5m': dump_counter('5m', 'sum'),
+                    '1h': dump_counter('1h', 'sum'),
+                    '1d': dump_counter('1d', 'sum'),
+                    'all': dump_counter('all', 'sum'),
+                },
+            }
+        application.register_function(webui_update, 'webui_update')
 
         import tornado.wsgi
         import tornado.ioloop
@@ -920,6 +949,7 @@ class Scheduler(object):
 
         project_info = self.projects.get(task['project'])
         assert project_info, 'no such project'
+        task['type'] = self.TASK_PACK
         task['group'] = project_info.group
         task['project_md5sum'] = project_info.md5sum
         task['project_updatetime'] = project_info.updatetime
