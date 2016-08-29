@@ -21,6 +21,21 @@ def on_message(self, project, msg):
     return msg
 ``` 
 
+pyspider send_message [OPTIONS] PROJECT MESSAGE
+-----------------------------------------------
+
+You can also send message from command line.
+
+```
+Usage: pyspider send_message [OPTIONS] PROJECT MESSAGE
+
+  Send Message to project from command line
+
+Options:
+  --scheduler-rpc TEXT  xmlrpc path of scheduler
+  --help                Show this message and exit.
+```
+
 def on_message(self, project, message)
 --------------------------------------
 receive message from other project
