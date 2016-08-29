@@ -134,6 +134,7 @@ $(function() {
             +"failed("+(failed/sum*100).toFixed(1)+"%): \t"+failed;
         }
 
+        projects_app.projects[project].paused = info['paused'];
         projects_app.projects[project].time = info['5m_time'];
         projects_app.projects[project].progress = info;
       }
@@ -157,6 +158,7 @@ $(function() {
   // projects vue
   var projects_map = {};
   projects.forEach(function(p) {
+    p.paused = false;
     p.time = {};
     p.progress = {};
     projects_map[p.name] = p;

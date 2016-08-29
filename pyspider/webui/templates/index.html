@@ -125,11 +125,13 @@
         </thead>
         <tbody>
         {% raw %}
-          <tr v-for="project in projects" data-name="{{* project.name }}">
+          <tr v-cloak v-for="project in projects" data-name="{{* project.name }}">
             <td class="project-group"><span>{{ project.group }}</span></td>
             <td class="project-name"><a href="/debug/{{* project.name }}">{{* project.name }}</a></td>
             <td class="project-status">
-              <span class="status-{{ project.status }}" :data-value="project.status">{{ project.status }}</span>
+              <span class="status-{{ project.paused ? 'PAUSED' : project.status }}" :data-value="project.paused ? 'PAUSED' : project.status">
+                {{ project.paused ? 'PAUSED' : project.status }}
+              </span>
             </td>
             <td class="project-rate" :data-value="project.rate"><span>{{ project.rate }}/{{ project.burst }}</span></td>
             <td class="project-time" :data-value="project.time.fetch_time + project.time.process_time">

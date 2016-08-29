@@ -20,6 +20,9 @@ header .alert {
   text-align: center;
   border: 1px solid #ddd;
 }
+[v-cloak] {
+  display: none;
+}
 .projects {
   min-width: 850px;
   border-top: 1px solid #ddd;
@@ -35,9 +38,9 @@ header .alert {
   width: 100px;
 }
 .projects .project-status > span {
-  border: solid 1px #666666;
+  border: solid 1px #808080;
   padding: 1px 5px 0 5px;
-  background: #808080;
+  background: #999999;
   color: white;
 }
 .projects span.status-TODO {
@@ -68,6 +71,12 @@ header .alert {
   border: solid 1px #449d44;
   padding: 1px 5px 0 5px;
   background: #5cb85c;
+  color: white;
+}
+.projects span.status-PAUSED {
+  border: solid 1px #3c3c3c;
+  padding: 1px 5px 0 5px;
+  background: #555555;
   color: white;
 }
 .projects .project-rate {
