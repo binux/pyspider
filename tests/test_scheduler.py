@@ -719,5 +719,129 @@ class TestScheduler(unittest.TestCase):
             self.taskdb.SUCCESS
         )
 
+
+from pyspider.scheduler.scheduler import Project
+
+class TestProject(unittest.TestCase):
+    task_pack = {
+        'taskid': 'taskid',
+        'project': 'test_project',
+        'url': 'url',
+        'fetch': {
+            'data': 'abc',
+        },
+        'process': {
+            'data': 'abc',
+        },
+        'schedule': {
+            'age': 0,
+        },
+    }
+
+    status_ok_pack = {
+        'taskid': 'taskid',
+        'project': 'test_project',
+        'url': 'url',
+        'schedule': {
+            'age': 0,
+            'retries': 1,
+        },
+        'track': {
+            'fetch': {
+                'ok': True
+            },
+            'process': {
+                'ok': True
+            },
+        }
+    }
+
+    status_fail_pack = {
+        'taskid': 'taskid',
+        'project': 'test_project',
+        'url': 'url',
+        'schedule': {
+            'age': 0,
+            'retries': 1,
+        },
+        'track': {
+            'fetch': {
+                'ok': False
+            },
+            'process': {
+                'ok': False
+            },
+        }
+    }
+
+    @classmethod
+    def setUpClass(self):
+        self.scheduler = Scheduler(taskdb=None, projectdb=None, newtask_queue=None, status_queue=None, out_queue=None)
+        self.scheduler.PAUSE_TIME = 2
+        self.project = Project(self.scheduler, {
+            'name': 'test_project_not_started',
+            'group': 'group',
+            'status': 'RUNNING',
+            'script': 'import time\nprint(time.time())',
+            'comments': 'test project',
+            'rate': 1.0,
+            'burst': 10,
+            'updatetime': time.time(),
+        })
+
+    def test_pause_10_unpaused(self):
+        self.assertFalse(self.project.paused)
+
+    def test_pause_20_no_enough_fail_tasks(self):
+        for i in range(3):
+            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+        self.assertFalse(self.project.paused)
+
+        for i in range(1):
+            self.project.active_tasks.appendleft((time.time(), self.status_ok_pack))
+        for i in range(self.scheduler.FAIL_PAUSE_NUM - 5):
+            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+        self.assertFalse(self.project.paused)
+
+        for i in range(5):
+            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+        for i in range(1):
+            self.project.active_tasks.appendleft((time.time(), self.status_ok_pack))
+        self.assertFalse(self.project.paused)
+
+        for i in range(self.scheduler.FAIL_PAUSE_NUM):
+            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+        self.assertFalse(self.project.paused)
+
+    def test_pause_30_paused(self):
+        for i in range(self.scheduler.FAIL_PAUSE_NUM):
+            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+        for i in range(self.scheduler.FAIL_PAUSE_NUM):
+            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+        self.assertTrue(self.project.paused)
+
+    def test_pause_40_unpause_checking(self):
+        time.sleep(3)
+        self.assertFalse(self.project.paused)
+
+    def test_pause_50_paused_again(self):
+        for i in range(self.scheduler.UNPAUSE_CHECK_NUM):
+            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+        self.assertTrue(self.project.paused)
+
+    def test_pause_60_unpause_checking(self):
+        time.sleep(3)
+        self.assertFalse(self.project.paused)
+
+    def test_pause_70_unpaused(self):
+        for i in range(1):
+            self.project.active_tasks.appendleft((time.time(), self.status_ok_pack))
+        for i in range(self.scheduler.UNPAUSE_CHECK_NUM):
+            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+        for i in range(self.scheduler.FAIL_PAUSE_NUM):
+            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+        self.assertFalse(self.project.paused)
+
+
 if __name__ == '__main__':
     unittest.main()

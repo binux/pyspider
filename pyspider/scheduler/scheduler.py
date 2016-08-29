@@ -27,12 +27,12 @@ class Project(object):
     '''
     project for scheduler
     '''
-    def __init__(self, project_info, ACTIVE_TASKS=100):
+    def __init__(self, scheduler, project_info):
         '''
         '''
-        self.paused = False
+        self.scheduler = scheduler
 
-        self.active_tasks = deque(maxlen=ACTIVE_TASKS)
+        self.active_tasks = deque(maxlen=scheduler.ACTIVE_TASKS)
         self.task_queue = TaskQueue()
         self.task_loaded = False
         self._send_finished_event = False
@@ -41,7 +41,57 @@ class Project(object):
         self._send_on_get_info = False
         self.waiting_get_info = True
 
+        self._paused = False
+        self._paused_time = 0
+        self._unpause_last_seen = None
+
         self.update(project_info)
+
+    @property
+    def paused(self):
+        # unpaused --(last FAIL_PAUSE_NUM task failed)--> paused --(PAUSE_TIME)--> unpause_checking
+        #                         unpaused <--(last UNPAUSE_CHECK_NUM task have success)--|
+        #                             paused <--(last UNPAUSE_CHECK_NUM task no success)--|
+        if not self._paused:
+            fail_cnt = 0
+            for _, task in self.active_tasks:
+                if 'track' not in task:
+                    continue
+                if task['track']['process']['ok']:
+                    break
+                else:
+                    fail_cnt += 1
+                if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
+                    break
+            if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
+                self._paused = True
+                self._paused_time = time.time()
+        elif self._paused is True and (self._paused_time + self.scheduler.PAUSE_TIME < time.time()):
+            self._paused = 'checking'
+            self._unpause_last_seen = self.active_tasks[0][1] if len(self.active_tasks) else None
+        elif self._paused == 'checking':
+            cnt = 0
+            fail_cnt = 0
+            for _, task in self.active_tasks:
+                if task is self._unpause_last_seen:
+                    break
+                if 'track' not in task:
+                    continue
+                cnt += 1
+                if task['track']['process']['ok']:
+                    # break with enough check cnt
+                    cnt = self.scheduler.UNPAUSE_CHECK_NUM
+                    break
+                else:
+                    fail_cnt += 1
+            if cnt >= self.scheduler.UNPAUSE_CHECK_NUM:
+                if fail_cnt == cnt:
+                    self._paused = True
+                    self._paused_time = time.time()
+                else:
+                    self._paused = False
+
+        return self._paused is True
 
     def update(self, project_info):
         self.project_info = project_info
@@ -75,7 +125,7 @@ class Project(object):
 
     @property
     def active(self):
-        return self.db_status in ('RUNNING', 'DEBUG') and not self.paused
+        return self.db_status in ('RUNNING', 'DEBUG')
 
 
 class Scheduler(object):
@@ -100,6 +150,9 @@ class Scheduler(object):
         3: 12*60*60,
         '': 24*60*60
     }
+    FAIL_PAUSE_NUM = 10
+    PAUSE_TIME = 5*60
+    UNPAUSE_CHECK_NUM = 3
 
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue,
                  out_queue, data_path='./data', resultdb=None):
@@ -156,7 +209,7 @@ class Scheduler(object):
     def _update_project(self, project):
         '''update one project'''
         if project['name'] not in self.projects:
-            self.projects[project['name']] = Project(project, ACTIVE_TASKS=self.ACTIVE_TASKS)
+            self.projects[project['name']] = Project(self, project)
         else:
             self.projects[project['name']].update(project)
 
@@ -243,11 +296,8 @@ class Scheduler(object):
 
         project = self.projects[task['project']]
         if not project.active:
-            if project.paused:
-                logger.error('project %s paused', task['project'])
-            else:
-                logger.error('project %s not started, please set status to RUNNING or DEBUG',
-                             task['project'])
+            logger.error('project %s not started, please set status to RUNNING or DEBUG',
+                         task['project'])
             return False
         return True
 
@@ -417,6 +467,9 @@ class Scheduler(object):
         limit = self.LOOP_LIMIT
         for project in itervalues(self.projects):
             if not project.active:
+                continue
+            # only check project pause when select new tasks, cronjob and new request still working
+            if project.paused:
                 continue
             if project.waiting_get_info:
                 continue
