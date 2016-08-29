@@ -3,117 +3,7 @@
 //         http://binux.me
 // Created on 2014-03-02 17:53:23
 
-function init_editable(projects_app) {
-  $(".project-group>span").editable({
-    name: 'group',
-    pk: function(e) {
-      return $(this).parents('tr').data("name");
-    },
-    emptytext: '[group]',
-    placement: 'right',
-    url: "/update",
-    success: function(response, value) {
-      var project_name = $(this).parents('tr').data("name");
-      projects_app.projects[project_name].group = value;
-      $(this).attr('style', '');
-    }
-  });
-
-  $(".project-status>span").editable({
-    type: 'select',
-    name: 'status',
-    source: [
-      {value: 'TODO', text: 'TODO'},
-      {value: 'STOP', text: 'STOP'},
-      {value: 'CHECKING', text: 'CHECKING'},
-      {value: 'DEBUG', text: 'DEBUG'},
-      {value: 'RUNNING', text: 'RUNNING'}
-    ],
-    pk: function(e) {
-      return $(this).parents('tr').data("name");
-    },
-    emptytext: '[status]',
-    placement: 'right',
-    url: "/update",
-    success: function(response, value) {
-      var project_name = $(this).parents('tr').data("name");
-      projects_app.projects[project_name].status = value;
-      $(this).removeClass('status-'+$(this).attr('data-value')).addClass('status-'+value).attr('data-value', value).attr('style', '');
-    }
-  });
-
-  $(".project-rate>span").editable({
-    name: 'rate',
-    pk: function(e) {
-      return $(this).parents('tr').data("name");
-    },
-    validate: function(value) {
-      var s = value.split('/');
-      if (s.length != 2)
-        return "format error: rate/burst";
-      if (!$.isNumeric(s[0]) || !$.isNumeric(s[1]))
-        return "format error: rate/burst";
-    },
-    highlight: false,
-    emptytext: '0/0',
-    placement: 'right',
-    url: "/update",
-    success: function(response, value) {
-      var project_name = $(this).parents('tr').data("name");
-      var s = value.split('/');
-      projects_app.projects[project_name].rate = parseFloat(s[0]);
-      projects_app.projects[project_name].burst = parseFloat(s[1]);
-      $(this).attr('style', '');
-    }
-  });
-}
-
-function init_sortable() {
-  // table sortable
-  Sortable.getColumnType = function(table, i) {
-    var type = $($(table).find('th').get(i)).data('type');
-    if (type == "num") {
-      return Sortable.types.numeric;
-    } else if (type == "date") {
-      return Sortable.types.date;
-    }
-    return Sortable.types.alpha;
-  };
-  $('table.projects').attr('data-sortable', true);
-  Sortable.init();
-}
-
 $(function() {
-  $('.project-run').on('click', function() {
-    var project = $(this).parents('tr').data("name");
-    var status = $(this).parents('tr').find(".project-status [data-value]").attr("data-value");
-
-    $("#need-set-status-alert").hide();
-    if (status != "RUNNING" && status != "DEBUG") {
-      $("#need-set-status-alert").show();
-    }
-    
-    var _this = this;
-    $(this).addClass("btn-warning");
-    $.ajax({
-      type: "POST",
-      url: '/run',
-      data: {
-        project: project
-      },
-      success: function(data) {
-        console.log(data);
-        $(_this).removeClass("btn-warning");
-        if (!data.result) {
-          $(_this).addClass("btn-danger");
-        }
-      },
-      error: function() {
-        $(_this).removeClass("btn-warning").addClass("btn-danger");
-      }
-    });
-  });
-
   //$("input[name=start-urls]").on('keydown', function(ev) {
     //if (ev.keyCode == 13) {
       //var value = $(this).val();
@@ -121,6 +11,86 @@ $(function() {
       //textarea.val(value).focus();
     //}
   //});
+
+  function init_editable(projects_app) {
+    $(".project-group>span").editable({
+      name: 'group',
+      pk: function(e) {
+        return $(this).parents('tr').data("name");
+      },
+      emptytext: '[group]',
+      placement: 'right',
+      url: "/update",
+      success: function(response, value) {
+        var project_name = $(this).parents('tr').data("name");
+        projects_app.projects[project_name].group = value;
+        $(this).attr('style', '');
+      }
+    });
+
+    $(".project-status>span").editable({
+      type: 'select',
+      name: 'status',
+      source: [
+        {value: 'TODO', text: 'TODO'},
+        {value: 'STOP', text: 'STOP'},
+        {value: 'CHECKING', text: 'CHECKING'},
+        {value: 'DEBUG', text: 'DEBUG'},
+        {value: 'RUNNING', text: 'RUNNING'}
+      ],
+      pk: function(e) {
+        return $(this).parents('tr').data("name");
+      },
+      emptytext: '[status]',
+      placement: 'right',
+      url: "/update",
+      success: function(response, value) {
+        var project_name = $(this).parents('tr').data("name");
+        projects_app.projects[project_name].status = value;
+        $(this).removeClass('status-'+$(this).attr('data-value')).addClass('status-'+value).attr('data-value', value).attr('style', '');
+      }
+    });
+
+    $(".project-rate>span").editable({
+      name: 'rate',
+      pk: function(e) {
+        return $(this).parents('tr').data("name");
+      },
+      validate: function(value) {
+        var s = value.split('/');
+        if (s.length != 2)
+          return "format error: rate/burst";
+        if (!$.isNumeric(s[0]) || !$.isNumeric(s[1]))
+          return "format error: rate/burst";
+      },
+      highlight: false,
+      emptytext: '0/0',
+      placement: 'right',
+      url: "/update",
+      success: function(response, value) {
+        var project_name = $(this).parents('tr').data("name");
+        var s = value.split('/');
+        projects_app.projects[project_name].rate = parseFloat(s[0]);
+        projects_app.projects[project_name].burst = parseFloat(s[1]);
+        $(this).attr('style', '');
+      }
+    });
+  }
+
+  function init_sortable() {
+    // table sortable
+    Sortable.getColumnType = function(table, i) {
+      var type = $($(table).find('th').get(i)).data('type');
+      if (type == "num") {
+        return Sortable.types.numeric;
+      } else if (type == "date") {
+        return Sortable.types.date;
+      }
+      return Sortable.types.alpha;
+    };
+    $('table.projects').attr('data-sortable', true);
+    Sortable.init();
+  }
 
   $("#create-project-modal form").on('submit', function(ev) {
     var $this = $(this);
@@ -133,25 +103,6 @@ $(function() {
     var mode = $this.find('[name=script-mode]:checked').val();
     $this.attr('action', '/debug/'+project_name);
     return true;
-  });
-
-  // projects vue
-  var projects_map = {};
-  projects.forEach(function(p) {
-    p.time = {};
-    p.progress = {};
-    projects_map[p.name] = p;
-  });
-  projects_app = new Vue({
-    el: '.projects',
-    data: {
-      projects: projects_map
-    },
-    ready: function() {
-      init_editable(this);
-      init_sortable(this);
-      update_counters();
-    }
   });
 
   function update_counters() {
@@ -188,7 +139,6 @@ $(function() {
       }
     });
   }
-  window.setInterval(update_counters, 15*1000);
 
   function update_queues() {
     $.get('/queues', function(data) {
@@ -203,6 +153,53 @@ $(function() {
       });
     });
   }
-  window.setInterval(update_queues, 15*1000);
-  update_queues();
+
+  // projects vue
+  var projects_map = {};
+  projects.forEach(function(p) {
+    p.time = {};
+    p.progress = {};
+    projects_map[p.name] = p;
+  });
+  projects_app = new Vue({
+    el: '.projects',
+    data: {
+      projects: projects_map
+    },
+    ready: function() {
+      init_editable(this);
+      init_sortable(this);
+      update_counters();
+      window.setInterval(update_counters, 15*1000);
+      update_queues();
+      window.setInterval(update_queues, 15*1000);
+    },
+    methods: {
+      project_run: function(project, event) {
+        $("#need-set-status-alert").hide();
+        if (project.status != "RUNNING" && project.status != "DEBUG") {
+          $("#need-set-status-alert").show();
+        }
+        
+        var _this = event.target;
+        $(_this).addClass("btn-warning");
+        $.ajax({
+          type: "POST",
+          url: '/run',
+          data: {
+            project: project.name
+          },
+          success: function(data) {
+            $(_this).removeClass("btn-warning");
+            if (!data.result) {
+              $(_this).addClass("btn-danger");
+            }
+          },
+          error: function() {
+            $(_this).removeClass("btn-warning").addClass("btn-danger");
+          }
+        });
+      }
+    }
+  });
 });

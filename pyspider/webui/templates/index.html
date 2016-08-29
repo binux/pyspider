@@ -159,7 +159,7 @@
               {% endraw %}
               # if config.scheduler_rpc is not none:
               {% raw %}
-              <button class="project-run btn btn-default btn-xs">Run</button>
+              <button class="project-run btn btn-default btn-xs" @click="project_run(project, $event)">Run</button>
               <a class="btn btn-default btn-xs" href="/tasks?project={{ project.name }}" target=_blank>Active Tasks</a>
               {% endraw %}
               # endif
