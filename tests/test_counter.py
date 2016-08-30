@@ -17,8 +17,27 @@ class TestCounter(unittest.TestCase):
         for i in range(100):
             time.sleep(0.1)
             c.event(100+i)
+
         self.assertEqual(c.sum, float(180+199)*20/2)
         self.assertEqual(c.avg, float(180+199)/2)
+
+    def test_020_TotalCounter(self):
+        c = counter.TotalCounter()
+        for i in range(3):
+            c.event(i)
+        self.assertEqual(c.avg, 3)
+        self.assertEqual(c.sum, 3)
+
+    def test_030_AverageWindowCounter(self):
+        c = counter.AverageWindowCounter(10)
+        self.assertTrue(c.empty())
+
+        for i in range(20):
+            c.event(i)
+
+        self.assertFalse(c.empty())
+        self.assertEqual(c.avg, 14.5)
+        self.assertEqual(c.sum, 145)
 
     def test_020_delete(self):
         c = counter.CounterManager()

@@ -795,30 +795,30 @@ class TestProject(unittest.TestCase):
 
     def test_pause_20_no_enough_fail_tasks(self):
         for i in range(3):
-            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.task_pack)))
         self.assertFalse(self.project.paused)
 
         for i in range(1):
-            self.project.active_tasks.appendleft((time.time(), self.status_ok_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_ok_pack)))
         for i in range(self.scheduler.FAIL_PAUSE_NUM - 5):
-            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
         self.assertFalse(self.project.paused)
 
         for i in range(5):
-            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
         for i in range(1):
-            self.project.active_tasks.appendleft((time.time(), self.status_ok_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_ok_pack)))
         self.assertFalse(self.project.paused)
 
         for i in range(self.scheduler.FAIL_PAUSE_NUM):
-            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.task_pack)))
         self.assertFalse(self.project.paused)
 
     def test_pause_30_paused(self):
         for i in range(self.scheduler.FAIL_PAUSE_NUM):
-            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
         for i in range(self.scheduler.FAIL_PAUSE_NUM):
-            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.task_pack)))
         self.assertTrue(self.project.paused)
 
     def test_pause_40_unpause_checking(self):
@@ -827,7 +827,7 @@ class TestProject(unittest.TestCase):
 
     def test_pause_50_paused_again(self):
         for i in range(self.scheduler.UNPAUSE_CHECK_NUM):
-            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
         self.assertTrue(self.project.paused)
 
     def test_pause_60_unpause_checking(self):
@@ -836,12 +836,13 @@ class TestProject(unittest.TestCase):
 
     def test_pause_70_unpaused(self):
         for i in range(1):
-            self.project.active_tasks.appendleft((time.time(), self.status_ok_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_ok_pack)))
         for i in range(self.scheduler.UNPAUSE_CHECK_NUM):
-            self.project.active_tasks.appendleft((time.time(), self.status_fail_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
         for i in range(self.scheduler.FAIL_PAUSE_NUM):
-            self.project.active_tasks.appendleft((time.time(), self.task_pack))
+            self.project.active_tasks.appendleft((time.time(), dict(self.task_pack)))
         self.assertFalse(self.project.paused)
+        self.assertFalse(self.project._paused)
 
 
 if __name__ == '__main__':

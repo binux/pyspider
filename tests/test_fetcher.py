@@ -212,6 +212,22 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertIn('teapot', response.text)
 
+    def test_69_no_phantomjs(self):
+        phantomjs_proxy = self.fetcher.phantomjs_proxy
+        self.fetcher.phantomjs_proxy = None
+
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/get'
+        request['fetch']['fetch_type'] = 'js'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 501, result)
+
+        self.fetcher.phantomjs_proxy = phantomjs_proxy
+
     def test_70_phantomjs_url(self):
         if not self.phantomjs:
             raise unittest.SkipTest('no phantomjs')
@@ -228,6 +244,18 @@ class TestFetcher(unittest.TestCase):
         self.assertIsNotNone(data, response.content)
         self.assertEqual(data['headers'].get('A'), 'b', response.json)
         self.assertEqual(data['headers'].get('Cookie'), 'c=d', response.json)
+
+    def test_75_phantomjs_robots(self):
+        if not self.phantomjs:
+            raise unittest.SkipTest('no phantomjs')
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin + '/deny'
+        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['robots_txt'] = True
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
 
     def test_80_phantomjs_timeout(self):
         if not self.phantomjs:

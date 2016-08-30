@@ -84,7 +84,7 @@ class Project(object):
                 cnt += 1
                 if task['track']['process']['ok']:
                     # break with enough check cnt
-                    cnt = self.scheduler.UNPAUSE_CHECK_NUM
+                    cnt = max(cnt, self.scheduler.UNPAUSE_CHECK_NUM)
                     break
                 else:
                     fail_cnt += 1
