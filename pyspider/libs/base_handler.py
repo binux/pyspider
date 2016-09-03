@@ -148,7 +148,8 @@ class BaseHandler(object):
         """
         args, varargs, keywords, defaults = inspect.getargspec(function)
         task = arguments[-1]
-        process_time_limit = task['process'].get('process_time_limit', 0)
+        process_time_limit = task['process'].get('process_time_limit',
+                                                 self.__env__.get('process_time_limit', 0))
         if process_time_limit > 0:
             with timeout(process_time_limit, 'process timeout'):
                 ret = function(*arguments[:len(args) - 1])

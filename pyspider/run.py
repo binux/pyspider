@@ -257,8 +257,9 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
 @cli.command()
 @click.option('--processor-cls', default='pyspider.processor.Processor',
               callback=load_cls, help='Processor class to be used.')
+@click.option('--process-time-limit', default=30, help='script process time limit')
 @click.pass_context
-def processor(ctx, processor_cls, enable_stdout_capture=True, get_object=False):
+def processor(ctx, processor_cls, process_time_limit, enable_stdout_capture=True, get_object=False):
     """
     Run Processor.
     """
@@ -268,7 +269,8 @@ def processor(ctx, processor_cls, enable_stdout_capture=True, get_object=False):
     processor = Processor(projectdb=g.projectdb,
                           inqueue=g.fetcher2processor, status_queue=g.status_queue,
                           newtask_queue=g.newtask_queue, result_queue=g.processor2result,
-                          enable_stdout_capture=enable_stdout_capture)
+                          enable_stdout_capture=enable_stdout_capture,
+                          process_time_limit=process_time_limit)
 
     g.instances.append(processor)
     if g.get('testing_mode') or get_object:
@@ -315,9 +317,10 @@ def result_worker(ctx, result_cls, get_object=False):
 @click.option('--need-auth', is_flag=True, default=False, help='need username and password')
 @click.option('--webui-instance', default='pyspider.webui.app.app', callback=load_cls,
               help='webui Flask Application instance to be used.')
+@click.option('--process-time-limit', default=30, help='script process time limit in debug')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
-          username, password, need_auth, webui_instance, get_object=False):
+          username, password, need_auth, webui_instance, process_time_limit, get_object=False):
     """
     Run WebUI
     """
@@ -338,6 +341,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     if password:
         app.config['webui_password'] = password
     app.config['need_auth'] = need_auth
+    app.config['process_time_limit'] = process_time_limit
 
     # inject queues for webui
     for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',

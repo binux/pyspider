@@ -104,7 +104,8 @@ def run(project):
     fetch_result = {}
     try:
         module = ProjectManager.build_module(project_info, {
-            'debugger': True
+            'debugger': True,
+            'process_time_limit': app.config['process_time_limit'],
         })
 
         # The code below is to mock the behavior that crawl_config been joined when selected by scheduler.
