@@ -66,6 +66,7 @@
     <div class="pagination-wrap">
       <ul class="pagination">
         # set current_page = int(offset/limit) + (1 if offset%limit else 0)
+        # set count = count if count is not none else 0
         # set total_page = int(count/limit) + (1 if count%limit else 0)
         <li class="{{ "disabled" if current_page - 1 <= 0 else "" }}">
           <a href="{% if current_page>1 %}/results?project={{ project }}&offset={{ (current_page-1)*limit }}&limit={{ limit }}{% endif %}">&laquo;</a>
