@@ -9,10 +9,10 @@
 .base-info {
   padding: 10px 15px 2px 15px;
   background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
 }
 .more-info {
   padding: 10px 15px;
-  border-top: 1px solid #ddd;
 }
 .more-info dd {
   display: block;
@@ -64,3 +64,5 @@ dt .glyphicon-ok {
 dt .glyphicon-remove {
   color: #d9534f;
 }
+
+/*# sourceMappingURL=task.css.map*/

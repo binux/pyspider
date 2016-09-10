@@ -96,7 +96,6 @@
       var task_content = {{ task | tojson | tojson | safe }};
       var script_content = {{ script | tojson | safe }};
     </script>
-    <script src="{{ url_for('static', filename='splitter.js') }}"></script>
     <script src="{{ url_for('static', filename='debug.js') }}"></script>
   </body>
 </html>
