@@ -3,8 +3,8 @@
   "version": "0.3.9",
   "description": "webui of pyspider",
   "scripts": {
-    "build": "webpack --progress --colors",
-    "dev": "webpack --progress --colors --watch"
+    "build": "webpack --progress --colors --optimize-minimize",
+    "dev": "webpack --progress --colors --optimize-minimize --watch"
   },
   "keywords": [
     "pyspider"

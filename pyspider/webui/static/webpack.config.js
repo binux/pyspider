@@ -1,3 +1,4 @@
+var webpack = require("webpack");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
@@ -11,16 +12,17 @@ module.exports = {
   },
   output: {
     //path: "./dist",
-    filename: "[name].js"
+    filename: "[name].min.js"
   },
   module: {
     loaders: [
       { test: /\.js$/, loader: "babel-loader" },
-      { test: /\.less$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader!less-loader") }
+      { test: /\.less$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader?sourceMap!less-loader?sourceMap") }
     ]
   },
   devtool: 'source-map',
   plugins: [
-    new ExtractTextPlugin("[name].css")
+    new ExtractTextPlugin("[name].min.css"),
+    new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } }),
   ]
 }

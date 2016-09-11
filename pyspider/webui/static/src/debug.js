@@ -447,7 +447,7 @@ window.Debugger = (function() {
         $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/helper.js">');
       }
       if (selector_helper) {
-        $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/static/css_selector_helper.js">');
+        $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/static/css_selector_helper.min.js">');
       }
       $(dom).find('base').remove();
       $(dom).find('head').append('<base>');
