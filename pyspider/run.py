@@ -219,11 +219,14 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--proxy', help="proxy host:port")
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
+@click.option('--phantomjs-endpoint', help="endpoint of phantomjs, start via pyspider phantomjs")
+@click.option('--splash-endpoint', help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, fetcher_cls, async=True, get_object=False, no_input=False):
+            timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls,
+            async=True, get_object=False, no_input=False):
     """
     Run Fetcher.
     """
@@ -238,7 +241,8 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
         outqueue = g.fetcher2processor
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
                       poolsize=poolsize, proxy=proxy, async=async)
-    fetcher.phantomjs_proxy = g.phantomjs_proxy
+    fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
+    fetcher.splash_endpoint = splash_endpoint
     if user_agent:
         fetcher.user_agent = user_agent
     if timeout:

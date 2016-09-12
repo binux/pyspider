@@ -31,6 +31,7 @@ install_requires = [
     'u-msgpack-python>=1.6',
     'click>=3.3',
     'six>=1.5.0',
+    'tblib>=1.3.0'
 ]
 if sys.version_info < (3, 0):
     install_requires.extend([

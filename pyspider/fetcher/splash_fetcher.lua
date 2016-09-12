@@ -1,4 +1,4 @@
-#! /usr/bin/env lua
+--#! /usr/bin/env lua
 --
 -- splash_fetcher.lua
 -- Copyright (C) 2016 Binux <roy@binux.me>
@@ -8,11 +8,18 @@
 
 
 function render(splash, fetch)
-    local debug = true
-    local function log_message(message)
-        if debug then
-            splash:log_message(message)
+    local debug = false
+    local function log_message(message, level)
+        if debug or level ~= nil then
+            print(message)
         end
+    end
+    if not splash.with_timeout then
+        function with_timeout(self, func, timeout)
+            log_message(func)
+            return true, func()
+        end
+        splash.with_timeout = with_timeout
     end
 
     log_message(fetch)
@@ -37,20 +44,21 @@ function render(splash, fetch)
     end
     splash.images_enabled = (fetch.load_images == true)
     splash.resource_timeout = (fetch.timeout or 20)
+    fetch.timeout = splash.resource_timeout
     
 
     -- callbacks
     splash:on_request(function(request)
         log_message("Starting request: [" .. toString(request.method) .. "]" .. toString(request.url))
 
-        if fetch.proxy_host and fetch.proxy_port then
-            request:set_proxy({
-                host = fetch.proxy_host,
-                port = fetch.proxy_port,
-                username = fetch.proxy_username,
-                password = fetch.proxy_password
-            })
-        end
+        --if fetch.proxy_host and fetch.proxy_port then
+            --request:set_proxy({
+                --host = fetch.proxy_host,
+                --port = fetch.proxy_port,
+                --username = fetch.proxy_username,
+                --password = fetch.proxy_password
+            --})
+        --end
     end)
 
     local first_response = nil
@@ -70,7 +78,7 @@ function render(splash, fetch)
                 return splash:jsfunc(fetch.js_script)
             end)
             if not ok then
-                splash:log_message("js_script error: " .. toString(js_script))
+                log_message("js_script error: " .. toString(js_script), 1)
                 js_script = nil
             end
         end
@@ -79,7 +87,7 @@ function render(splash, fetch)
             log_message("running document-start script.");
             ok, js_script_result = pcall(js_script)
             if not ok then
-                splash:log_message("running document-start script error: " .. toString(js_script_result))
+                log_message("running document-start script error: " .. toString(js_script_result), 1)
             end
         end
 
@@ -89,7 +97,7 @@ function render(splash, fetch)
             log_message("running document-end script.");
             ok, js_script_result = pcall(js_script)
             if not ok then
-                splash:log_message("running document-end script error: " .. toString(js_script_result))
+                log_message("running document-end script error: " .. toString(js_script_result), 1)
             end
         end
 
@@ -125,7 +133,7 @@ function render(splash, fetch)
                 url = splash:url(),
                 cookies = cookies,
                 time = os.time() - start_time,
-                js_script_result = toString(js_script_result),
+                js_script_result = js_script_resul and toString(js_script_result),
                 save = fetch.save
             }
         else
