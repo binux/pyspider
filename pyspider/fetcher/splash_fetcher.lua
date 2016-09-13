@@ -157,5 +157,27 @@ function render(splash, fetch)
 end
 
 function main(splash)
-    return render(splash, splash.args)
+    local fetch = splash.args
+    local start_time = os.time()
+
+    ok, result = pcall(function()
+        return render(splash, fetch)
+    end)
+
+    if ok then
+        return result
+    else
+        return {
+            orig_url = fetch.url,
+            status_code = 599,
+            error = result,
+            content = splash:html(),
+            headers = {},
+            url = splash:url(),
+            cookies = {},
+            time = os.time() - start_time,
+            js_script_result = nil,
+            save = fetch.save
+        }
+    end
 end

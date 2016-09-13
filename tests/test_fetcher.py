@@ -9,6 +9,7 @@ import os
 import json
 import copy
 import time
+import socket
 import umsgpack
 import subprocess
 import unittest2 as unittest
@@ -445,7 +446,7 @@ class TestSplashFetcher(unittest.TestCase):
         import httpbin
 
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, host='0.0.0.0', port=14887, passthrough_errors=False)
-        self.httpbin = 'http://10.0.0.4:14887'
+        self.httpbin = 'http://' + socket.gethostbyname(socket.gethostname()) + ':14887'
 
         self.inqueue = Queue(10)
         self.outqueue = Queue(10)
