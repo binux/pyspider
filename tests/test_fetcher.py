@@ -539,6 +539,18 @@ class TestSplashFetcher(unittest.TestCase):
         self.assertEqual(result['status_code'], 200)
         self.assertIn('binux', result['content'])
 
+    def test_95_splash_js_script_2(self):
+        request = self.sample_task_http
+        request['url'] = self.httpbin + '/ajax_click.html'
+        request['fetch']['fetch_type'] = 'splash'
+        request['fetch']['js_script'] = 'function() { document.querySelector("a").click(); return "abc" }'
+        result = self.fetcher.sync_fetch(request)
+        self.assertEqual(result['status_code'], 200)
+        self.assertNotIn('loading', result['content'])
+        self.assertIn('done', result['content'])
+        self.assertIn('pyspider-test', result['content'])
+        self.assertIn('abc', result['js_script_result'])
+
     def test_a100_splash_sharp_url(self):
         request = self.sample_task_http
         request['url'] = self.httpbin+'/pyspider/ajax.html'

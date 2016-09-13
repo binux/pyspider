@@ -45,10 +45,15 @@ function render(splash, fetch)
     splash.images_enabled = (fetch.load_images == true)
     splash.resource_timeout = math.min((fetch.timeout or 20), 58)
     fetch.timeout = splash.resource_timeout
+
+    local wait_before_end = 1.0;
+    local end_time = start_time + fetch.timeout - 0.1
     
 
     -- callbacks
     splash:on_request(function(request)
+        -- wait for new request
+        end_time = start_time + fetch.timeout - 0.1
         log_message("Starting request: [" .. tostring(request.method) .. "]" .. tostring(request.url))
 
         --if fetch.proxy_host and fetch.proxy_port then
@@ -66,6 +71,8 @@ function render(splash, fetch)
         if first_response == nil then
             first_response = response
         end
+        -- wait for some other respond and render
+        end_time = math.min(os.time() + wait_before_end + 0.1, start_time + fetch.timeout - 0.1)
         log_message("Request finished: [" .. tostring(response.status) .. "]" .. tostring(response.url))
     end)
 
@@ -92,15 +99,22 @@ function render(splash, fetch)
         end
 
         local ok, reason = splash:go{url=fetch.url, http_method=fetch.method, body=fetch.data}
-
-        splash:wait(0.5)
+        end_time = math.min(os.time() + wait_before_end + 0.1, start_time + fetch.timeout - 0.1)
 
         if js_script and fetch.js_run_at ~= "document-start" then
+            splash:wait(0.5)
             log_message("running document-end script.");
             ok, js_script_result = pcall(js_script)
             if not ok then
                 log_message("running document-end script error: " .. tostring(js_script_result), 1)
             end
+        end
+
+        -- wait for all requests finished
+        local now = os.time()
+        while now <= end_time do
+            splash:wait(end_time - now)
+            now = os.time()
         end
 
         return ok, reason
