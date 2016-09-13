@@ -113,7 +113,7 @@ function render(splash, fetch)
         -- wait for all requests finished
         local now = os.time()
         while now <= end_time do
-            splash:wait(end_time - now)
+            splash:wait(math.min(end_time - now, 0.1))
             now = os.time()
         end
 
