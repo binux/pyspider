@@ -8,6 +8,7 @@
 from __future__ import unicode_literals
 
 import os
+import sys
 import six
 import copy
 import time
@@ -199,7 +200,7 @@ class Fetcher(object):
         result = {
             'status_code': getattr(error, 'code', 599),
             'error': utils.text(error),
-            'traceback': traceback.format_exc(),
+            'traceback': traceback.format_exc() if sys.exc_info()[0] else None,
             'content': "",
             'time': time.time() - start_time,
             'orig_url': url,
