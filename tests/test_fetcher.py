@@ -220,7 +220,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
 
@@ -233,7 +233,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
 
@@ -250,7 +250,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/deny'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         request['fetch']['robots_txt'] = True
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
@@ -262,7 +262,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin+'/delay/5'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         request['fetch']['timeout'] = 3
         start_time = time.time()
         result = self.fetcher.sync_fetch(request)
@@ -277,7 +277,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/html'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         request['fetch']['js_script'] = 'function() { document.write("binux") }'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
@@ -288,7 +288,7 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin+'/pyspider/ajax.html'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         request['fetch']['headers']['User-Agent'] = 'pyspider-test'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 200)
@@ -405,10 +405,146 @@ class TestFetcher(unittest.TestCase):
             raise unittest.SkipTest('no phantomjs')
         request = copy.deepcopy(self.sample_task_http)
         request['url'] = self.httpbin + '/get'
-        request['fetch']['fetch_type'] = 'js'
+        request['fetch']['fetch_type'] = 'phantomjs'
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
 
         self.assertEqual(response.status_code, 599, result)
 
         self.fetcher.phantomjs_proxy = phantomjs_proxy
+
+@unittest.skipIf(os.environ.get('IGNORE_SPLASH') or os.environ.get('IGNORE_ALL'), 'no splash server for test.')
+class TestSplashFetcher(unittest.TestCase):
+    @property
+    def sample_task_http(self):
+        return {
+            'taskid': 'taskid',
+            'project': 'project',
+            'url': '',
+            'fetch': {
+                'method': 'GET',
+                'headers': {
+                    'Cookie': 'a=b',
+                    'a': 'b'
+                },
+                'cookies': {
+                    'c': 'd',
+                },
+                'timeout': 60,
+                'save': 'abc',
+            },
+            'process': {
+                'callback': 'callback',
+                'save': [1, 2, 3],
+            },
+        }
+
+    @classmethod
+    def setUpClass(self):
+        import tests.data_test_webpage
+        import httpbin
+
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, host='0.0.0.0', port=14887, passthrough_errors=False)
+        self.httpbin = 'http://10.0.0.4:14887'
+
+        self.inqueue = Queue(10)
+        self.outqueue = Queue(10)
+        self.fetcher = Fetcher(self.inqueue, self.outqueue)
+        self.fetcher.splash_endpoint = 'http://127.0.0.1:8050/execute'
+        self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
+        self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
+        self.thread = utils.run_in_thread(self.fetcher.run)
+        self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux',
+                                              '--password=123456', '--port=14830',
+                                              '--debug'], close_fds=True)
+        self.proxy = '127.0.0.1:14830'
+        
+    @classmethod
+    def tearDownClass(self):
+        self.proxy_thread.terminate()
+        self.proxy_thread.wait()
+        self.httpbin_thread.terminate()
+        self.httpbin_thread.join()
+
+        self.rpc._quit()
+        self.thread.join()
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
+
+        time.sleep(1)
+
+    def test_69_no_splash(self):
+        splash_endpoint = self.fetcher.splash_endpoint
+        self.fetcher.splash_endpoint = None
+
+        request = self.sample_task_http
+        request['url'] = self.httpbin + '/get'
+        request['fetch']['fetch_type'] = 'splash'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 501, result)
+
+        self.fetcher.splash_endpoint = splash_endpoint
+
+    def test_70_splash_url(self):
+        request = self.sample_task_http
+        request['url'] = self.httpbin + '/get'
+        request['fetch']['fetch_type'] = 'splash'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.save, request['fetch']['save'])
+        data = json.loads(response.doc('pre').text())
+        self.assertIsNotNone(data, response.content)
+        self.assertEqual(data['headers'].get('A'), 'b', response.json)
+        self.assertEqual(data['headers'].get('Cookie'), 'c=d', response.json)
+
+    def test_75_splash_robots(self):
+        request = self.sample_task_http
+        request['url'] = self.httpbin + '/deny'
+        request['fetch']['fetch_type'] = 'splash'
+        request['fetch']['robots_txt'] = True
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
+
+    def test_80_splash_timeout(self):
+        request = self.sample_task_http
+        request['url'] = self.httpbin+'/delay/5'
+        request['fetch']['fetch_type'] = 'splash'
+        request['fetch']['timeout'] = 3
+        start_time = time.time()
+        result = self.fetcher.sync_fetch(request)
+        end_time = time.time()
+        self.assertGreater(end_time - start_time, 2)
+        self.assertLess(end_time - start_time, 5)
+        self.assertEqual(result['status_code'], 599)
+        # self.assertIn('js_script_result', result) TODO: lua nil is not exists
+
+    def test_90_splash_js_script(self):
+        request = self.sample_task_http
+        request['url'] = self.httpbin + '/html'
+        request['fetch']['fetch_type'] = 'splash'
+        request['fetch']['js_script'] = 'function() { document.write("binux") }'
+        result = self.fetcher.sync_fetch(request)
+        self.assertEqual(result['status_code'], 200)
+        self.assertIn('binux', result['content'])
+
+    def test_a100_splash_sharp_url(self):
+        request = self.sample_task_http
+        request['url'] = self.httpbin+'/pyspider/ajax.html'
+        request['fetch']['fetch_type'] = 'splash'
+        request['fetch']['headers']['User-Agent'] = 'pyspider-test'
+        result = self.fetcher.sync_fetch(request)
+        self.assertEqual(result['status_code'], 200)
+        self.assertNotIn('loading', result['content'])
+        self.assertIn('done', result['content'])
+        self.assertIn('pyspider-test', result['content'])

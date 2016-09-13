@@ -6,9 +6,10 @@
 -- Distributed under terms of the Apache license, version 2.0.
 --
 
+json = require("json")
 
 function render(splash, fetch)
-    local debug = false
+    local debug = true
     local function log_message(message, level)
         if debug or level ~= nil then
             print(message)
@@ -16,13 +17,12 @@ function render(splash, fetch)
     end
     if not splash.with_timeout then
         function with_timeout(self, func, timeout)
-            log_message(func)
             return true, func()
         end
         splash.with_timeout = with_timeout
     end
 
-    log_message(fetch)
+    log_message(json.encode(fetch))
 
     -- create and set page
     local start_time = os.time()
@@ -43,13 +43,13 @@ function render(splash, fetch)
         splash:set_custom_headers(fetch.headers)
     end
     splash.images_enabled = (fetch.load_images == true)
-    splash.resource_timeout = (fetch.timeout or 20)
+    splash.resource_timeout = math.min((fetch.timeout or 20), 58)
     fetch.timeout = splash.resource_timeout
     
 
     -- callbacks
     splash:on_request(function(request)
-        log_message("Starting request: [" .. toString(request.method) .. "]" .. toString(request.url))
+        log_message("Starting request: [" .. tostring(request.method) .. "]" .. tostring(request.url))
 
         --if fetch.proxy_host and fetch.proxy_port then
             --request:set_proxy({
@@ -66,7 +66,7 @@ function render(splash, fetch)
         if first_response == nil then
             first_response = response
         end
-        log_message("Request finished: [" .. toString(response.status) .. "]" .. toString(response.url))
+        log_message("Request finished: [" .. tostring(response.status) .. "]" .. tostring(response.url))
     end)
 
     -- send request
@@ -78,7 +78,7 @@ function render(splash, fetch)
                 return splash:jsfunc(fetch.js_script)
             end)
             if not ok then
-                log_message("js_script error: " .. toString(js_script), 1)
+                log_message("js_script error: " .. tostring(js_script), 1)
                 js_script = nil
             end
         end
@@ -87,17 +87,19 @@ function render(splash, fetch)
             log_message("running document-start script.");
             ok, js_script_result = pcall(js_script)
             if not ok then
-                log_message("running document-start script error: " .. toString(js_script_result), 1)
+                log_message("running document-start script error: " .. tostring(js_script_result), 1)
             end
         end
 
         local ok, reason = splash:go{url=fetch.url, http_method=fetch.method, body=fetch.data}
 
+        splash:wait(0.5)
+
         if js_script and fetch.js_run_at ~= "document-start" then
             log_message("running document-end script.");
             ok, js_script_result = pcall(js_script)
             if not ok then
-                log_message("running document-end script error: " .. toString(js_script_result), 1)
+                log_message("running document-end script error: " .. tostring(js_script_result), 1)
             end
         end
 
@@ -112,28 +114,28 @@ function render(splash, fetch)
     if (not timeout_ok and first_response.ok) or (timeok and ok) then
         return {
             orig_url = fetch.url,
-            status_code = first_response.status or 599,
+            status_code = first_response.status == 0 and 599 or first_response.status,
             error = nil,
             content = splash:html(),
             headers = first_response.headers,
             url = splash:url(),
             cookies = cookies,
             time = os.time() - start_time,
-            js_script_result = toString(js_script_result),
+            js_script_result = js_script_result and tostring(js_script_result),
             save = fetch.save
         }
     else
         if first_response then
             return {
                 orig_url = fetch.url,
-                status_code = first_response.status or 599,
+                status_code = first_response.status == 0 and 599 or first_response.status,
                 error = reason,
                 content = splash:html(),
                 headers = first_response.headers,
                 url = splash:url(),
                 cookies = cookies,
                 time = os.time() - start_time,
-                js_script_result = js_script_resul and toString(js_script_result),
+                js_script_result = js_script_result and tostring(js_script_result),
                 save = fetch.save
             }
         else
@@ -146,7 +148,7 @@ function render(splash, fetch)
                 url = splash:url(),
                 cookies = cookies,
                 time = os.time() - start_time,
-                js_script_result = toString(js_script_result),
+                js_script_result = js_script_result and tostring(js_script_result),
                 save = fetch.save
             }
         end
