@@ -135,7 +135,7 @@ if (system.args.length !== 2) {
           return;
         }
         if (end_time > Date.now()) {
-          setTimeout(make_result, Math.min(Date.now() - end_time, 100), , page);
+          setTimeout(make_result, Math.min(Date.now() - end_time, 100), page);
           return;
         }
       }
