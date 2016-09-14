@@ -24,6 +24,7 @@ class TaskDB(BaseTaskDB):
 
         self.es.indices.create(index=self.index, ignore=400)
         if not self.es.indices.get_mapping(index=self.index, doc_type=self.__type__):
+            print self.es.indices.get_mapping(index=self.index)
             self.es.indices.put_mapping(index=self.index, doc_type=self.__type__, body={
                 "_all": {"enabled": False},
                 "properties": {

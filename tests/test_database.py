@@ -606,7 +606,7 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.projectdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.projectdb.es.indices.delete(index='test_pyspider_projectdb', ignore=[400, 404])
 
 
 @unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH') or os.environ.get('IGNORE_ALL'), 'no elasticsearch server for test.')
@@ -620,7 +620,7 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.resultdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.resultdb.es.indices.delete(index='test_pyspider_resultdb', ignore=[400, 404])
 
     def test_15_save(self):
         self.resultdb.refresh()
@@ -660,7 +660,7 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.taskdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.taskdb.es.indices.delete(index='test_pyspider_taskdb', ignore=[400, 404])
 
 if __name__ == '__main__':
     unittest.main()
