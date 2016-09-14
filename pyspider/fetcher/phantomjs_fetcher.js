@@ -151,11 +151,12 @@ if (system.args.length !== 2) {
           orig_url: fetch.url,
           status_code: 599,
           error: e.toString(),
-          content:  '',
+          content: page.content || "",
           headers: {},
-          url: page.url,
+          url: page.url || fetch.url,
           cookies: {},
           time: (Date.now() - start_time) / 1000,
+          js_script_result: null,
           save: fetch.save
         }
       }
@@ -171,7 +172,7 @@ if (system.args.length !== 2) {
 
     function _make_result(page) {
       if (first_response === null) {
-        throw "No response received!";
+        throw "Timeout before first response.";
       }
 
       var cookies = {};
