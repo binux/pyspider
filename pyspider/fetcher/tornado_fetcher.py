@@ -493,7 +493,7 @@ class Fetcher(object):
                 raise gen.Return(handle_error(e))
 
         if not response.body:
-            raise gen.Return(handle_error(Exception('no response from phantomjs')))
+            raise gen.Return(handle_error(Exception('no response from phantomjs: %r' % response)))
 
         result = {}
         try:

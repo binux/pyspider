@@ -117,9 +117,7 @@ if (system.args.length !== 2) {
     }
 
     // make sure request will finished
-    setTimeout(function(page) {
-      make_result(page);
-    }, page.settings.resourceTimeout + 100, page);
+    setTimeout(make_result, page.settings.resourceTimeout + 100, page);
 
     // send request
     page.open(fetch.url, {
@@ -137,7 +135,7 @@ if (system.args.length !== 2) {
           return;
         }
         if (end_time > Date.now()) {
-          setTimeout(make_result, Date.now() - end_time, page);
+          setTimeout(make_result, Math.min(Date.now() - end_time, 100), , page);
           return;
         }
       }
@@ -145,6 +143,9 @@ if (system.args.length !== 2) {
       var result = {};
       try {
         result = _make_result(page);
+        page.close();
+        finished = true;
+        console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
       } catch (e) {
         result = {
           orig_url: fetch.url,
@@ -158,10 +159,6 @@ if (system.args.length !== 2) {
           save: fetch.save
         }
       }
-
-      page.close();
-      finished = true;
-      console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
 
       var body = JSON.stringify(result, null, 2);
       response.writeHead(200, {
