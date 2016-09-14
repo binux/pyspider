@@ -603,7 +603,7 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider_projectdb'
         )
-        assert self.taskdb.index == test_pyspider_projectdb
+        assert self.projectdb.index == 'test_pyspider_projectdb'
 
     @classmethod
     def tearDownClass(self):
@@ -618,7 +618,7 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider_resultdb'
         )
-        assert self.taskdb.index == test_pyspider_resultdb
+        assert self.resultdb.index == 'test_pyspider_resultdb'
 
     @classmethod
     def tearDownClass(self):
@@ -659,7 +659,7 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider_taskdb'
         )
-        assert self.taskdb.index == test_pyspider_taskdb
+        assert self.taskdb.index == 'test_pyspider_taskdb'
 
     @classmethod
     def tearDownClass(self):
