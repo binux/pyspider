@@ -601,7 +601,7 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database(
-            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider_projectdb'
         )
 
     @classmethod
@@ -615,7 +615,7 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database(
-            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider_resultdb'
         )
 
     @classmethod
@@ -655,7 +655,7 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database(
-            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider_taskdb'
         )
 
     @classmethod
