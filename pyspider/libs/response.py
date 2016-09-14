@@ -10,6 +10,7 @@ import json
 import chardet
 import lxml.html
 import lxml.etree
+from tblib import Traceback
 from pyquery import PyQuery
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
@@ -23,17 +24,19 @@ from pyspider.libs import utils
 
 class Response(object):
 
-    def __init__(self):
-        self.status_code = None
-        self.url = None
-        self.orig_url = None
-        self.headers = CaseInsensitiveDict()
-        self.content = ''
-        self.cookies = {}
-        self.error = None
-        self.save = None
-        self.js_script_result = None
-        self.time = 0
+    def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
+                 content='', cookies={}, error=None, traceback=None, save=None, js_script_result=None, time=0):
+        self.status_code = status_code
+        self.url = url
+        self.orig_url = orig_url
+        self.headers = headers
+        self.content = content
+        self.cookies = cookies
+        self.error = error
+        self.traceback = traceback
+        self.save = save
+        self.js_script_result = js_script_result
+        self.time = time
 
     def __repr__(self):
         return u'<Response [%d]>' % self.status_code
@@ -176,6 +179,8 @@ class Response(object):
         if self.status_code == 304:
             return
         elif self.error:
+            if self.traceback:
+                six.reraise(Exception, self.error, Traceback.from_string(self.traceback).as_traceback())
             http_error = HTTPError(self.error)
         elif (self.status_code >= 300) and (self.status_code < 400) and not allow_redirects:
             http_error = HTTPError('%s Redirection' % (self.status_code))
@@ -198,15 +203,17 @@ class Response(object):
 
 
 def rebuild_response(r):
-    response = Response()
-    response.status_code = r.get('status_code', 599)
-    response.url = r.get('url', '')
-    response.headers = CaseInsensitiveDict(r.get('headers', {}))
-    response.content = r.get('content', '')
-    response.cookies = r.get('cookies', {})
-    response.error = r.get('error')
-    response.time = r.get('time', 0)
-    response.orig_url = r.get('orig_url', response.url)
-    response.js_script_result = r.get('js_script_result')
-    response.save = r.get('save')
+    response = Response(
+        status_code=r.get('status_code', 599),
+        url=r.get('url', ''),
+        headers=CaseInsensitiveDict(r.get('headers', {})),
+        content=r.get('content', ''),
+        cookies=r.get('cookies', {}),
+        error=r.get('error'),
+        traceback=r.get('traceback'),
+        time=r.get('time', 0),
+        orig_url=r.get('orig_url', r.get('url', '')),
+        js_script_result=r.get('js_script_result'),
+        save=r.get('save'),
+    )
     return response

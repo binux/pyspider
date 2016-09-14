@@ -44,3 +44,25 @@ xhr.open("get", "/get", true);
 xhr.send();
 </script>
 '''
+
+@app.route('/pyspider/ajax_click.html')
+def test_ajax_click():
+    return '''
+<div class=status>loading...</div>
+<div class=ua></div>
+<div class=ip></div>
+<a href="javascript:void(0)" onclick="load()">load</a>
+<script>
+function load() {
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      var data = JSON.parse(xhr.responseText);
+      document.querySelector('.status').innerHTML = 'done';
+      document.querySelector('.ua').innerHTML = data.headers['User-Agent'];
+      document.querySelector('.ip').innerHTML = data.origin;
+    }
+    xhr.open("get", "/get", true);
+    xhr.send();
+}
+</script>
+'''
