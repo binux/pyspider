@@ -360,6 +360,22 @@ class TestScheduler(unittest.TestCase):
 
         self.assertEqual(task['taskid'], 'on_finished')
 
+        self.status_queue.put({
+            'taskid': 'on_finished',
+            'project': 'test_project',
+            'url': 'url',
+            'track': {
+                'fetch': {
+                    'ok': True
+                },
+                'process': {
+                    'ok': True
+                },
+            }
+        })  # task done test_project:on_finished url
+        time.sleep(0.2)
+        self.assertEqual(self.rpc.size(), 0)
+
     def test_80_newtask_age_ignore(self):
         '''
         processing = [ ]
