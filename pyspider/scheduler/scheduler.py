@@ -35,7 +35,8 @@ class Project(object):
         self.active_tasks = deque(maxlen=scheduler.ACTIVE_TASKS)
         self.task_queue = TaskQueue()
         self.task_loaded = False
-        self._send_finished_event = False
+        self._selected_tasks = False  # selected tasks after recent pause
+        self._send_finished_event_wait = 0  # wait for scheduler.FAIL_PAUSE_NUM loop steps before sending the event
 
         self.md5sum = None
         self._send_on_get_info = False
@@ -496,24 +497,37 @@ class Scheduler(object):
                     break
 
                 taskids.append((project.name, taskid))
-                project_cnt += 1
+                if taskid != 'on_finished':
+                    project_cnt += 1
                 cnt += 1
 
             cnt_dict[project.name] = project_cnt
             if project_cnt:
-                project._send_finished_event = True
+                project._selected_tasks = True
+                project._send_finished_event_wait = 0
+
             # check and send finished event to project
-            elif len(task_queue) == 0 and project._send_finished_event:
-                project._send_finished_event = False
-                self.on_select_task({
-                    'taskid': 'on_finished',
-                    'project': project.name,
-                    'url': 'data:,on_finished',
-                    'status': self.taskdb.SUCCESS,
-                    'process': {
-                        'callback': 'on_finished',
-                    },
-                })
+            if not project_cnt and len(task_queue) == 0 and project._selected_tasks:
+                # wait for self.FAIL_PAUSE_NUM steps to make sure all tasks in queue have been processed
+                if project._send_finished_event_wait < self.FAIL_PAUSE_NUM:
+                    project._send_finished_event_wait += 1
+                else:
+                    project._selected_tasks = False
+                    project._send_finished_event_wait = 0
+
+                    self.newtask_queue.put({
+                        'project': project.name,
+                        'taskid': 'on_finished',
+                        'url': 'data:,on_finished',
+                        'process': {
+                            'callback': 'on_finished',
+                        },
+                        "schedule": {
+                            "age": 0,
+                            "priority": 9,
+                            "force_update": True,
+                        },
+                    })
 
         for project, taskid in taskids:
             self._load_put_task(project, taskid)

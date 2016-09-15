@@ -414,6 +414,13 @@ class BaseHandler(object):
         if self.__env__.get('result_queue'):
             self.__env__['result_queue'].put((self.task, result))
 
+    def on_finished(self, response, task):
+        """
+        Triggered when all tasks in task queue finished.
+        http://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
+        """
+        pass
+
     @not_send_status
     def _on_message(self, response):
         project, msg = response.save
@@ -447,7 +454,3 @@ class BaseHandler(object):
                 self.save[each] = self.retry_delay
             elif each == 'crawl_config':
                 self.save[each] = self.crawl_config
-
-    @not_send_status
-    def on_finished(self, response, task):
-        pass
