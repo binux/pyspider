@@ -44,8 +44,11 @@ class TestMessageQueue(object):
             self.q1.put_nowait('TEST_DATA%d' % i)
         for i in range(3):
             self.q2.put('TEST_DATA%d' % i)
+
+        print self.q1.__dict__
         with self.assertRaises(Queue.Full):
             self.q1.put('TEST_DATA6', timeout=0.01)
+        print self.q1.__dict__
         with self.assertRaises(Queue.Full):
             self.q1.put_nowait('TEST_DATA6')
 
