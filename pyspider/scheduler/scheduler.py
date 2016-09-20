@@ -424,7 +424,7 @@ class Scheduler(object):
                 continue
             if project.waiting_get_info:
                 continue
-            if project.min_tick == 0:
+            if int(project.min_tick) == 0:
                 continue
             if self._last_tick % int(project.min_tick) != 0:
                 continue
