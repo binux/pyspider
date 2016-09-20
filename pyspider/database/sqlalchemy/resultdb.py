@@ -37,12 +37,14 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             database = self.url.database
             self.url.database = None
             try:
-                engine = create_engine(self.url, convert_unicode=True)
+                engine = create_engine(self.url, convert_unicode=True,
+                                       pool_recycle=3600)
                 engine.execute("CREATE DATABASE IF NOT EXISTS %s" % database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
             self.url.database = database
-        self.engine = create_engine(url, convert_unicode=True)
+        self.engine = create_engine(url, convert_unicode=True,
+                                    pool_recycle=3600)
 
         self._list_project()
 
