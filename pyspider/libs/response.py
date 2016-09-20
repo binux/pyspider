@@ -5,6 +5,8 @@
 #         http://binux.me
 # Created on 2012-11-02 11:16:02
 
+import cgi
+import re
 import six
 import json
 import chardet
@@ -13,11 +15,6 @@ import lxml.etree
 from tblib import Traceback
 from pyquery import PyQuery
 from requests.structures import CaseInsensitiveDict
-from requests.utils import get_encoding_from_headers
-try:
-    from requests.utils import get_encodings_from_content
-except ImportError:
-    get_encodings_from_content = None
 from requests import HTTPError
 from pyspider.libs import utils
 
@@ -73,18 +70,8 @@ class Response(object):
         if isinstance(self.content, six.text_type):
             return 'unicode'
 
-        # Try charset from content-type
-        encoding = get_encoding_from_headers(self.headers)
-        if encoding == 'ISO-8859-1':
-            encoding = None
-
-        # Try charset from content
-        if not encoding and get_encodings_from_content:
-            if six.PY3:
-                encoding = get_encodings_from_content(utils.pretty_unicode(self.content[:1000]))
-            else:
-                encoding = get_encodings_from_content(self.content)
-            encoding = encoding and encoding[0] or None
+        # Try charset from content-type or content
+        encoding = get_encoding(self.headers, self.content)
 
         # Fallback to auto-detected encoding.
         if not encoding and chardet is not None:
@@ -217,3 +204,29 @@ def rebuild_response(r):
         save=r.get('save'),
     )
     return response
+
+
+def get_encoding(headers, content):
+    """Get encoding from request headers or page head."""
+    encoding = None
+
+    content_type = headers.get('content-type')
+    if content_type:
+        _, params = cgi.parse_header(content_type)
+        if 'charset' in params:
+            encoding = params['charset'].strip("'\"")
+
+    if not encoding:
+        content = utils.pretty_unicode(content[:1000]) if six.PY3 else content
+
+        charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]',
+                                flags=re.I)
+        pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]',
+                               flags=re.I)
+        xml_re = re.compile(r'^<\?xml.*?encoding=["\']*(.+?)["\'>]')
+        encoding = (charset_re.findall(content) +
+                    pragma_re.findall(content) +
+                    xml_re.findall(content))
+        encoding = encoding and encoding[0] or None
+
+    return encoding
