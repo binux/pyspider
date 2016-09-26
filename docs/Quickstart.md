@@ -10,7 +10,8 @@ Installation
 if you are using ubuntu, try:
 ```
 apt-get install python python-dev python-distribute python-pip \
-libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml
+libcurl4-openssl-dev libxml2-dev libxslt1-dev python-lxml \
+libssl-dev zlib1g-dev
 ```
 to install binary packages first.
 

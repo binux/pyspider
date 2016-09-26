@@ -27,21 +27,76 @@ class Project(object):
     '''
     project for scheduler
     '''
-    def __init__(self, project_info, ACTIVE_TASKS=100):
+    def __init__(self, scheduler, project_info):
         '''
         '''
-        self.paused = False
+        self.scheduler = scheduler
 
-        self.active_tasks = deque(maxlen=ACTIVE_TASKS)
+        self.active_tasks = deque(maxlen=scheduler.ACTIVE_TASKS)
         self.task_queue = TaskQueue()
         self.task_loaded = False
-        self._send_finished_event = False
+        self._selected_tasks = False  # selected tasks after recent pause
+        self._send_finished_event_wait = 0  # wait for scheduler.FAIL_PAUSE_NUM loop steps before sending the event
 
         self.md5sum = None
         self._send_on_get_info = False
         self.waiting_get_info = True
 
+        self._paused = False
+        self._paused_time = 0
+        self._unpause_last_seen = None
+
         self.update(project_info)
+
+    @property
+    def paused(self):
+        # unpaused --(last FAIL_PAUSE_NUM task failed)--> paused --(PAUSE_TIME)--> unpause_checking
+        #                         unpaused <--(last UNPAUSE_CHECK_NUM task have success)--|
+        #                             paused <--(last UNPAUSE_CHECK_NUM task no success)--|
+        if not self._paused:
+            fail_cnt = 0
+            for _, task in self.active_tasks:
+                # ignore select task
+                if task.get('type') == self.scheduler.TASK_PACK:
+                    continue
+                if 'process' not in task['track']:
+                    logger.error('process not in task, %r', task)
+                if task['track']['process']['ok']:
+                    break
+                else:
+                    fail_cnt += 1
+                if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
+                    break
+            if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
+                self._paused = True
+                self._paused_time = time.time()
+        elif self._paused is True and (self._paused_time + self.scheduler.PAUSE_TIME < time.time()):
+            self._paused = 'checking'
+            self._unpause_last_seen = self.active_tasks[0][1] if len(self.active_tasks) else None
+        elif self._paused == 'checking':
+            cnt = 0
+            fail_cnt = 0
+            for _, task in self.active_tasks:
+                if task is self._unpause_last_seen:
+                    break
+                # ignore select task
+                if task.get('type') == self.scheduler.TASK_PACK:
+                    continue
+                cnt += 1
+                if task['track']['process']['ok']:
+                    # break with enough check cnt
+                    cnt = max(cnt, self.scheduler.UNPAUSE_CHECK_NUM)
+                    break
+                else:
+                    fail_cnt += 1
+            if cnt >= self.scheduler.UNPAUSE_CHECK_NUM:
+                if fail_cnt == cnt:
+                    self._paused = True
+                    self._paused_time = time.time()
+                else:
+                    self._paused = False
+
+        return self._paused is True
 
     def update(self, project_info):
         self.project_info = project_info
@@ -64,6 +119,9 @@ class Project(object):
             self.task_queue.rate = 0
             self.task_queue.burst = 0
 
+        logger.info('project %s updated, status:%s, paused:%s, %d tasks',
+                    self.name, self.db_status, self.paused, len(self.task_queue))
+
     def on_get_info(self, info):
         self.waiting_get_info = False
         self.min_tick = info.get('min_tick', 0)
@@ -72,7 +130,7 @@ class Project(object):
 
     @property
     def active(self):
-        return self.db_status in ('RUNNING', 'DEBUG') and not self.paused
+        return self.db_status in ('RUNNING', 'DEBUG')
 
 
 class Scheduler(object):
@@ -97,6 +155,13 @@ class Scheduler(object):
         3: 12*60*60,
         '': 24*60*60
     }
+    FAIL_PAUSE_NUM = 10
+    PAUSE_TIME = 5*60
+    UNPAUSE_CHECK_NUM = 3
+
+    TASK_PACK = 1
+    STATUS_PACK = 2  # current not used
+    REQUEST_PACK = 3  # current not used
 
     def __init__(self, taskdb, projectdb, newtask_queue, status_queue,
                  out_queue, data_path='./data', resultdb=None):
@@ -153,7 +218,7 @@ class Scheduler(object):
     def _update_project(self, project):
         '''update one project'''
         if project['name'] not in self.projects:
-            self.projects[project['name']] = Project(project, ACTIVE_TASKS=self.ACTIVE_TASKS)
+            self.projects[project['name']] = Project(self, project)
         else:
             self.projects[project['name']].update(project)
 
@@ -240,11 +305,8 @@ class Scheduler(object):
 
         project = self.projects[task['project']]
         if not project.active:
-            if project.paused:
-                logger.error('project %s paused', task['project'])
-            else:
-                logger.error('project %s not started, please set status to RUNNING or DEBUG',
-                             task['project'])
+            logger.error('project %s not started, please set status to RUNNING or DEBUG',
+                         task['project'])
             return False
         return True
 
@@ -415,6 +477,9 @@ class Scheduler(object):
         for project in itervalues(self.projects):
             if not project.active:
                 continue
+            # only check project pause when select new tasks, cronjob and new request still working
+            if project.paused:
+                continue
             if project.waiting_get_info:
                 continue
             if cnt >= limit:
@@ -432,24 +497,37 @@ class Scheduler(object):
                     break
 
                 taskids.append((project.name, taskid))
-                project_cnt += 1
+                if taskid != 'on_finished':
+                    project_cnt += 1
                 cnt += 1
 
             cnt_dict[project.name] = project_cnt
             if project_cnt:
-                project._send_finished_event = True
+                project._selected_tasks = True
+                project._send_finished_event_wait = 0
+
             # check and send finished event to project
-            elif len(task_queue) == 0 and project._send_finished_event:
-                project._send_finished_event = False
-                self.on_select_task({
-                    'taskid': 'on_finished',
-                    'project': project.name,
-                    'url': 'data:,on_finished',
-                    'status': self.taskdb.SUCCESS,
-                    'process': {
-                        'callback': 'on_finished',
-                    },
-                })
+            if not project_cnt and len(task_queue) == 0 and project._selected_tasks:
+                # wait for self.FAIL_PAUSE_NUM steps to make sure all tasks in queue have been processed
+                if project._send_finished_event_wait < self.FAIL_PAUSE_NUM:
+                    project._send_finished_event_wait += 1
+                else:
+                    project._selected_tasks = False
+                    project._send_finished_event_wait = 0
+
+                    self.newtask_queue.put({
+                        'project': project.name,
+                        'taskid': 'on_finished',
+                        'url': 'data:,on_finished',
+                        'process': {
+                            'callback': 'on_finished',
+                        },
+                        "schedule": {
+                            "age": 0,
+                            "priority": 9,
+                            "force_update": True,
+                        },
+                    })
 
         for project, taskid in taskids:
             self._load_put_task(project, taskid)
@@ -563,7 +641,7 @@ class Scheduler(object):
 
     def run(self):
         '''Start scheduler loop'''
-        logger.info("loading projects")
+        logger.info("scheduler starting...")
 
         while not self._quit:
             try:
@@ -628,6 +706,7 @@ class Scheduler(object):
 
         def get_active_tasks(project=None, limit=100):
             allowed_keys = set((
+                'type',
                 'taskid',
                 'project',
                 'status',
@@ -669,6 +748,26 @@ class Scheduler(object):
             return json.loads(json.dumps(result))
         application.register_function(get_active_tasks, 'get_active_tasks')
 
+        def get_projects_pause_status():
+            result = {}
+            for project_name, project in iteritems(self.projects):
+                result[project_name] = project.paused
+            return result
+        application.register_function(get_projects_pause_status, 'get_projects_pause_status')
+
+        def webui_update():
+            return {
+                'pause_status': get_projects_pause_status(),
+                'counter': {
+                    '5m_time': dump_counter('5m_time', 'avg'),
+                    '5m': dump_counter('5m', 'sum'),
+                    '1h': dump_counter('1h', 'sum'),
+                    '1d': dump_counter('1d', 'sum'),
+                    'all': dump_counter('all', 'sum'),
+                },
+            }
+        application.register_function(webui_update, 'webui_update')
+
         import tornado.wsgi
         import tornado.ioloop
         import tornado.httpserver
@@ -677,6 +776,7 @@ class Scheduler(object):
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
         self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
         self.xmlrpc_server.listen(port=port, address=bind)
+        logger.info('scheduler.xmlrpc listening on %s:%s', bind, port)
         self.xmlrpc_ioloop.start()
 
     def on_request(self, task):
@@ -863,6 +963,7 @@ class Scheduler(object):
 
         project_info = self.projects.get(task['project'])
         assert project_info, 'no such project'
+        task['type'] = self.TASK_PACK
         task['group'] = project_info.group
         task['project_md5sum'] = project_info.md5sum
         task['project_updatetime'] = project_info.updatetime
@@ -957,12 +1058,17 @@ class OneScheduler(Scheduler):
             shell.ask_exit()
 
         shell = utils.get_python_console()
-        shell.interact(
+        banner = (
             'pyspider shell - Select task\n'
             'crawl(url, project=None, **kwargs) - same parameters as BaseHandler.crawl\n'
             'quit_interactive() - Quit interactive mode\n'
             'quit_pyspider() - Close pyspider'
         )
+        if hasattr(shell, 'show_banner'):
+            shell.show_banner(banner)
+            shell.interact()
+        else:
+            shell.interact(banner)
         if not is_crawled:
             self.ioloop.add_callback(self.ioloop.stop)
 

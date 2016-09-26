@@ -601,12 +601,13 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database(
-            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider_projectdb'
         )
+        assert self.projectdb.index == 'test_pyspider_projectdb'
 
     @classmethod
     def tearDownClass(self):
-        self.projectdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.projectdb.es.indices.delete(index='test_pyspider_projectdb', ignore=[400, 404])
 
 
 @unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH') or os.environ.get('IGNORE_ALL'), 'no elasticsearch server for test.')
@@ -615,12 +616,13 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database(
-            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider_resultdb'
         )
+        assert self.resultdb.index == 'test_pyspider_resultdb'
 
     @classmethod
     def tearDownClass(self):
-        self.resultdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.resultdb.es.indices.delete(index='test_pyspider_resultdb', ignore=[400, 404])
 
     def test_15_save(self):
         self.resultdb.refresh()
@@ -655,12 +657,13 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database(
-            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider_taskdb'
         )
+        assert self.taskdb.index == 'test_pyspider_taskdb'
 
     @classmethod
     def tearDownClass(self):
-        self.taskdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.taskdb.es.indices.delete(index='test_pyspider_taskdb', ignore=[400, 404])
 
 if __name__ == '__main__':
     unittest.main()

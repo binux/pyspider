@@ -97,6 +97,7 @@ app.config.update({
     'projectdb': None,
     'scheduler_rpc': None,
     'queues': dict(),
+    'process_time_limit': 30,
 })
 
 

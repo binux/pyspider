@@ -51,6 +51,12 @@ class TestProcessor(unittest.TestCase):
         self.assertEqual(len(self.resultdb.projects), 0)
         self.assertEqual(self.resultdb.count('test_project'), 0)
 
+    def test_10_bad_result_2(self):
+        self.inqueue.put(({'project': 'test_project'}, {'a': 'b'}))
+        self.resultdb._list_project()
+        self.assertEqual(len(self.resultdb.projects), 0)
+        self.assertEqual(self.resultdb.count('test_project'), 0)
+
     def test_20_insert_result(self):
         data = {
             'a': 'b'

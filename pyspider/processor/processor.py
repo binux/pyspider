@@ -66,7 +66,8 @@ class Processor(object):
 
     def __init__(self, projectdb, inqueue, status_queue, newtask_queue, result_queue,
                  enable_stdout_capture=True,
-                 enable_projects_import=True):
+                 enable_projects_import=True,
+                 process_time_limit=PROCESS_TIME_LIMIT):
         self.inqueue = inqueue
         self.status_queue = status_queue
         self.newtask_queue = newtask_queue
@@ -79,6 +80,7 @@ class Processor(object):
         self.project_manager = ProjectManager(projectdb, dict(
             result_queue=self.result_queue,
             enable_stdout_capture=self.enable_stdout_capture,
+            process_time_limit=process_time_limit,
         ))
 
         if enable_projects_import:

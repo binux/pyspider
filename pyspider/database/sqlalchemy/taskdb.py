@@ -43,14 +43,14 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             database = self.url.database
             self.url.database = None
             try:
-                engine = create_engine(self.url)
+                engine = create_engine(self.url, pool_recycle=3600)
                 conn = engine.connect()
                 conn.execute("commit")
                 conn.execute("CREATE DATABASE %s" % database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
             self.url.database = database
-        self.engine = create_engine(url)
+        self.engine = create_engine(url, pool_recycle=3600)
 
         self._list_project()
 

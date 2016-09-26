@@ -1,3 +1,4 @@
+sudo: required
 language: python
 cache: pip
 python:
@@ -7,17 +8,27 @@ python:
     - "3.4"
     - "3.5"
 services:
+    - docker
     - mongodb
     - rabbitmq
     - redis-server
-    - elasticsearch
+    #- elasticsearch
+    - postgresql
 addons:
-    postgresql: "9.4"
+  postgresql: "9.4"
+  apt:
+    packages:
+    - mysql-server-5.6
+    - mysql-client-core-5.6
+    - mysql-client-5.6
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
+    - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.0/elasticsearch-2.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.0.deb && sudo service elasticsearch restart
+    - sudo docker pull scrapinghub/splash
+    - sudo docker run -d --net=host scrapinghub/splash
 before_script:
     - psql -c "CREATE DATABASE pyspider_test_taskdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - psql -c "CREATE DATABASE pyspider_test_projectdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
@@ -25,6 +36,7 @@ before_script:
     - sleep 10
 install:
     - pip install http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.0.4.zip#md5=3df394d89300db95163f17c843ef49df
+    - pip install --no-use-wheel lxml
     - pip install --allow-all-external -e .[all,test]
     - pip install coveralls
 script:

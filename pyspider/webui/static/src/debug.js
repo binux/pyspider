@@ -3,6 +3,9 @@
 //         http://binux.me
 // Created on 2014-02-23 15:19:19
 
+import "./debug.less"
+import "./splitter"
+
 window.SelectorHelper = (function() {
   var helper = $('#css-selector-helper');
 
@@ -444,7 +447,7 @@ window.Debugger = (function() {
         $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/helper.js">');
       }
       if (selector_helper) {
-        $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/static/css_selector_helper.js">');
+        $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/static/css_selector_helper.min.js">');
       }
       $(dom).find('base').remove();
       $(dom).find('head').append('<base>');

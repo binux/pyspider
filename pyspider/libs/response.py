@@ -5,35 +5,35 @@
 #         http://binux.me
 # Created on 2012-11-02 11:16:02
 
+import cgi
+import re
 import six
 import json
 import chardet
 import lxml.html
 import lxml.etree
+from tblib import Traceback
 from pyquery import PyQuery
 from requests.structures import CaseInsensitiveDict
-from requests.utils import get_encoding_from_headers
-try:
-    from requests.utils import get_encodings_from_content
-except ImportError:
-    get_encodings_from_content = None
 from requests import HTTPError
 from pyspider.libs import utils
 
 
 class Response(object):
 
-    def __init__(self):
-        self.status_code = None
-        self.url = None
-        self.orig_url = None
-        self.headers = CaseInsensitiveDict()
-        self.content = ''
-        self.cookies = {}
-        self.error = None
-        self.save = None
-        self.js_script_result = None
-        self.time = 0
+    def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
+                 content='', cookies={}, error=None, traceback=None, save=None, js_script_result=None, time=0):
+        self.status_code = status_code
+        self.url = url
+        self.orig_url = orig_url
+        self.headers = headers
+        self.content = content
+        self.cookies = cookies
+        self.error = error
+        self.traceback = traceback
+        self.save = save
+        self.js_script_result = js_script_result
+        self.time = time
 
     def __repr__(self):
         return u'<Response [%d]>' % self.status_code
@@ -70,18 +70,8 @@ class Response(object):
         if isinstance(self.content, six.text_type):
             return 'unicode'
 
-        # Try charset from content-type
-        encoding = get_encoding_from_headers(self.headers)
-        if encoding == 'ISO-8859-1':
-            encoding = None
-
-        # Try charset from content
-        if not encoding and get_encodings_from_content:
-            if six.PY3:
-                encoding = get_encodings_from_content(utils.pretty_unicode(self.content[:100]))
-            else:
-                encoding = get_encodings_from_content(self.content)
-            encoding = encoding and encoding[0] or None
+        # Try charset from content-type or content
+        encoding = get_encoding(self.headers, self.content)
 
         # Fallback to auto-detected encoding.
         if not encoding and chardet is not None:
@@ -176,6 +166,8 @@ class Response(object):
         if self.status_code == 304:
             return
         elif self.error:
+            if self.traceback:
+                six.reraise(Exception, self.error, Traceback.from_string(self.traceback).as_traceback())
             http_error = HTTPError(self.error)
         elif (self.status_code >= 300) and (self.status_code < 400) and not allow_redirects:
             http_error = HTTPError('%s Redirection' % (self.status_code))
@@ -198,15 +190,43 @@ class Response(object):
 
 
 def rebuild_response(r):
-    response = Response()
-    response.status_code = r.get('status_code', 599)
-    response.url = r.get('url', '')
-    response.headers = CaseInsensitiveDict(r.get('headers', {}))
-    response.content = r.get('content', '')
-    response.cookies = r.get('cookies', {})
-    response.error = r.get('error')
-    response.time = r.get('time', 0)
-    response.orig_url = r.get('orig_url', response.url)
-    response.js_script_result = r.get('js_script_result')
-    response.save = r.get('save')
+    response = Response(
+        status_code=r.get('status_code', 599),
+        url=r.get('url', ''),
+        headers=CaseInsensitiveDict(r.get('headers', {})),
+        content=r.get('content', ''),
+        cookies=r.get('cookies', {}),
+        error=r.get('error'),
+        traceback=r.get('traceback'),
+        time=r.get('time', 0),
+        orig_url=r.get('orig_url', r.get('url', '')),
+        js_script_result=r.get('js_script_result'),
+        save=r.get('save'),
+    )
     return response
+
+
+def get_encoding(headers, content):
+    """Get encoding from request headers or page head."""
+    encoding = None
+
+    content_type = headers.get('content-type')
+    if content_type:
+        _, params = cgi.parse_header(content_type)
+        if 'charset' in params:
+            encoding = params['charset'].strip("'\"")
+
+    if not encoding:
+        content = utils.pretty_unicode(content[:1000]) if six.PY3 else content
+
+        charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]',
+                                flags=re.I)
+        pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]',
+                               flags=re.I)
+        xml_re = re.compile(r'^<\?xml.*?encoding=["\']*(.+?)["\'>]')
+        encoding = (charset_re.findall(content) +
+                    pragma_re.findall(content) +
+                    xml_re.findall(content))
+        encoding = encoding and encoding[0] or None
+
+    return encoding

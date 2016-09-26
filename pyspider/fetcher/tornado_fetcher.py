@@ -7,11 +7,14 @@
 
 from __future__ import unicode_literals
 
+import os
+import sys
 import six
 import copy
 import time
 import json
 import logging
+import traceback
 import functools
 import threading
 import tornado.ioloop
@@ -71,6 +74,8 @@ class Fetcher(object):
         'connect_timeout': 20,
     }
     phantomjs_proxy = None
+    splash_endpoint = None
+    splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
     robot_txt_age = 60*60  # 1h
 
     def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True):
@@ -122,6 +127,7 @@ class Fetcher(object):
             callback = self.send_result
 
         type = 'None'
+        start_time = time.time()
         try:
             if url.startswith('data:'):
                 type = 'data'
@@ -129,12 +135,15 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
                 type = 'phantomjs'
                 result = yield self.phantomjs_fetch(url, task)
+            elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
+                type = 'splash'
+                result = yield self.splash_fetch(url, task)
             else:
                 type = 'http'
                 result = yield self.http_fetch(url, task)
         except Exception as e:
             logger.exception(e)
-            result = self.handle_error(type, url, task, e)
+            result = self.handle_error(type, url, task, start_time, e)
 
         callback(type, task, result)
         self.on_result(type, task, result)
@@ -191,6 +200,7 @@ class Fetcher(object):
         result = {
             'status_code': getattr(error, 'code', 599),
             'error': utils.text(error),
+            'traceback': traceback.format_exc() if sys.exc_info()[0] else None,
             'content': "",
             'time': time.time() - start_time,
             'orig_url': url,
@@ -469,7 +479,101 @@ class Fetcher(object):
         fetch['headers'] = dict(fetch['headers'])
         try:
             request = tornado.httpclient.HTTPRequest(
-                url="%s" % self.phantomjs_proxy, method="POST",
+                url=self.phantomjs_proxy, method="POST",
+                body=json.dumps(fetch), **request_conf)
+        except Exception as e:
+            raise gen.Return(handle_error(e))
+
+        try:
+            response = yield gen.maybe_future(self.http_client.fetch(request))
+        except tornado.httpclient.HTTPError as e:
+            if e.response:
+                response = e.response
+            else:
+                raise gen.Return(handle_error(e))
+
+        if not response.body:
+            raise gen.Return(handle_error(Exception('no response from phantomjs: %r' % response)))
+
+        result = {}
+        try:
+            result = json.loads(utils.text(response.body))
+            assert 'status_code' in result, result
+        except Exception as e:
+            if response.error:
+                result['error'] = utils.text(response.error)
+            raise gen.Return(handle_error(e))
+
+        if result.get('status_code', 200):
+            logger.info("[%d] %s:%s %s %.2fs", result['status_code'],
+                        task.get('project'), task.get('taskid'), url, result['time'])
+        else:
+            logger.error("[%d] %s:%s %s, %r %.2fs", result['status_code'],
+                         task.get('project'), task.get('taskid'),
+                         url, result['content'], result['time'])
+
+        raise gen.Return(result)
+
+    @gen.coroutine
+    def splash_fetch(self, url, task):
+        '''Fetch with splash'''
+        start_time = time.time()
+        self.on_fetch('splash', task)
+        handle_error = lambda x: self.handle_error('splash', url, task, start_time, x)
+
+        # check phantomjs proxy is enabled
+        if not self.splash_endpoint:
+            result = {
+                "orig_url": url,
+                "content": "splash is not enabled.",
+                "headers": {},
+                "status_code": 501,
+                "url": url,
+                "time": time.time() - start_time,
+                "cookies": {},
+                "save": task.get('fetch', {}).get('save')
+            }
+            logger.warning("[501] %s:%s %s 0s", task.get('project'), task.get('taskid'), url)
+            raise gen.Return(result)
+
+        # setup request parameters
+        fetch = self.pack_tornado_request_parameters(url, task)
+        task_fetch = task.get('fetch', {})
+        for each in task_fetch:
+            if each not in fetch:
+                fetch[each] = task_fetch[each]
+
+        # robots.txt
+        if task_fetch.get('robots_txt', False):
+            user_agent = fetch['headers']['User-Agent']
+            can_fetch = yield self.can_fetch(user_agent, url)
+            if not can_fetch:
+                error = tornado.httpclient.HTTPError(403, 'Disallowed by robots.txt')
+                raise gen.Return(handle_error(error))
+
+        request_conf = {
+            'follow_redirects': False,
+            'headers': {
+                'Content-Type': 'application/json',
+            }
+        }
+        request_conf['connect_timeout'] = fetch.get('connect_timeout', 20)
+        request_conf['request_timeout'] = fetch.get('request_timeout', 120) + 1
+
+        session = cookies.RequestsCookieJar()
+        request = tornado.httpclient.HTTPRequest(url=fetch['url'])
+        if fetch.get('cookies'):
+            session.update(fetch['cookies'])
+            if 'Cookie' in request.headers:
+                del request.headers['Cookie']
+            fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
+
+        # making requests
+        fetch['lua_source'] = self.splash_lua_source
+        fetch['headers'] = dict(fetch['headers'])
+        try:
+            request = tornado.httpclient.HTTPRequest(
+                url=self.splash_endpoint, method="POST",
                 body=json.dumps(fetch), **request_conf)
         except Exception as e:
             raise gen.Return(handle_error(e))
@@ -488,6 +592,10 @@ class Fetcher(object):
         result = {}
         try:
             result = json.loads(utils.text(response.body))
+            assert 'status_code' in result, result
+        except ValueError as e:
+            logger.error("result is not json: %r", response.body[:500])
+            raise gen.Return(handle_error(e))
         except Exception as e:
             if response.error:
                 result['error'] = utils.text(response.error)
@@ -584,6 +692,7 @@ class Fetcher(object):
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
         self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
         self.xmlrpc_server.listen(port=port, address=bind)
+        logger.info('fetcher.xmlrpc listening on %s:%s', bind, port)
         self.xmlrpc_ioloop.start()
 
     def on_fetch(self, type, task):

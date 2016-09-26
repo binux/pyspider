@@ -7,7 +7,10 @@
 
 import base64
 from flask import Response
-from flask.ext import login
+try:
+    import flask_login as login
+except ImportError:
+    from flask.ext import login
 from .app import app
 
 login_manager = login.LoginManager()

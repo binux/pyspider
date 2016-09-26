@@ -153,7 +153,11 @@ def _connect_database(url):  # NOQA
         else:
             raise LookupError('not supported dbtype: %s', dbtype)
     elif engine == 'elasticsearch' or engine == 'es':
-        index = parse_qs(parsed.query)
+        # in python 2.6 url like "http://host/?query", query will not been splitted
+        if parsed.path.startswith('/?'):
+            index = parse_qs(parsed.path[2:])
+        else:
+            index = parse_qs(parsed.query)
         if 'index' in index and index['index']:
             index = index['index'][0]
         else:

@@ -18,44 +18,50 @@ from pyspider.processor.project_module import ProjectManager
 
 
 class TestProjectModule(unittest.TestCase):
-    base_task = {
-        'taskid': 'taskid',
-        'project': 'test.project',
-        'url': 'www.baidu.com/',
-        'schedule': {
-            'priority': 1,
-            'retries': 3,
-            'exetime': 0,
-            'age': 3600,
-            'itag': 'itag',
-            'recrawl': 5,
-        },
-        'fetch': {
-            'method': 'GET',
-            'headers': {
-                'Cookie': 'a=b',
+
+    @property
+    def base_task(self):
+        return {
+            'taskid': 'taskid',
+            'project': 'test.project',
+            'url': 'www.baidu.com/',
+            'schedule': {
+                'priority': 1,
+                'retries': 3,
+                'exetime': 0,
+                'age': 3600,
+                'itag': 'itag',
+                'recrawl': 5,
             },
-            'data': 'a=b&c=d',
-            'timeout': 60,
+            'fetch': {
+                'method': 'GET',
+                'headers': {
+                    'Cookie': 'a=b',
+                },
+                'data': 'a=b&c=d',
+                'timeout': 60,
+                'save': [1, 2, 3],
+            },
+            'process': {
+                'callback': 'callback',
+            },
+        }
+
+    @property
+    def fetch_result(self):
+        return {
+            'status_code': 200,
+            'orig_url': 'www.baidu.com/',
+            'url': 'http://www.baidu.com/',
+            'headers': {
+                'cookie': 'abc',
+            },
+            'content': 'test data',
+            'cookies': {
+                'a': 'b',
+            },
             'save': [1, 2, 3],
-        },
-        'process': {
-            'callback': 'callback',
-        },
-    }
-    fetch_result = {
-        'status_code': 200,
-        'orig_url': 'www.baidu.com/',
-        'url': 'http://www.baidu.com/',
-        'headers': {
-            'cookie': 'abc',
-        },
-        'content': 'test data',
-        'cookies': {
-            'a': 'b',
-        },
-        'save': [1, 2, 3],
-    }
+        }
 
     def setUp(self):
         self.project = "test.project"
@@ -75,40 +81,46 @@ class TestProjectModule(unittest.TestCase):
         self.instance = data['instance']
 
     def test_2_hello(self):
-        self.base_task['process']['callback'] = 'hello'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'hello'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, "hello world!")
 
     def test_3_echo(self):
-        self.base_task['process']['callback'] = 'echo'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'echo'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, "test data")
 
     def test_4_saved(self):
-        self.base_task['process']['callback'] = 'saved'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'saved'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
-        self.assertEqual(ret.result, self.base_task['fetch']['save'])
+        self.assertEqual(ret.result, base_task['fetch']['save'])
 
     def test_5_echo_task(self):
-        self.base_task['process']['callback'] = 'echo_task'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'echo_task'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, self.project)
 
     def test_6_catch_status_code(self):
-        self.fetch_result['status_code'] = 403
-        self.base_task['process']['callback'] = 'catch_status_code'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        fetch_result = self.fetch_result
+        fetch_result['status_code'] = 403
+        base_task['process']['callback'] = 'catch_status_code'
+        ret = self.instance.run_task(self.module, base_task, fetch_result)
         self.assertIsNone(ret.exception)
         self.assertEqual(ret.result, 403)
-        self.fetch_result['status_code'] = 200
 
     def test_7_raise_exception(self):
-        self.base_task['process']['callback'] = 'raise_exception'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'raise_exception'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNotNone(ret.exception)
         logstr = ret.logstr()
         self.assertIn('info', logstr)
@@ -116,8 +128,9 @@ class TestProjectModule(unittest.TestCase):
         self.assertIn('error', logstr)
 
     def test_8_add_task(self):
-        self.base_task['process']['callback'] = 'add_task'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'add_task'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNone(ret.exception, ret.logstr())
         self.assertEqual(len(ret.follows), 1)
         self.assertEqual(len(ret.messages), 1)
@@ -136,7 +149,7 @@ class TestProjectModule(unittest.TestCase):
                 'callback': '_on_cronjob',
             },
         }
-        fetch_result = copy.deepcopy(self.fetch_result)
+        fetch_result = self.fetch_result
         fetch_result['save'] = {
             'tick': 11,
         }
@@ -171,7 +184,7 @@ class TestProjectModule(unittest.TestCase):
                 'callback': '_on_get_info',
             },
         }
-        fetch_result = copy.deepcopy(self.fetch_result)
+        fetch_result = self.fetch_result
         fetch_result['save'] = task['fetch']['save']
 
         ret = self.instance.run_task(self.module, task, fetch_result)
@@ -182,10 +195,51 @@ class TestProjectModule(unittest.TestCase):
             self.assertEqual(each['fetch']['save']['retry_delay'], {})
 
     def test_30_generator(self):
-        self.base_task['process']['callback'] = 'generator'
-        ret = self.instance.run_task(self.module, self.base_task, self.fetch_result)
+        base_task = self.base_task
+        base_task['process']['callback'] = 'generator'
+        ret = self.instance.run_task(self.module, base_task, self.fetch_result)
         self.assertIsNone(ret.exception)
         self.assertIn('generator object', repr(ret.result))
+
+    def test_40_sleep(self):
+        base_task = self.base_task
+        fetch_result = self.fetch_result
+        base_task['process']['callback'] = 'sleep'
+        fetch_result['save'] = 1
+
+        start_time = time.time()
+        ret = self.instance.run_task(self.module, base_task, fetch_result)
+        self.assertGreaterEqual(time.time() - start_time, 1)
+
+    def test_50_timeout(self):
+        base_task = self.base_task
+        fetch_result = self.fetch_result
+        base_task['process']['callback'] = 'sleep'
+        base_task['process']['process_time_limit'] = 0.5
+        fetch_result['save'] = 2
+
+        start_time = time.time()
+
+        ret = self.instance.run_task(self.module, base_task, fetch_result)
+        self.assertIsNotNone(ret.exception)
+        logstr = ret.logstr()
+        self.assertIn('TimeoutError: process timeout', logstr)
+
+        self.assertGreaterEqual(time.time() - start_time, 1)
+        self.assertLess(time.time() - start_time, 2)
+
+    def test_60_timeout_in_thread(self):
+        base_task = self.base_task
+        fetch_result = self.fetch_result
+        base_task['process']['callback'] = 'sleep'
+        base_task['process']['process_time_limit'] = 0.5
+        fetch_result['save'] = 2
+
+        start_time = time.time()
+        thread = utils.run_in_thread(lambda self=self: self.instance.run_task(self.module, base_task, fetch_result))
+        thread.join()
+        self.assertGreaterEqual(time.time() - start_time, 2)
+
 
 import shutil
 import inspect

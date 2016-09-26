@@ -16,7 +16,7 @@ from six import add_metaclass, iteritems
 from pyspider.libs.url import (
     quote_chinese, _build_url, _encode_params,
     _encode_multipart_formdata, curl_to_arguments)
-from pyspider.libs.utils import md5string
+from pyspider.libs.utils import md5string, timeout
 from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
@@ -147,7 +147,15 @@ class BaseHandler(object):
         Running callback function with requested number of arguments
         """
         args, varargs, keywords, defaults = inspect.getargspec(function)
-        return function(*arguments[:len(args) - 1])
+        task = arguments[-1]
+        process_time_limit = task['process'].get('process_time_limit',
+                                                 self.__env__.get('process_time_limit', 0))
+        if process_time_limit > 0:
+            with timeout(process_time_limit, 'process timeout'):
+                ret = function(*arguments[:len(args) - 1])
+        else:
+            ret = function(*arguments[:len(args) - 1])
+        return ret
 
     def _run_task(self, task, response):
         """
@@ -171,7 +179,7 @@ class BaseHandler(object):
         """
         Processing the task, catching exceptions and logs, return a `ProcessorResult` object
         """
-        logger = module.logger
+        self.logger = logger = module.logger
         result = None
         exception = None
         stdout = sys.stdout
@@ -214,7 +222,7 @@ class BaseHandler(object):
                     'proxy', 'etag', 'last_modifed', 'last_modified', 'save', 'js_run_at', 'js_script',
                     'js_viewport_width', 'js_viewport_height', 'load_images', 'fetch_type', 'use_gzip', 'validate_cert',
                     'max_redirects', 'robots_txt')
-    process_fields = ('callback', )
+    process_fields = ('callback', 'process_time_limit')
 
     @staticmethod
     def task_join_crawl_config(task, crawl_config):
@@ -313,6 +321,13 @@ class BaseHandler(object):
         if kwargs:
             raise TypeError('crawl() got unexpected keyword argument: %s' % kwargs.keys())
 
+        if self.is_debugger():
+            task = self.task_join_crawl_config(task, self.crawl_config)
+            if task['fetch'].get('proxy', False) and task['fetch'].get('fetch_type', None) in ('js', 'phantomjs') \
+                    and not hasattr(self, '_proxy_warning'):
+                self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
+                self._proxy_warning = True
+
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:
             self._follows_keys.add(cache_key)
@@ -399,6 +414,13 @@ class BaseHandler(object):
         if self.__env__.get('result_queue'):
             self.__env__['result_queue'].put((self.task, result))
 
+    def on_finished(self, response, task):
+        """
+        Triggered when all tasks in task queue finished.
+        http://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
+        """
+        pass
+
     @not_send_status
     def _on_message(self, response):
         project, msg = response.save
@@ -432,7 +454,3 @@ class BaseHandler(object):
                 self.save[each] = self.retry_delay
             elif each == 'crawl_config':
                 self.save[each] = self.crawl_config
-
-    @not_send_status
-    def on_finished(self, response, task):
-        pass

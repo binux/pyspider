@@ -103,11 +103,19 @@ def run(project):
 
     fetch_result = {}
     try:
+        module = ProjectManager.build_module(project_info, {
+            'debugger': True,
+            'process_time_limit': app.config['process_time_limit'],
+        })
+
+        # The code below is to mock the behavior that crawl_config been joined when selected by scheduler.
+        # but to have a better view of joined tasks, it has been done in BaseHandler.crawl when `is_debugger is True`
+        # crawl_config = module['instance'].crawl_config
+        # task = module['instance'].task_join_crawl_config(task, crawl_config)
+
         fetch_result = app.config['fetch'](task)
         response = rebuild_response(fetch_result)
-        module = ProjectManager.build_module(project_info, {
-            'debugger': True
-        })
+
         ret = module['instance'].run_task(module['module'], task, response)
     except Exception:
         type, value, tb = sys.exc_info()
