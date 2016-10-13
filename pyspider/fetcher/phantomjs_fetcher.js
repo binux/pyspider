@@ -45,7 +45,15 @@ if (system.args.length !== 2) {
 
     var fetch = JSON.parse(request.postRaw);
     console.debug(JSON.stringify(fetch, null, 2));
-
+    //set proxy
+    if (fetch.proxy) {
+      var p = fetch.proxy.http.split("//")[1].split(":");
+      var p_ip = p[0];
+      var p_port = p[1];
+      phantom.setProxy(p_ip, p_port, "HTTP");
+    } else {
+      phantom.setProxy("");
+    }
     // create and set page
     var page = webpage.create();
     page.onConsoleMessage = function(msg) {
