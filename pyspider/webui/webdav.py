@@ -9,6 +9,7 @@
 import os
 import time
 import base64
+import six
 from six import BytesIO
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
@@ -138,8 +139,10 @@ class RootCollection(DAVCollection):
             project_name = project['name']
             if not project_name.endswith('.py'):
                 project_name += '.py'
+            native_path = os.path.join(self.path, project_name)
+            native_path = text(native_path) if six.PY3 else utf8(native_path)
             members.append(ScriptResource(
-                os.path.join(self.path, project_name),
+                native_path,
                 self.environ,
                 self.app,
                 project
