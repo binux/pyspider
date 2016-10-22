@@ -87,7 +87,6 @@
       });
       // id
       if (element.getAttribute('id')) {
-        has_id_feature = true;
         features.push({
           name: '#'+element.getAttribute('id'),
           pattern: '#'+element.getAttribute('id'),
