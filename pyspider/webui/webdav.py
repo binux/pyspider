@@ -7,13 +7,12 @@
 
 
 import os
-import re
 import time
 import base64
 from six import BytesIO
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-from wsgidav.dav_error import DAVError, HTTP_NOT_FOUND, HTTP_FORBIDDEN
+from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
 from pyspider.libs.utils import utf8, text
 from .app import app
 
@@ -31,7 +30,7 @@ class ScriptResource(DAVNonCollection):
         self.app = app
         self.new_project = False
         self._project = project
-        self.project_name = self.name
+        self.project_name = text(self.name)
         self.writebuffer = None
         if self.project_name.endswith('.py'):
             self.project_name = self.project_name[:-len('.py')]
@@ -44,7 +43,7 @@ class ScriptResource(DAVNonCollection):
         if projectdb:
             self._project = projectdb.get(self.project_name)
         if not self._project:
-            if projectdb.verify_project_name(self.project_name) and self.name.endswith('.py'):
+            if projectdb.verify_project_name(self.project_name) and text(self.name).endswith('.py'):
                 self.new_project = True
                 self._project = {
                     'name': self.project_name,
@@ -136,7 +135,7 @@ class RootCollection(DAVCollection):
     def getMemberList(self):
         members = []
         for project in self.projectdb.get_all():
-            project_name = utf8(project['name'])
+            project_name = project['name']
             if not project_name.endswith('.py'):
                 project_name += '.py'
             members.append(ScriptResource(
@@ -150,10 +149,10 @@ class RootCollection(DAVCollection):
     def getMemberNames(self):
         members = []
         for project in self.projectdb.get_all(fields=['name', ]):
-            project_name = utf8(project['name'])
+            project_name = project['name']
             if not project_name.endswith('.py'):
                 project_name += '.py'
-            members.append(project_name)
+            members.append(utf8(project_name))
         return members
 
 
