@@ -33,7 +33,16 @@ install_requires = [
     'six>=1.5.0',
     'tblib>=1.3.0'
 ]
-if sys.version_info < (3, 0):
+
+if sys.version_info < (2, 7):
+    install_requires.extend([
+        'wsgidav<2.0.0',
+    ])
+elif sys.version_info >= (3, 0):
+    install_requires.extend([
+        'wsgidav>=2.0.0',
+    ])
+else:
     install_requires.extend([
         'wsgidav',
     ])

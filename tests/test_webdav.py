@@ -17,7 +17,6 @@ from pyspider import run
 from pyspider.libs import utils
 from tests import data_sample_handler, data_handler
 
-@unittest.skipIf(six.PY3, 'webdav not support python3')
 class TestWebDav(unittest.TestCase):
     @classmethod
     def setUpClass(self):
