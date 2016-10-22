@@ -163,7 +163,8 @@ window.SelectorHelper = (function() {
       $("#J-enable-css-selector-helper").on('click', function() {
         _this.clear();
         $("#tab-web iframe")[0].contentWindow.postMessage({
-          type: 'enable_css_selector_helper'
+          type: 'enable_css_selector_helper',
+          src: `${location.protocol}//${location.host}/static/css_selector_helper.min.js`,
         }, '*');
         _this.enable();
       });
@@ -231,9 +232,12 @@ window.Debugger = (function() {
     return tmp_div.text(text).html();
   }
 
-  window.addEventListener("message", function(ev) {
-    if (ev.data.type == "resize") {
-      $("#tab-web iframe").height(ev.data.height+60);
+  let last_height = 0;
+  window.addEventListener("message", (ev) => {
+    const height_add = 60;
+    if (ev.data.type == "resize"  && ev.data.height > last_height && ev.data.height - last_height != height_add) {
+      last_height = ev.data.height;
+      $("#tab-web iframe").height(ev.data.height+height_add);
     }
   });
 
@@ -433,44 +437,34 @@ window.Debugger = (function() {
       })
     },
 
-    render_html: function(html, base_url, block_script, resizer, selector_helper) {
+    render_html: function(html, base_url, block_script=true, resizer=true, selector_helper=false, block_iframe=true) {
       if (html === undefined) {
         html = '';
       }
-      html = html.replace(/(\s)src=/g, "$1____src____=");
-      var dom = document.createElement('html');
-      dom.innerHTML = html;
+      let dom = (new DOMParser()).parseFromString(html, "text/html");
+
+      $(dom).find('base').remove();
+      $(dom).find('head').prepend('<base>');
+      $(dom).find('base').attr('href', base_url);
+
       if (block_script) {
         $(dom).find('script').attr('type', 'text/plain');
       }
       if (resizer) {
-        $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/helper.js">');
+        $(dom).find('body').append(`<script src="${location.protocol}//${location.host}/helper.js">`);
       }
       if (selector_helper) {
-        $(dom).find('body').append('<script src="'+location.protocol+'//'+location.host+'/static/css_selector_helper.min.js">');
+        $(dom).find('body').append(`<script src="${location.protocol}//${location.host}/static/css_selector_helper.min.js">`);
       }
-      $(dom).find('base').remove();
-      $(dom).find('head').append('<base>');
-      $(dom).find('base').attr('href', base_url);
-      $(dom).find('link[href]').each(function(i, e) {
-        e = $(e);
-        try {
-          e.attr('href', URI(e.attr('href')).absoluteTo(base_url).toString());
-        } catch (error) {
-          console.log(error);
-        }
-      });
-      $(dom).find('img[____src____]').each(function(i, e) {
-        e = $(e);
-        try {
-          e.attr('____src____', URI(e.attr('____src____')).absoluteTo(base_url).toString());
-        } catch (error) {
-          console.log(error);
-        }
-      });
-      html = dom.innerHTML;
-      html = html.replace(/(\s)____src____=/g, "$1src=");
-      return encodeURI("data:text/html;charset=utf-8,"+html);
+      if (block_iframe) {
+        $(dom).find('iframe[src]').each((i, e) => {
+          e = $(e);
+          e.attr('__src', e.attr('src'))
+          e.attr('src', encodeURI('data:text/html;,<h1>iframe blocked</h1>'));
+        });
+      }
+
+      return dom.documentElement.innerHTML;
     },
 
     run: function() {
@@ -513,21 +507,21 @@ window.Debugger = (function() {
               var content = JSON.parse(data.fetch_result.content);
               content = JSON.stringify(content, null, '  ');
               content = "<html><pre>"+content+"</pre></html>";
-              iframe.src = _this.render_html(content,
+              iframe.srcdoc = _this.render_html(content,
                                              data.fetch_result.url, true, true, false);
             } catch (e) {
-              iframe.src = "data:,Content-Type:"+content_type+" parse error.";
+              iframe.srcdoc = "data:,Content-Type:"+content_type+" parse error.";
             }
           } else if (content_type.indexOf("text/html") == 0) {
-            iframe.src = _this.render_html(data.fetch_result.content,
+            iframe.srcdoc = _this.render_html(data.fetch_result.content,
                                            data.fetch_result.url, true, true, false);
             $("#tab-html").data("format", false);
           } else if (content_type.indexOf("text") == 0) {
-            iframe.src = "data:"+content_type+","+data.fetch_result.content;
+            iframe.srcdoc = "data:"+content_type+","+data.fetch_result.content;
           } else if (data.fetch_result.dataurl) {
-            iframe.src = data.fetch_result.dataurl
+            iframe.srcdoc = data.fetch_result.dataurl
           } else {
-            iframe.src = "data:,Content-Type:"+content_type;
+            iframe.srcdoc = "data:,Content-Type:"+content_type;
           }
 
           //follows
