@@ -20,6 +20,7 @@ def task(taskid):
 
     taskdb = app.config['taskdb']
     task = taskdb.get_task(project, taskid)
+
     if not task:
         abort(404)
     resultdb = app.config['resultdb']
@@ -28,6 +29,21 @@ def task(taskid):
 
     return render_template("task.html", task=task, json=json, result=result,
                            status_to_string=app.config['taskdb'].status_to_string)
+
+
+@app.route('/task/<taskid>.json')
+def task_in_json(taskid):
+    if ':' not in taskid:
+        return json.jsonify({'code': 400, 'error': 'bad project:task_id format'})
+    project, taskid = taskid.split(':', 1)
+
+    taskdb = app.config['taskdb']
+    task = taskdb.get_task(project, taskid)
+
+    if not task:
+        return json.jsonify({'code': 404, 'error': 'not found'})
+    task['status_string'] = app.config['taskdb'].status_to_string(task['status'])
+    return json.jsonify(task)
 
 
 @app.route('/tasks')
@@ -45,7 +61,7 @@ def tasks():
 
     tasks = {}
     result = []
-    for updatetime, task in sorted(updatetime_tasks , key=lambda x: x[0]):
+    for updatetime, task in sorted(updatetime_tasks, key=lambda x: x[0]):
         key = '%(project)s:%(taskid)s' % task
         task['updatetime'] = updatetime
         if key in tasks and tasks[key].get('status', None) != taskdb.ACTIVE:

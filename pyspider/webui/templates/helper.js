@@ -34,6 +34,7 @@
     }
   }, false);
 
+  console.log(document);
   document.addEventListener('click', function(ev) {
     ev.preventDefault();
   });

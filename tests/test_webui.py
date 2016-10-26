@@ -337,6 +337,11 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'lastcrawltime', rv.data)
 
+    def test_a25_task_json(self):
+        rv = self.app.get(self.task_url + '.json')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn('status_string', json.loads(utils.text(rv.data)))
+
     def test_a26_debug_task(self):
         rv = self.app.get(self.debug_task_url)
         self.assertEqual(rv.status_code, 200)

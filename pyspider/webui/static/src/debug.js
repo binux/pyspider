@@ -414,11 +414,27 @@ window.Debugger = (function() {
       $('.newtask .task-run').on('click', function(event) {
         event.preventDefault();
         event.stopPropagation();
-        var task = $(this).parents('.newtask').data("task");
-        task = JSON.stringify(window.newtasks[task], null, '  ');
-        _this.task_editor.setValue(task);
+        let task_id = $(this).parents('.newtask').data("task");
+        let task = window.newtasks[task_id];
+        _this.task_editor.setValue(JSON.stringify(task, null, '  '));
+        _this.task_updated(task);
         _this.run();
       });
+    },
+
+    task_updated: function task_updated(task) {
+      $('#history-wrap').hide();
+      if (task.project && task.taskid) {
+        $.ajax({
+          url: `/task/${task.project}:${task.taskid}.json`,
+          success: (data) => {
+            if (!data.code && !data.error) {
+              $('#history-link').attr('href', `/task/${task.project}:${task.taskid}`).text(`status: ${data.status_string}`);
+              $('#history-wrap').show();
+            }
+          }
+        })
+      }
     },
 
     bind_others: function() {
@@ -451,10 +467,14 @@ window.Debugger = (function() {
         $(dom).find('script').attr('type', 'text/plain');
       }
       if (resizer) {
-        $(dom).find('body').append(`<script src="${location.protocol}//${location.host}/helper.js">`);
+        let script = dom.createElement('script');
+        script.src = `${location.protocol}//${location.host}/helper.js`;
+        dom.body.appendChild(script);
       }
       if (selector_helper) {
-        $(dom).find('body').append(`<script src="${location.protocol}//${location.host}/static/css_selector_helper.min.js">`);
+        let script = dom.createElement('script');
+        script.src = `${location.protocol}//${location.host}/static/css_selector_helper.min.js`
+        dom.body.appendChild(script);
       }
       if (block_iframe) {
         $(dom).find('iframe[src]').each((i, e) => {
