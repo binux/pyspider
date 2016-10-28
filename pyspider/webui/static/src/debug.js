@@ -273,6 +273,7 @@ window.Debugger = (function() {
       var cm = this.python_editor = CodeMirror($el[0], {
         value: script_content,
         mode: "python",
+        lineNumbers: true,
         indentUnit: 4,
         lineWrapping: true,
         styleActiveLine: true,
@@ -323,7 +324,8 @@ window.Debugger = (function() {
         mode: "application/json",
         indentUnit: 2,
         lineWrapping: true,
-        styleActiveLine: true
+        styleActiveLine: true,
+        lint: true
       });
       this.auto_format(cm);
       cm.getDoc().clearHistory();
