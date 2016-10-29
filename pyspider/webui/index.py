@@ -19,7 +19,7 @@ index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', 'updatet
 def index():
     projectdb = app.config['projectdb']
     projects = sorted(projectdb.get_all(fields=index_fields),
-                      key=lambda k: (0 if k['group'] else 1, k['group'], k['name']))
+                      key=lambda k: (0 if k['group'] else 1, k['group'] or '', k['name']))
     return render_template("index.html", projects=projects)
 
 
