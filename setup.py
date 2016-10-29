@@ -34,15 +34,15 @@ install_requires = [
     'tblib>=1.3.0'
 ]
 
-if sys.version_info < (2, 7):
+if sys.version_info < (2, 7):  # 2.6
     install_requires.extend([
         'wsgidav<2.0.0',
     ])
-elif sys.version_info >= (3, 0):
+elif sys.version_info >= (3, 0):  # 3.*
     install_requires.extend([
         'wsgidav>=2.0.0',
     ])
-else:
+else:  # 2.7
     install_requires.extend([
         'wsgidav',
     ])
@@ -52,22 +52,27 @@ extras_require_all = [
     'pymongo>=2.7.2',
     'SQLAlchemy>=0.9.7',
     'redis',
-    'kombu',
     'psycopg2',
     'elasticsearch>=2.0.0,<2.4.0',
 ]
-if sys.version_info < (2, 7) or sys.version_info >= (3, 0):
+if sys.version_info < (2, 7):  # 2.6
     extras_require_all.extend([
+        'kombu<4.0',
         'amqp>=1.3.0,<2.0',
-    ])
-else:
-    extras_require_all.extend([
-        'amqp>=1.3.0',
-    ])
-if sys.version_info < (3, 0):
-    extras_require_all.extend([
         'pika>=0.9.14',
         'beanstalkc',
+    ])
+elif sys.version_info >= (3, 0):  # 3.*
+    extras_require_all.extend([
+        'kombu',
+        'amqp>=2.1.1'
+    ])
+else:  # 2.7
+    extras_require_all.extend([
+        'kombu',
+        'pika>=0.9.14',
+        'beanstalkc',
+        'amqp>=1.3.0',
     ])
 
 
