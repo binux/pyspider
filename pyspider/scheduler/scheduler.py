@@ -1149,14 +1149,19 @@ class OneScheduler(Scheduler):
 
 import random
 import threading
+from pyspider.database.sqlite.sqlitebase import SQLiteMixin
 
 
 class ThreadBaseScheduler(Scheduler):
     def __init__(self, threads=4, *args, **kwargs):
-        self.threads = threads
         self.local = threading.local()
 
         super(ThreadBaseScheduler, self).__init__(*args, **kwargs)
+
+        if isinstance(self.taskdb, SQLiteMixin):
+            self.threads = 1
+        else:
+            self.threads = threads
 
         self._taskdb = self.taskdb
         self._projectdb = self.projectdb
