@@ -25,7 +25,7 @@ In product environment, you may want to connect pyspider to your system / post-p
 ```
 from pyspider.result import ResultWorker
 
-Class MyResultWorker(ResultWorker):
+class MyResultWorker(ResultWorker):
     def on_result(self, task, result):
         assert task['taskid']
         assert task['project']
