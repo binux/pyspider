@@ -5,9 +5,11 @@
 
 import "./debug.less"
 import "./splitter"
+import CSSSelectorHelperServer from "./css_selector_helper"
 
 window.SelectorHelper = (function() {
   var helper = $('#css-selector-helper');
+  var server = null;
 
   function merge_name(p) {
     var features = p.features;
@@ -57,10 +59,7 @@ window.SelectorHelper = (function() {
   }
 
   function selector_changed(path) {
-    $("#tab-web iframe").get(0).contentWindow.postMessage({
-      type: "heightlight",
-      css_selector: merge_pattern(path),
-    }, '*');
+    server.heightlight(merge_pattern(path));
   }
   
   var current_path = null;
@@ -101,7 +100,7 @@ window.SelectorHelper = (function() {
       });
       ul.appendTo(span);
 
-      span.on('mouseover', function(ev) {
+      span.on('mouseover', (ev) => {
         var xpath = [];
         $.each(path, function(i, _p) {
           xpath.push(_p.xpath);
@@ -109,10 +108,7 @@ window.SelectorHelper = (function() {
             return false;
           }
         });
-        $("#tab-web iframe")[0].contentWindow.postMessage({
-          type: 'overlay',
-          xpath: '/' + xpath.join('/'),
-        }, '*');
+        server.overlay(server.getElementByXpath('/' + xpath.join('/')));
       })
       // path on click
       span.on('click', function(ev) {
@@ -152,21 +148,14 @@ window.SelectorHelper = (function() {
     init: function() {
       var _this = this;
       _this.clear();
-      window.addEventListener("message", function(ev) {
-        if (ev.data.type == "selector_helper_click") {
-          console.log(ev.data.path);
-          render_selector_helper(ev.data.path);
-          current_path = ev.data.path;
-        }
-      });
 
-      $("#J-enable-css-selector-helper").on('click', function() {
-        _this.clear();
-        $("#tab-web iframe")[0].contentWindow.postMessage({
-          type: 'enable_css_selector_helper',
-          src: `${location.protocol}//${location.host}/static/css_selector_helper.min.js`,
-        }, '*');
-        _this.enable();
+      $("#J-enable-css-selector-helper").on('click', ev => {
+        this.clear();
+        server = new CSSSelectorHelperServer($("#tab-web iframe")[0].contentWindow);
+        server.on('selector_helper_click', path => {
+          render_selector_helper(path);
+        })
+        this.enable();
       });
 
       $("#task-panel").on("scroll", function(ev) {
@@ -231,15 +220,6 @@ window.Debugger = (function() {
   function escape(text) {
     return tmp_div.text(text).html();
   }
-
-  let last_height = 0;
-  window.addEventListener("message", (ev) => {
-    const height_add = 60;
-    if (ev.data.type == "resize"  && ev.data.height > last_height && ev.data.height - last_height != height_add) {
-      last_height = ev.data.height;
-      $("#tab-web iframe").height(ev.data.height+height_add);
-    }
-  });
 
   return {
     init: function() {
@@ -455,7 +435,7 @@ window.Debugger = (function() {
       })
     },
 
-    render_html: function(html, base_url, block_script=true, resizer=true, selector_helper=false, block_iframe=true) {
+    render_html: function(html, base_url, block_script=true, block_iframe=true) {
       if (html === undefined) {
         html = '';
       }
@@ -467,16 +447,6 @@ window.Debugger = (function() {
 
       if (block_script) {
         $(dom).find('script').attr('type', 'text/plain');
-      }
-      if (resizer) {
-        let script = dom.createElement('script');
-        script.src = `${location.protocol}//${location.host}/helper.js`;
-        dom.body.appendChild(script);
-      }
-      if (selector_helper) {
-        let script = dom.createElement('script');
-        script.src = `${location.protocol}//${location.host}/static/css_selector_helper.min.js`
-        dom.body.appendChild(script);
       }
       if (block_iframe) {
         $(dom).find('iframe[src]').each((i, e) => {
@@ -516,35 +486,44 @@ window.Debugger = (function() {
           $('#left-area .overlay').hide();
 
           //web
-          $("#tab-web .iframe-box").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
-          var iframe = $("#tab-web iframe")[0];
-          var content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
+          $("#tab-web .iframe-box").html('<iframe src="/blank.html" sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
+          const iframe = $("#tab-web iframe")[0];
+          const content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
 
           //html
           $("#tab-html pre").text(data.fetch_result.content);
           $("#tab-html").data("format", true);
 
+          let iframe_content = null;
           if (content_type.indexOf('application/json') == 0) {
             try {
-              var content = JSON.parse(data.fetch_result.content);
+              let content = JSON.parse(data.fetch_result.content);
               content = JSON.stringify(content, null, '  ');
               content = "<html><pre>"+content+"</pre></html>";
-              iframe.srcdoc = _this.render_html(content,
-                                             data.fetch_result.url, true, true, false);
+              iframe_content = _this.render_html(content, data.fetch_result.url, true, true, false);
             } catch (e) {
-              iframe.srcdoc = "data:,Content-Type:"+content_type+" parse error.";
+              iframe_content = "data:,Content-Type:"+content_type+" parse error.";
             }
           } else if (content_type.indexOf("text/html") == 0) {
-            iframe.srcdoc = _this.render_html(data.fetch_result.content,
-                                           data.fetch_result.url, true, true, false);
             $("#tab-html").data("format", false);
+            iframe_content = _this.render_html(data.fetch_result.content, data.fetch_result.url, true, true, false);
           } else if (content_type.indexOf("text") == 0) {
-            iframe.srcdoc = "data:"+content_type+","+data.fetch_result.content;
+            iframe_content = "data:"+content_type+","+data.fetch_result.content;
           } else if (data.fetch_result.dataurl) {
-            iframe.srcdoc = data.fetch_result.dataurl
+            iframe_content = data.fetch_result.dataurl
           } else {
-            iframe.srcdoc = "data:,Content-Type:"+content_type;
+            iframe_content = "data:,Content-Type:"+content_type;
           }
+
+          const doc = iframe.contentDocument;
+          doc.open("text/html", "replace");
+          doc.write(iframe_content)
+          doc.close();
+          doc.onreadystatechange = () => {
+            if (doc.readyState === 'complete') {
+              $("#tab-web iframe").height(doc.body.scrollHeight + 60);
+            }
+          };
 
           //follows
           $('#tab-follows').html('');

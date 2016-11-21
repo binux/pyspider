@@ -5,7 +5,6 @@ module.exports = {
   entry: {
     index: "./src/index",
     debug: "./src/debug",
-    css_selector_helper: "./src/css_selector_helper",
     result: "./src/result.less",
     task: "./src/task.less",
     tasks: "./src/tasks.less",

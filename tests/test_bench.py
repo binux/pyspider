@@ -15,6 +15,8 @@ import unittest2 as unittest
 
 from pyspider import run
 from pyspider.libs import utils
+from pyspider.libs.utils import ObjectDict
+
 
 class TestBench(unittest.TestCase):
 
@@ -28,21 +30,19 @@ class TestBench(unittest.TestCase):
         shutil.rmtree('./data/bench', ignore_errors=True)
 
     def test_10_bench(self):
-        import subprocess
-        #cmd = [sys.executable]
-        cmd = ['coverage', 'run']
-        p = subprocess.Popen(cmd+[
-            inspect.getsourcefile(run),
+        ctx = run.cli.make_context('test', [
             '--queue-maxsize=0',
-            'bench',
+        ], None, obj=ObjectDict(testing_mode=True))
+        base_ctx = run.cli.invoke(ctx)
+        base_ctx.obj['testing_mode'] = False
+
+        ctx = run.bench.make_context('bench', [
             '--total=500'
-        ], close_fds=True, stderr=subprocess.PIPE)
+        ], base_ctx)
+        bench = run.bench.invoke(ctx)
 
-        stdout, stderr = p.communicate()
-        stderr = utils.text(stderr)
-        print(stderr)
+        stdout, stderr= capsys.readouterr()
 
-        self.assertEqual(p.returncode, 0, stderr)
         self.assertIn('Crawled', stderr)
         self.assertIn('Fetched', stderr)
         self.assertIn('Processed', stderr)

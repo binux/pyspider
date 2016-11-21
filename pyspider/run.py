@@ -621,7 +621,10 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         scheduler_rpc = connect_rpc(ctx, None,
                                     'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
 
-        time.sleep(2)
+        for _ in range(20):
+            if utils.check_port_open(23333):
+                break
+            time.sleep(1)
 
         scheduler_rpc.newtask({
             "project": project_name,
