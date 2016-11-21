@@ -14,7 +14,7 @@ from pyspider.libs import utils
 from six.moves import queue as Queue
 
 
-class TeztMessageQueue(object):
+class TestMessageQueue(object):
 
     @classmethod
     def setUpClass(self):
@@ -64,7 +64,7 @@ class TeztMessageQueue(object):
         t.join()
 
 
-class BuiltinQueue(TeztMessageQueue, unittest.TestCase):
+class BuiltinQueue(TestMessageQueue, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         from pyspider.message_queue import connect_message_queue
@@ -75,7 +75,7 @@ class BuiltinQueue(TeztMessageQueue, unittest.TestCase):
 
 @unittest.skipIf(six.PY3, 'pika not suport python 3')
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
-class TestPikaRabbitMQ(TeztMessageQueue, unittest.TestCase):
+class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -98,7 +98,7 @@ class TestPikaRabbitMQ(TeztMessageQueue, unittest.TestCase):
         del self.q3
 
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
-class TestAmqpRabbitMQ(TeztMessageQueue, unittest.TestCase):
+class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -143,7 +143,7 @@ class TestAmqpRabbitMQ(TeztMessageQueue, unittest.TestCase):
 #@unittest.skipIf(True, "beanstalk queue can't pass the test currently")
 @unittest.skipIf(six.PY3, 'beanstalkc not suport python 3')
 @unittest.skipIf(os.environ.get('IGNORE_BEANSTALK') or os.environ.get('IGNORE_ALL'), 'no beanstalk server for test.')
-class TestBeansTalkQueue(TeztMessageQueue, unittest.TestCase):
+class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -172,7 +172,7 @@ class TestBeansTalkQueue(TeztMessageQueue, unittest.TestCase):
             self.q3.get()
 
 @unittest.skipIf(os.environ.get('IGNORE_REDIS') or os.environ.get('IGNORE_ALL'), 'no redis server for test.')
-class TestRedisQueue(TeztMessageQueue, unittest.TestCase):
+class TestRedisQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -199,7 +199,7 @@ class TestRedisQueue(TeztMessageQueue, unittest.TestCase):
         while not self.q3.empty():
             self.q3.get()
 
-class TestKombuQueue(TeztMessageQueue, unittest.TestCase):
+class TestKombuQueue(TestMessageQueue, unittest.TestCase):
     kombu_url = 'kombu+memory://'
 
     @classmethod
