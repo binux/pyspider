@@ -167,7 +167,7 @@ class Response(object):
             return
         elif self.error:
             if self.traceback:
-                six.reraise(Exception, self.error, Traceback.from_string(self.traceback).as_traceback())
+                six.reraise(Exception, Exception(self.error), Traceback.from_string(self.traceback).as_traceback())
             http_error = HTTPError(self.error)
         elif (self.status_code >= 300) and (self.status_code < 400) and not allow_redirects:
             http_error = HTTPError('%s Redirection' % (self.status_code))

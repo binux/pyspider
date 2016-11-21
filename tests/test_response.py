@@ -88,3 +88,8 @@ class TestResponse(unittest.TestCase):
         response = self.get('/status/600')
         self.assertFalse(response.ok)
         self.assertFalse(response)
+
+    def test_70_reraise_exception(self):
+        response = self.get('file://abc')
+        with self.assertRaisesRegexp(Exception, 'HTTP 599'):
+            response.raise_for_status()
