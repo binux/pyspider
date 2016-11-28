@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-15 22:10:35
 
+import re
 import os
 import json
 import copy
@@ -612,7 +613,7 @@ class TestSplashFetcher(unittest.TestCase):
         self.assertEqual(response.orig_url, request['url'])
         self.assertEqual(response.save, request['fetch']['save'])
 
-        response_json = json.loads(response.content[response.content.index('{'):response.content.index('}')+1])
+        response_json = json.loads(re.search('{[\s\S]+}', response.content, re.M).group(0))
         
         self.assertEqual(response_json['headers'].get('A'), 'b', response_json)
         self.assertIn('c=d', response_json['headers'].get('Cookie'), response_json)
