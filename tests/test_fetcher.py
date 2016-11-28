@@ -562,3 +562,57 @@ class TestSplashFetcher(unittest.TestCase):
         self.assertNotIn('loading', result['content'])
         self.assertIn('done', result['content'])
         self.assertIn('pyspider-test', result['content'])
+
+    def test_a120_http_get_with_proxy_fail_1(self):
+        self.fetcher.proxy = self.proxy
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/get'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
+        self.fetcher.proxy = None
+
+    def test_a120_http_get_with_proxy_fail(self):
+        self.fetcher.proxy = self.proxy
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/get'
+        request['fetch']['fetch_type'] = 'splash'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 403, result)
+        self.fetcher.proxy = None
+
+    def test_a130_http_get_with_proxy_ok_1(self):
+        self.fetcher.proxy = self.proxy
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/get?username=binux&password=123456'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.save, request['fetch']['save'])
+        self.assertIsNotNone(response.json, response.content)
+        self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
+        self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
+        self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
+        self.fetcher.proxy = None
+
+    def test_a130_http_get_with_proxy_ok(self):
+        self.fetcher.proxy = self.proxy
+        request = copy.deepcopy(self.sample_task_http)
+        request['url'] = self.httpbin+'/get?username=binux&password=123456'
+        request['fetch']['fetch_type'] = 'splash'
+        result = self.fetcher.sync_fetch(request)
+        response = rebuild_response(result)
+
+        self.assertEqual(response.status_code, 200, result)
+        self.assertEqual(response.orig_url, request['url'])
+        self.assertEqual(response.save, request['fetch']['save'])
+        self.assertIsNotNone(response.json, response.content)
+        self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
+        self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
+        self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
+        self.fetcher.proxy = None

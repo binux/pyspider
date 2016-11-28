@@ -56,14 +56,15 @@ function render(splash, fetch)
         end_time = start_time + fetch.timeout - 0.1
         log_message("Starting request: [" .. tostring(request.method) .. "]" .. tostring(request.url))
 
-        --if fetch.proxy_host and fetch.proxy_port then
-            --request:set_proxy({
-                --host = fetch.proxy_host,
-                --port = fetch.proxy_port,
-                --username = fetch.proxy_username,
-                --password = fetch.proxy_password
-            --})
-        --end
+        if fetch.proxy_host and fetch.proxy_port then
+            request:set_proxy({
+                host = fetch.proxy_host,
+                port = tonumber(fetch.proxy_port),
+                username = fetch.proxy_username,
+                password = fetch.proxy_password,
+                type = 'HTTP'
+            })
+        end
     end)
 
     local first_response = nil
