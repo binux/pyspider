@@ -455,7 +455,7 @@ class TestSplashFetcher(unittest.TestCase):
         self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)
         self.thread = utils.run_in_thread(self.fetcher.run)
-        self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux',
+        self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux', '--bind=0.0.0.0',
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
         self.proxy = '127.0.0.1:14830'
@@ -611,8 +611,10 @@ class TestSplashFetcher(unittest.TestCase):
         self.assertEqual(response.status_code, 200, result)
         self.assertEqual(response.orig_url, request['url'])
         self.assertEqual(response.save, request['fetch']['save'])
-        self.assertIsNotNone(response.json, response.content)
-        self.assertEqual(response.json['headers'].get('A'), 'b', response.json)
-        self.assertIn('c=d', response.json['headers'].get('Cookie'), response.json)
-        self.assertIn('a=b', response.json['headers'].get('Cookie'), response.json)
+
+        response_json = json.loads(response.content[response.content.index('{'):response.content.index('}')+1])
+        
+        self.assertEqual(response_json['headers'].get('A'), 'b', response_json)
+        self.assertIn('c=d', response_json['headers'].get('Cookie'), response_json)
+        self.assertIn('a=b', response_json['headers'].get('Cookie'), response_json)
         self.fetcher.proxy = None
