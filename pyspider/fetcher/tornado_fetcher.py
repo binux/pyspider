@@ -468,12 +468,23 @@ class Fetcher(object):
         request_conf['request_timeout'] = fetch.get('request_timeout', 120) + 1
 
         session = cookies.RequestsCookieJar()
-        request = tornado.httpclient.HTTPRequest(url=fetch['url'])
-        if fetch.get('cookies'):
+        if 'Cookie' in fetch['headers']:
+            c = http_cookies.SimpleCookie()
+            try:
+                c.load(fetch['headers']['Cookie'])
+            except AttributeError:
+                c.load(utils.utf8(fetch['headers']['Cookie']))
+            for key in c:
+                session.set(key, c[key])
+            del fetch['headers']['Cookie']
+        if 'cookies' in fetch:
             session.update(fetch['cookies'])
-            if 'Cookie' in request.headers:
-                del request.headers['Cookie']
-            fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
+            del fetch['cookies']
+
+        request = tornado.httpclient.HTTPRequest(url=fetch['url'])
+        cookie_header = cookies.get_cookie_header(session, request)
+        if cookie_header:
+            fetch['headers']['Cookie'] = cookie_header
 
         # making requests
         fetch['headers'] = dict(fetch['headers'])
@@ -561,12 +572,23 @@ class Fetcher(object):
         request_conf['request_timeout'] = fetch.get('request_timeout', 120) + 1
 
         session = cookies.RequestsCookieJar()
-        request = tornado.httpclient.HTTPRequest(url=fetch['url'])
-        if fetch.get('cookies'):
+        if 'Cookie' in fetch['headers']:
+            c = http_cookies.SimpleCookie()
+            try:
+                c.load(fetch['headers']['Cookie'])
+            except AttributeError:
+                c.load(utils.utf8(fetch['headers']['Cookie']))
+            for key in c:
+                session.set(key, c[key])
+            del fetch['headers']['Cookie']
+        if 'cookies' in fetch:
             session.update(fetch['cookies'])
-            if 'Cookie' in request.headers:
-                del request.headers['Cookie']
-            fetch['headers']['Cookie'] = cookies.get_cookie_header(session, request)
+            del fetch['cookies']
+
+        request = tornado.httpclient.HTTPRequest(url=fetch['url'])
+        cookie_header = cookies.get_cookie_header(session, request)
+        if cookie_header:
+            fetch['headers']['Cookie'] = cookie_header
 
         # making requests
         fetch['lua_source'] = self.splash_lua_source

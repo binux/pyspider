@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2014-02-15 22:10:35
 
-import re
 import os
 import json
 import copy
@@ -243,9 +242,9 @@ class TestFetcher(unittest.TestCase):
         self.assertEqual(response.orig_url, request['url'])
         self.assertEqual(response.save, request['fetch']['save'])
         data = json.loads(response.doc('pre').text())
-        self.assertIsNotNone(data, response.content)
-        self.assertEqual(data['headers'].get('A'), 'b', response.json)
-        self.assertEqual(data['headers'].get('Cookie'), 'c=d', response.json)
+        self.assertEqual(data['headers'].get('A'), 'b', response.content)
+        self.assertIn('c=d', data['headers'].get('Cookie'), response.content)
+        self.assertIn('a=b', data['headers'].get('Cookie'), response.content)
 
     def test_75_phantomjs_robots(self):
         if not self.phantomjs:
@@ -459,7 +458,7 @@ class TestSplashFetcher(unittest.TestCase):
         self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux', '--bind=0.0.0.0',
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
-        self.proxy = '127.0.0.1:14830'
+        self.proxy = socket.gethostbyname(socket.gethostname()) + ':14830'
         
     @classmethod
     def tearDownClass(self):
@@ -503,10 +502,11 @@ class TestSplashFetcher(unittest.TestCase):
         self.assertEqual(response.status_code, 200, result)
         self.assertEqual(response.orig_url, request['url'])
         self.assertEqual(response.save, request['fetch']['save'])
+
         data = json.loads(response.doc('pre').text())
-        self.assertIsNotNone(data, response.content)
-        self.assertEqual(data['headers'].get('A'), 'b', response.json)
-        self.assertEqual(data['headers'].get('Cookie'), 'c=d', response.json)
+        self.assertEqual(data['headers'].get('A'), 'b', response.content)
+        self.assertIn('c=d', data['headers'].get('Cookie'), response.content)
+        self.assertIn('a=b', data['headers'].get('Cookie'), response.content)
 
     def test_75_splash_robots(self):
         request = self.sample_task_http
@@ -586,9 +586,9 @@ class TestSplashFetcher(unittest.TestCase):
         self.fetcher.proxy = None
 
     def test_a130_http_get_with_proxy_ok_1(self):
-        self.fetcher.proxy = self.proxy
+        self.fetcher.proxy = 'http://binux:123456@%s/' % self.proxy
         request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/get?username=binux&password=123456'
+        request['url'] = self.httpbin+'/get'
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
 
@@ -602,9 +602,9 @@ class TestSplashFetcher(unittest.TestCase):
         self.fetcher.proxy = None
 
     def test_a130_http_get_with_proxy_ok(self):
-        self.fetcher.proxy = self.proxy
+        self.fetcher.proxy = 'http://binux:123456@%s/' % self.proxy
         request = copy.deepcopy(self.sample_task_http)
-        request['url'] = self.httpbin+'/get?username=binux&password=123456'
+        request['url'] = self.httpbin+'/get'
         request['fetch']['fetch_type'] = 'splash'
         result = self.fetcher.sync_fetch(request)
         response = rebuild_response(result)
@@ -613,9 +613,8 @@ class TestSplashFetcher(unittest.TestCase):
         self.assertEqual(response.orig_url, request['url'])
         self.assertEqual(response.save, request['fetch']['save'])
 
-        response_json = json.loads(re.search('{[\s\S]+}', response.content, re.M).group(0))
-        
-        self.assertEqual(response_json['headers'].get('A'), 'b', response_json)
-        self.assertIn('c=d', response_json['headers'].get('Cookie'), response_json)
-        self.assertIn('a=b', response_json['headers'].get('Cookie'), response_json)
+        data = json.loads(response.doc('pre').text())
+        self.assertEqual(data['headers'].get('A'), 'b', response.content)
+        self.assertIn('c=d', data['headers'].get('Cookie'), response.content)
+        self.assertIn('a=b', data['headers'].get('Cookie'), response.content)
         self.fetcher.proxy = None
