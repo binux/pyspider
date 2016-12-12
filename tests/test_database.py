@@ -291,6 +291,13 @@ class ResultDBCase(object):
             self.assertIn('url', ret)
             self.assertNotIn('result', ret)
 
+    def test_35_select_limit(self):
+        ret = list(self.resultdb.select('test_project', limit=None, offset=None))
+        self.assertEqual(len(ret), 6)
+
+        ret = list(self.resultdb.select('test_project', limit=None, offset=2))
+        self.assertEqual(len(ret), 4, ret)
+
     def test_40_count(self):
         self.assertEqual(self.resultdb.count('test_project'), 6)
 
@@ -594,12 +601,13 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database(
-            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider_projectdb'
         )
+        assert self.projectdb.index == 'test_pyspider_projectdb'
 
     @classmethod
     def tearDownClass(self):
-        self.projectdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.projectdb.es.indices.delete(index='test_pyspider_projectdb', ignore=[400, 404])
 
 
 @unittest.skipIf(os.environ.get('IGNORE_ELASTICSEARCH') or os.environ.get('IGNORE_ALL'), 'no elasticsearch server for test.')
@@ -608,12 +616,13 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database(
-            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider_resultdb'
         )
+        assert self.resultdb.index == 'test_pyspider_resultdb'
 
     @classmethod
     def tearDownClass(self):
-        self.resultdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.resultdb.es.indices.delete(index='test_pyspider_resultdb', ignore=[400, 404])
 
     def test_15_save(self):
         self.resultdb.refresh()
@@ -634,6 +643,9 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
             self.assertIn('url', ret)
             self.assertNotIn('result', ret)
 
+    def test_35_select_limit(self):
+        pass
+
     def test_z20_update_projects(self):
         self.resultdb.refresh()
         self.assertIn('drop_project2', self.resultdb.projects)
@@ -645,12 +657,13 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database(
-            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider'
+            'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider_taskdb'
         )
+        assert self.taskdb.index == 'test_pyspider_taskdb'
 
     @classmethod
     def tearDownClass(self):
-        self.taskdb.es.indices.delete(index='test_pyspider', ignore=[400, 404])
+        self.taskdb.es.indices.delete(index='test_pyspider_taskdb', ignore=[400, 404])
 
 if __name__ == '__main__':
     unittest.main()

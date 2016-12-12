@@ -31,26 +31,48 @@ install_requires = [
     'u-msgpack-python>=1.6',
     'click>=3.3',
     'six>=1.5.0',
+    'tblib>=1.3.0'
 ]
-if sys.version_info < (3, 0):
+
+if sys.version_info < (2, 7):  # 2.6
+    install_requires.extend([
+        'wsgidav<2.0.0',
+    ])
+elif sys.version_info >= (3, 0):  # 3.*
+    install_requires.extend([
+        'wsgidav>=2.0.0',
+    ])
+else:  # 2.7
     install_requires.extend([
         'wsgidav',
     ])
 
 extras_require_all = [
     'mysql-connector-python>=1.2.2',
-    'amqp>=1.3.0',
     'pymongo>=2.7.2',
     'SQLAlchemy>=0.9.7',
     'redis',
-    'kombu',
     'psycopg2',
-    'elasticsearch',
+    'elasticsearch>=2.0.0,<2.4.0',
 ]
-if sys.version_info < (3, 0):
+if sys.version_info < (2, 7):  # 2.6
     extras_require_all.extend([
+        'kombu<4.0',
+        'amqp>=1.3.0,<2.0',
         'pika>=0.9.14',
         'beanstalkc',
+    ])
+elif sys.version_info >= (3, 0):  # 3.*
+    extras_require_all.extend([
+        'kombu',
+        'amqp>=2.1.1'
+    ])
+else:  # 2.7
+    extras_require_all.extend([
+        'kombu',
+        'pika>=0.9.14',
+        'beanstalkc',
+        'amqp>=1.3.0',
     ])
 
 
@@ -76,6 +98,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
 
         'License :: OSI Approved :: Apache Software License',
 
@@ -109,7 +132,9 @@ setup(
         'pyspider': [
             'logging.conf',
             'fetcher/phantomjs_fetcher.js',
-            'webui/static/*',
+            'fetcher/splash_fetcher.lua',
+            'webui/static/*.js',
+            'webui/static/*.css',
             'webui/templates/*'
         ],
     },

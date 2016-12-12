@@ -183,7 +183,7 @@ def cli(ctx, **kwargs):
 @click.pass_context
 def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
               inqueue_limit, delete_time, active_tasks, loop_limit, scheduler_cls,
-              threads):
+              threads, get_object=False):
     """
     Run Scheduler, only one scheduler is allowed.
     """
@@ -203,7 +203,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
     scheduler.LOOP_LIMIT = loop_limit
 
     g.instances.append(scheduler)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return scheduler
 
     if xmlrpc:
@@ -219,20 +219,30 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--proxy', help="proxy host:port")
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
+@click.option('--phantomjs-endpoint', help="endpoint of phantomjs, start via pyspider phantomjs")
+@click.option('--splash-endpoint', help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, fetcher_cls, async=True):
+            timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls,
+            async=True, get_object=False, no_input=False):
     """
     Run Fetcher.
     """
     g = ctx.obj
     Fetcher = load_cls(None, None, fetcher_cls)
 
-    fetcher = Fetcher(inqueue=g.scheduler2fetcher, outqueue=g.fetcher2processor,
+    if no_input:
+        inqueue = None
+        outqueue = None
+    else:
+        inqueue = g.scheduler2fetcher
+        outqueue = g.fetcher2processor
+    fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
                       poolsize=poolsize, proxy=proxy, async=async)
-    fetcher.phantomjs_proxy = g.phantomjs_proxy
+    fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
+    fetcher.splash_endpoint = splash_endpoint
     if user_agent:
         fetcher.user_agent = user_agent
     if timeout:
@@ -240,7 +250,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
         fetcher.default_options['timeout'] = timeout
 
     g.instances.append(fetcher)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return fetcher
 
     if xmlrpc:
@@ -251,8 +261,9 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
 @cli.command()
 @click.option('--processor-cls', default='pyspider.processor.Processor',
               callback=load_cls, help='Processor class to be used.')
+@click.option('--process-time-limit', default=30, help='script process time limit')
 @click.pass_context
-def processor(ctx, processor_cls, enable_stdout_capture=True):
+def processor(ctx, processor_cls, process_time_limit, enable_stdout_capture=True, get_object=False):
     """
     Run Processor.
     """
@@ -262,10 +273,11 @@ def processor(ctx, processor_cls, enable_stdout_capture=True):
     processor = Processor(projectdb=g.projectdb,
                           inqueue=g.fetcher2processor, status_queue=g.status_queue,
                           newtask_queue=g.newtask_queue, result_queue=g.processor2result,
-                          enable_stdout_capture=enable_stdout_capture)
+                          enable_stdout_capture=enable_stdout_capture,
+                          process_time_limit=process_time_limit)
 
     g.instances.append(processor)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return processor
 
     processor.run()
@@ -275,7 +287,7 @@ def processor(ctx, processor_cls, enable_stdout_capture=True):
 @click.option('--result-cls', default='pyspider.result.ResultWorker', callback=load_cls,
               help='ResultWorker class to be used.')
 @click.pass_context
-def result_worker(ctx, result_cls):
+def result_worker(ctx, result_cls, get_object=False):
     """
     Run result worker.
     """
@@ -285,7 +297,7 @@ def result_worker(ctx, result_cls):
     result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
     g.instances.append(result_worker)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return result_worker
 
     result_worker.run()
@@ -296,7 +308,7 @@ def result_worker(ctx, result_cls):
               help='webui bind to host')
 @click.option('--port', default=5000, envvar='WEBUI_PORT',
               help='webui bind to host')
-@click.option('--cdn', default='//cdnjscn.b0.upaiyun.com/libs/',
+@click.option('--cdn', default='//cdnjs.cloudflare.com/ajax/libs/',
               help='js/css cdn server')
 @click.option('--scheduler-rpc', help='xmlrpc path of scheduler')
 @click.option('--fetcher-rpc', help='xmlrpc path of fetcher')
@@ -309,9 +321,10 @@ def result_worker(ctx, result_cls):
 @click.option('--need-auth', is_flag=True, default=False, help='need username and password')
 @click.option('--webui-instance', default='pyspider.webui.app.app', callback=load_cls,
               help='webui Flask Application instance to be used.')
+@click.option('--process-time-limit', default=30, help='script process time limit in debug')
 @click.pass_context
 def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
-          username, password, need_auth, webui_instance):
+          username, password, need_auth, webui_instance, process_time_limit, get_object=False):
     """
     Run WebUI
     """
@@ -332,6 +345,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     if password:
         app.config['webui_password'] = password
     app.config['need_auth'] = need_auth
+    app.config['process_time_limit'] = process_time_limit
 
     # inject queues for webui
     for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
@@ -346,16 +360,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     else:
         # get fetcher instance for webui
         fetcher_config = g.config.get('fetcher', {})
-        scheduler2fetcher = g.scheduler2fetcher
-        fetcher2processor = g.fetcher2processor
-        testing_mode = g.get('testing_mode', False)
-        g['scheduler2fetcher'] = None
-        g['fetcher2processor'] = None
-        g['testing_mode'] = True
-        webui_fetcher = ctx.invoke(fetcher, async=False, **fetcher_config)
-        g['scheduler2fetcher'] = scheduler2fetcher
-        g['fetcher2processor'] = fetcher2processor
-        g['testing_mode'] = testing_mode
+        webui_fetcher = ctx.invoke(fetcher, async=False, get_object=True, no_input=True, **fetcher_config)
 
         app.config['fetch'] = lambda x: webui_fetcher.fetch(x)
 
@@ -371,7 +376,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
 
     app.debug = g.debug
     g.instances.append(app)
-    if g.get('testing_mode'):
+    if g.get('testing_mode') or get_object:
         return app
 
     app.run(host=host, port=port)
@@ -410,7 +415,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
         _quit.append(1)
         _phantomjs.kill()
         _phantomjs.wait()
-        logging.info('phantomjs existed.')
+        logging.info('phantomjs exited.')
 
     if not g.get('phantomjs_proxy'):
         g['phantomjs_proxy'] = '127.0.0.1:%s' % port
@@ -606,8 +611,6 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                                 % g.config.get('scheduler', {}).get('xmlrpc_port', 23333))
         threads.append(run_in(ctx.invoke, webui, **webui_config))
 
-        time.sleep(5)
-
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
         scheduler_config.setdefault('xmlrpc_host', '127.0.0.1')
@@ -617,6 +620,20 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
                               **scheduler_config))
         scheduler_rpc = connect_rpc(ctx, None,
                                     'http://%(xmlrpc_host)s:%(xmlrpc_port)s/' % scheduler_config)
+
+        for _ in range(20):
+            if utils.check_port_open(23333):
+                break
+            time.sleep(1)
+
+        scheduler_rpc.newtask({
+            "project": project_name,
+            "taskid": "on_start",
+            "url": "data:,on_start",
+            "process": {
+                "callback": "on_start",
+            },
+        })
 
         # wait bench test finished
         while True:

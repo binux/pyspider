@@ -23,6 +23,10 @@ header .alert {
   }
 }
 
+[v-cloak] {
+  display: none;
+}
+
 .projects {
   min-width: 850px;
   border-top: 1px solid #ddd;
@@ -46,7 +50,7 @@ header .alert {
     color: white;
   }
   .project-status>span {
-    .project-status-span(lighten(black, 50%));
+    .project-status-span(@gray-light);
   }
   span.status-TODO {
     .project-status-span(@orange);
@@ -62,6 +66,9 @@ header .alert {
   }
   span.status-RUNNING {
     .project-status-span(@green);
+  }
+  span.status-PAUSED {
+    .project-status-span(@gray);
   }
 
   .project-rate {

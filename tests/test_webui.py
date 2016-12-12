@@ -26,7 +26,8 @@ class TestWebUI(unittest.TestCase):
 
         import tests.data_test_webpage
         import httpbin
-        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        from pyspider.webui import bench_test  # flake8: noqa
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
 
         ctx = run.cli.make_context('test', [
@@ -199,7 +200,7 @@ class TestWebUI(unittest.TestCase):
     def test_50_index_page_list(self):
         rv = self.app.get('/')
         self.assertEqual(rv.status_code, 200)
-        self.assertIn(b'test_project</a>', rv.data)
+        self.assertIn(b'"test_project"', rv.data)
 
     def test_52_change_status(self):
         rv = self.app.post('/update', data={
@@ -282,6 +283,17 @@ class TestWebUI(unittest.TestCase):
         self.assertGreater(data['test_project']['1d']['success'], 3)
         self.assertGreater(data['test_project']['all']['success'], 3)
 
+    def test_a15_queues(self):
+        rv = self.app.get('/queues')
+        self.assertEqual(rv.status_code, 200)
+        data = json.loads(utils.text(rv.data))
+        self.assertGreater(len(data), 0)
+        self.assertIn('scheduler2fetcher', data)
+        self.assertIn('fetcher2processor', data)
+        self.assertIn('processor2result', data)
+        self.assertIn('newtask_queue', data)
+        self.assertIn('status_queue', data)
+
     def test_a20_tasks(self):
         rv = self.app.get('/tasks')
         self.assertEqual(rv.status_code, 200, rv.data)
@@ -324,6 +336,11 @@ class TestWebUI(unittest.TestCase):
         rv = self.app.get(self.task_url)
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'lastcrawltime', rv.data)
+
+    def test_a25_task_json(self):
+        rv = self.app.get(self.task_url + '.json')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn('status_string', json.loads(utils.text(rv.data)))
 
     def test_a26_debug_task(self):
         rv = self.app.get(self.debug_task_url)
@@ -402,6 +419,30 @@ class TestWebUI(unittest.TestCase):
         app = run.webui.invoke(ctx)
         self.__class__.app = app.test_client()
         self.__class__.rpc = app.config['scheduler_rpc']
+
+    def test_h005_no_such_project(self):
+        rv = self.app.post('/update', data={
+            'name': 'group',
+            'value': 'lock',
+            'pk': 'not_exist_project'
+        })
+        self.assertEqual(rv.status_code, 404)
+
+    def test_h005_unknown_field(self):
+        rv = self.app.post('/update', data={
+            'name': 'unknown_field',
+            'value': 'lock',
+            'pk': 'test_project'
+        })
+        self.assertEqual(rv.status_code, 400)
+
+    def test_h005_rate_wrong_format(self):
+        rv = self.app.post('/update', data={
+            'name': 'rate',
+            'value': 'xxx',
+            'pk': 'test_project'
+        })
+        self.assertEqual(rv.status_code, 400)
 
     def test_h010_change_group(self):
         rv = self.app.post('/update', data={
@@ -489,6 +530,12 @@ class TestWebUI(unittest.TestCase):
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(json.loads(utils.text(rv.data)), {})
 
+    def test_x30_run_not_exists_project(self):
+        rv = self.app.post('/run', data={
+            'project': 'not_exist_project',
+        })
+        self.assertEqual(rv.status_code, 404)
+
     def test_x30_run(self):
         rv = self.app.post('/run', data={
             'project': 'test_project',
@@ -506,3 +553,12 @@ class TestWebUI(unittest.TestCase):
     def test_x50_tasks(self):
         rv = self.app.get('/tasks')
         self.assertEqual(rv.status_code, 502)
+
+    def test_x60_robots(self):
+        rv = self.app.get('/robots.txt')
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'ser-agent', rv.data)
+
+    def test_x70_bench(self):
+        rv = self.app.get('/bench?total=10&show=5')
+        self.assertEqual(rv.status_code, 200)

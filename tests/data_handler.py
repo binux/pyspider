@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-02-22 14:02:21
 
+import time
 from pyspider.libs.base_handler import BaseHandler, catch_status_code_error, every
 
 class IgnoreHandler(object):
@@ -54,3 +55,7 @@ class TestHandler(BaseHandler):
     def generator(self, response):
         yield "a"
         yield "b"
+
+    def sleep(self, response):
+        time.sleep(response.save)
+

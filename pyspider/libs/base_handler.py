@@ -16,7 +16,7 @@ from six import add_metaclass, iteritems
 from pyspider.libs.url import (
     quote_chinese, _build_url, _encode_params,
     _encode_multipart_formdata, curl_to_arguments)
-from pyspider.libs.utils import md5string
+from pyspider.libs.utils import md5string, timeout
 from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
@@ -147,7 +147,15 @@ class BaseHandler(object):
         Running callback function with requested number of arguments
         """
         args, varargs, keywords, defaults = inspect.getargspec(function)
-        return function(*arguments[:len(args) - 1])
+        task = arguments[-1]
+        process_time_limit = task['process'].get('process_time_limit',
+                                                 self.__env__.get('process_time_limit', 0))
+        if process_time_limit > 0:
+            with timeout(process_time_limit, 'process timeout'):
+                ret = function(*arguments[:len(args) - 1])
+        else:
+            ret = function(*arguments[:len(args) - 1])
+        return ret
 
     def _run_task(self, task, response):
         """
@@ -171,7 +179,7 @@ class BaseHandler(object):
         """
         Processing the task, catching exceptions and logs, return a `ProcessorResult` object
         """
-        logger = module.logger
+        self.logger = logger = module.logger
         result = None
         exception = None
         stdout = sys.stdout
@@ -209,6 +217,39 @@ class BaseHandler(object):
         module.log_buffer[:] = []
         return ProcessorResult(result, follows, messages, logs, exception, extinfo, save)
 
+    schedule_fields = ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update', 'auto_recrawl', 'cancel')
+    fetch_fields = ('method', 'headers', 'data', 'connect_timeout', 'timeout', 'allow_redirects', 'cookies',
+                    'proxy', 'etag', 'last_modifed', 'last_modified', 'save', 'js_run_at', 'js_script',
+                    'js_viewport_width', 'js_viewport_height', 'load_images', 'fetch_type', 'use_gzip', 'validate_cert',
+                    'max_redirects', 'robots_txt')
+    process_fields = ('callback', 'process_time_limit')
+
+    @staticmethod
+    def task_join_crawl_config(task, crawl_config):
+        task_fetch = task.get('fetch', {})
+        for k in BaseHandler.fetch_fields:
+            if k in crawl_config:
+                v = crawl_config[k]
+                if isinstance(v, dict) and isinstance(task_fetch.get(k), dict):
+                    task_fetch[k].update(v)
+                else:
+                    task_fetch.setdefault(k, v)
+        if task_fetch:
+            task['fetch'] = task_fetch
+
+        task_process = task.get('process', {})
+        for k in BaseHandler.process_fields:
+            if k in crawl_config:
+                v = crawl_config[k]
+                if isinstance(v, dict) and isinstance(task_process.get(k), dict):
+                    task_process[k].update(v)
+                else:
+                    task_process.setdefault(k, v)
+        if task_process:
+            task['process'] = task_process
+
+        return task
+
     def _crawl(self, url, **kwargs):
         """
         real crawl API
@@ -235,12 +276,6 @@ class BaseHandler(object):
                     else:
                         kwargs.setdefault(k, v)
 
-        for k, v in iteritems(self.crawl_config):
-            if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
-                kwargs[k].update(v)
-            else:
-                kwargs.setdefault(k, v)
-
         url = quote_chinese(_build_url(url.strip(), kwargs.pop('params', None)))
         if kwargs.get('files'):
             assert isinstance(
@@ -256,42 +291,22 @@ class BaseHandler(object):
             kwargs.setdefault('method', 'POST')
 
         schedule = {}
-        for key in ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update',
-                    'auto_recrawl'):
+        for key in self.schedule_fields:
             if key in kwargs:
                 schedule[key] = kwargs.pop(key)
+            elif key in self.crawl_config:
+                schedule[key] = self.crawl_config[key]
+
         task['schedule'] = schedule
 
         fetch = {}
-        for key in (
-                'method',
-                'headers',
-                'data',
-                'timeout',
-                'allow_redirects',
-                'cookies',
-                'proxy',
-                'etag',
-                'last_modifed',
-                'last_modified',
-                'save',
-                'js_run_at',
-                'js_script',
-                'js_viewport_width',
-                'js_viewport_height',
-                'load_images',
-                'fetch_type',
-                'use_gzip',
-                'validate_cert',
-                'max_redirects',
-                'robots_txt'
-        ):
+        for key in self.fetch_fields:
             if key in kwargs:
                 fetch[key] = kwargs.pop(key)
         task['fetch'] = fetch
 
         process = {}
-        for key in ('callback', ):
+        for key in self.process_fields:
             if key in kwargs:
                 process[key] = kwargs.pop(key)
         task['process'] = process
@@ -305,6 +320,13 @@ class BaseHandler(object):
 
         if kwargs:
             raise TypeError('crawl() got unexpected keyword argument: %s' % kwargs.keys())
+
+        if self.is_debugger():
+            task = self.task_join_crawl_config(task, self.crawl_config)
+            if task['fetch'].get('proxy', False) and task['fetch'].get('fetch_type', None) in ('js', 'phantomjs') \
+                    and not hasattr(self, '_proxy_warning'):
+                self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
+                self._proxy_warning = True
 
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:
@@ -348,6 +370,7 @@ class BaseHandler(object):
           exetime
           age
           itag
+          cancel
 
           save
           taskid
@@ -391,6 +414,13 @@ class BaseHandler(object):
         if self.__env__.get('result_queue'):
             self.__env__['result_queue'].put((self.task, result))
 
+    def on_finished(self, response, task):
+        """
+        Triggered when all tasks in task queue finished.
+        http://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
+        """
+        pass
+
     @not_send_status
     def _on_message(self, response):
         project, msg = response.save
@@ -422,7 +452,5 @@ class BaseHandler(object):
                 if not isinstance(self.retry_delay, dict):
                     self.retry_delay = {'': self.retry_delay}
                 self.save[each] = self.retry_delay
-
-    @not_send_status
-    def on_finished(self, response, task):
-        pass
+            elif each == 'crawl_config':
+                self.save[each] = self.crawl_config

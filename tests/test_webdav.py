@@ -17,7 +17,6 @@ from pyspider import run
 from pyspider.libs import utils
 from tests import data_sample_handler, data_handler
 
-@unittest.skipIf(six.PY3, 'webdav not support python3')
 class TestWebDav(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -87,12 +86,12 @@ class TestWebDav(unittest.TestCase):
     def test_50_get(self):
         io = BytesIO()
         self.webdav.download('handler.py', io)
-        self.assertEqual(inspect.getsource(data_handler), io.getvalue())
+        self.assertEqual(utils.text(inspect.getsource(data_handler)), utils.text(io.getvalue()))
         io.close()
 
         io = BytesIO()
         self.webdav.download('sample_handler.py', io)
-        self.assertEqual(inspect.getsource(data_sample_handler), io.getvalue())
+        self.assertEqual(utils.text(inspect.getsource(data_sample_handler)), utils.text(io.getvalue()))
         io.close()
 
     def test_60_edit(self):
@@ -101,7 +100,7 @@ class TestWebDav(unittest.TestCase):
     def test_70_get(self):
         io = BytesIO()
         self.webdav.download('sample_handler.py', io)
-        self.assertEqual(inspect.getsource(data_handler), io.getvalue())
+        self.assertEqual(utils.text(inspect.getsource(data_handler)), utils.text(io.getvalue()))
         io.close()
 
     def test_80_password(self):

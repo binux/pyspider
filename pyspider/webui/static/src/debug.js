@@ -3,8 +3,13 @@
 //         http://binux.me
 // Created on 2014-02-23 15:19:19
 
+import "./debug.less"
+import "./splitter"
+import CSSSelectorHelperServer from "./css_selector_helper"
+
 window.SelectorHelper = (function() {
   var helper = $('#css-selector-helper');
+  var server = null;
 
   function merge_name(p) {
     var features = p.features;
@@ -54,10 +59,7 @@ window.SelectorHelper = (function() {
   }
 
   function selector_changed(path) {
-    $("#tab-web iframe").get(0).contentWindow.postMessage({
-      type: "heightlight",
-      css_selector: merge_pattern(path),
-    }, '*');
+    server.heightlight(merge_pattern(path));
   }
   
   var current_path = null;
@@ -98,7 +100,7 @@ window.SelectorHelper = (function() {
       });
       ul.appendTo(span);
 
-      span.on('mouseover', function(ev) {
+      span.on('mouseover', (ev) => {
         var xpath = [];
         $.each(path, function(i, _p) {
           xpath.push(_p.xpath);
@@ -106,10 +108,7 @@ window.SelectorHelper = (function() {
             return false;
           }
         });
-        $("#tab-web iframe")[0].contentWindow.postMessage({
-          type: 'overlay',
-          xpath: '/' + xpath.join('/'),
-        }, '*');
+        server.overlay(server.getElementByXpath('/' + xpath.join('/')));
       })
       // path on click
       span.on('click', function(ev) {
@@ -149,20 +148,14 @@ window.SelectorHelper = (function() {
     init: function() {
       var _this = this;
       _this.clear();
-      window.addEventListener("message", function(ev) {
-        if (ev.data.type == "selector_helper_click") {
-          console.log(ev.data.path);
-          render_selector_helper(ev.data.path);
-          current_path = ev.data.path;
-        }
-      });
 
-      $("#J-enable-css-selector-helper").on('click', function() {
-        _this.clear();
-        $("#tab-web iframe")[0].contentWindow.postMessage({
-          type: 'enable_css_selector_helper'
-        }, '*');
-        _this.enable();
+      $("#J-enable-css-selector-helper").on('click', ev => {
+        this.clear();
+        server = new CSSSelectorHelperServer($("#tab-web iframe")[0].contentWindow);
+        server.on('selector_helper_click', path => {
+          render_selector_helper(path);
+        })
+        this.enable();
       });
 
       $("#task-panel").on("scroll", function(ev) {
@@ -228,12 +221,6 @@ window.Debugger = (function() {
     return tmp_div.text(text).html();
   }
 
-  window.addEventListener("message", function(ev) {
-    if (ev.data.type == "resize") {
-      $("#tab-web iframe").height(ev.data.height+60);
-    }
-  });
-
   return {
     init: function() {
       //init resizer
@@ -266,6 +253,7 @@ window.Debugger = (function() {
       var cm = this.python_editor = CodeMirror($el[0], {
         value: script_content,
         mode: "python",
+        lineNumbers: true,
         indentUnit: 4,
         lineWrapping: true,
         styleActiveLine: true,
@@ -316,7 +304,8 @@ window.Debugger = (function() {
         mode: "application/json",
         indentUnit: 2,
         lineWrapping: true,
-        styleActiveLine: true
+        styleActiveLine: true,
+        lint: true
       });
       this.auto_format(cm);
       cm.getDoc().clearHistory();
@@ -407,11 +396,27 @@ window.Debugger = (function() {
       $('.newtask .task-run').on('click', function(event) {
         event.preventDefault();
         event.stopPropagation();
-        var task = $(this).parents('.newtask').data("task");
-        task = JSON.stringify(window.newtasks[task], null, '  ');
-        _this.task_editor.setValue(task);
+        let task_id = $(this).parents('.newtask').data("task");
+        let task = window.newtasks[task_id];
+        _this.task_editor.setValue(JSON.stringify(task, null, '  '));
+        _this.task_updated(task);
         _this.run();
       });
+    },
+
+    task_updated: function task_updated(task) {
+      $('#history-wrap').hide();
+      if (task.project && task.taskid) {
+        $.ajax({
+          url: `/task/${task.project}:${task.taskid}.json`,
+          success: (data) => {
+            if (!data.code && !data.error) {
+              $('#history-link').attr('href', `/task/${task.project}:${task.taskid}`).text(`status: ${data.status_string}`);
+              $('#history-wrap').show();
+            }
+          }
+        })
+      }
     },
 
     bind_others: function() {
@@ -430,44 +435,28 @@ window.Debugger = (function() {
       })
     },
 
-    render_html: function(html, base_url, block_script, resizer, selector_helper) {
+    render_html: function(html, base_url, block_script=true, block_iframe=true) {
       if (html === undefined) {
         html = '';
       }
-      html = html.replace(/(\s)src=/g, "$1____src____=");
-      var dom = document.createElement('html');
-      dom.innerHTML = html;
+      let dom = (new DOMParser()).parseFromString(html, "text/html");
+
+      $(dom).find('base').remove();
+      $(dom).find('head').prepend('<base>');
+      $(dom).find('base').attr('href', base_url);
+
       if (block_script) {
         $(dom).find('script').attr('type', 'text/plain');
       }
-      if (resizer) {
-        $(dom).find('body').append('<script src="//'+location.host+'/helper.js">');
+      if (block_iframe) {
+        $(dom).find('iframe[src]').each((i, e) => {
+          e = $(e);
+          e.attr('__src', e.attr('src'))
+          e.attr('src', encodeURI('data:text/html;,<h1>iframe blocked</h1>'));
+        });
       }
-      if (selector_helper) {
-        $(dom).find('body').append('<script src="//'+location.host+'/static/css_selector_helper.js">');
-      }
-      $(dom).find('base').remove();
-      $(dom).find('head').append('<base>');
-      $(dom).find('base').attr('href', base_url);
-      $(dom).find('link[href]').each(function(i, e) {
-        e = $(e);
-        try {
-          e.attr('href', URI(e.attr('href')).absoluteTo(base_url).toString());
-        } catch (error) {
-          console.log(error);
-        }
-      });
-      $(dom).find('img[____src____]').each(function(i, e) {
-        e = $(e);
-        try {
-          e.attr('____src____', URI(e.attr('____src____')).absoluteTo(base_url).toString());
-        } catch (error) {
-          console.log(error);
-        }
-      });
-      html = dom.innerHTML;
-      html = html.replace(/(\s)____src____=/g, "$1src=");
-      return encodeURI("data:text/html;charset=utf-8,"+html);
+
+      return dom.documentElement.innerHTML;
     },
 
     run: function() {
@@ -497,35 +486,44 @@ window.Debugger = (function() {
           $('#left-area .overlay').hide();
 
           //web
-          $("#tab-web .iframe-box").html('<iframe sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
-          var iframe = $("#tab-web iframe")[0];
-          var content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
+          $("#tab-web .iframe-box").html('<iframe src="/blank.html" sandbox="allow-same-origin allow-scripts" height="50%"></iframe>');
+          const iframe = $("#tab-web iframe")[0];
+          const content_type = data.fetch_result.headers && data.fetch_result.headers['Content-Type'] && data.fetch_result.headers['Content-Type'] || "text/plain";
 
           //html
           $("#tab-html pre").text(data.fetch_result.content);
           $("#tab-html").data("format", true);
 
+          let iframe_content = null;
           if (content_type.indexOf('application/json') == 0) {
             try {
-              var content = JSON.parse(data.fetch_result.content);
+              let content = JSON.parse(data.fetch_result.content);
               content = JSON.stringify(content, null, '  ');
               content = "<html><pre>"+content+"</pre></html>";
-              iframe.src = _this.render_html(content,
-                                             data.fetch_result.url, true, true, false);
+              iframe_content = _this.render_html(content, data.fetch_result.url, true, true, false);
             } catch (e) {
-              iframe.src = "data:,Content-Type:"+content_type+" parse error.";
+              iframe_content = "data:,Content-Type:"+content_type+" parse error.";
             }
           } else if (content_type.indexOf("text/html") == 0) {
-            iframe.src = _this.render_html(data.fetch_result.content,
-                                           data.fetch_result.url, true, true, false);
             $("#tab-html").data("format", false);
+            iframe_content = _this.render_html(data.fetch_result.content, data.fetch_result.url, true, true, false);
           } else if (content_type.indexOf("text") == 0) {
-            iframe.src = "data:"+content_type+","+data.fetch_result.content;
+            iframe_content = "data:"+content_type+","+data.fetch_result.content;
           } else if (data.fetch_result.dataurl) {
-            iframe.src = data.fetch_result.dataurl
+            iframe_content = data.fetch_result.dataurl
           } else {
-            iframe.src = "data:,Content-Type:"+content_type;
+            iframe_content = "data:,Content-Type:"+content_type;
           }
+
+          const doc = iframe.contentDocument;
+          doc.open("text/html", "replace");
+          doc.write(iframe_content)
+          doc.close();
+          doc.onreadystatechange = () => {
+            if (doc.readyState === 'complete') {
+              $("#tab-web iframe").height(doc.body.scrollHeight + 60);
+            }
+          };
 
           //follows
           $('#tab-follows').html('');

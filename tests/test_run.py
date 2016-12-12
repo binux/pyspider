@@ -31,7 +31,7 @@ class TestRun(unittest.TestCase):
 
         import tests.data_test_webpage
         import httpbin
-        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
 
     @classmethod
@@ -75,7 +75,7 @@ class TestRun(unittest.TestCase):
         with self.assertRaises(mysql.connector.InterfaceError):
             ctx.obj.taskdb
 
-        with self.assertRaisesRegexp(Exception, 'Connection refused'):
+        with self.assertRaises(Exception):
             ctx.obj.newtask_queue
 
     def test_30_cli_command_line(self):

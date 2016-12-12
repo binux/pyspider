@@ -5,11 +5,14 @@
 #         http://binux.me
 # Created on 2012-11-06 11:50:13
 
+import math
 import logging
 import hashlib
 import datetime
 import socket
 import base64
+import warnings
+import threading
 
 import six
 from six import iteritems
@@ -168,14 +171,20 @@ try:
             raise TimeoutError(self.error_message)
 
         def __enter__(self):
+            if not isinstance(threading.current_thread(), threading._MainThread):
+                logging.error("timeout only works on main thread, are you running pyspider in threads?")
+                self.seconds = 0
             if self.seconds:
                 signal.signal(signal.SIGALRM, self.handle_timeout)
-                signal.alarm(self.seconds)
+                signal.alarm(int(math.ceil(self.seconds)))
 
         def __exit__(self, type, value, traceback):
             if self.seconds:
                 signal.alarm(0)
-except ImportError:
+
+except ImportError as e:
+    warnings.warn("timeout is not supported on your platform.", FutureWarning)
+
     class timeout:
         """
         Time limit of command (for windows)

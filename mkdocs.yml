@@ -26,6 +26,7 @@ pages:
   - '@every': apis/@every.md
 - Deployment: Deployment.md
 - Running pyspider with Docker: Running-pyspider-with-Docker.md
+- Deployment of demo.pyspider.org: Deployment-demo.pyspider.org.md
 - Frequently Asked Questions: Frequently-Asked-Questions.md
 
 theme: readthedocs

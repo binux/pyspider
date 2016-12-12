@@ -132,6 +132,10 @@ dictionary of headers to send.
 
 dictionary of cookies to attach to this request. 
 
+##### connect_timeout
+
+timeout for initial connection in seconds. _default: 20_
+
 ##### timeout
 
 maximum time in seconds to fetch the page. _default: 120_ 
@@ -228,6 +232,9 @@ def get_taskid(self, task):
     
 force update task params even if the task is in `ACTIVE` status. 
 
+##### cancel
+
+cancel a task, should be used with `force_update` to cancel a active task. To cancel an `auto_recrawl` task, you should set `auto_recrawl=False` as well.
 
 cURL command
 ------------
@@ -257,7 +264,7 @@ def detail_page(self, response):
 
 Handler.crawl_config = {}
 -------------------------
-default parameters of `self.crawl` for the whole project. 
+default parameters of `self.crawl` for the whole project. The parameters in `crawl_config` for scheduler (priority, retries, exetime, age, itag, force_update, auto_recrawl, cancel) will be joined when the task created, the parameters for fetcher and processor will be joined when executed. You can use this mechanism to change the fetch config (e.g. cookies) afterwards.
 
 ```python
 class Handler(BaseHandler):

@@ -12,7 +12,7 @@
     <link href="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('cdn', path='x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css') }}" rel="stylesheet">
     <link href="{{ url_for('cdn', path='sortable/0.6.0/css/sortable-theme-bootstrap.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='index.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='index.min.css') }}" rel="stylesheet">
 
     <script src="{{ url_for('cdn', path='jquery/1.11.0/jquery.min.js') }}"></script>
   </head>
@@ -114,7 +114,7 @@
             <th>group</th>
             <th>project name</th>
             <th>status</th>
-            <th>rate/burst</th>
+            <th data-type="num">rate/burst</th>
             <th data-type="num">avg time</th>
             <th class="project-progress" data-type="num">&nbsp;<span>progress</span></th>
             <th data-type="num">&nbsp;</th>
@@ -124,69 +124,66 @@
           </tr>
         </thead>
         <tbody>
-          {% for project in projects %}
-          <tr data-name="{{ project['name'] }}">
-            <td class="project-group"><span>{{ project['group'] or '' }}</span></td>
-            <td class="project-name"><a href="/debug/{{ project['name'] }}">{{ project['name'] }}</a></td>
+        {% raw %}
+          <tr v-cloak v-for="project in projects" data-name="{{* project.name }}">
+            <td class="project-group"><span>{{ project.group }}</span></td>
+            <td class="project-name"><a href="/debug/{{* project.name }}">{{* project.name }}</a></td>
             <td class="project-status">
-              <span class="status-{{ project['status'] }}" data-value="{{ project['status'] }}">{{ project['status'] }}</span>
+              <span class="status-{{ project.paused ? 'PAUSED' : project.status }}" :data-value="project.paused ? 'PAUSED' : project.status">
+                {{ project.paused ? 'PAUSED' : project.status }}
+              </span>
             </td>
-            <td class="project-rate"><span>{{ project['rate'] }}/{{ project['burst'] }}</span></td>
-            <td class="project-time"></td>
-            <td class="project-progress progress-5m">
+            <td class="project-rate" :data-value="project.rate"><span>{{ project.rate }}/{{ project.burst }}</span></td>
+            <td class="project-time" :data-value="project.time.fetch_time + project.time.process_time">
+              <span v-show="project.time.fetch_time">{{ (project.time.fetch_time * 1000).toFixed(1) }}+{{ (project.time.process_time * 1000).toFixed(2) }}</span>
+            </td>
+            <td v-for="type in '5m,1h,1d,all'.split(',')"
+                class="project-progress progress-{{* type }}"
+                :title="project.progress[type].title"
+                :data-value="project.progress[type].task">
               <div class="progress">
-                <div class="progress-text">5m</div>
-                <div class="progress-bar progress-pending"></div>
-                <div class="progress-bar progress-bar-success progress-success"></div>
-                <div class="progress-bar progress-bar-warning progress-retry"></div>
-                <div class="progress-bar progress-bar-danger progress-failed"></div>
+                <div class="progress-text">{{* type }}<span v-show="project.progress[type].task">: {{ project.progress[type].task }}</span></div>
+                <div class="progress-bar progress-pending"
+                     :style="{ width: project.progress[type].pending/project.progress[type].task*100 + '%' }"></div>
+                <div class="progress-bar progress-bar-success progress-success"
+                     :style="{ width: project.progress[type].success/project.progress[type].task*100 + '%' }"></div>
+                <div class="progress-bar progress-bar-warning progress-retry"
+                     :style="{ width: project.progress[type].retry/project.progress[type].task*100 + '%' }"></div>
+                <div class="progress-bar progress-bar-danger progress-failed"
+                     :style="{ width: project.progress[type].failed/project.progress[type].task*100 + '%' }"
+                ></div>
               </div>
             </td>
-            <td class="project-progress progress-1h">
-              <div class="progress">
-                <div class="progress-text">1h</div>
-                <div class="progress-bar progress-pending"></div>
-                <div class="progress-bar progress-bar-success progress-success"></div>
-                <div class="progress-bar progress-bar-warning progress-retry"></div>
-                <div class="progress-bar progress-bar-danger progress-failed"></div>
-              </div>
-            </td>
-            <td class="project-progress progress-1d">
-              <div class="progress">
-                <div class="progress-text">1d</div>
-                <div class="progress-bar progress-pending"></div>
-                <div class="progress-bar progress-bar-success progress-success"></div>
-                <div class="progress-bar progress-bar-warning progress-retry"></div>
-                <div class="progress-bar progress-bar-danger progress-failed"></div>
-              </div>
-            </td>
-            <td class="project-progress progress-all">
-              <div class="progress">
-                <div class="progress-text">all</div>
-                <div class="progress-bar progress-pending"></div>
-                <div class="progress-bar progress-bar-success progress-success"></div>
-                <div class="progress-bar progress-bar-warning progress-retry"></div>
-                <div class="progress-bar progress-bar-danger progress-failed"></div>
-              </div>
-            </td>
+            {% endraw %}
+
+            {% raw %}
             <td class="project-actions" data-value="{{ project.updatetime }}">
+              {% endraw %}
               # if config.scheduler_rpc is not none:
-              <button class="project-run btn btn-default btn-xs">Run</button>
+              {% raw %}
+              <button class="project-run btn btn-default btn-xs" @click="project_run(project, $event)">Run</button>
               <a class="btn btn-default btn-xs" href="/tasks?project={{ project.name }}" target=_blank>Active Tasks</a>
+              {% endraw %}
               # endif
               # if config.resultdb:
+              {% raw %}
               <a class="btn btn-default btn-xs" href="/results?project={{ project.name }}" target=_blank>Results</a>
+              {% endraw %}
               # endif
             </td>
           </tr>
-          {% endfor %}
         </tbody>
       </table>
     </section>
+    <script>
+      // json projects data for vue
+      var projects = {{ projects | tojson | safe }};
+    </script>
     <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('cdn', path='x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js') }}"></script>
     <script src="{{ url_for('cdn', path='sortable/0.6.0/js/sortable.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <script src="{{ url_for('cdn', path='vue/1.0.26/vue.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.min.js') }}"></script>
   </body>
 </html>
 <!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8 syntax=htmldjango: -->

@@ -27,7 +27,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.status_queue = Queue()
         self.newtask_queue = Queue()
         self.result_queue = Queue()
-        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887)
+        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
         self.proxy_thread = subprocess.Popen(['pyproxy', '--username=binux',
                                               '--password=123456', '--port=14830',
