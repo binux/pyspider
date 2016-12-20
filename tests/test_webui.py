@@ -173,7 +173,7 @@ class TestWebUI(unittest.TestCase):
 
     def test_39_save_with_chinese_characters(self):
         rv = self.app.post('/debug/test_project/save', data={
-            'script': self.script_content + '\n#中文',
+            'script': self.script_content + u'\n#中文',
         })
         self.assertEqual(rv.status_code, 200)
         self.assertIn(b'ok', rv.data)
