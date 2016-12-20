@@ -157,7 +157,7 @@ class TaskDBCase(object):
 class ProjectDBCase(object):
     sample_project = {
         'name': 'name',
-        'script': 'import time\nprint(time.time(), "!@#$%^&*()\';:<>?/|")',
+        'script': u'import time\nprint(time.time(), "!@#$%^&*()\';:<>?/|") 中文',
         'status': 'TODO',
         'rate': 1.0,
         'burst': 10.0,
