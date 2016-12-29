@@ -50,6 +50,9 @@ class Project(object):
 
     @property
     def paused(self):
+        if self.scheduler.FAIL_PAUSE_NUM <= 0:
+            return False
+
         # unpaused --(last FAIL_PAUSE_NUM task failed)--> paused --(PAUSE_TIME)--> unpause_checking
         #                         unpaused <--(last UNPAUSE_CHECK_NUM task have success)--|
         #                             paused <--(last UNPAUSE_CHECK_NUM task no success)--|
