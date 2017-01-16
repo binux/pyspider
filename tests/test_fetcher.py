@@ -299,7 +299,7 @@ class TestFetcher(unittest.TestCase):
 
     def test_a110_dns_error(self):
         request = copy.deepcopy(self.sample_task_http)
-        request['url'] = 'http://www.not-exists-site.com/'
+        request['url'] = 'http://www.not-exists-site-binux.com/'
         result = self.fetcher.sync_fetch(request)
         self.assertEqual(result['status_code'], 599)
         self.assertIn('error', result)
