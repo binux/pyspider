@@ -473,3 +473,10 @@ class TestFetcherProcessor(unittest.TestCase):
         status, newtasks, result = self.crawl(self.httpbin+'/deny', robots_txt=True, callback=self.catch_http_error)
 
         self.assertEqual(result, 403)
+
+
+    def test_zzz_connect_timeout(self):
+        start_time = time.time()
+        status, newtasks, result = self.crawl('http://1.1.1.1/', connect_timeout=5, callback=self.catch_http_error)
+        end_time = time.time()
+        self.assertTrue(5 <= end_time - start_time <= 6)
