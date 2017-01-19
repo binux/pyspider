@@ -18,6 +18,24 @@ from pyspider.libs.utils import utf8, text
 from .app import app
 
 
+def check_user(environ):
+    authheader = environ.get("HTTP_AUTHORIZATION")
+    if not authheader:
+        return False
+    authheader = authheader[len("Basic "):]
+    try:
+        username, password = text(base64.b64decode(authheader)).split(':', 1)
+    except Exception as e:
+        app.logger.error('wrong api key: %r, %r', authheader, e)
+        return False
+
+    if username == app.config['webui_username'] \
+            and password == app.config['webui_password']:
+        return True
+    else:
+        return False
+
+
 class ContentIO(BytesIO):
     def close(self):
         self.content = self.getvalue()
@@ -66,22 +84,7 @@ class ScriptResource(DAVNonCollection):
         if 'lock' in projectdb.split_group(self.project.get('group')) \
                 and self.app.config.get('webui_username') \
                 and self.app.config.get('webui_password'):
-
-            authheader = self.environ.get("HTTP_AUTHORIZATION")
-            if not authheader:
-                return True
-            authheader = authheader[len("Basic "):]
-            try:
-                username, password = text(base64.b64decode(authheader)).split(':', 1)
-            except Exception as e:
-                self.app.logger.error('wrong api key: %r, %r', authheader, e)
-                return True
-
-            if username == self.app.config['webui_username'] \
-                    and password == self.app.config['webui_password']:
-                return False
-            else:
-                return True
+            return not check_user(self.environ)
         return False
 
     def getContentLength(self):
@@ -176,13 +179,34 @@ class ScriptProvider(DAVProvider):
             return ScriptResource(path, environ, self.app)
 
 
+class NeedAuthController(object):
+    def __init__(self, app):
+        self.app = app
+
+    def getDomainRealm(self, inputRelativeURL, environ):
+        return 'need auth'
+
+    def requireAuthentication(self, realmname, environ):
+        return self.app.config.get('need_auth', False)
+
+    def isRealmUser(self, realmname, username, environ):
+        return username == self.app.config.get('webui_username')
+
+    def getRealmUserPassword(self, realmname, username, environ):
+        return self.app.config.get('webui_password')
+
+    def authDomainUser(self, realmname, username, password, environ):
+        return username == self.app.config.get('webui_username') \
+            and password == self.app.config.get('webui_password')
+
+
 config = DEFAULT_CONFIG.copy()
 config.update({
     'mount_path': '/dav',
     'provider_mapping': {
         '/': ScriptProvider(app)
     },
-    'user_mapping': {},
+    'domaincontroller': NeedAuthController(app),
     'verbose': 1 if app.debug else 0,
     'dir_browser': {'davmount': False,
                     'enable': True,
