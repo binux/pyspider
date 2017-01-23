@@ -13,10 +13,13 @@ import socket
 import umsgpack
 import subprocess
 import unittest2 as unittest
-
 import logging
 import logging.config
-logging.config.fileConfig("pyspider/logging.conf")
+
+from . import logger_config_path
+
+
+logging.config.fileConfig(logger_config_path)
 
 try:
     from six.moves import xmlrpc_client
@@ -61,7 +64,7 @@ class TestFetcher(unittest.TestCase):
 
         self.inqueue = Queue(10)
         self.outqueue = Queue(10)
-        self.fetcher = Fetcher(self.inqueue, self.outqueue)
+        self.fetcher = Fetcher(self.inqueue, self.outqueue, client='pycurl')
         self.fetcher.phantomjs_proxy = '127.0.0.1:25555'
         self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % 24444)
         self.xmlrpc_thread = utils.run_in_thread(self.fetcher.xmlrpc_run, port=24444)

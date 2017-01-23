@@ -9,7 +9,9 @@ import os
 import time
 import unittest2 as unittest
 import logging.config
-logging.config.fileConfig("pyspider/logging.conf")
+
+from . import logger_config_path
+logging.config.fileConfig(logger_config_path)
 
 import shutil
 from pyspider.database.sqlite import resultdb
