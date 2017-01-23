@@ -27,31 +27,41 @@ from six.moves.urllib.robotparser import RobotFileParser
 from requests import cookies
 from six.moves.urllib.parse import urljoin, urlsplit
 from tornado import gen
-from tornado.curl_httpclient import CurlAsyncHTTPClient
-from tornado.simple_httpclient import SimpleAsyncHTTPClient
-
 from pyspider.libs import utils, dataurl, counter
 from pyspider.libs.url import quote_chinese
 from .cookie_utils import extract_cookies_to_jar
 logger = logging.getLogger('fetcher')
 
 
-class MyCurlAsyncHTTPClient(CurlAsyncHTTPClient):
+def make_http_client(client, async, ioloop, poolsize):
+    if client == 'pycurl':
+        from tornado.curl_httpclient import CurlAsyncHTTPClient
 
-    def free_size(self):
-        return len(self._free_list)
+        class MyAsyncHTTPClient(CurlAsyncHTTPClient):
+            def free_size(self):
+                return len(self._free_list)
 
-    def size(self):
-        return len(self._curls) - self.free_size()
+            def size(self):
+                return len(self._curls) - self.free_size()
 
+    elif client == 'simple':
+        from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
-class MySimpleAsyncHTTPClient(SimpleAsyncHTTPClient):
+        class MyAsyncHTTPClient(SimpleAsyncHTTPClient):
+            def free_size(self):
+                return self.max_clients - self.size()
 
-    def free_size(self):
-        return self.max_clients - self.size()
+            def size(self):
+                return len(self.active)
+    else:
+        raise Exception('invalidate client  argument')
 
-    def size(self):
-        return len(self.active)
+    if async:
+        http_client = MyAsyncHTTPClient(max_clients=poolsize, io_loop=ioloop)
+    else:
+        http_client = tornado.httpclient.HTTPClient(MyAsyncHTTPClient)
+    return http_client
+
 
 fetcher_output = {
     "status_code": int,
@@ -78,7 +88,8 @@ class Fetcher(object):
     splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
     robot_txt_age = 60*60  # 1h
 
-    def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True):
+    def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True,
+                       client="simple", ioloop=None):
         self.inqueue = inqueue
         self.outqueue = outqueue
 
@@ -87,16 +98,13 @@ class Fetcher(object):
         self._quit = False
         self.proxy = proxy
         self.async = async
-        self.ioloop = tornado.ioloop.IOLoop()
+        if ioloop is None:
+            self.ioloop = tornado.ioloop.IOLoop()
 
         self.robots_txt_cache = {}
 
         # binding io_loop to http_client here
-        if self.async:
-            self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
-                                                     io_loop=self.ioloop)
-        else:
-            self.http_client = tornado.httpclient.HTTPClient(MyCurlAsyncHTTPClient, max_clients=self.poolsize)
+        self.http_client = make_http_client(client, async, ioloop, poolsize)
 
         self._cnt = {
             '5m': counter.CounterManager(
