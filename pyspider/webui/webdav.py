@@ -39,7 +39,7 @@ def check_user(environ):
 class ContentIO(BytesIO):
     def close(self):
         self.content = self.getvalue()
-        super(ContentIO, self).close()
+        BytesIO.close(self) #old class
 
 
 class ScriptResource(DAVNonCollection):
