@@ -131,7 +131,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             result[status] = count
         return result
 
-    def insert(self, project, taskid, obj={}):
+    def insert(self, project, taskid, obj=None):
+        if obj is None:
+            obj = {}
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:
@@ -145,7 +147,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         return self.engine.execute(self.table.insert()
                                    .values(**self._stringify(obj)))
 
-    def update(self, project, taskid, obj={}, **kwargs):
+    def update(self, project, taskid, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:

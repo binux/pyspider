@@ -28,7 +28,9 @@ class ProjectDB(BaseProjectDB):
                 }
             })
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj=None):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
@@ -43,7 +45,9 @@ class ProjectDB(BaseProjectDB):
         return self.es.index(index=self.index, doc_type=self.__type__, body=obj, id=name,
                              refresh=True)
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

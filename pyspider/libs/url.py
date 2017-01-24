@@ -98,7 +98,7 @@ def curl_to_arguments(curl):
                 key_value = part.split(':', 1)
                 if len(key_value) == 2:
                     key, value = key_value
-                headers[key.strip()] = value.strip()
+                    headers[key.strip()] = value.strip()
             elif current_opt in ('-d', '--data'):
                 kwargs['data'] = part
             elif current_opt in ('--data-binary'):

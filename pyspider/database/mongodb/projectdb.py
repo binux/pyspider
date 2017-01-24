@@ -34,13 +34,17 @@ class ProjectDB(BaseProjectDB):
         each.setdefault('updatetime', 0)
         return each
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj=None):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
         return self.collection.update({'name': name}, {'$set': obj}, upsert=True)
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

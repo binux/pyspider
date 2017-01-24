@@ -20,8 +20,10 @@ class MockResponse(object):
         """make cookie python 2 version use this method to get cookie list"""
         return self._headers.get_list(name)
 
-    def get_all(self, name, default=[]):
+    def get_all(self, name, default=None):
         """make cookie python 3 version use this instead of getheaders"""
+        if default is None:
+            default = []
         return self._headers.get_list(name) or default
 
 
