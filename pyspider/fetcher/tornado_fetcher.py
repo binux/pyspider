@@ -543,7 +543,6 @@ class Fetcher(object):
     def cfscrape_fetch(self, url, task):
         start_time = time.time()
         self.on_fetch('cfscrape', task)
-        handle_error = lambda x: self.handle_error('splash', url, task, start_time, x)
 
         response = self.cfscrape_client.fetch(url)
 
