@@ -6,57 +6,63 @@
 # Created on 2014-07-16 15:30:57
 
 import socket
-from flask import abort, render_template, request, json
-
+from flask import abort, render_template, request, jsonify, current_app
+from flask import Blueprint
 from pyspider.libs import utils
-from .app import app
 
 
-@app.route('/task/<taskid>')
+bp = Blueprint("task", __name__, url_prefix="/task")
+
+
+@bp.route('/task/<taskid>')
 def task(taskid):
+    config = current_app.config
     if ':' not in taskid:
         abort(400)
     project, taskid = taskid.split(':', 1)
 
-    taskdb = app.config['taskdb']
+    taskdb = config['taskdb']
     task = taskdb.get_task(project, taskid)
 
     if not task:
         abort(404)
-    resultdb = app.config['resultdb']
+    resultdb = config['resultdb']
+    result = None
     if resultdb:
         result = resultdb.get(project, taskid)
 
-    return render_template("task.html", task=task, json=json, result=result,
-                           status_to_string=app.config['taskdb'].status_to_string)
+    return render_template("task.html", task=task, json=jsonify, result=result,
+                           status_to_string=config['taskdb'].status_to_string)
 
 
-@app.route('/task/<taskid>.json')
+@bp.route('/<taskid>.json')
 def task_in_json(taskid):
+    config = current_app.config
     if ':' not in taskid:
-        return json.jsonify({'code': 400, 'error': 'bad project:task_id format'})
+        return jsonify({'code': 400, 'error': 'bad project:task_id format'})
     project, taskid = taskid.split(':', 1)
 
-    taskdb = app.config['taskdb']
+    taskdb = config['taskdb']
     task = taskdb.get_task(project, taskid)
 
     if not task:
-        return json.jsonify({'code': 404, 'error': 'not found'})
-    task['status_string'] = app.config['taskdb'].status_to_string(task['status'])
-    return json.jsonify(task)
+        return jsonify({'code': 404, 'error': 'not found'})
+    task['status_string'] = config['taskdb'].status_to_string(task['status'])
+    return jsonify(task)
 
 
-@app.route('/tasks')
+@bp.route('/tasks')
 def tasks():
-    rpc = app.config['scheduler_rpc']
-    taskdb = app.config['taskdb']
+    config = current_app.config
+    rpc = config['scheduler_rpc']
+    taskdb = config['taskdb']
     project = request.args.get('project', "")
     limit = int(request.args.get('limit', 100))
 
     try:
         updatetime_tasks = rpc.get_active_tasks(project, limit)
     except socket.error as e:
-        app.logger.warning('connect to scheduler rpc error: %r', e)
+        current_app.logger.warning('connect to scheduler rpc error: %r', e)
         return 'connect to scheduler error', 502
 
     tasks = {}
@@ -76,18 +82,21 @@ def tasks():
     )
 
 
-@app.route('/active_tasks')
+@bp.route('/active_tasks')
 def active_tasks():
-    rpc = app.config['scheduler_rpc']
-    taskdb = app.config['taskdb']
+    config = current_app.config
+    rpc = config['scheduler_rpc']
+    taskdb = config['taskdb']
     project = request.args.get('project', "")
     limit = int(request.args.get('limit', 100))
 
     try:
         tasks = rpc.get_active_tasks(project, limit)
     except socket.error as e:
-        app.logger.warning('connect to scheduler rpc error: %r', e)
-        return '{}', 502, {'Content-Type': 'application/json'}
+        current_app.logger.warning('connect to scheduler rpc error: %r', e)
+        res = jsonify({})
+        res.state = 502
+        return res
 
     result = []
     for updatetime, task in tasks:
@@ -97,6 +106,4 @@ def active_tasks():
             task['status_text'] = taskdb.status_to_string(task['status'])
         result.append(task)
 
-    return json.dumps(result), 200, {'Content-Type': 'application/json'}
-
-app.template_filter('format_date')(utils.format_date)
+    return jsonify(result)

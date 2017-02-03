@@ -7,15 +7,17 @@
 
 from __future__ import unicode_literals
 
-from flask import render_template, request, json
-from flask import Response
-from .app import app
+from flask import render_template, request, json, current_app
+from flask import Response, Blueprint
 from pyspider.libs import result_dump
 
 
-@app.route('/results')
+bp = Blueprint("result", __name__, url_prefix="/results")
+
+
+@bp.route('/')
 def result():
-    resultdb = app.config['resultdb']
+    resultdb = current_app.config['resultdb']
     project = request.args.get('project')
     offset = int(request.args.get('offset', 0))
     limit = int(request.args.get('limit', 20))
@@ -30,9 +32,9 @@ def result():
     )
 
 
-@app.route('/results/dump/<project>.<_format>')
+@bp.route('/dump/<project>.<_format>')
 def dump_result(project, _format):
-    resultdb = app.config['resultdb']
+    resultdb = current_app.config['resultdb']
     # force update project list
     resultdb.get(project, 'any')
     if project not in resultdb.projects:

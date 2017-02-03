@@ -15,6 +15,7 @@ import logging
 import inspect
 import traceback
 import linecache
+
 from pyspider.libs import utils
 from pyspider.libs.log import SaveLogHandler, LogFormatter
 logger = logging.getLogger("processor")

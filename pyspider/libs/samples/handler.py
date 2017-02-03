@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# Created on __DATE__
-# Project: __PROJECT_NAME__
+# Created on {{DATE}}
+# Project: {{PROJECT_NAME}}
 
 from pyspider.libs.base_handler import *
 
@@ -12,7 +12,7 @@ class Handler(BaseHandler):
 
     @every(minutes=24 * 60)
     def on_start(self):
-        self.crawl('__START_URL__', callback=self.index_page)
+        self.crawl('{{START_URL}}', callback=self.index_page)
 
     @config(age=10 * 24 * 60 * 60)
     def index_page(self, response):
