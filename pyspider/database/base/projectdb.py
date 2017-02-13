@@ -34,14 +34,10 @@ class ProjectDB(object):
         'RUNNING',
     ]
 
-    def insert(self, name, obj=None):
-        if obj is None:
-            obj = {}
+    def insert(self, name, obj={}):
         raise NotImplementedError
 
-    def update(self, name, obj=None, **kwargs):
-        if obj is None:
-            obj = {}
+    def update(self, name, obj={}, **kwargs):
         raise NotImplementedError
 
     def get_all(self, fields=None):

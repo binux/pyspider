@@ -130,9 +130,7 @@ class TaskDB(BaseTaskDB):
                 result[status + 1] = count
         return result
 
-    def insert(self, project, taskid, obj=None):
-        if obj is None:
-            obj = {}
+    def insert(self, project, taskid, obj={}):
         obj = dict(obj)
         obj['taskid'] = taskid
         obj['project'] = project
@@ -148,9 +146,7 @@ class TaskDB(BaseTaskDB):
         pipe.sadd(self._gen_status_key(project, obj['status']), taskid)
         pipe.execute()
 
-    def update(self, project, taskid, obj=None, **kwargs):
-        if obj is None:
-            obj = {}
+    def update(self, project, taskid, obj={}, **kwargs):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

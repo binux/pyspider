@@ -108,9 +108,7 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
             result[status] = count
         return result
 
-    def insert(self, project, taskid, obj=None):
-        if obj is None:
-            obj = {}
+    def insert(self, project, taskid, obj={}):
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:
@@ -123,9 +121,7 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         tablename = self._tablename(project)
         return self._insert(tablename, **self._stringify(obj))
 
-    def update(self, project, taskid, obj=None, **kwargs):
-        if obj is None:
-            obj = {}
+    def update(self, project, taskid, obj={}, **kwargs):
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:

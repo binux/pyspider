@@ -27,17 +27,13 @@ class ProjectDB(SQLiteMixin, BaseProjectDB, BaseDB):
                 rate, burst, updatetime
                 )''' % self.__tablename__)
 
-    def insert(self, name, obj=None):
-        if obj is None:
-            obj = {}
+    def insert(self, name, obj={}):
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
         return self._insert(**obj)
 
-    def update(self, name, obj=None, **kwargs):
-        if obj is None:
-            obj = {}
+    def update(self, name, obj={}, **kwargs):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

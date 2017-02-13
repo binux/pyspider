@@ -76,14 +76,10 @@ class TaskDB(object):
         '''
         raise NotImplementedError
 
-    def insert(self, project, taskid, obj=None):
-        if obj is None:
-            obj = {}
+    def insert(self, project, taskid, obj={}):
         raise NotImplementedError
 
-    def update(self, project, taskid, obj=None, **kwargs):
-        if obj is None:
-            obj = {}
+    def update(self, project, taskid, obj={}, **kwargs):
         raise NotImplementedError
 
     def drop(self, project):
