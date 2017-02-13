@@ -5,6 +5,9 @@
 
 var port, server, service,
   wait_before_end = 1000,
+  wait_before_end_5 = 5000,
+  wait_before_end_10 = 10000,
+  wait_before_end_15 = 15000,
   system = require('system'),
   webpage = require('webpage');
 
@@ -14,11 +17,11 @@ if (system.args.length !== 2) {
 } else {
   port = system.args[1];
   server = require('webserver').create();
-  console.debug = function(){};
+  console.debug = function() {};
 
   service = server.listen(port, {
     'keepAlive': false
-  }, function (request, response) {
+  }, function(request, response) {
     phantom.clearCookies();
 
     //console.debug(JSON.stringify(request, null, 4));
@@ -34,14 +37,14 @@ if (system.args.length !== 2) {
       response.closeGracefully();
       return;
     }
-    
+
     var first_response = null,
-        finished = false,
-        page_loaded = false,
-        start_time = Date.now(),
-        end_time = null,
-        script_executed = false,
-        script_result = null;
+      finished = false,
+      page_loaded = false,
+      start_time = Date.now(),
+      end_time = null,
+      script_executed = false,
+      script_result = null;
 
     var fetch = JSON.parse(request.postRaw);
     console.debug(JSON.stringify(fetch, null, 2));
@@ -49,11 +52,11 @@ if (system.args.length !== 2) {
     // create and set page
     var page = webpage.create();
     page.onConsoleMessage = function(msg) {
-        console.log('console: ' + msg);
+      console.log('console: ' + msg);
     };
     page.viewportSize = {
       width: fetch.js_viewport_width || 1024,
-      height: fetch.js_viewport_height || 768*3
+      height: fetch.js_viewport_height || 768 * 3
     }
     if (fetch.headers) {
       fetch.headers['Accept-Encoding'] = undefined;
@@ -65,7 +68,7 @@ if (system.args.length !== 2) {
     }
     // this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
     page.settings.loadImages = fetch.load_images === undefined ? true : fetch.load_images;
-    page.settings.resourceTimeout = fetch.timeout ? fetch.timeout * 1000 : 20*1000;
+    page.settings.resourceTimeout = fetch.timeout ? fetch.timeout * 1000 : 20 * 1000;
     if (fetch.headers) {
       page.customHeaders = fetch.headers;
     }
@@ -85,34 +88,64 @@ if (system.args.length !== 2) {
         console.log('running document-end script.');
         script_result = page.evaluateJavaScript(fetch.js_script);
       }
-      console.debug("waiting "+wait_before_end+"ms before finished.");
-      end_time = Date.now() + wait_before_end;
-      setTimeout(make_result, wait_before_end+10, page);
+      var wait_time = wait_before_end;
+      if (/(tmall|taobao|alicdn|alibaba|amazon)\.(com|cn|hk|co\.jp)\//i.test(fetch.url)) {
+        wait_time = wait_before_end_15;
+      } else if (/(jd)\.(com|cn|hk|co\.jp)\//i.test(fetch.url)) {
+        wait_time = wait_before_end_5;
+      }
+      console.debug("waiting " + wait_time + "ms before finished.");
+      end_time = Date.now() + wait_time;
+      setTimeout(make_result, wait_time + 10, page);
     };
     page.onResourceRequested = function(request) {
-      console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
+      // if (/(tmall|taobao|alicdn|alibaba|amazon)\.(com|cn|hk|co\.jp)\//i.test(request.url)) {
+      //   if (/\.(jpg|jpeg|png|tif|tiff|mov)/i.test(request.url)) {
+      //     console.log("Abort request: #" + request.id + " [" + request.method + "]" + request.url);
+      //     networkRequest.abort();
+      //     return;
+      //   }
+      // } else
+      if (/\.(jpg|jpeg|png|tif|tiff|mov|css)/i.test(request.url)) {
+        console.log("Abort request: #" + request.id + " [" + request.method + "]" + request.url);
+        networkRequest.abort();
+        return;
+      }
+      console.debug("Starting request: #" + request.id + " [" + request.method + "]" + request.url);
       end_time = null;
     };
     page.onResourceReceived = function(response) {
-      console.debug("Request finished: #"+response.id+" ["+response.status+"]"+response.url);
+      console.debug("Request finished: #" + response.id + " [" + response.status + "]" + response.url);
       if (first_response === null && response.status != 301 && response.status != 302) {
         first_response = response;
       }
       if (page_loaded) {
-        console.debug("waiting "+wait_before_end+"ms before finished.");
-        end_time = Date.now() + wait_before_end;
-        setTimeout(make_result, wait_before_end+10, page);
+        var wait_time = wait_before_end;
+        if (/(tmall|taobao|alicdn|alibaba|amazon)\.(com|cn|hk|co\.jp)\//i.test(response.url)) {
+          wait_time = wait_before_end_15;
+        } else if (/(jd)\.(com|cn|hk|co\.jp)\//i.test(fetch.url)) {
+          wait_time = wait_before_end_5;
+        }
+        console.debug("waiting " + wait_time + "ms before finished.");
+        end_time = Date.now() + wait_time;
+        setTimeout(make_result, wait_time + 10, page);
       }
     }
-    page.onResourceError = page.onResourceTimeout=function(response) {
-      console.info("Request error: #"+response.id+" ["+response.errorCode+"="+response.errorString+"]"+response.url);
+    page.onResourceError = page.onResourceTimeout = function(response) {
+      console.info("Request error: #" + response.id + " [" + response.errorCode + "=" + response.errorString + "]" + response.url);
       if (first_response === null) {
         first_response = response;
       }
       if (page_loaded) {
-        console.debug("waiting "+wait_before_end+"ms before finished.");
-        end_time = Date.now() + wait_before_end;
-        setTimeout(make_result, wait_before_end+10, page);
+        var wait_time = wait_before_end;
+        if (/(tmall|taobao|alicdn|alibaba|amazon)\.(com|cn|hk|co\.jp)\//i.test(response.url)) {
+          wait_time = wait_before_end_15;
+        } else if (/(jd)\.(com|cn|hk|co\.jp)\//i.test(fetch.url)) {
+          wait_time = wait_before_end_5;
+        }
+        console.debug("waiting " + wait_time + "ms before finished.");
+        end_time = Date.now() + wait_time;
+        setTimeout(make_result, wait_time + 10, page);
       }
     }
 
@@ -145,7 +178,7 @@ if (system.args.length !== 2) {
         result = _make_result(page);
         page.close();
         finished = true;
-        console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
+        console.log("[" + result.status_code + "] " + result.orig_url + " " + result.time)
       } catch (e) {
         result = {
           orig_url: fetch.url,
@@ -191,7 +224,7 @@ if (system.args.length !== 2) {
         orig_url: fetch.url,
         status_code: first_response.status || 599,
         error: first_response.errorString,
-        content:  page.content,
+        content: page.content,
         headers: headers,
         url: page.url,
         cookies: cookies,
