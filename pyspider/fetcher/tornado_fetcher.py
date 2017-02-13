@@ -212,7 +212,7 @@ class Fetcher(object):
                      url, error, result['time'])
         return result
 
-    allowed_options = ['method', 'data', 'timeout', 'cookies', 'use_gzip', 'validate_cert']
+    allowed_options = ['method', 'data', 'connect_timeout', 'timeout', 'cookies', 'use_gzip', 'validate_cert']
 
     def pack_tornado_request_parameters(self, url, task):
         fetch = copy.deepcopy(self.default_options)

@@ -21,3 +21,4 @@ redis
 kombu
 psycopg2
 elasticsearch
+tblib

@@ -117,3 +117,68 @@ class TestWebDav(unittest.TestCase):
             self.webdav.upload(inspect.getsourcefile(data_sample_handler), 'sample_handler.py')
         self.webdav_up.upload(inspect.getsourcefile(data_sample_handler), 'sample_handler.py')
 
+
+class TestWebDavNeedAuth(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        import easywebdav
+
+        shutil.rmtree('./data/tests', ignore_errors=True)
+        os.makedirs('./data/tests')
+
+        ctx = run.cli.make_context('test', [
+            '--taskdb', 'sqlite+taskdb:///data/tests/task.db',
+            '--projectdb', 'sqlite+projectdb:///data/tests/projectdb.db',
+            '--resultdb', 'sqlite+resultdb:///data/tests/resultdb.db',
+        ], None, obj=utils.ObjectDict(testing_mode=True))
+        self.ctx = run.cli.invoke(ctx)
+
+        ctx = run.webui.make_context('webui', [
+            '--username', 'binux',
+            '--password', '4321',
+            '--need-auth',
+        ], self.ctx)
+        self.app = run.webui.invoke(ctx)
+        self.app_thread = utils.run_in_thread(self.app.run)
+        time.sleep(5)
+
+        self.webdav = easywebdav.connect('localhost', port=5000, path='dav')
+        self.webdav_up = easywebdav.connect('localhost', port=5000, path='dav',
+                                            username='binux', password='4321')
+
+    @classmethod
+    def tearDownClass(self):
+        for each in self.ctx.obj.instances:
+            each.quit()
+        self.app_thread.join()
+        time.sleep(1)
+
+        assert not utils.check_port_open(5000)
+        assert not utils.check_port_open(23333)
+        assert not utils.check_port_open(24444)
+        assert not utils.check_port_open(25555)
+        assert not utils.check_port_open(14887)
+
+        shutil.rmtree('./data/tests', ignore_errors=True)
+
+    def test_10_ls(self):
+        import easywebdav
+        with self.assertRaises(easywebdav.OperationFailed):
+            self.assertEqual(len(self.webdav.ls()), 1)
+        self.assertEqual(len(self.webdav_up.ls()), 1)
+
+    def test_30_create_ok(self):
+        self.webdav_up.upload(inspect.getsourcefile(data_handler), 'handler.py')
+        self.assertEqual(len(self.webdav_up.ls()), 2)
+
+    def test_50_get(self):
+        import easywebdav
+        with self.assertRaises(easywebdav.OperationFailed):
+            io = BytesIO()
+            self.webdav.download('handler.py', io)
+            io.close()
+
+        io = BytesIO()
+        self.webdav_up.download('handler.py', io)
+        self.assertEqual(utils.text(inspect.getsource(data_handler)), utils.text(io.getvalue()))
+        io.close()

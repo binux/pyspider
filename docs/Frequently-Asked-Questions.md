@@ -36,7 +36,7 @@ Mount `http://hostname/dav/` to your filesystem, edit or create scripts with you
 
 > OSX: `mount_webdav http://hostname/dav/ /Volumes/dav`  
 > Linux: Install davfs2, `mount.davfs http://hostname/dav/ /mnt/dav`  
-> VIM: `vim dav://hostname/dav/script_name.py`
+> VIM: `vim http://hostname/dav/script_name.py`
 
 When you are editing script without WebUI, you need to change it to `WebDAV Mode` while debugging. After you saved script in editor, WebUI can load and use latest script to debug your code.
 

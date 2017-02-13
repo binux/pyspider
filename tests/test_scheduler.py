@@ -860,6 +860,14 @@ class TestProject(unittest.TestCase):
         self.assertFalse(self.project.paused)
         self.assertFalse(self.project._paused)
 
+    def test_pause_x_disable_auto_pause(self):
+        fail_pause_num = self.scheduler.FAIL_PAUSE_NUM
+        self.scheduler.FAIL_PAUSE_NUM = 0
+        for i in range(100):
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
+        self.assertFalse(self.project.paused)
+        self.scheduler.FAIL_PAUSE_NUM = fail_pause_num
+
 
 if __name__ == '__main__':
     unittest.main()

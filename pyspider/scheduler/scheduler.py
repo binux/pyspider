@@ -50,6 +50,9 @@ class Project(object):
 
     @property
     def paused(self):
+        if self.scheduler.FAIL_PAUSE_NUM <= 0:
+            return False
+
         # unpaused --(last FAIL_PAUSE_NUM task failed)--> paused --(PAUSE_TIME)--> unpause_checking
         #                         unpaused <--(last UNPAUSE_CHECK_NUM task have success)--|
         #                             paused <--(last UNPAUSE_CHECK_NUM task no success)--|
@@ -515,7 +518,7 @@ class Scheduler(object):
                     project._selected_tasks = False
                     project._send_finished_event_wait = 0
 
-                    self.newtask_queue.put({
+                    self._postpone_request.append({
                         'project': project.name,
                         'taskid': 'on_finished',
                         'url': 'data:,on_finished',
