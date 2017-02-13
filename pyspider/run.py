@@ -321,7 +321,7 @@ def result_worker(ctx, result_cls, get_object=False):
 @click.option('--password', envvar='WEBUI_PASSWORD',
               help='password of lock -ed projects')
 @click.option('--need-auth', is_flag=True, default=False, help='need username and password')
-@click.option('--webui-instance', default='pyspider.webui.app.app', callback=load_cls,
+@click.option('--webui-instance', default='pyspider.webui.app', callback=load_cls,
               help='webui Flask Application instance to be used.')
 @click.option('--process-time-limit', default=30, help='script process time limit in debug')
 @click.pass_context

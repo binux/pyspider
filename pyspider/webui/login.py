@@ -6,15 +6,12 @@
 # Created on 2014-12-10 20:36:27
 
 import base64
-from flask import Response
-try:
-    import flask_login as login
-except ImportError:
-    from flask.ext import login
-from .app import app
+
+from flask import current_app
+from ._compat import login
+
 
 login_manager = login.LoginManager()
-login_manager.init_app(app)
 
 
 class AnonymousUser(login.AnonymousUserMixin):
@@ -39,10 +36,11 @@ class User(login.UserMixin):
         self.password = password
 
     def is_authenticated(self):
-        if not app.config.get('webui_username'):
+        config = current_app.config
+        if not config.get('webui_username'):
             return True
-        if self.id == app.config.get('webui_username') \
-                and self.password == app.config.get('webui_password'):
+        if self.id == config.get('webui_username') \
+                and self.password == config.get('webui_password'):
             return True
         return False
 
@@ -62,16 +60,6 @@ def load_user_from_request(request):
             api_key = base64.b64decode(api_key).decode('utf8')
             return User(*api_key.split(":", 1))
         except Exception as e:
-            app.logger.error('wrong api key: %r, %r', api_key, e)
+            current_app.logger.error('wrong api key: %r, %r', api_key, e)
             return None
     return None
-app.login_response = Response(
-    "need auth.", 401, {'WWW-Authenticate': 'Basic realm="Login Required"'}
-)
-
-
-@app.before_request
-def before_request():
-    if app.config.get('need_auth', False):
-        if not login.current_user.is_active():
-            return app.login_response

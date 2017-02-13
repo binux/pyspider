@@ -5,20 +5,12 @@
 #         http://binux.me
 # Created on 2014-02-22 23:17:13
 
-import os
-import sys
 import logging
-logger = logging.getLogger("webui")
 
-from six import reraise
-from six.moves import builtins
-from six.moves.urllib.parse import urljoin
 from flask import Flask
-from pyspider.fetcher import tornado_fetcher
+from werkzeug.wsgi import DispatcherMiddleware
 
-if os.name == 'nt':
-    import mimetypes
-    mimetypes.add_type("text/css", ".css", True)
+logger = logging.getLogger("webui")
 
 
 class QuitableFlask(Flask):
@@ -56,15 +48,13 @@ class QuitableFlask(Flask):
             application = DebuggedApplication(application, True)
 
         try:
-            from .webdav import dav_app
-        except ImportError as e:
-            logger.warning('WebDav interface not enabled: %r', e)
-            dav_app = None
-        if dav_app:
-            from werkzeug.wsgi import DispatcherMiddleware
+            from .webdav import init_webdav
+            dev_app = init_webdav(self)
             application = DispatcherMiddleware(application, {
-                '/dav': dav_app
+                '/dav': dev_app
             })
+        except ImportError as e:
+            pass
 
         container = tornado.wsgi.WSGIContainer(application)
         self.http_server = tornado.httpserver.HTTPServer(container)
@@ -82,36 +72,3 @@ class QuitableFlask(Flask):
             self.ioloop.add_callback(self.http_server.stop)
             self.ioloop.add_callback(self.ioloop.stop)
         self.logger.info('webui exiting...')
-
-
-app = QuitableFlask('webui',
-                    static_folder=os.path.join(os.path.dirname(__file__), 'static'),
-                    template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
-app.secret_key = os.urandom(24)
-app.jinja_env.line_statement_prefix = '#'
-app.jinja_env.globals.update(builtins.__dict__)
-
-app.config.update({
-    'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(x),
-    'taskdb': None,
-    'projectdb': None,
-    'scheduler_rpc': None,
-    'queues': dict(),
-    'process_time_limit': 30,
-})
-
-
-def cdn_url_handler(error, endpoint, kwargs):
-    if endpoint == 'cdn':
-        path = kwargs.pop('path')
-        # cdn = app.config.get('cdn', 'http://cdn.staticfile.org/')
-        # cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
-        cdn = app.config.get('cdn', '//cdnjscn.b0.upaiyun.com/libs/')
-        return urljoin(cdn, path)
-    else:
-        exc_type, exc_value, tb = sys.exc_info()
-        if exc_value is error:
-            reraise(exc_type, exc_value, tb)
-        else:
-            raise error
-app.handle_url_build_error = cdn_url_handler

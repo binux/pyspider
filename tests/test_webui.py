@@ -295,7 +295,7 @@ class TestWebUI(unittest.TestCase):
         self.assertIn('status_queue', data)
 
     def test_a20_tasks(self):
-        rv = self.app.get('/tasks')
+        rv = self.app.get('/task/tasks')
         self.assertEqual(rv.status_code, 200, rv.data)
         self.assertIn(b'SUCCESS</span>', rv.data)
         self.assertNotIn(b'>ERROR</span>', rv.data)
@@ -314,7 +314,7 @@ class TestWebUI(unittest.TestCase):
         self.assertNotIn(b'>ERROR</span>', rv.data)
 
     def test_a22_active_tasks(self):
-        rv = self.app.get('/active_tasks')
+        rv = self.app.get('/task/active_tasks')
         data = json.loads(utils.text(rv.data))
         track = False
         self.assertGreater(len(data), 0)
@@ -551,7 +551,7 @@ class TestWebUI(unittest.TestCase):
         self.assertNotIn(b'ok', rv.data)
 
     def test_x50_tasks(self):
-        rv = self.app.get('/tasks')
+        rv = self.app.get('/task/tasks')
         self.assertEqual(rv.status_code, 502)
 
     def test_x60_robots(self):

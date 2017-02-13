@@ -59,7 +59,7 @@
 
         <div class="active-btn-div">
           {% if config.scheduler_rpc is not none %}
-            <a class="btn btn-default btn-info" href='/tasks' target=_blank>Recent Active Tasks</a>
+            <a class="btn btn-default btn-info" href='{{url_for("task.tasks")}}' target=_blank>Recent Active Tasks</a>
           {% endif %}
         </div>
 
@@ -127,7 +127,7 @@
         {% raw %}
           <tr v-cloak v-for="project in projects" data-name="{{* project.name }}">
             <td class="project-group"><span>{{ project.group }}</span></td>
-            <td class="project-name"><a href="/debug/{{* project.name }}">{{* project.name }}</a></td>
+            <td class="project-name"><a href='{{url_for("debug.debug", project=project.name)}}'>{{* project.name }}</a></td>
             <td class="project-status">
               <span class="status-{{ project.paused ? 'PAUSED' : project.status }}" :data-value="project.paused ? 'PAUSED' : project.status">
                 {{ project.paused ? 'PAUSED' : project.status }}
@@ -162,12 +162,12 @@
               # if config.scheduler_rpc is not none:
               {% raw %}
               <button class="project-run btn btn-default btn-xs" @click="project_run(project, $event)">Run</button>
-              <a class="btn btn-default btn-xs" href="/tasks?project={{ project.name }}" target=_blank>Active Tasks</a>
+              <a class="btn btn-default btn-xs" href='{{url_for("task.tasks")}}?project={{ project.name }}' target=_blank>Active Tasks</a>
               {% endraw %}
               # endif
               # if config.resultdb:
               {% raw %}
-              <a class="btn btn-default btn-xs" href="/results?project={{ project.name }}" target=_blank>Results</a>
+              <a class="btn btn-default btn-xs" href='{{url_for("result.result")}}?project={{ project.name }}' target=_blank>Results</a>
               {% endraw %}
               # endif
             </td>

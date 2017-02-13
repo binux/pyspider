@@ -10,15 +10,18 @@ import os
 import time
 import base64
 import six
+
 from six import BytesIO
+from flask import current_app
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
 from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
 from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
+
 from pyspider.libs.utils import utf8, text
-from .app import app
 
 
 def check_user(environ):
+    config = current_app.config
     authheader = environ.get("HTTP_AUTHORIZATION")
     if not authheader:
         return False
@@ -26,11 +29,11 @@ def check_user(environ):
     try:
         username, password = text(base64.b64decode(authheader)).split(':', 1)
     except Exception as e:
-        app.logger.error('wrong api key: %r, %r', authheader, e)
+        current_app.logger.error('wrong api key: %r, %r', authheader, e)
         return False
 
-    if username == app.config['webui_username'] \
-            and password == app.config['webui_password']:
+    if username == config['webui_username'] \
+            and password == config['webui_password']:
         return True
     else:
         return False
@@ -200,17 +203,18 @@ class NeedAuthController(object):
             and password == self.app.config.get('webui_password')
 
 
-config = DEFAULT_CONFIG.copy()
-config.update({
-    'mount_path': '/dav',
-    'provider_mapping': {
-        '/': ScriptProvider(app)
-    },
-    'domaincontroller': NeedAuthController(app),
-    'verbose': 1 if app.debug else 0,
-    'dir_browser': {'davmount': False,
-                    'enable': True,
-                    'msmount': False,
-                    'response_trailer': ''},
-})
-dav_app = WsgiDAVApp(config)
+def init_webdav(app):
+    config = DEFAULT_CONFIG.copy()
+    config.update({
+        'mount_path': '/dav',
+        'provider_mapping': {
+            '/': ScriptProvider(app)
+        },
+        'domaincontroller': NeedAuthController(app),
+        'verbose': 1 if app.debug else 0,
+        'dir_browser': {'davmount': False,
+                        'enable': True,
+                        'msmount': False,
+                        'response_trailer': ''},
+    })
+    dav_app = WsgiDAVApp(config)
