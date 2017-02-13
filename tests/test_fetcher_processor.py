@@ -220,6 +220,15 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertEqual(result['headers'].get('A'), 'b')
         self.assertEqual(result['headers'].get('C-D'), 'e-F')
 
+    def test_a115_user_agent(self):
+        status, newtasks, result = self.crawl(self.httpbin+'/get',
+                                              user_agent='binux', callback=self.json)
+
+        self.assertStatusOk(status)
+        self.assertFalse(newtasks)
+        self.assertEqual(result['headers'].get('User-Agent'), 'binux')
+
+
     def test_a120_cookies(self):
         status, newtasks, result = self.crawl(self.httpbin+'/get',
                                               cookies={

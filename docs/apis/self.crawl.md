@@ -124,6 +124,10 @@ def on_start(self):
 
 dictionary of `{field: {filename: 'content'}}` files to multipart upload.` 
 
+##### user_agent
+
+the User-Agent of the request
+
 ##### headers
 
 dictionary of headers to send. 
