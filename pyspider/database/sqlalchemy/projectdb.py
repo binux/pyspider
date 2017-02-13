@@ -21,7 +21,7 @@ class ProjectDB(BaseProjectDB):
 
     def __init__(self, url):
         self.table = Table(self.__tablename__, MetaData(),
-                           Column('name', String(64)),
+                           Column('name', String(64), primary_key=True),
                            Column('group', String(64)),
                            Column('status', String(16)),
                            Column('script', Text),
