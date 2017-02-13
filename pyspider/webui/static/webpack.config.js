@@ -15,7 +15,7 @@ module.exports = {
   },
   module: {
     loaders: [
-      { test: /\.js$/, loader: "babel-loader" },
+      { test: /\.js$/, loader: "babel-loader?" + JSON.stringify({presets: ["es2015"]}) },
       { test: /\.less$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader?sourceMap!less-loader?sourceMap") }
     ]
   },
