@@ -58,11 +58,12 @@ window.SelectorHelper = (function() {
     return pattern.trim();
   }
 
+  var current_path = null;
   function selector_changed(path) {
+    current_path = path;
     server.heightlight(merge_pattern(path));
   }
   
-  var current_path = null;
   function render_selector_helper(path) {
     helper.find('.element').remove();
     var elements = [];
