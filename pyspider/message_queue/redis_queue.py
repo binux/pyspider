@@ -62,7 +62,7 @@ class RedisQueue(object):
 
     def put(self, obj, block=True, timeout=None):
         if not block:
-            return self.put_nowait()
+            return self.put_nowait(obj)
 
         start_time = time.time()
         while True:

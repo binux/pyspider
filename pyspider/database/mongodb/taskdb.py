@@ -99,7 +99,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             result[each['_id']] = each['total']
         return result
 
-    def insert(self, project, taskid, obj={}):
+    def insert(self, project, taskid, obj=None):
+        if obj is None:
+            obj = {}
         if project not in self.projects:
             self._create_project(project)
         obj = dict(obj)
@@ -108,7 +110,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj['updatetime'] = time.time()
         return self.update(project, taskid, obj=obj)
 
-    def update(self, project, taskid, obj={}, **kwargs):
+    def update(self, project, taskid, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

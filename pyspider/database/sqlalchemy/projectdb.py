@@ -56,14 +56,18 @@ class ProjectDB(BaseProjectDB):
     def _stringify(data):
         return data
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj=None):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
         return self.engine.execute(self.table.insert()
                                    .values(**self._stringify(obj)))
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

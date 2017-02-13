@@ -24,8 +24,10 @@ logger = logging.getLogger(__name__)
 class WSGIXMLRPCApplication(object):
     """Application to handle requests to the XMLRPC service"""
 
-    def __init__(self, instance=None, methods=[]):
+    def __init__(self, instance=None, methods=None):
         """Create windmill xmlrpc dispatcher"""
+        if methods is None:
+            methods = []
         try:
             self.dispatcher = SimpleXMLRPCDispatcher(allow_none=True, encoding=None)
         except TypeError:

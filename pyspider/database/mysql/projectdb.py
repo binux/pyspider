@@ -36,13 +36,17 @@ class ProjectDB(MySQLMixin, BaseProjectDB, BaseDB):
             `updatetime` double(16, 4)
             ) ENGINE=InnoDB CHARSET=utf8''' % self.escape(self.__tablename__))
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj=None):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
         return self._insert(**obj)
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()

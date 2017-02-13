@@ -24,7 +24,9 @@ class ProcessorResult(object):
     """The result and logs producted by a callback"""
 
     def __init__(self, result=None, follows=(), messages=(),
-                 logs=(), exception=None, extinfo={}, save=None):
+                 logs=(), exception=None, extinfo=None, save=None):
+        if extinfo is None:
+            extinfo = {}
         self.result = result
         self.follows = follows
         self.messages = messages
