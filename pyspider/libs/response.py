@@ -22,7 +22,9 @@ from pyspider.libs import utils
 class Response(object):
 
     def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
-                 content='', cookies={}, error=None, traceback=None, save=None, js_script_result=None, time=0):
+                 content='', cookies=None, error=None, traceback=None, save=None, js_script_result=None, time=0):
+        if cookies is None:
+            cookies = {}
         self.status_code = status_code
         self.url = url
         self.orig_url = orig_url

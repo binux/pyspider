@@ -54,10 +54,9 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
         password = parsed.password or None
 
         return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
-    else:
-        if url.startswith('kombu+'):
-            url = url[len('kombu+'):]
+    elif url.startswith('kombu+'):
+        url = url[len('kombu+'):]
         from .kombu_queue import Queue
         return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
-
-    raise Exception('unknow connection url: %s', url)
+    else:
+        raise Exception('unknow connection url: %s', url)
