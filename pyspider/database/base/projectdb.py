@@ -53,7 +53,10 @@ class ProjectDB(object):
         raise NotImplementedError
 
     def split_group(self, group, lower=True):
-        return re.split("\W+", (group or '').lower())
+        if lower:
+            return re.split("\W+", (group or '').lower())
+        else:
+            return re.split("\W+", group or '')
 
     def verify_project_name(self, name):
         if len(name) > 64:
