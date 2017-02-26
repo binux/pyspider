@@ -231,7 +231,9 @@ class BaseHandler(object):
             if k in crawl_config:
                 v = crawl_config[k]
                 if isinstance(v, dict) and isinstance(task_fetch.get(k), dict):
-                    task_fetch[k].update(v)
+                    v = dict(v)
+                    v.update(task_fetch[k])
+                    task_fetch[k] = v
                 else:
                     task_fetch.setdefault(k, v)
         if task_fetch:
