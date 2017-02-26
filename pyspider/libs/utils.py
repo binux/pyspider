@@ -172,7 +172,7 @@ try:
 
         def __enter__(self):
             if not isinstance(threading.current_thread(), threading._MainThread):
-                logging.error("timeout only works on main thread, are you running pyspider in threads?")
+                logging.warning("timeout only works on main thread, are you running pyspider in threads?")
                 self.seconds = 0
             if self.seconds:
                 signal.signal(signal.SIGALRM, self.handle_timeout)

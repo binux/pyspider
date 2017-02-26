@@ -154,6 +154,42 @@ class ProjectManager(object):
         return self.projects.get(project_name, None)
 
 
+class ProjectLoader(object):
+    '''ProjectLoader class for sys.meta_path'''
+
+    def __init__(self, project, mod=None):
+        self.project = project
+        self.name = project['name']
+        self.mod = mod
+        pass
+
+    def load_module(self, fullname):
+        if self.mod is None:
+            self.mod = mod = imp.new_module(fullname)
+        else:
+            mod = self.mod
+        mod.__file__ = '<%s>' % self.name
+        mod.__loader__ = self
+        mod.__project__ = self.project
+        mod.__package__ = ''
+        code = self.get_code(fullname)
+        six.exec_(code, mod.__dict__)
+        linecache.clearcache()
+        return mod
+
+    def is_package(self, fullname):
+        return False
+
+    def get_code(self, fullname):
+        return compile(self.get_source(fullname), '<%s>' % self.name, 'exec')
+
+    def get_source(self, fullname):
+        script = self.project['script']
+        if isinstance(script, six.text_type):
+            return script.encode('utf8')
+        return script
+
+
 if six.PY2:
     class ProjectFinder(object):
         '''ProjectFinder class for sys.meta_path'''
@@ -187,40 +223,6 @@ if six.PY2:
 
         def is_package(self, fullname):
             return True
-
-    class ProjectLoader(object):
-        '''ProjectLoader class for sys.meta_path'''
-
-        def __init__(self, project, mod=None):
-            self.project = project
-            self.name = project['name']
-            self.mod = mod
-
-        def load_module(self, fullname):
-            if self.mod is None:
-                self.mod = mod = imp.new_module(fullname)
-            else:
-                mod = self.mod
-            mod.__file__ = '<%s>' % self.name
-            mod.__loader__ = self
-            mod.__project__ = self.project
-            mod.__package__ = ''
-            code = self.get_code(fullname)
-            six.exec_(code, mod.__dict__)
-            linecache.clearcache()
-            return mod
-
-        def is_package(self, fullname):
-            return False
-
-        def get_code(self, fullname):
-            return compile(self.get_source(fullname), '<%s>' % self.name, 'exec')
-
-        def get_source(self, fullname):
-            script = self.project['script']
-            if isinstance(script, six.text_type):
-                return script.encode('utf8')
-            return script
 else:
     import importlib
 
@@ -258,10 +260,9 @@ else:
         def get_source(self, path):
             return ''
 
-    class ProjectLoader(importlib.abc.InspectLoader):
-        def __init__(self, project):
-            self.project = project
-            self.name = project['name']
+    class ProjectLoader(ProjectLoader, importlib.abc.Loader):
+        def create_module(self, spec):
+            return self.load_module(spec.name)
 
-        def get_source(self, path):
-            return self.project['script']
+        def exec_module(self, module):
+            return module
