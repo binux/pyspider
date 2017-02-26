@@ -175,6 +175,8 @@ class ProjectLoader(object):
         code = self.get_code(fullname)
         six.exec_(code, mod.__dict__)
         linecache.clearcache()
+        if sys.version_info[:2] == (3, 3):
+            sys.modules[fullname] = mod
         return mod
 
     def is_package(self, fullname):
@@ -254,11 +256,27 @@ else:
                     return ProjectLoader(info)
 
     class ProjectsLoader(importlib.abc.InspectLoader):
+        def load_module(self, fullname):
+            mod = imp.new_module(fullname)
+            mod.__file__ = '<projects>'
+            mod.__loader__ = self
+            mod.__path__ = ['<projects>']
+            mod.__package__ = 'projects'
+            if sys.version_info[:2] == (3, 3):
+                sys.modules[fullname] = mod
+            return mod
+
+        def module_repr(self, module):
+            return '<Module projects>'
+
         def is_package(self, fullname):
             return True
 
         def get_source(self, path):
             return ''
+
+        def get_code(self, fullname):
+            return compile(self.get_source(fullname), '<projects>', 'exec')
 
     class ProjectLoader(ProjectLoader, importlib.abc.Loader):
         def create_module(self, spec):
