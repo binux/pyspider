@@ -356,6 +356,7 @@ class CounterManager(DictMixin):
         """Set value of a counter by counter key"""
         if isinstance(key, six.string_types):
             key = (key, )
+        # assert all(isinstance(k, six.string_types) for k in key)
         assert isinstance(key, tuple), "event key type error"
         if key not in self.counters:
             self.counters[key] = self.cls()

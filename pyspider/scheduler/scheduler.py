@@ -275,7 +275,7 @@ class Scheduler(object):
         logger.debug('project: %s loaded %d tasks.', project.name, len(task_queue))
 
         if project not in self._cnt['all']:
-            self._update_project_cnt(project)
+            self._update_project_cnt(project.name)
         self._cnt['all'].value((project.name, 'pending'), len(project.task_queue))
 
     def _update_project_cnt(self, project_name):
