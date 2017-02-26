@@ -94,8 +94,7 @@ class Processor(object):
 
         `from project import project_name`
         '''
-        if six.PY2:
-            sys.meta_path.append(ProjectFinder(self.projectdb))
+        sys.meta_path.append(ProjectFinder(self.projectdb))
 
     def __del__(self):
         pass

@@ -154,70 +154,114 @@ class ProjectManager(object):
         return self.projects.get(project_name, None)
 
 
-class ProjectFinder(object):
-    '''ProjectFinder class for sys.meta_path'''
+if six.PY2:
+    class ProjectFinder(object):
+        '''ProjectFinder class for sys.meta_path'''
 
-    def __init__(self, projectdb):
-        self.get_projectdb = weakref.ref(projectdb)
+        def __init__(self, projectdb):
+            self.get_projectdb = weakref.ref(projectdb)
 
-    @property
-    def projectdb(self):
-        return self.get_projectdb()
+        @property
+        def projectdb(self):
+            return self.get_projectdb()
 
-    def find_module(self, fullname, path=None):
-        if fullname == 'projects':
-            return self
-        parts = fullname.split('.')
-        if len(parts) == 2 and parts[0] == 'projects':
-            name = parts[1]
-            if not self.projectdb:
-                return
-            info = self.projectdb.get(name)
-            if info:
-                return ProjectLoader(info)
+        def find_module(self, fullname, path=None):
+            if fullname == 'projects':
+                return self
+            parts = fullname.split('.')
+            if len(parts) == 2 and parts[0] == 'projects':
+                name = parts[1]
+                if not self.projectdb:
+                    return
+                info = self.projectdb.get(name)
+                if info:
+                    return ProjectLoader(info)
 
-    def load_module(self, fullname):
-        mod = imp.new_module(fullname)
-        mod.__file__ = '<projects>'
-        mod.__loader__ = self
-        mod.__path__ = ['<projects>']
-        mod.__package__ = 'projects'
-        return mod
+        def load_module(self, fullname):
+            mod = imp.new_module(fullname)
+            mod.__file__ = '<projects>'
+            mod.__loader__ = self
+            mod.__path__ = ['<projects>']
+            mod.__package__ = 'projects'
+            return mod
 
-    def is_package(self, fullname):
-        return True
+        def is_package(self, fullname):
+            return True
 
+    class ProjectLoader(object):
+        '''ProjectLoader class for sys.meta_path'''
 
-class ProjectLoader(object):
-    '''ProjectLoader class for sys.meta_path'''
+        def __init__(self, project, mod=None):
+            self.project = project
+            self.name = project['name']
+            self.mod = mod
 
-    def __init__(self, project, mod=None):
-        self.project = project
-        self.name = project['name']
-        self.mod = mod
+        def load_module(self, fullname):
+            if self.mod is None:
+                self.mod = mod = imp.new_module(fullname)
+            else:
+                mod = self.mod
+            mod.__file__ = '<%s>' % self.name
+            mod.__loader__ = self
+            mod.__project__ = self.project
+            mod.__package__ = ''
+            code = self.get_code(fullname)
+            six.exec_(code, mod.__dict__)
+            linecache.clearcache()
+            return mod
 
-    def load_module(self, fullname):
-        if self.mod is None:
-            self.mod = mod = imp.new_module(fullname)
-        else:
-            mod = self.mod
-        mod.__file__ = '<%s>' % self.name
-        mod.__loader__ = self
-        mod.__project__ = self.project
-        mod.__package__ = ''
-        code = self.get_code(fullname)
-        six.exec_(code, mod.__dict__)
-        linecache.clearcache()
-        return mod
+        def is_package(self, fullname):
+            return False
 
-    def is_package(self, fullname):
-        return False
+        def get_code(self, fullname):
+            return compile(self.get_source(fullname), '<%s>' % self.name, 'exec')
 
-    def get_code(self, fullname):
-        return compile(self.get_source(fullname), '<%s>' % self.name, 'exec')
+        def get_source(self, fullname):
+            script = self.project['script']
+            if isinstance(script, six.text_type):
+                return script.encode('utf8')
+            return script
+else:
+    import importlib
 
-    def get_source(self, fullname):
-        script = self.project['script']
-        if isinstance(script, six.text_type):
-            return script.encode('utf8')
-        return script
+    class ProjectFinder(importlib.abc.MetaPathFinder):
+        '''ProjectFinder class for sys.meta_path'''
+
+        def __init__(self, projectdb):
+            self.get_projectdb = weakref.ref(projectdb)
+
+        @property
+        def projectdb(self):
+            return self.get_projectdb()
+
+        def find_spec(self, fullname, path, target=None):
+            loader = self.find_module(fullname, path)
+            if loader:
+                return importlib.util.spec_from_loader(fullname, loader)
+
+        def find_module(self, fullname, path):
+            if fullname == 'projects':
+                return ProjectsLoader()
+            parts = fullname.split('.')
+            if len(parts) == 2 and parts[0] == 'projects':
+                name = parts[1]
+                if not self.projectdb:
+                    return
+                info = self.projectdb.get(name)
+                if info:
+                    return ProjectLoader(info)
+
+    class ProjectsLoader(importlib.abc.InspectLoader):
+        def is_package(self, fullname):
+            return True
+
+        def get_source(self, path):
+            return ''
+
+    class ProjectLoader(importlib.abc.InspectLoader):
+        def __init__(self, project):
+            self.project = project
+            self.name = project['name']
+
+        def get_source(self, path):
+            return self.project['script']

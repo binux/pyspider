@@ -546,7 +546,6 @@ class TestProcessor(unittest.TestCase):
 
         self.processor.project_manager.CHECK_PROJECTS_INTERVAL = 0.1
 
-    @unittest.skipIf(six.PY3, "deprecated feature, not work for PY3")
     def test_80_import_project(self):
         self.projectdb.insert('test_project2', {
             'name': 'test_project',

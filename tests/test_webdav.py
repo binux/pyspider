@@ -120,6 +120,7 @@ class TestWebDav(unittest.TestCase):
         self.webdav_up.upload(inspect.getsourcefile(data_sample_handler), 'sample_handler.py')
 
 
+@unittest.skipIf(sys.version_info >= (3, 6), "easywebdav doesn't support python 3.6")
 class TestWebDavNeedAuth(unittest.TestCase):
     @classmethod
     def setUpClass(self):
