@@ -42,7 +42,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                 if data[each]:
                     if isinstance(data[each], bytearray):
                         data[each] = str(data[each])
-                    data[each] = json.loads(data[each], 'utf8')
+                    data[each] = json.loads(data[each], encoding='utf8')
                 else:
                     data[each] = {}
         return data
