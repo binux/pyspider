@@ -266,3 +266,6 @@ else:
 
         def exec_module(self, module):
             return module
+
+        def module_repr(self, module):
+            return '<Module projects.%s>' % self.name

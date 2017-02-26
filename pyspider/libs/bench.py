@@ -4,6 +4,8 @@
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-12-08 22:23:10
+# rate: 10000000000
+# burst: 10000000000
 
 import time
 import logging
@@ -248,17 +250,16 @@ class BenchResultWorker(ResultWorker, BenchMixin):
         super(BenchResultWorker, self).on_result(task, result)
 
 
-bench_script = '''
-from pyspider.libs.base_handler import *
+from pyspider.libs.base_handler import BaseHandler
+
 
 class Handler(BaseHandler):
-    def on_start(self):
+    def on_start(self, response):
         self.crawl('http://127.0.0.1:5000/bench',
-                   params={'total': %(total)d, 'show': %(show)d},
+                   params={'total': response.save.get('total', 10000), 'show': response.save.get('show', 20)},
                    callback=self.index_page)
 
     def index_page(self, response):
         for each in response.doc('a[href^="http://"]').items():
             self.crawl(each.attr.href, callback=self.index_page)
         return response.url
-'''
