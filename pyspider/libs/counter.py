@@ -282,7 +282,7 @@ class CounterValue(DictMixin):
             key = self._keys + (key, )
 
         available_keys = []
-        for _key in self.manager.counters.keys():
+        for _key in list(self.manager.counters.keys()):
             if _key[:len(key)] == key:
                 available_keys.append(_key)
 
@@ -290,7 +290,7 @@ class CounterValue(DictMixin):
             raise KeyError
         elif len(available_keys) == 1:
             if available_keys[0] == key:
-                return self.manager.counters[key]
+                return self.manager.counters.get(key)
             else:
                 return CounterValue(self.manager, key)
         else:
