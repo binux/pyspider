@@ -224,7 +224,7 @@ if six.PY2:
         def is_package(self, fullname):
             return True
 else:
-    import importlib
+    import importlib.abc
 
     class ProjectFinder(importlib.abc.MetaPathFinder):
         '''ProjectFinder class for sys.meta_path'''
