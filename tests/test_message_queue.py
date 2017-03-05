@@ -97,6 +97,24 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
         del self.q2
         del self.q3
 
+    def test_30_full(self):
+        self.assertEqual(self.q1.qsize(), 0)
+        self.assertEqual(self.q2.qsize(), 0)
+        for i in range(2):
+            self.q1.put_nowait('TEST_DATA%d' % i)
+        for i in range(3):
+            self.q2.put('TEST_DATA%d' % i)
+
+        print(self.q1.__dict__)
+        print(self.q1.qsize())
+        with self.assertRaises(Queue.Full):
+            self.q1.put_nowait('TEST_DATA6')
+        print(self.q1.__dict__)
+        print(self.q1.qsize())
+        with self.assertRaises(Queue.Full):
+            self.q1.put('TEST_DATA6', timeout=0.01)
+
+
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
