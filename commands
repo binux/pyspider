@@ -1,0 +1,17 @@
+python run.py -c user571.json webui
+python run.py -c user571.json scheduler
+python run.py -c user571.json fetcher
+python run.py -c user571.json processor
+python run.py -c user571.json result_worker
+
+python run.py -c user572.json webui
+python run.py -c user572.json scheduler
+python run.py -c user572.json fetcher
+python run.py -c user572.json processor
+python run.py -c user572.json result_worker
+
+python run.py webui
+python run.py scheduler
+python run.py fetcher
+python run.py processor
+python run.py result_worker
