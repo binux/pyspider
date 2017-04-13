@@ -329,10 +329,10 @@ class BaseHandler(object):
 
         if self.is_debugger():
             task = self.task_join_crawl_config(task, self.crawl_config)
-            if task['fetch'].get('proxy', False) and task['fetch'].get('fetch_type', None) in ('js', 'phantomjs') \
-                    and not hasattr(self, '_proxy_warning'):
-                self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
-                self._proxy_warning = True
+            # if task['fetch'].get('proxy', False) and task['fetch'].get('fetch_type', None) in ('js', 'phantomjs') \
+            #         and not hasattr(self, '_proxy_warning'):
+            #     self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
+            #     self._proxy_warning = True
 
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:
