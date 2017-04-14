@@ -55,8 +55,6 @@ if (system.args.length !== 2) {
         fetch.proxy = 'http://' + fetch.proxy
       }
       page.setProxy(fetch.proxy);
-    } else {
-      page.setProxy("");
     }
     page.onConsoleMessage = function(msg) {
         console.log('console: ' + msg);
