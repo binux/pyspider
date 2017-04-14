@@ -334,6 +334,13 @@ class BaseHandler(object):
             #     self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
             #     self._proxy_warning = True
 
+        if getattr(self, 'base', None):
+            task_fetch = task.get('fetch', {})
+            task_fetch.setdefault('headers', {})
+            if not task_fetch['headers'].get('Referer', None):
+                task_fetch['headers']['Referer'] = self.base
+            task['fetch'] = task_fetch
+
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:
             self._follows_keys.add(cache_key)
