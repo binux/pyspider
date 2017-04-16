@@ -21,6 +21,7 @@ from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
 from pyspider.processor import ProcessorResult
+from pyspider.libs.url import quote_chinese
 
 
 def catch_status_code_error(func):
@@ -338,7 +339,7 @@ class BaseHandler(object):
             task_fetch = task.get('fetch', {})
             task_fetch.setdefault('headers', {})
             if not task_fetch['headers'].get('Referer', None):
-                task_fetch['headers']['Referer'] = self.base
+                task_fetch['headers']['Referer'] = quote_chinese(_build_url(self.base, None))
             task['fetch'] = task_fetch
 
         cache_key = "%(project)s:%(taskid)s" % task
