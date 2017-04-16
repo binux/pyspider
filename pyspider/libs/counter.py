@@ -307,7 +307,7 @@ class CounterValue(DictMixin):
 
     def keys(self):
         result = set()
-        for key in count(self.manager.counters.keys()):
+        for key in list(self.manager.counters.keys()):
             if key[:len(self._keys)] == self._keys:
                 key = key[len(self._keys):]
                 result.add(key[0] if key else '__value__')
