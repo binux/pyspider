@@ -43,11 +43,19 @@ if (system.args.length !== 2) {
         script_executed = false,
         script_result = null;
 
+
     var fetch = JSON.parse(request.postRaw);
     console.debug(JSON.stringify(fetch, null, 2));
 
     // create and set page
     var page = webpage.create();
+    //set proxy
+    if (fetch.proxy) {
+      if (fetch.proxy.indexOf('://') == -1){
+        fetch.proxy = 'http://' + fetch.proxy
+      }
+      page.setProxy(fetch.proxy);
+    }
     page.onConsoleMessage = function(msg) {
         console.log('console: ' + msg);
     };

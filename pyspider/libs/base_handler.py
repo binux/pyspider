@@ -21,6 +21,7 @@ from pyspider.libs.ListIO import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
 from pyspider.processor import ProcessorResult
+from pyspider.libs.url import quote_chinese
 
 
 def catch_status_code_error(func):
@@ -329,10 +330,17 @@ class BaseHandler(object):
 
         if self.is_debugger():
             task = self.task_join_crawl_config(task, self.crawl_config)
-            if task['fetch'].get('proxy', False) and task['fetch'].get('fetch_type', None) in ('js', 'phantomjs') \
-                    and not hasattr(self, '_proxy_warning'):
-                self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
-                self._proxy_warning = True
+            # if task['fetch'].get('proxy', False) and task['fetch'].get('fetch_type', None) in ('js', 'phantomjs') \
+            #         and not hasattr(self, '_proxy_warning'):
+            #     self.logger.warning('phantomjs does not support specify proxy from script, use phantomjs args instead')
+            #     self._proxy_warning = True
+
+        if getattr(self, 'base', None):
+            task_fetch = task.get('fetch', {})
+            task_fetch.setdefault('headers', {})
+            if not task_fetch['headers'].get('Referer', None):
+                task_fetch['headers']['Referer'] = quote_chinese(_build_url(self.base, None))
+            task['fetch'] = task_fetch
 
         cache_key = "%(project)s:%(taskid)s" % task
         if cache_key not in self._follows_keys:

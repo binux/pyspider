@@ -16,6 +16,7 @@ except ImportError:
     from flask.ext import login
 
 from .app import app
+import redis
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', 'updatetime']
 
@@ -39,9 +40,23 @@ def get_queues():
             return "%r" % e
 
     result = {}
-    queues = app.config.get('queues', {})
-    for key in queues:
-        result[key] = try_get_qsize(queues[key])
+    try:
+        r = redis.StrictRedis(host='redis', port=6379, db=0)
+        result = r.get('http_cache_queues')
+    except:
+        r = None
+        result = None
+    if result is None:
+        result = {}
+    else:
+        result = json.loads(result.decode('utf8'))
+    if not result:
+        queues = app.config.get('queues', {})
+        for key in queues:
+            result[key] = try_get_qsize(queues[key])
+        if r:
+            r.set('http_cache_queues', json.dumps(result, ensure_ascii=False))
+            r.expire('http_cache_queues', 60*5)
     return json.dumps(result), 200, {'Content-Type': 'application/json'}
 
 
@@ -98,16 +113,29 @@ def counter():
 
     result = {}
     try:
-        data = rpc.webui_update()
-        for type, counters in iteritems(data['counter']):
-            for project, counter in iteritems(counters):
-                result.setdefault(project, {})[type] = counter
-        for project, paused in iteritems(data['pause_status']):
-            result.setdefault(project, {})['paused'] = paused
-    except socket.error as e:
-        app.logger.warning('connect to scheduler rpc error: %r', e)
-        return json.dumps({}), 200, {'Content-Type': 'application/json'}
-
+        r = redis.StrictRedis(host='redis', port=6379, db=0)
+        result = r.get('http_cache_counter')
+    except:
+        r = None
+        result = None
+    if result is None:
+        result = {}
+    else:
+        result = json.loads(result.decode('utf8'))
+    if not result:
+        try:
+            data = rpc.webui_update()
+            for type, counters in iteritems(data['counter']):
+                for project, counter in iteritems(counters):
+                    result.setdefault(project, {})[type] = counter
+            for project, paused in iteritems(data['pause_status']):
+                result.setdefault(project, {})['paused'] = paused
+        except socket.error as e:
+            app.logger.warning('connect to scheduler rpc error: %r', e)
+            return json.dumps({}), 200, {'Content-Type': 'application/json'}
+        if r:
+            r.set('http_cache_counter', json.dumps(result, ensure_ascii=False))
+            r.expire('http_cache_counter', 60*5)
     return json.dumps(result), 200, {'Content-Type': 'application/json'}
 
 
