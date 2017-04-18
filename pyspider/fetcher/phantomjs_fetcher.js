@@ -48,6 +48,12 @@ if (system.args.length !== 2) {
 
     // create and set page
     var page = webpage.create();
+    if (fetch.proxy) {
+      if (fetch.proxy.indexOf('://') == -1){
+        fetch.proxy = 'http://' + fetch.proxy
+      }
+      page.setProxy(fetch.proxy);
+    }
     page.onConsoleMessage = function(msg) {
         console.log('console: ' + msg);
     };
