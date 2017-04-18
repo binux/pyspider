@@ -26,7 +26,6 @@ install_requires = [
     'pycurl',
     'pyquery',
     'requests>=2.2',
-    'tornado>=3.2',
     'Flask-Login>=0.2.11',
     'u-msgpack-python>=1.6',
     'click>=3.3',
@@ -37,14 +36,17 @@ install_requires = [
 if sys.version_info < (2, 7):  # 2.6
     install_requires.extend([
         'wsgidav<2.0.0',
+        'tornado>=3.2,<4.5',
     ])
 elif sys.version_info >= (3, 0):  # 3.*
     install_requires.extend([
         'wsgidav>=2.0.0',
+        'tornado>=3.2',
     ])
 else:  # 2.7
     install_requires.extend([
         'wsgidav',
+        'tornado>=3.2',
     ])
 
 extras_require_all = [
