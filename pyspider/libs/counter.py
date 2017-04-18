@@ -411,13 +411,13 @@ class CounterManager(DictMixin):
         """Dump counters as a dict"""
         self.trim()
         result = {}
-        for key, value in iteritems(self):
-            if isinstance(value, BaseCounter):
-                if get_value is not None:
-                    value = getattr(value, get_value)
-                result[key] = value
-            else:
-                result[key] = value.to_dict(get_value)
+        for key, value in iteritems(self.counters):
+            if get_value is not None:
+                value = getattr(value, get_value)
+            r = result
+            for _key in key[:-1]:
+                r = r.setdefault(_key, {})
+            r[key[-1]] = value
         return result
 
     def dump(self, filename):
@@ -433,7 +433,7 @@ class CounterManager(DictMixin):
     def load(self, filename):
         """Load counters to file"""
         try:
-            with open(filename) as fp:
+            with open(filename, 'rb') as fp:
                 self.counters = cPickle.load(fp)
         except:
             logging.debug("can't load counter from file: %s", filename)
