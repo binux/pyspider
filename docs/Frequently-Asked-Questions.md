@@ -47,3 +47,13 @@ When mouse move onto the progress bar, you can see the explaintions.
 For 5m, 1h, 1d the number are the events triggered in 5m, 1h, 1d. For all progress bar, they are the number of total tasks in correspond status.
 
 Only the tasks in DEBUG/RUNNING status will show the progress.
+
+How many scheduler/fetcher/processor/result_worker do I need? or pyspider stop working
+--------------------------------------------------------------------------------------
+You can have only have one scheduler, and multiple fetcher/processor/result_worker depends on the bottleneck. You can use the queue status on dashboard to view the bottleneck of the system:
+
+![run one step](imgs/queue_status.png)
+
+For example, the number between scheduler and fetcher indicate the queue size of scheduler to fetchers, when it's hitting 100 (default maximum queue size), fetcher might crashed, or you should considered adding more fetchers.
+
+The number `0+0` below fetcher indicate the queue size of new tasks and status packs between processors and schduler. You can put your mouse over the numbers to see the tips.
