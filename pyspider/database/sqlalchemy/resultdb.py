@@ -57,14 +57,14 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     @staticmethod
     def _parse(data):
-        for key, value in list(six.iteritems(data)):
-            if isinstance(value, six.binary_type):
-                data[key] = utils.text(value)
-        if 'result' in data:
-            if isinstance(data['result'], bytearray):
-                data['result'] = str(data['result'])
-            data['result'] = json.loads(data['result'])
-        return data
+            for key, value in list(six.iteritems(data)):
+                if key!='result' and isinstance(value, six.binary_type):
+                    data[key] = utils.text(value)
+            if 'result' in data:
+                if isinstance(data['result'], bytearray):
+                    data['result'] = str(data['result'])
+                data['result'] = json.loads(data['result'].decode("gbk")) #orcle's character set is gbk
+            return data
 
     @staticmethod
     def _stringify(data):
@@ -87,10 +87,12 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             del obj['taskid']
             return self.engine.execute(self.table.update()
                                        .where(self.table.c.taskid == taskid)
-                                       .values(**self._stringify(obj)))
+                                       #.values(**self._stringify(obj)))
+                                       .values(url=url,result=result,updatetime=time.time()))
         else:
             return self.engine.execute(self.table.insert()
-                                       .values(**self._stringify(obj)))
+                                     .values(taskid=taskid,url=url,result=result,updatetime=time.time()))
+                                     #.values(**self._stringify(obj)))
 
     def select(self, project, fields=None, offset=0, limit=None):
         if project not in self.projects:
