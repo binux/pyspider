@@ -14,11 +14,18 @@
 
     <script src="{{ url_for('cdn', path='jquery/1.11.0/jquery.min.js') }}"></script>
     <script src="{{ url_for('cdn', path='twitter-bootstrap/3.1.1/js/bootstrap.min.js') }}"></script>
+    <script src="../static/select_number.js"></script>
+	<script>
+		function select_nun(){
+			var url = "/results/dump/{{ project }}.txt"
+			$.MsgBox.Confirm("Attention", "Please select the number of downloads:",url, function () { alert("Download!"); });
+		} 
+	</script>
   </head>
 
   <body>
     <div class="top-bar">
-      <h1>{{ project }} - Results</h1>
+      <h1>{{ project }} - Results&nbsp&nbsp&nbsp&nbsp&nbspTotle Num：{{countall}}</h1>
       <div class="btn-group">
         <a href="/results/dump/{{ project }}.json"
           target="_blank" class="btn btn-default btn-sm">
@@ -26,8 +33,8 @@
           JSON</a>
         <a href="/results/dump/{{ project }}.txt"
           target="_blank" class="btn btn-default btn-sm">URL-JSON</a>
-        <a href="/results/dump/{{ project }}.csv"
-          target="_blank" class="btn btn-default btn-sm">CSV</a>
+        <a onclick='select_nun();'
+          		target="_blank" class="btn btn-default btn-sm">TXT</a>
       </div>
     </div>
     # set common_fields, results = result_formater(results)

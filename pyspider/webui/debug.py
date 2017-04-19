@@ -54,7 +54,7 @@ def debug(project):
         task = default_task
 
     default_task['project'] = project
-    return render_template("debug.html", task=task, script=script, project_name=project)
+    return render_template("debug.html", task=task, script=script.decode('gbk'), project_name=project)
 
 
 @app.before_first_request
