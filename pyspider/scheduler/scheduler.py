@@ -50,57 +50,7 @@ class Project(object):
 
     @property
     def paused(self):
-        if self.scheduler.FAIL_PAUSE_NUM <= 0:
-            return False
-
-        # unpaused --(last FAIL_PAUSE_NUM task failed)--> paused --(PAUSE_TIME)--> unpause_checking
-        #                         unpaused <--(last UNPAUSE_CHECK_NUM task have success)--|
-        #                             paused <--(last UNPAUSE_CHECK_NUM task no success)--|
-        if not self._paused:
-            fail_cnt = 0
-            for _, task in self.active_tasks:
-                # ignore select task
-                if task.get('type') == self.scheduler.TASK_PACK:
-                    continue
-                if 'process' not in task['track']:
-                    logger.error('process not in task, %r', task)
-                if task['track']['process']['ok']:
-                    break
-                else:
-                    fail_cnt += 1
-                if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
-                    break
-            if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
-                self._paused = True
-                self._paused_time = time.time()
-        elif self._paused is True and (self._paused_time + self.scheduler.PAUSE_TIME < time.time()):
-            self._paused = 'checking'
-            self._unpause_last_seen = self.active_tasks[0][1] if len(self.active_tasks) else None
-        elif self._paused == 'checking':
-            cnt = 0
-            fail_cnt = 0
-            for _, task in self.active_tasks:
-                if task is self._unpause_last_seen:
-                    break
-                # ignore select task
-                if task.get('type') == self.scheduler.TASK_PACK:
-                    continue
-                cnt += 1
-                if task['track']['process']['ok']:
-                    # break with enough check cnt
-                    cnt = max(cnt, self.scheduler.UNPAUSE_CHECK_NUM)
-                    break
-                else:
-                    fail_cnt += 1
-            if cnt >= self.scheduler.UNPAUSE_CHECK_NUM:
-                if fail_cnt == cnt:
-                    self._paused = True
-                    self._paused_time = time.time()
-                else:
-                    self._paused = False
-
-        return self._paused is True
-
+        pass
     def update(self, project_info):
         self.project_info = project_info
 
