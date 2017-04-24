@@ -92,7 +92,8 @@ def dump_as_csv(results):
         stringio = BytesIO()
     else:
         stringio = StringIO()
-    csv_writer = csv.writer(stringio)
+    #csv_writer = csv.writer(stringio)
+    csv_writer = csv.writer(stringio,delimiter='|')
 
     it = iter(results)
     first_30 = []

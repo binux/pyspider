@@ -1,0 +1,18 @@
+{
+  "taskdb": "sqlalchemy+oracle+taskdb://taskdb_571:taskdb_571_1Q#@oracle-datasource:1521/pdbbdprd",
+  "projectdb":"sqlalchemy+oracle+projectdb://projectdb_571:projectdb_571_1Q#@oracle-datasource:1521/pdbbdprd",
+  "resultdb": "sqlalchemy+oracle+resultdb://resultdb_571:resultdb_571_1Q#@oracle-datasource:1521/pdbbdprd",
+  "scheduler":{
+    "xmlrpc-host":"127.0.0.1",
+    "xmlrpc-port":"23001"
+  },
+  "message_queue": "redis://20.26.26.43:6379/db",
+  "queue_user": "user571",
+  "webui": {
+    "scheduler-rpc":"http://127.0.0.1:23001",
+    "port":"5001",
+    "username": "admin",
+    "password": "111111",
+    "need-auth": false
+  }
+}

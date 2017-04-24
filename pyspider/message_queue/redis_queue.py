@@ -8,8 +8,10 @@
 import time
 import redis
 import umsgpack
+from rediscluster import StrictRedisCluster
 from six.moves import queue as BaseQueue
 
+from pyspider.settings import redis_nodes
 
 class RedisQueue(object):
     """
@@ -30,8 +32,10 @@ class RedisQueue(object):
         lazy_limit: redis queue is shared via instance, a lazy size limit is used
                     for better performance.
         """
+
         self.name = name
-        self.redis = redis.StrictRedis(host=host, port=port, db=db, password=password)
+        self.redis = StrictRedisCluster(startup_nodes=redis_nodes)
+        # self.redis = redis.StrictRedis(host=host, port=port, db=db, password=password)
         self.maxsize = maxsize
         self.lazy_limit = lazy_limit
         self.last_qsize = 0

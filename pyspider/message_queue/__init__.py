@@ -13,7 +13,10 @@ except ImportError:
     import urlparse
 
 
-def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
+def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True, prefix="user"):
+
+    name = prefix + "_" + name
+
     """
     create connection to message queue
 

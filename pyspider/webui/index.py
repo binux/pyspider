@@ -25,7 +25,8 @@ def index():
     projectdb = app.config['projectdb']
     projects = sorted(projectdb.get_all(fields=index_fields),
                       key=lambda k: (0 if k['group'] else 1, k['group'] or '', k['name']))
-    return render_template("index.html", projects=projects)
+    current_user = login.current_user.get_id()
+    return render_template("index.html", projects=projects, current_user=current_user)
 
 
 @app.route('/queues')

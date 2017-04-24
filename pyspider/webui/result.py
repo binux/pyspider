@@ -24,7 +24,7 @@ def result():
     results = list(resultdb.select(project, offset=offset, limit=limit))
 
     return render_template(
-        "result.html", count=count, results=results,
+        "result.html", count=100 if count>100 else count, countall=count, results=results,
         result_formater=result_dump.result_formater,
         project=project, offset=offset, limit=limit, json=json
     )
@@ -40,15 +40,16 @@ def dump_result(project, _format):
 
     offset = int(request.args.get('offset', 0)) or None
     limit = int(request.args.get('limit', 0)) or None
-    results = resultdb.select(project, offset=offset, limit=limit)
+    results = resultdb.select(project, limit=limit)
 
     if _format == 'json':
         valid = request.args.get('style', 'rows') == 'full'
         return Response(result_dump.dump_as_json(results, valid),
                         mimetype='application/json')
-    elif _format == 'txt':
+    elif _format == 'text':
         return Response(result_dump.dump_as_txt(results),
                         mimetype='text/plain')
-    elif _format == 'csv':
+    elif _format == 'txt':
         return Response(result_dump.dump_as_csv(results),
+                        #mimetype='application/xml')
                         mimetype='text/csv')

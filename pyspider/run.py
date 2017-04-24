@@ -67,6 +67,8 @@ def connect_rpc(ctx, param, value):
 @click.option('--debug', envvar='DEBUG', default=False, is_flag=True, help='debug mode')
 @click.option('--queue-maxsize', envvar='QUEUE_MAXSIZE', default=100,
               help='maxsize of queue')
+@click.option('--queue-user', envvar='QUEUE_USER', default='user',
+              help='user of queue')
 @click.option('--taskdb', envvar='TASKDB', callback=connect_db,
               help='database url for taskdb, default: sqlite')
 @click.option('--projectdb', envvar='PROJECTDB', callback=connect_db,
@@ -146,10 +148,10 @@ def cli(ctx, **kwargs):
                  'fetcher2processor', 'processor2result'):
         if kwargs.get('message_queue'):
             kwargs[name] = utils.Get(lambda name=name: connect_message_queue(
-                name, kwargs.get('message_queue'), kwargs['queue_maxsize']))
+                name, kwargs.get('message_queue'), kwargs['queue_maxsize'], True, kwargs['queue_user']))
         else:
             kwargs[name] = connect_message_queue(name, kwargs.get('message_queue'),
-                                                 kwargs['queue_maxsize'])
+                                                 kwargs['queue_maxsize'], True, kwargs['queue_user'])
 
     # phantomjs-proxy
     if kwargs.get('phantomjs_proxy'):
