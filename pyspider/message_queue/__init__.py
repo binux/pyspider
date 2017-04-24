@@ -5,6 +5,8 @@
 #         http://binux.me
 # Created on 2015-04-30 21:47:08
 
+import logging
+
 try:
     from urllib import parse as urlparse
 except ImportError:
@@ -49,6 +51,7 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
         try:
             db = int(db[0])
         except:
+            logging.warning('redis DB must zero-based numeric index, using 0 instead')
             db = 0
 
         password = parsed.password or None
