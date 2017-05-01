@@ -53,6 +53,15 @@ class MySimpleAsyncHTTPClient(SimpleAsyncHTTPClient):
     def size(self):
         return len(self.active)
 
+class CFScrapeClient(object):
+    def __init__(self):
+        import cfscrape
+        self.scraper = cfscrape.create_scraper()
+
+    def fetch(self, url):
+        return self.scraper.get(url)
+
+
 fetcher_output = {
     "status_code": int,
     "orig_url": str,
@@ -90,6 +99,8 @@ class Fetcher(object):
         self.ioloop = tornado.ioloop.IOLoop()
 
         self.robots_txt_cache = {}
+
+        self.cfscrape_client = CFScrapeClient()
 
         # binding io_loop to http_client here
         if self.async:
@@ -138,6 +149,9 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
                 type = 'splash'
                 result = yield self.splash_fetch(url, task)
+            elif task.get('fetch', {}).get('fetch_type') in ('cfscrape', ):
+                type = 'cfscrape'
+                result = yield self.cfscrape_fetch(url, task)
             else:
                 type = 'http'
                 result = yield self.http_fetch(url, task)
@@ -524,6 +538,28 @@ class Fetcher(object):
                          url, result['content'], result['time'])
 
         raise gen.Return(result)
+
+    @gen.coroutine
+    def cfscrape_fetch(self, url, task):
+        start_time = time.time()
+        self.on_fetch('cfscrape', task)
+
+        response = self.cfscrape_client.fetch(url)
+
+        result = {
+                "url": response.url,
+                "save": task.get("fetch", {}).get("save"),
+                "headers": {},
+                "time": time.time() - start_time,
+                "headers": response.headers,
+                "orig_url": url,
+                "cookies": response.cookies.get_dict(),
+                "status_code": response.status_code,
+                "content": response.content
+                }
+
+        raise gen.Return(result)
+
 
     @gen.coroutine
     def splash_fetch(self, url, task):
