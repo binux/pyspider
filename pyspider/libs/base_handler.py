@@ -173,6 +173,8 @@ class BaseHandler(object):
             return None
         if not getattr(function, '_catch_status_code_error', False):
             response.raise_for_status()
+        if 'fetch' in task and 'save' in task['fetch']:
+            response.save = task['fetch']['save']
         return self._run_func(function, response, task)
 
     def run_task(self, module, task, response):
