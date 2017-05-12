@@ -40,6 +40,8 @@ if (system.args.length !== 2) {
         page_loaded = false,
         start_time = Date.now(),
         end_time = null,
+        redirect_urls = new Array(),
+        request_urls = new Array(),
         script_executed = false,
         script_result = null;
 
@@ -95,7 +97,11 @@ if (system.args.length !== 2) {
       end_time = Date.now() + wait_before_end;
       setTimeout(make_result, wait_before_end+10, page);
     };
+    page.onNavigationRequested = function(url) {
+      redirect_urls.push(url);
+    }
     page.onResourceRequested = function(request) {
+      request_urls.push(request.url);
       console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
       end_time = null;
     };
@@ -160,6 +166,8 @@ if (system.args.length !== 2) {
           content: page.content || "",
           headers: {},
           url: page.url || fetch.url,
+          redirect_urls: redirect_urls,
+          request_urls: request_urls,
           cookies: {},
           time: (Date.now() - start_time) / 1000,
           js_script_result: null,
@@ -200,6 +208,8 @@ if (system.args.length !== 2) {
         content:  page.content,
         headers: headers,
         url: page.url,
+        redirect_urls: redirect_urls,
+        request_urls: request_urls,
         cookies: cookies,
         time: (Date.now() - start_time) / 1000,
         js_script_result: script_result,

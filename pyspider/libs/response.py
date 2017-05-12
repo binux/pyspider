@@ -22,7 +22,7 @@ from pyspider.libs import utils
 class Response(object):
 
     def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
-                 content='', cookies=None, error=None, traceback=None, save=None, js_script_result=None, time=0):
+                 content='', redirect_urls=None, request_urls=None, cookies=None, error=None, traceback=None, save=None, js_script_result=None, time=0):
         if cookies is None:
             cookies = {}
         self.status_code = status_code
@@ -30,6 +30,8 @@ class Response(object):
         self.orig_url = orig_url
         self.headers = headers
         self.content = content
+        self.redirect_urls = redirect_urls
+        self.request_urls = request_urls
         self.cookies = cookies
         self.error = error
         self.traceback = traceback
@@ -197,6 +199,8 @@ def rebuild_response(r):
         url=r.get('url', ''),
         headers=CaseInsensitiveDict(r.get('headers', {})),
         content=r.get('content', ''),
+        redirect_urls=r.get('redirect_urls', []),
+        request_urls=r.get('request_urls', []),
         cookies=r.get('cookies', {}),
         error=r.get('error'),
         traceback=r.get('traceback'),
