@@ -94,6 +94,7 @@ beanstalk:
     beanstalk://host:11300/
 redis:
     redis://host:6379/db
+    redis://host1:port1,host2:port2,...,hostn:portn (for redis 3.x in cluster mode)
 kombu:
     kombu+transport://userid:password@hostname:port/virtual_host
     see http://kombu.readthedocs.org/en/latest/userguide/connections.html#urls
