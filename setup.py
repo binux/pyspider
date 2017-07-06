@@ -54,6 +54,7 @@ extras_require_all = [
     'pymongo>=2.7.2',
     'SQLAlchemy>=0.9.7',
     'redis',
+    'redis-py-cluster',
     'psycopg2',
     'elasticsearch>=2.0.0,<2.4.0',
 ]

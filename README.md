@@ -50,7 +50,7 @@ Installation
 * `pip install pyspider`
 * run command `pyspider`, visit [http://localhost:5000/](http://localhost:5000/)
 
-**WARNING:** WebUI is opened to public by default, it can be used to execute any command which may harm to you system. Please use it in internal network or [enable `need-auth` for webui](http://docs.pyspider.org/en/latest/Command-Line/#-config).
+**WARNING:** WebUI is open to the public by default, it can be used to execute any command which may harm your system. Please use it in an internal network or [enable `need-auth` for webui](http://docs.pyspider.org/en/latest/Command-Line/#-config).
 
 Quickstart: [http://docs.pyspider.org/en/latest/Quickstart/](http://docs.pyspider.org/en/latest/Quickstart/)
 

@@ -27,6 +27,7 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
         beanstalk://host:11300/
     redis:
         redis://host:6379/db
+        redis://host1:port1,host2:port2,...,hostn:portn (for redis 3.x in cluster mode)
     kombu:
         kombu+transport://userid:password@hostname:port/virtual_host
         see http://kombu.readthedocs.org/en/latest/userguide/connections.html#urls
@@ -47,19 +48,31 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
         return Queue(name, host=parsed.netloc, maxsize=maxsize)
     elif parsed.scheme == 'redis':
         from .redis_queue import Queue
-        db = parsed.path.lstrip('/').split('/')
-        try:
-            db = int(db[0])
-        except:
-            logging.warning('redis DB must zero-based numeric index, using 0 instead')
-            db = 0
+        if ',' in parsed.netloc:
+            """
+            redis in cluster mode (there is no concept of 'db' in cluster mode)
+            ex. redis://host1:port1,host2:port2,...,hostn:portn
+            """
+            cluster_nodes = []
+            for netloc in parsed.netloc.split(','):
+                cluster_nodes.append({'host': netloc.split(':')[0], 'port': int(netloc.split(':')[1])})
 
-        password = parsed.password or None
+            return Queue(name=name, maxsize=maxsize, lazy_limit=lazy_limit, cluster_nodes=cluster_nodes)
 
-        return Queue(name, parsed.hostname, parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
+        else:
+            db = parsed.path.lstrip('/').split('/')
+            try:
+                db = int(db[0])
+            except:
+                logging.warning('redis DB must zero-based numeric index, using 0 instead')
+                db = 0
+
+            password = parsed.password or None
+
+            return Queue(name=name, host=parsed.hostname, port=parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
     elif url.startswith('kombu+'):
         url = url[len('kombu+'):]
         from .kombu_queue import Queue
         return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
     else:
-        raise Exception('unknow connection url: %s', url)
+        raise Exception('unknown connection url: %s', url)
