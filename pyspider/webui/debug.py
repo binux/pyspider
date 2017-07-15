@@ -81,7 +81,7 @@ def run(project):
             'time': time.time() - start_time,
         }
         return json.dumps(utils.unicode_obj(result)), \
-            200, {'Content-Type': 'application/json'}
+               200, {'Content-Type': 'application/json'}
 
     project_info = {
         'name': project,
@@ -102,7 +102,7 @@ def run(project):
                 'time': time.time() - start_time,
             }
             return json.dumps(utils.unicode_obj(result)), \
-                200, {'Content-Type': 'application/json'}
+                   200, {'Content-Type': 'application/json'}
         project_info['script'] = info['script']
 
     fetch_result = {}
@@ -119,6 +119,7 @@ def run(project):
 
         fetch_result = app.config['fetch'](task)
         response = rebuild_response(fetch_result)
+        response.proxy = task.get('fetch', {}).get('proxy')
 
         ret = module['instance'].run_task(module['module'], task, response)
     except Exception:
@@ -181,7 +182,7 @@ def save(project):
         info = {
             'script': script,
         }
-        if project_info.get('status') in ('DEBUG', 'RUNNING', ):
+        if project_info.get('status') in ('DEBUG', 'RUNNING',):
             info['status'] = 'CHECKING'
         projectdb.update(project, info)
     else:
@@ -212,7 +213,7 @@ def get_script(project):
         return 'project name is not allowed!', 400
     info = projectdb.get(project, fields=['name', 'script'])
     return json.dumps(utils.unicode_obj(info)), \
-        200, {'Content-Type': 'application/json'}
+           200, {'Content-Type': 'application/json'}
 
 
 @app.route('/blank.html')

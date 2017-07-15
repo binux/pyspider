@@ -103,6 +103,7 @@ class Processor(object):
         '''Deal one task'''
         start_time = time.time()
         response = rebuild_response(response)
+        response.proxy = task.get('fetch', {}).get('proxy')
 
         try:
             assert 'taskid' in task, 'need taskid in task'
