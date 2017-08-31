@@ -23,7 +23,6 @@ install_requires = [
     'chardet>=2.2',
     'cssselect>=0.9',
     'lxml',
-    'pycurl',
     'pyquery',
     'requests>=2.2',
     'Flask-Login>=0.2.11',
@@ -57,6 +56,7 @@ extras_require_all = [
     'redis-py-cluster',
     'psycopg2',
     'elasticsearch>=2.0.0,<2.4.0',
+    'pycurl',
 ]
 if sys.version_info < (2, 7):  # 2.6
     extras_require_all.extend([

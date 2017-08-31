@@ -7,5 +7,12 @@
 
 import os
 import unittest2 as unittest
+path = os.path
+
+library_base_path = path.abspath(path.join(path.dirname(__file__), '..'))
+
+logger_config_path = path.join(library_base_path, "pyspider/logging.conf")
 
 all_suite = unittest.TestLoader().discover(os.path.dirname(__file__), "test_*.py")
+
+

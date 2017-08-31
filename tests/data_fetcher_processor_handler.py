@@ -47,6 +47,7 @@ class Handler(BaseHandler):
     def set_process_save(self, response):
         self.save['roy'] = 'binux'
 
+
 class IgnoreHandler(BaseHandler):
     pass
 

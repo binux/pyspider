@@ -11,7 +11,9 @@ import copy
 import time
 import unittest2 as unittest
 import logging.config
-logging.config.fileConfig("pyspider/logging.conf")
+from . import logger_config_path
+
+logging.config.fileConfig(logger_config_path)
 
 from pyspider.libs import utils
 from pyspider.processor.project_module import ProjectManager

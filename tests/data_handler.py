@@ -6,10 +6,16 @@
 # Created on 2014-02-22 14:02:21
 
 import time
+import logging
 from pyspider.libs.base_handler import BaseHandler, catch_status_code_error, every
+
+
+logger = logging.getLogger(__name__)
+
 
 class IgnoreHandler(object):
     pass
+
 
 class TestHandler(BaseHandler):
     retry_delay = {

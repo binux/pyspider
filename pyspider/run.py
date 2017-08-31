@@ -225,9 +225,10 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--splash-endpoint', help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
+@click.option('--tornado-http-client', default='simple', type=click.Choice(['simple', 'pycurl']))
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls,
+            timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls, tornado_http_client,
             async=True, get_object=False, no_input=False):
     """
     Run Fetcher.
@@ -241,8 +242,11 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     else:
         inqueue = g.scheduler2fetcher
         outqueue = g.fetcher2processor
+    kwargs = {}
+    if tornado_http_client:
+        kwargs['client'] = tornado_http_client
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
-                      poolsize=poolsize, proxy=proxy, async=async)
+                      poolsize=poolsize, proxy=proxy, async=async, **kwargs)
     fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
     fetcher.splash_endpoint = splash_endpoint
     if user_agent:

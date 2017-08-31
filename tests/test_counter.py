@@ -11,6 +11,7 @@ import unittest2 as unittest
 
 from pyspider.libs import counter
 
+
 class TestCounter(unittest.TestCase):
     def test_010_TimebaseAverageEventCounter(self):
         c = counter.TimebaseAverageEventCounter(2, 1)
