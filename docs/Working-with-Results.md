@@ -8,7 +8,7 @@ Although resultdb is only designed for result preview, not suitable for large sc
 
 ```
 from pyspider.database import connect_database
-resultdb = connect_database("<your resutldb connection url>")
+resultdb = connect_database("<your resultdb connection url>")
 for project in resultdb.projects:
     for result in resultdb.select(project):
         assert result['taskid']
