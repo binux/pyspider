@@ -1,0 +1,24 @@
+Paused@52 in pyspider/scheduler/scheduler:
+Boran: 18
+Andreas: 18
+Michael with graph nodes: 21
+(Emirhan: 24)
+
+CLI@90 in pyspider/run.py:
+Graph method and lecture method:
+Michael: 23
+lecture method:
+Andreas: 23
+
+Format@134 in pyspider/libs/ppprint.py
+Graph method:
+Michael: 28?
+Emirhan: 32
+lecture method:
+Andy: 31
+
+_connect_database@49 in pyspider/database/__init__.py
+lecture method:
+Andy: 15
+Andreas: 15
+
