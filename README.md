@@ -78,8 +78,8 @@ Licensed under the Apache License, Version 2.0
 
 [Build Status]:         https://img.shields.io/travis/binux/pyspider/master.svg?style=flat
 [Travis CI]:            https://travis-ci.org/binux/pyspider
-[Coverage Status]:      https://coveralls.io/repos/github/AndreasEdvardsson/pyspider/badge.svg?branch=master&style=flat
-[Coverage]:             https://coveralls.io/github/AndreasEdvardsson/pyspider
+[Coverage Status]:      https://img.shields.io/coveralls/binux/pyspider.svg?branch=master&style=flat
+[Coverage]:             https://coveralls.io/r/binux/pyspider
 [Try]:                  https://img.shields.io/badge/try-pyspider-blue.svg?style=flat
 [Demo]:                 http://demo.pyspider.org/
 [Demo Img]:             https://github.com/binux/pyspider/blob/master/docs/imgs/demo.png
