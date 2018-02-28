@@ -61,29 +61,8 @@ def _connect_database(url):  # NOQA
                           'type should be one of ["taskdb", "projectdb", "resultdb"]', dbtype)
 
     if engine == 'mysql':
-        parames = {}
-        if parsed.username:
-            parames['user'] = parsed.username
-        if parsed.password:
-            parames['passwd'] = parsed.password
-        if parsed.hostname:
-            parames['host'] = parsed.hostname
-        if parsed.port:
-            parames['port'] = parsed.port
-        if parsed.path.strip('/'):
-            parames['database'] = parsed.path.strip('/')
+        return _connect_mysql(parsed,db_type)
 
-        if dbtype == 'taskdb':
-            from .mysql.taskdb import TaskDB
-            return TaskDB(**parames)
-        elif dbtype == 'projectdb':
-            from .mysql.projectdb import ProjectDB
-            return ProjectDB(**parames)
-        elif dbtype == 'resultdb':
-            from .mysql.resultdb import ResultDB
-            return ResultDB(**parames)
-        else:
-            raise LookupError
     elif engine == 'sqlite':
         if parsed.path.startswith('//'):
             path = '/' + parsed.path.strip('/')
@@ -174,3 +153,28 @@ def _connect_database(url):  # NOQA
             return TaskDB([parsed.netloc], index=index)
     else:
         raise Exception('unknown engine: %s' % engine)
+
+def _connect_mysql(parsed,dbtype):
+    parames = {}
+    if parsed.username:
+        parames['user'] = parsed.username
+    if parsed.password:
+        parames['passwd'] = parsed.password
+    if parsed.hostname:
+        parames['host'] = parsed.hostname
+    if parsed.port:
+        parames['port'] = parsed.port
+    if parsed.path.strip('/'):
+        parames['database'] = parsed.path.strip('/')
+
+    if dbtype == 'taskdb':
+        from .mysql.taskdb import TaskDB
+        return TaskDB(**parames)
+    elif dbtype == 'projectdb':
+        from .mysql.projectdb import ProjectDB
+        return ProjectDB(**parames)
+    elif dbtype == 'resultdb':
+        from .mysql.resultdb import ResultDB
+        return ResultDB(**parames)
+    else:
+        raise LookupError
