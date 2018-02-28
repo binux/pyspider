@@ -73,7 +73,7 @@ def _connect_database(url):  # NOQA
         if not other_scheme:
             raise Exception('wrong scheme format: %s' % parsed.scheme)
         url = url.replace(parsed.scheme, other_scheme)
-        return _connect_sqlalchemy(db_type,url)
+        return _connect_sqlalchemy(dbtype,url)
 
 
     elif engine == 'redis':
@@ -161,7 +161,7 @@ def _connect_mongodb(parsed,dbtype,url):
     else:
         raise LookupError
 
-def _connect_sqlalchemy(db_type,url):
+def _connect_sqlalchemy(dbtype,url):
     if dbtype == 'taskdb':
         from .sqlalchemy.taskdb import TaskDB
         return TaskDB(url)
