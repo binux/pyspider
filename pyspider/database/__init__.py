@@ -61,7 +61,7 @@ def _connect_database(url):  # NOQA
                           'type should be one of ["taskdb", "projectdb", "resultdb"]', dbtype)
 
     if engine == 'mysql':
-        return _connect_mysql(parsed,db_type)
+        return _connect_mysql(parsed,dbtype)
 
     elif engine == 'sqlite':
         if parsed.path.startswith('//'):
