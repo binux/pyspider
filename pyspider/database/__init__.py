@@ -64,59 +64,18 @@ def _connect_database(url):  # NOQA
         return _connect_mysql(parsed,dbtype)
 
     elif engine == 'sqlite':
-        if parsed.path.startswith('//'):
-            path = '/' + parsed.path.strip('/')
-        elif parsed.path.startswith('/'):
-            path = './' + parsed.path.strip('/')
-        elif not parsed.path:
-            path = ':memory:'
-        else:
-            raise Exception('error path: %s' % parsed.path)
-
-        if dbtype == 'taskdb':
-            from .sqlite.taskdb import TaskDB
-            return TaskDB(path)
-        elif dbtype == 'projectdb':
-            from .sqlite.projectdb import ProjectDB
-            return ProjectDB(path)
-        elif dbtype == 'resultdb':
-            from .sqlite.resultdb import ResultDB
-            return ResultDB(path)
-        else:
-            raise LookupError
+        return _connect_sqlite(parsed,dbtype)
     elif engine == 'mongodb':
         url = url.replace(parsed.scheme, 'mongodb')
-        parames = {}
-        if parsed.path.strip('/'):
-            parames['database'] = parsed.path.strip('/')
+        return _connect_mongodb(parsed,dbtype,url)
 
-        if dbtype == 'taskdb':
-            from .mongodb.taskdb import TaskDB
-            return TaskDB(url, **parames)
-        elif dbtype == 'projectdb':
-            from .mongodb.projectdb import ProjectDB
-            return ProjectDB(url, **parames)
-        elif dbtype == 'resultdb':
-            from .mongodb.resultdb import ResultDB
-            return ResultDB(url, **parames)
-        else:
-            raise LookupError
     elif engine == 'sqlalchemy':
         if not other_scheme:
             raise Exception('wrong scheme format: %s' % parsed.scheme)
         url = url.replace(parsed.scheme, other_scheme)
+        return _connect_sqlalchemy(db_type,url)
 
-        if dbtype == 'taskdb':
-            from .sqlalchemy.taskdb import TaskDB
-            return TaskDB(url)
-        elif dbtype == 'projectdb':
-            from .sqlalchemy.projectdb import ProjectDB
-            return ProjectDB(url)
-        elif dbtype == 'resultdb':
-            from .sqlalchemy.resultdb import ResultDB
-            return ResultDB(url)
-        else:
-            raise LookupError
+
     elif engine == 'redis':
         if dbtype == 'taskdb':
             from .redis.taskdb import TaskDB
@@ -133,24 +92,8 @@ def _connect_database(url):  # NOQA
             raise LookupError('not supported dbtype: %s', dbtype)
     elif engine == 'elasticsearch' or engine == 'es':
         # in python 2.6 url like "http://host/?query", query will not been splitted
-        if parsed.path.startswith('/?'):
-            index = parse_qs(parsed.path[2:])
-        else:
-            index = parse_qs(parsed.query)
-        if 'index' in index and index['index']:
-            index = index['index'][0]
-        else:
-            index = 'pyspider'
+        return _connect_elasticsearch(parsed, dbtype)
 
-        if dbtype == 'projectdb':
-            from .elasticsearch.projectdb import ProjectDB
-            return ProjectDB([parsed.netloc], index=index)
-        elif dbtype == 'resultdb':
-            from .elasticsearch.resultdb import ResultDB
-            return ResultDB([parsed.netloc], index=index)
-        elif dbtype == 'taskdb':
-            from .elasticsearch.taskdb import TaskDB
-            return TaskDB([parsed.netloc], index=index)
     else:
         raise Exception('unknown engine: %s' % engine)
 
@@ -178,3 +121,75 @@ def _connect_mysql(parsed,dbtype):
         return ResultDB(**parames)
     else:
         raise LookupError
+
+def _connect_sqlite(parsed,dbtype):
+    if parsed.path.startswith('//'):
+        path = '/' + parsed.path.strip('/')
+    elif parsed.path.startswith('/'):
+        path = './' + parsed.path.strip('/')
+    elif not parsed.path:
+        path = ':memory:'
+    else:
+        raise Exception('error path: %s' % parsed.path)
+
+    if dbtype == 'taskdb':
+        from .sqlite.taskdb import TaskDB
+        return TaskDB(path)
+    elif dbtype == 'projectdb':
+        from .sqlite.projectdb import ProjectDB
+        return ProjectDB(path)
+    elif dbtype == 'resultdb':
+        from .sqlite.resultdb import ResultDB
+        return ResultDB(path)
+    else:
+        raise LookupError
+
+def _connect_mongodb(parsed,dbtype,url):
+    parames = {}
+    if parsed.path.strip('/'):
+        parames['database'] = parsed.path.strip('/')
+
+    if dbtype == 'taskdb':
+        from .mongodb.taskdb import TaskDB
+        return TaskDB(url, **parames)
+    elif dbtype == 'projectdb':
+        from .mongodb.projectdb import ProjectDB
+        return ProjectDB(url, **parames)
+    elif dbtype == 'resultdb':
+        from .mongodb.resultdb import ResultDB
+        return ResultDB(url, **parames)
+    else:
+        raise LookupError
+
+def _connect_sqlalchemy(db_type,url):
+    if dbtype == 'taskdb':
+        from .sqlalchemy.taskdb import TaskDB
+        return TaskDB(url)
+    elif dbtype == 'projectdb':
+        from .sqlalchemy.projectdb import ProjectDB
+        return ProjectDB(url)
+    elif dbtype == 'resultdb':
+        from .sqlalchemy.resultdb import ResultDB
+        return ResultDB(url)
+    else:
+        raise LookupError
+
+def _connect_elasticsearch(parsed, dbtype):
+    if parsed.path.startswith('/?'):
+        index = parse_qs(parsed.path[2:])
+    else:
+        index = parse_qs(parsed.query)
+    if 'index' in index and index['index']:
+        index = index['index'][0]
+    else:
+        index = 'pyspider'
+
+    if dbtype == 'projectdb':
+        from .elasticsearch.projectdb import ProjectDB
+        return ProjectDB([parsed.netloc], index=index)
+    elif dbtype == 'resultdb':
+        from .elasticsearch.resultdb import ResultDB
+        return ResultDB([parsed.netloc], index=index)
+    elif dbtype == 'taskdb':
+        from .elasticsearch.taskdb import TaskDB
+        return TaskDB([parsed.netloc], index=index)
