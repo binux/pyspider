@@ -107,11 +107,12 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
 
     format = None
     if not full_format:
-        ret_, ret_format = fix_full_format(days, seconds, relative, shorter, local_date, local_yesterday)
+        ret_, fff_format = fix_full_format(days, seconds, relative, shorter, local_date, local_yesterday)
+        format = fff_format
         if ret_:
-            return ret_format
+            return format
         else:
-            format = ret_format
+            format = format
 
     if format is None:
         format = "%(month_name)s %(day)s, %(year)s" if shorter else \
@@ -127,6 +128,7 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
         "month": local_date.month,
         "time": str_time
     }
+
 
 def fix_full_format(days, seconds, relative, shorter, local_date, local_yesterday):
     if relative and days == 0:
