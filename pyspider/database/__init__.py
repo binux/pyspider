@@ -66,14 +66,10 @@ def _connect_database(url):  # NOQA
     elif engine == 'sqlite':
         return _connect_sqlite(parsed,dbtype)
     elif engine == 'mongodb':
-        url = url.replace(parsed.scheme, 'mongodb')
         return _connect_mongodb(parsed,dbtype,url)
 
     elif engine == 'sqlalchemy':
-        if not other_scheme:
-            raise Exception('wrong scheme format: %s' % parsed.scheme)
-        url = url.replace(parsed.scheme, other_scheme)
-        return _connect_sqlalchemy(dbtype,url)
+        return _connect_sqlalchemy(parsed, dbtype, url, other_scheme)
 
 
     elif engine == 'redis':
@@ -91,11 +87,11 @@ def _connect_database(url):  # NOQA
         else:
             raise LookupError('not supported dbtype: %s', dbtype)
     elif engine == 'elasticsearch' or engine == 'es':
-        # in python 2.6 url like "http://host/?query", query will not been splitted
         return _connect_elasticsearch(parsed, dbtype)
 
     else:
         raise Exception('unknown engine: %s' % engine)
+
 
 def _connect_mysql(parsed,dbtype):
     parames = {}
@@ -122,6 +118,7 @@ def _connect_mysql(parsed,dbtype):
     else:
         raise LookupError
 
+
 def _connect_sqlite(parsed,dbtype):
     if parsed.path.startswith('//'):
         path = '/' + parsed.path.strip('/')
@@ -144,7 +141,9 @@ def _connect_sqlite(parsed,dbtype):
     else:
         raise LookupError
 
+
 def _connect_mongodb(parsed,dbtype,url):
+    url = url.replace(parsed.scheme, 'mongodb')
     parames = {}
     if parsed.path.strip('/'):
         parames['database'] = parsed.path.strip('/')
@@ -161,7 +160,11 @@ def _connect_mongodb(parsed,dbtype,url):
     else:
         raise LookupError
 
-def _connect_sqlalchemy(dbtype,url):
+
+def _connect_sqlalchemy(parsed, dbtype,url, other_scheme):
+    if not other_scheme:
+        raise Exception('wrong scheme format: %s' % parsed.scheme)
+    url = url.replace(parsed.scheme, other_scheme)
     if dbtype == 'taskdb':
         from .sqlalchemy.taskdb import TaskDB
         return TaskDB(url)
@@ -174,7 +177,9 @@ def _connect_sqlalchemy(dbtype,url):
     else:
         raise LookupError
 
+
 def _connect_elasticsearch(parsed, dbtype):
+    # in python 2.6 url like "http://host/?query", query will not been splitted
     if parsed.path.startswith('/?'):
         index = parse_qs(parsed.path[2:])
     else:
