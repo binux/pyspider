@@ -87,14 +87,13 @@ class Fetcher(object):
         self._quit = False
         self.proxy = proxy
         self.async = async
-        self.ioloop = tornado.ioloop.IOLoop()
+        self.ioloop = tornado.ioloop.IOLoop.current()
 
         self.robots_txt_cache = {}
 
         # binding io_loop to http_client here
         if self.async:
-            self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize,
-                                                     io_loop=self.ioloop)
+            self.http_client = MyCurlAsyncHTTPClient(max_clients=self.poolsize)
         else:
             self.http_client = tornado.httpclient.HTTPClient(MyCurlAsyncHTTPClient, max_clients=self.poolsize)
 
@@ -659,8 +658,8 @@ class Fetcher(object):
                     logger.exception(e)
                     break
 
-        tornado.ioloop.PeriodicCallback(queue_loop, 100, io_loop=self.ioloop).start()
-        tornado.ioloop.PeriodicCallback(self.clear_robot_txt_cache, 10000, io_loop=self.ioloop).start()
+        tornado.ioloop.PeriodicCallback(queue_loop, 100).start()
+        tornado.ioloop.PeriodicCallback(self.clear_robot_txt_cache, 10000).start()
         self._running = True
 
         try:
@@ -711,8 +710,8 @@ class Fetcher(object):
         import tornado.httpserver
 
         container = tornado.wsgi.WSGIContainer(application)
-        self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
-        self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
+        self.xmlrpc_ioloop = tornado.ioloop.IOLoop.current()
+        self.xmlrpc_server = tornado.httpserver.HTTPServer(container)
         self.xmlrpc_server.listen(port=port, address=bind)
         logger.info('fetcher.xmlrpc listening on %s:%s', bind, port)
         self.xmlrpc_ioloop.start()
