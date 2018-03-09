@@ -776,8 +776,8 @@ class Scheduler(object):
         import tornado.httpserver
 
         container = tornado.wsgi.WSGIContainer(application)
-        self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
-        self.xmlrpc_server = tornado.httpserver.HTTPServer(container, io_loop=self.xmlrpc_ioloop)
+        self.xmlrpc_ioloop = tornado.ioloop.IOLoop.current()
+        self.xmlrpc_server = tornado.httpserver.HTTPServer(container)
         self.xmlrpc_server.listen(port=port, address=bind)
         logger.info('scheduler.xmlrpc listening on %s:%s', bind, port)
         self.xmlrpc_ioloop.start()
@@ -1141,8 +1141,7 @@ class OneScheduler(Scheduler):
 
     def run(self):
         import tornado.ioloop
-        tornado.ioloop.PeriodicCallback(self.run_once, 100,
-                                        io_loop=self.ioloop).start()
+        tornado.ioloop.PeriodicCallback(self.run_once, 100).start()
         self.ioloop.start()
 
     def quit(self):
