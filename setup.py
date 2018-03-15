@@ -63,12 +63,12 @@ if sys.version_info < (2, 7):  # 2.6
         'amqp>=1.3.0,<2.0',
         'pika>=0.9.14',
         'beanstalkc',
-        'SQLAlchemy>=0.9.7,<=1.1.13'
+        'SQLAlchemy>=0.9.7,<=1.1.13',
     ])
 elif sys.version_info >= (3, 0):  # 3.*
     extras_require_all.extend([
         'kombu',
-        'amqp>=2.1.1'
+        'amqp>=2.1.1',
         'SQLAlchemy>=0.9.7',
     ])
 else:  # 2.7
@@ -127,7 +127,7 @@ setup(
         'test': [
             'unittest2>=0.5.1',
             'coverage',
-            'httpbin',
+            'httpbin<=0.5.0',
             'pyproxy>=0.1.6',
             'easywebdav',
         ]
