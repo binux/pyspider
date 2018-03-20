@@ -7,6 +7,7 @@
 
 import json
 import time
+
 from pymongo import MongoClient
 
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
@@ -23,10 +24,12 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.projects = set()
 
         self._list_project()
-        for project in self.projects:
-            collection_name = self._collection_name(project)
-            self.database[collection_name].ensure_index('status')
-            self.database[collection_name].ensure_index('taskid')
+        # we suggest manually build index in advance, instead of indexing
+        #  in the startup process,
+        # for project in self.projects:
+        #     collection_name = self._collection_name(project)
+        #     self.database[collection_name].ensure_index('status')
+        #     self.database[collection_name].ensure_index('taskid')
 
     def _create_project(self, project):
         collection_name = self._collection_name(project)
@@ -84,14 +87,32 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         if project not in self.projects:
             return {}
         collection_name = self._collection_name(project)
-        ret = self.database[collection_name].aggregate([
-            {'$group': {
-                '_id': '$status',
-                'total': {
-                    '$sum': 1
-                }
-            }
-            }])
+
+        # when there are too many data in task collection , aggregate operation will take a very long time,
+        #  and this will cause scheduler module startup to be particularly slow
+
+        # ret = self.database[collection_name].aggregate([
+        #     {'$group': {
+        #         '_id'  : '$status',
+        #         'total': {
+        #             '$sum': 1
+        #         }
+        #     }
+        #     }])
+
+        # Instead of aggregate, use find-count on status(with index) field.
+        def _count_for_status(collection, status):
+            total = collection.find({'status': status}).count()
+            return {'total': total, "_id": status} if total else None
+
+        c = self.database[collection_name]
+        ret = filter(
+            lambda x: x,
+            map(
+                lambda s: _count_for_status(c, s), [self.ACTIVE, self.SUCCESS, self.FAILED]
+            )
+        )
+
         result = {}
         if isinstance(ret, dict):
             ret = ret.get('result', [])

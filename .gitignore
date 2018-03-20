@@ -1,6 +1,7 @@
 *.py[cod]
 data/*
-
+.venv
+.idea
 # C extensions
 *.so
 
