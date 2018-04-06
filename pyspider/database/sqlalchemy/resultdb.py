@@ -39,8 +39,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             try:
                 engine = create_engine(self.url, convert_unicode=True, pool_recycle=3600)
                 conn = engine.connect()
-+               conn.execute("commit")
-+               conn.execute("CREATE DATABASE %s" % database)
+                conn.execute("commit")
+                conn.execute("CREATE DATABASE %s" % database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
             self.url.database = database
