@@ -323,7 +323,7 @@ Options:
 
 JS/CSS libs CDN service, URL must compatible with [cdnjs](https://cdnjs.com/)
 
-#### --fercher-rpc
+#### --fetcher-rpc
 
 XML-RPC path URI for fetcher XMLRPC server. If not set, use a Fetcher instance.
 
