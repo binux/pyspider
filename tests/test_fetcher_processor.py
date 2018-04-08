@@ -486,6 +486,6 @@ class TestFetcherProcessor(unittest.TestCase):
 
     def test_zzz_connect_timeout(self):
         start_time = time.time()
-        status, newtasks, result = self.crawl('http://1.1.1.1/', connect_timeout=5, callback=self.catch_http_error)
+        status, newtasks, result = self.crawl('http://10.123.321.25/', connect_timeout=5, callback=self.catch_http_error)
         end_time = time.time()
         self.assertTrue(5 <= end_time - start_time <= 6)
