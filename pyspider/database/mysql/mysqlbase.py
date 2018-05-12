@@ -17,6 +17,8 @@ class MySQLMixin(object):
         try:
             if self.conn.unread_result:
                 self.conn.get_rows()
+                if hasattr(self.conn, 'free_result'):
+                    self.conn.free_result()
             return self.conn.cursor()
         except (mysql.connector.OperationalError, mysql.connector.InterfaceError):
             self.conn.ping(reconnect=True)
