@@ -45,14 +45,14 @@ class TestTaskQueue(unittest.TestCase):
 
     def test_40_time_queue_1(self):
         self.task_queue.check_update()
-        self.assertEqual(self.task_queue.get(), 'a1')
+        self.assertEqual(self.task_queue.get(), 'a3')
         self.assertEqual(self.task_queue.size(), 4)
 
     def test_50_time_queue_2(self):
         time.sleep(0.3)
         self.task_queue.check_update()
         self.assertEqual(self.task_queue.get(), 'a4')
-        self.assertEqual(self.task_queue.get(), 'a3')
+        self.assertEqual(self.task_queue.get(), 'a1')
         self.assertEqual(self.task_queue.size(), 4)
 
     def test_60_processing_queue(self):

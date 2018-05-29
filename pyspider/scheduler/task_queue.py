@@ -52,6 +52,22 @@ class InQueueTask(DictMixin):
         return self.__cmp__(other) < 0
 
 
+class InTimeQueueTask(InQueueTask):
+    @classmethod
+    def trans_from(cls, task):
+        """    
+        :param task: 
+        :return: 
+        """
+        return InTimeQueueTask(task.taskid, task.priority, task.exetime)
+
+    def trans_to(self):
+        return InQueueTask(self.taskid, self.priority, self.exetime)
+
+    def __cmp__(self, other):
+        return cmp(self.exetime, other.exetime)
+
+
 class PriorityTaskQueue(Queue.Queue):
     '''
     TaskQueue
@@ -71,9 +87,9 @@ class PriorityTaskQueue(Queue.Queue):
             task = self.queue_dict[item.taskid]
             changed = False
             if item < task:
-                task.priority = max(item.priority, task.priority)
-                task.exetime = min(item.exetime, task.exetime)
                 changed = True
+            task.priority = max(item.priority, task.priority)
+            task.exetime = min(item.exetime, task.exetime)
             if changed:
                 self._resort()
         else:
@@ -156,9 +172,10 @@ class TaskQueue(object):
         now = time.time()
         self.mutex.acquire()
         while self.time_queue.qsize() and self.time_queue.top and self.time_queue.top.exetime < now:
-            task = self.time_queue.get_nowait()
-            task.exetime = 0
-            self.priority_queue.put(task)
+            task = self.time_queue.get_nowait()  # type: InTimeQueueTask
+            # keep exetime
+            # task.exetime = 0
+            self.priority_queue.put(task.trans_to())
         self.mutex.release()
 
     def _check_processing(self):
@@ -168,7 +185,8 @@ class TaskQueue(object):
             task = self.processing.get_nowait()
             if task.taskid is None:
                 continue
-            task.exetime = 0
+            # keep exetime
+            # task.exetime = 0
             self.priority_queue.put(task)
             logger.info("processing: retry %s", task.taskid)
         self.mutex.release()
@@ -205,7 +223,7 @@ class TaskQueue(object):
             pass
         else:
             if exetime and exetime > now:
-                self.time_queue.put(task)
+                self.time_queue.put(InTimeQueueTask.trans_from(task))
             else:
                 self.priority_queue.put(task)
 
