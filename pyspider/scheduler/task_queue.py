@@ -74,8 +74,8 @@ class PriorityTaskQueue(Queue.Queue):
             task = self.queue_dict[item.taskid]
             changed = False
             if item < task:
-                task.priority = item.priority
-                task.exetime = item.exetime
+                task.priority = max(item.priority, task.priority)
+                task.exetime = min(item.exetime, task.exetime)
                 changed = True
             if changed:
                 self._resort()
@@ -123,8 +123,6 @@ class TaskQueue(object):
     '''
     processing_timeout = 10 * 60
 
-    exetime_priority = 2 ** 32 - 1
-
     def __init__(self, rate=0, burst=0):
         self.mutex = threading.RLock()
         self.priority_queue = PriorityTaskQueue()
@@ -162,9 +160,7 @@ class TaskQueue(object):
         self.mutex.acquire()
         while self.time_queue.qsize() and self.time_queue.top and self.time_queue.top.exetime < now:
             task = self.time_queue.get_nowait()
-            # when move task from time_queue to priority queue
-            #  suppose task with exetime has the maximum priority
-            task.priority = self.exetime_priority
+            task.exetime = 0
             self.priority_queue.put(task)
         self.mutex.release()
 
@@ -195,7 +191,12 @@ class TaskQueue(object):
         
         """
         now = time.time()
-        task = InQueueTask(taskid, priority, exetime)
+
+        # give exetime to time.time() by default. So if two or more tasks
+        # have the same priority, we can still keep tasks in time order
+        # as much as possible.
+        task = InQueueTask(taskid, priority, exetime if exetime > 0 else now)
+
         self.mutex.acquire()
         if taskid in self.priority_queue:
             self.priority_queue.put(task)
@@ -206,19 +207,9 @@ class TaskQueue(object):
             # problems may happen
             pass
         else:
-            if exetime:
-                # If exetime is set, this task has the maximum priority
-                task.priority = self.exetime_priority
-
             if exetime and exetime > now:
                 self.time_queue.put(task)
             else:
-                # give exetime to time.time() by default. So if two or more tasks
-                # have the same priority, we can still keep tasks in time order
-                # as much as possible.
-                if not task.exetime:
-                    task.exetime = time.time()
-
                 self.priority_queue.put(task)
 
         self.mutex.release()
