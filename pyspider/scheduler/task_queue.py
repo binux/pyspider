@@ -5,10 +5,11 @@
 #         http://binux.me
 # Created on 2014-02-07 13:12:10
 
-import time
 import heapq
 import logging
 import threading
+import time
+
 try:
     from UserDict import DictMixin
 except ImportError:
@@ -38,17 +39,23 @@ class InQueueTask(DictMixin):
         self.exetime = exetime
 
     def __cmp__(self, other):
-        if self.exetime == 0 and other.exetime == 0:
-            return -cmp(self.priority, other.priority)
-        else:
+        # compare priority first
+        cmp_priority = -cmp(self.priority, other.priority)
+
+        # when two element have the same priority, then compare exetime.
+        # keep tasks in time order.
+        if cmp_priority == 0:
             return cmp(self.exetime, other.exetime)
+        return cmp_priority
 
     def __lt__(self, other):
         return self.__cmp__(other) < 0
 
+    def __repr__(self):
+        return repr({k: self[k] for k in self.__slots__})
+
 
 class PriorityTaskQueue(Queue.Queue):
-
     '''
     TaskQueue
 
@@ -66,11 +73,9 @@ class PriorityTaskQueue(Queue.Queue):
         if item.taskid in self.queue_dict:
             task = self.queue_dict[item.taskid]
             changed = False
-            if item.priority > task.priority:
-                task.priority = item.priority
-                changed = True
-            if item.exetime < task.exetime:
-                task.exetime = item.exetime
+            if item < task:
+                task.priority = max(item.priority, task.priority)
+                task.exetime = min(item.exetime, task.exetime)
                 changed = True
             if changed:
                 self._resort()
@@ -113,7 +118,6 @@ class PriorityTaskQueue(Queue.Queue):
 
 
 class TaskQueue(object):
-
     '''
     task queue for scheduler, have a priority queue and a time queue for delayed tasks
     '''
@@ -173,9 +177,26 @@ class TaskQueue(object):
         self.mutex.release()
 
     def put(self, taskid, priority=0, exetime=0):
-        '''Put a task into task queue'''
+        """
+        Put a task into task queue
+        
+        when use heap sort, if we put tasks(with the same priority and exetime=0) into queue,
+        the queue is not a strict FIFO queue, but more like a FILO stack.
+
+        It is very possible that when there are continuous big flow, the speed of select is 
+        slower than request, resulting in priority-queue accumulation in short time.
+        
+        In this scenario, the tasks more earlier entering the priority-queue will not get 
+        processed until the request flow becomes small. 
+        
+        """
         now = time.time()
-        task = InQueueTask(taskid, priority, exetime)
+
+        # give exetime to time.time() by default. So if two or more tasks
+        # have the same priority, we can still keep tasks in time order
+        # as much as possible.
+        task = InQueueTask(taskid, priority, exetime if exetime > 0 else now)
+
         self.mutex.acquire()
         if taskid in self.priority_queue:
             self.priority_queue.put(task)
@@ -190,6 +211,7 @@ class TaskQueue(object):
                 self.time_queue.put(task)
             else:
                 self.priority_queue.put(task)
+
         self.mutex.release()
 
     def get(self):
