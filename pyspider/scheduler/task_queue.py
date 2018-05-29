@@ -51,9 +51,6 @@ class InQueueTask(DictMixin):
     def __lt__(self, other):
         return self.__cmp__(other) < 0
 
-    def __repr__(self):
-        return repr({k: self[k] for k in self.__slots__})
-
 
 class PriorityTaskQueue(Queue.Queue):
     '''

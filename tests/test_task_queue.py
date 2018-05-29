@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import unittest
 
 import six
@@ -31,8 +30,7 @@ class TestTaskQueue(unittest.TestCase):
             q = queues[it.priority]  # type:Queue.Queue
             q.put(it)
             tasks[it.taskid] = it
-
-            six.print_('put, ', it)
+            six.print_('put, taskid=', it.taskid, 'priority=', it.priority, 'exetime=', it.exetime)
 
         for i in range(0, 100):
             task_id = tq.get()
@@ -41,8 +39,9 @@ class TestTaskQueue(unittest.TestCase):
             expect_task = q.get()
             self.assertEqual(task_id, expect_task.taskid)
             self.assertEqual(task.priority, int(9 - i // 10))
-            six.print_('get, ', task)
+            six.print_('get, taskid=', task.taskid, 'priority=', task.priority, 'exetime=', task.exetime)
 
+        self.assertEqual(tq.size(), 100)
         self.assertEqual(tq.priority_queue.qsize(), 0)
         self.assertEqual(tq.processing.qsize(), 100)
         for q in six.itervalues(queues):  # type:Queue.Queue
