@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-03-05 00:11:49
 
+# 问题：node中我暂时没有找到phantomjs中system模块这样的东西，故node的运行端口暂时写死为22222
 
 import os
 import sys
@@ -82,6 +83,7 @@ def connect_rpc(ctx, param, value):
               help='[deprecated] beanstalk config for beanstalk queue. '
               'please use --message-queue instead.')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
+# @click.option('--chromeheadless-proxy', envvar='CHROMEHEADLESS_PROXY', help="chromeheadless proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.option('--add-sys-path/--not-add-sys-path', default=True, is_flag=True,
               help='add current working directory to python lib search path')
@@ -244,6 +246,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
                       poolsize=poolsize, proxy=proxy, async=async)
     fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
+    # fetcher.chromeheadless_proxy = g.chromeheadless_proxy
     fetcher.splash_endpoint = splash_endpoint
     if user_agent:
         fetcher.user_agent = user_agent
@@ -399,6 +402,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     import subprocess
     g = ctx.obj
     _quit = []
+    print("这是phantomjs：" +phantomjs_path+"  : "+str(port)+" : "+ str(auto_restart))
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     cmd = [phantomjs_path,
@@ -408,6 +412,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
            '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
     try:
+        print('这是 phantmosjs的CMD:' + str(cmd))
         _phantomjs = subprocess.Popen(cmd)
     except OSError:
         logging.warning('phantomjs not found, continue running without it.')
@@ -433,6 +438,50 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
             break
         _phantomjs = subprocess.Popen(cmd)
 
+@cli.command()
+@click.option('--nodejs-path', default='node', help='nodejs path')
+@click.option('--auto-restart', default=False, help='auto restart chromeheadless if crashed')
+@click.argument('args', nargs=-1)
+@click.pass_context
+def chromeheadless(ctx, nodejs_path, auto_restart, args):
+    """
+    Run chromeheadless fetcher if nodejs is installed.
+    """
+    args = args or ctx.default_map and ctx.default_map.get('args', [])
+
+    import subprocess
+    g = ctx.obj
+    _quit = []
+    chromeheadless_fetcher = os.path.join(
+        os.path.dirname(pyspider.__file__), 'fetcher/chromeheadless.js')
+    cmd = [nodejs_path,] + list(args or []) + [chromeheadless_fetcher, ]
+
+    try:
+        print('这是 chromeheadless CMD:' + str(cmd))
+        _chromeheadless = subprocess.Popen(cmd)
+    except OSError:
+        logging.warning('nodejs not found, continue running without it.')
+        return None
+
+    def quit(*args, **kwargs):
+        _quit.append(1)
+        _chromeheadless.kill()
+        _chromeheadless.wait()
+        logging.info('chromeheadless exited.')
+
+    # if not g.get('chromeheadless_proxy'):
+    #     g['chromeheadless_proxy'] = '127.0.0.1:22222'
+
+    chromeheadless = utils.ObjectDict(port='22222', quit=quit)
+    g.instances.append(chromeheadless)
+    if g.get('testing_mode'):
+        return chromeheadless
+
+    while True:
+        _chromeheadless.wait()
+        if _quit or not auto_restart:
+            break
+        _chromeheadless = subprocess.Popen(cmd)
 
 @cli.command()
 @click.option('--fetcher-num', default=1, help='instance num of fetcher')
@@ -468,6 +517,15 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
             time.sleep(2)
             if threads[-1].is_alive() and not g.get('phantomjs_proxy'):
                 g['phantomjs_proxy'] = '127.0.0.1:%s' % phantomjs_config.get('port', 25555)
+
+        # chromeheadless
+        # if not g.get('chromeheadless_proxy'):
+        chromeheadless_config = g.config.get('chromeheadless', {})
+        chromeheadless_config.setdefault('auto_restart', True)
+        threads.append(run_in(ctx.invoke, chromeheadless, **chromeheadless_config))
+        time.sleep(2)
+            # if threads[-2].is_alive() and not g.get('chromeheadless_proxy'):
+            #     g['chromeheadless_proxy'] = '127.0.0.1:%s' % chromeheadless_config.get('port', 22222)
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
