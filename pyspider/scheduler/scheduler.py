@@ -110,10 +110,11 @@ class Project(object):
         self.updatetime = project_info['updatetime']
 
         md5sum = utils.md5string(project_info['script'])
-        if (self.md5sum != md5sum or self.waiting_get_info) and self.active:
-            self._send_on_get_info = True
+        if self.md5sum != md5sum:
             self.waiting_get_info = True
-        self.md5sum = md5sum
+            self.md5sum = md5sum
+        if self.waiting_get_info and self.active:
+            self._send_on_get_info = True
 
         if self.active:
             self.task_queue.rate = project_info['rate']
