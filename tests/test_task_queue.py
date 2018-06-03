@@ -32,7 +32,6 @@ class TestTaskQueue(unittest.TestCase):
             q.put(it)
             tasks[it.taskid] = it
             six.print_('put, taskid=', it.taskid, 'priority=', it.priority, 'exetime=', it.exetime)
-
         for i in range(0, 100):
             task_id = tq.get()
             task = tasks[task_id]
@@ -78,7 +77,6 @@ class TestTimeQueue(unittest.TestCase):
             t2 = tq.time_queue.get()
             self.assertEqual(t1.taskid, t2.taskid)
             six.print_('get, taskid=', t2.taskid, 'priority=', t2.priority, 'exetime=', t2.exetime)
-
         self.assertEqual(tq.priority_queue.qsize(), 0)
         self.assertEqual(tq.processing.qsize(), 0)
         self.assertEqual(tq.time_queue.qsize(), 0)

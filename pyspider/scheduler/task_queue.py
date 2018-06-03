@@ -25,8 +25,21 @@ except NameError:
     cmp = lambda x, y: (x > y) - (x < y)
 
 
+class AtomInt(object):
+    __value__ = 0
+    __mutex__ = threading.RLock()
+
+    @classmethod
+    def get_value(cls):
+        cls.__mutex__.acquire()
+        cls.__value__ = cls.__value__ + 1
+        value = cls.__value__
+        cls.__mutex__.release()
+        return value
+
+
 class InQueueTask(DictMixin):
-    __slots__ = ('taskid', 'priority', 'exetime')
+    __slots__ = ('taskid', 'priority', 'exetime', 'sequence')
     __getitem__ = lambda *x: getattr(*x)
     __setitem__ = lambda *x: setattr(*x)
     __iter__ = lambda self: iter(self.__slots__)
@@ -37,35 +50,20 @@ class InQueueTask(DictMixin):
         self.taskid = taskid
         self.priority = priority
         self.exetime = exetime
+        self.sequence = AtomInt.get_value()
 
     def __cmp__(self, other):
-        # compare priority first
-        cmp_priority = -cmp(self.priority, other.priority)
+        if self.exetime == 0 and other.exetime == 0:
+            diff = -cmp(self.priority, other.priority)
+        else:
+            diff = cmp(self.exetime, other.exetime)
 
-        # when two element have the same priority, then compare exetime.
-        # keep tasks in time order.
-        if cmp_priority == 0:
-            return cmp(self.exetime, other.exetime)
-        return cmp_priority
+        # compare in-queue sequence number finally if two element has the same
+        # priority or exetime
+        return diff if diff != 0 else cmp(self.sequence, other.sequence)
 
     def __lt__(self, other):
         return self.__cmp__(other) < 0
-
-
-class InTimeQueueTask(InQueueTask):
-    @classmethod
-    def trans_from(cls, task):
-        """    
-        :param task: 
-        :return: 
-        """
-        return InTimeQueueTask(task.taskid, task.priority, task.exetime)
-
-    def trans_to(self):
-        return InQueueTask(self.taskid, self.priority, self.exetime)
-
-    def __cmp__(self, other):
-        return cmp(self.exetime, other.exetime)
 
 
 class PriorityTaskQueue(Queue.Queue):
@@ -172,10 +170,9 @@ class TaskQueue(object):
         now = time.time()
         self.mutex.acquire()
         while self.time_queue.qsize() and self.time_queue.top and self.time_queue.top.exetime < now:
-            task = self.time_queue.get_nowait()  # type: InTimeQueueTask
-            # keep exetime
-            # task.exetime = 0
-            self.priority_queue.put(task.trans_to())
+            task = self.time_queue.get_nowait()  # type: InQueueTask
+            task.exetime = 0
+            self.priority_queue.put(task)
         self.mutex.release()
 
     def _check_processing(self):
@@ -185,8 +182,7 @@ class TaskQueue(object):
             task = self.processing.get_nowait()
             if task.taskid is None:
                 continue
-            # keep exetime
-            # task.exetime = 0
+            task.exetime = 0
             self.priority_queue.put(task)
             logger.info("processing: retry %s", task.taskid)
         self.mutex.release()
@@ -197,20 +193,18 @@ class TaskQueue(object):
         
         when use heap sort, if we put tasks(with the same priority and exetime=0) into queue,
         the queue is not a strict FIFO queue, but more like a FILO stack.
-
         It is very possible that when there are continuous big flow, the speed of select is 
         slower than request, resulting in priority-queue accumulation in short time.
-        
         In this scenario, the tasks more earlier entering the priority-queue will not get 
         processed until the request flow becomes small. 
         
+        Thus, we store a global atom self increasing value into task.sequence which represent 
+        the task enqueue sequence. When the comparison of exetime and priority have no 
+        difference, we compare task.sequence to ensure that the entire queue is ordered.
         """
         now = time.time()
 
-        # give exetime to time.time() by default. So if two or more tasks
-        # have the same priority, we can still keep tasks in time order
-        # as much as possible.
-        task = InQueueTask(taskid, priority, exetime if exetime > 0 else now)
+        task = InQueueTask(taskid, priority, exetime)
 
         self.mutex.acquire()
         if taskid in self.priority_queue:
@@ -223,8 +217,9 @@ class TaskQueue(object):
             pass
         else:
             if exetime and exetime > now:
-                self.time_queue.put(InTimeQueueTask.trans_from(task))
+                self.time_queue.put(task)
             else:
+                task.exetime = 0
                 self.priority_queue.put(task)
 
         self.mutex.release()
