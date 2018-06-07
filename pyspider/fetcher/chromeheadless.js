@@ -28,7 +28,10 @@ server = http.createServer(function(request,response){
 
 	request.on('end',function(data){
 		(async () => {
+			let result = await {}
 			try{
+				// 用于存储结果
+
 				await console.log("fetch的内容："+ JSON.stringify(fetch))
 				const start_time = await Date.now()
 				let end_time = await null,
@@ -50,9 +53,9 @@ server = http.createServer(function(request,response){
 						args: [fetch.proxy]
 					});
 				}else{
-					browser = await puppeteer.connect({browserWSEndpoint}) 
+					browser = await puppeteer.connect({browserWSEndpoint})
 				}
-				
+
 				const page = await browser.newPage();
 				// 设置浏览器视窗的大小
 
@@ -65,10 +68,10 @@ server = http.createServer(function(request,response){
 						height:fetch.js_viewport_width || 768*3
 					})
 				}
-				
+
 				// 进入被抓取的页面
 				const response = await page.goto(fetch.url)
-				await page.waitFor(1000)
+				await page.waitFor(3000)
 
 				// 页面加载完毕时输出
 				await page.once('load',() => console.log(" page load finished !!! "))
@@ -97,79 +100,70 @@ server = http.createServer(function(request,response){
 				await console.log('我来了！！！！！')
 				// 滚动
 				let scrollStep = await fetch.scrollStep; //每次滚动的步长
-				let scrollEnable = await fetch.scrollEnable
+				let scrollEnable = await fetch.scrollEnable // 是否需要启动滚动
+				let scrollPosition = await fetch.scrollPosition // 滚动到哪个位置
 				while (scrollEnable) {
-					scrollEnable = await page.evaluate(() => {
+					scrollEnable = await page.evaluate((scrollStep,scrollPosition) => {
 						let scrollTop = document.scrollingElement.scrollTop;
-						document.scrollingElement.scrollTop = scrollTop + fetch.scrollStep;
-						if (fetch.scrollPosition) {
+						document.scrollingElement.scrollTop = scrollTop + scrollStep;
+						if (scrollPosition) {
 							return fetch.scrollPosition > scrollTop + 768 ? true : false
 						}else{
 							return document.body.clientHeight > scrollTop + 768 ? true : false
 						}
-					}, fetch.scrollStep);
+					}, scrollStep,scrollPosition);
 					await page.waitFor(fetch.scrollTime) // 每次滚动的间隔时间
 				}
-				
+
 				// 点击
 				if(fetch.click_list.length !== 0){
 					const click_list = await fetch.click_list
 					for (let key in click_list) {
 						let click_ele = await page.$(click_list[key])
 						await click_ele.click()
-						page.waitFor(300)
+						await page.waitFor(300)
 					}
 				}
-			}
-			catch(e){
-				console.log(e)
-				console.log("有错！！！！")
-			}
-		    
-
-			// 用于存储结果
-			let result = await {}
-
-			try{
+				
 				const content = await page.content()
 				result = await {
 						orig_url: fetch.url,
-				        status_code: response.status() || 599,
-				        error: null,
-				        content: content,
-				        headers: response.headers(),
-				        url: page.url(),
-				        cookies: page.cookies(fetch.url),
-				        time: (Date.now() - start_time) / 1000,
-				        js_script_result: null,
-				        save: fetch.save
+						status_code: response.status() || 599,
+						error: null,
+						content: content,
+						headers: response.headers(),
+						url: page.url(),
+						cookies: page.cookies(fetch.url),
+						time: (Date.now() - start_time) / 1000,
+						js_script_result: null,
+						save: fetch.save
 					}
-				page.close()
+				await page.close()
 			}catch(e){
 				result = await {
-			        orig_url: fetch.url,
-			        status_code: response.status() || 599,
-			        error: e.toString(),
-			        content: content,
-			        headers: response.headers(),
-			        url: page.url(),
-			        cookies: page.cookies(fetch.url),
-			        time: (Date.now() - start_time) / 1000,
-			        js_script_result: null,
-			        save: fetch.save
+					orig_url: fetch.url,
+					status_code: response.status() || 599,
+					error: e.toString(),
+					content: content,
+					headers: response.headers(),
+					url: page.url(),
+					cookies: page.cookies(fetch.url),
+					time: (Date.now() - start_time) / 1000,
+					js_script_result: null,
+					save: fetch.save
 				}
 				page.close()
 			}
-			
-			const body = await JSON.stringify(result, null, 2)
 
-			response.writeHead(200, {
-		        'Cache': 'no-cache',
-		        'Content-Type': 'application/json',
-		    })
-			response.write(body)
-			response.end()
-			
+			const body = await JSON.stringify(result, null, 2)
+	
+			await response.writeHead(200, {
+				'Cache': 'no-cache',
+				'Content-Type': 'application/json',
+			})
+			await response.write(body)
+			await response.end()
+
 		})()
 
 	})
@@ -191,7 +185,7 @@ if (server) {
 }
 
 
- 
+
 
 
 
