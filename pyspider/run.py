@@ -402,7 +402,6 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     import subprocess
     g = ctx.obj
     _quit = []
-    print("这是phantomjs：" +phantomjs_path+"  : "+str(port)+" : "+ str(auto_restart))
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     cmd = [phantomjs_path,
@@ -412,7 +411,6 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
            '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
     try:
-        print('这是 phantmosjs的CMD:' + str(cmd))
         _phantomjs = subprocess.Popen(cmd)
     except OSError:
         logging.warning('phantomjs not found, continue running without it.')
@@ -469,9 +467,6 @@ def chromeheadless(ctx, nodejs_path, auto_restart, args):
         _chromeheadless.wait()
         logging.info('chromeheadless exited.')
 
-    # if not g.get('chromeheadless_proxy'):
-    #     g['chromeheadless_proxy'] = '127.0.0.1:22222'
-
     chromeheadless = utils.ObjectDict(port='22222', quit=quit)
     g.instances.append(chromeheadless)
     if g.get('testing_mode'):
@@ -519,13 +514,10 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
                 g['phantomjs_proxy'] = '127.0.0.1:%s' % phantomjs_config.get('port', 25555)
 
         # chromeheadless
-        # if not g.get('chromeheadless_proxy'):
         chromeheadless_config = g.config.get('chromeheadless', {})
         chromeheadless_config.setdefault('auto_restart', True)
         threads.append(run_in(ctx.invoke, chromeheadless, **chromeheadless_config))
         time.sleep(2)
-            # if threads[-2].is_alive() and not g.get('chromeheadless_proxy'):
-            #     g['chromeheadless_proxy'] = '127.0.0.1:%s' % chromeheadless_config.get('port', 22222)
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})

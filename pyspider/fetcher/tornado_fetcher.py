@@ -536,26 +536,9 @@ class Fetcher(object):
         start_time = time.time()
         self.on_fetch('chromeheadless', task)
         handle_error = lambda x: self.handle_error('chromeheadless', url, task, start_time, x)
-        print("进入了chromeheadless！ ")
-
-        # check chromeheadless proxy is enabled
-        # if not self.chromeheadless_proxy:
-        #     result = {
-        #         "orig_url": url,
-        #         "content": "chromeheadless is not enabled.",
-        #         "headers": {},
-        #         "status_code": 501,
-        #         "url": url,
-        #         "time": time.time() - start_time,
-        #         "cookies": {},
-        #         "save": task.get('fetch', {}).get('save')
-        #     }
-        #     logger.warning("[501] %s:%s %s 0s", task.get('project'), task.get('taskid'), url)
-        #     raise gen.Return(result)
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
-        print("这是Chromeheadless的fetch ： " + str(fetch))
         task_fetch = task.get('fetch', {})
         for each in task_fetch:
             if each not in fetch:
