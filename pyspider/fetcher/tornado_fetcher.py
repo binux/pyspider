@@ -74,7 +74,7 @@ class Fetcher(object):
         'connect_timeout': 20,
     }
     phantomjs_proxy = None
-    # chromeheadless_proxy = None
+    chromeheadless_proxy = None
     splash_endpoint = None
     splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
     robot_txt_age = 60*60  # 1h
@@ -536,9 +536,26 @@ class Fetcher(object):
         start_time = time.time()
         self.on_fetch('chromeheadless', task)
         handle_error = lambda x: self.handle_error('chromeheadless', url, task, start_time, x)
+        print("进入了chromeheadless！ " + str(self.chromeheadless_proxy))
+
+        # check chromeheadless proxy is enabled
+        if not self.chromeheadless_proxy:
+            result = {
+                "orig_url": url,
+                "content": "chromeheadless is not enabled.",
+                "headers": {},
+                "status_code": 501,
+                "url": url,
+                "time": time.time() - start_time,
+                "cookies": {},
+                "save": task.get('fetch', {}).get('save')
+            }
+            logger.warning("[501] %s:%s %s 0s", task.get('project'), task.get('taskid'), url)
+            raise gen.Return(result)
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
+        print("这是Chromeheadless的fetch ： " + str(fetch))
         task_fetch = task.get('fetch', {})
         for each in task_fetch:
             if each not in fetch:
@@ -581,7 +598,7 @@ class Fetcher(object):
         fetch['headers'] = dict(fetch['headers'])
         try:
             request = tornado.httpclient.HTTPRequest(
-                url="127.0.0.1:22222", method="POST",
+                url=self.chromeheadless_proxy, method="POST",
                 body=json.dumps(fetch), **request_conf)
         except Exception as e:
             raise gen.Return(handle_error(e))

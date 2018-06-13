@@ -3,6 +3,12 @@
 const puppeteer = require('puppeteer')
 const http = require('http')
 const devices = require('puppeteer/DeviceDescriptors');
+const Koa = require('./node_modules/koa')
+
+// const app = new Koa()
+// app.listen(process.argv[2])
+//
+const port2 = process.argv[2]
 
 let port,server,fetch="",browser,browserWSEndpoint,
 	wait_before_end = 1000
@@ -19,7 +25,7 @@ server = http.createServer(function(request,response){
 		}
 		response.write(body)
 		response.end()
-		return 
+		return
 	}
 
 	request.on('data',function(chunk){
@@ -31,7 +37,6 @@ server = http.createServer(function(request,response){
 			let result = await {}
 			try{
 				// 用于存储结果
-
 				await console.log("fetch的内容："+ JSON.stringify(fetch))
 				const start_time = await Date.now()
 				let end_time = await null,
@@ -124,7 +129,7 @@ server = http.createServer(function(request,response){
 						await page.waitFor(300)
 					}
 				}
-				
+
 				const content = await page.content()
 				result = await {
 						orig_url: fetch.url,
@@ -156,7 +161,7 @@ server = http.createServer(function(request,response){
 			}
 
 			const body = await JSON.stringify(result, null, 2)
-	
+
 			await response.writeHead(200, {
 				'Cache': 'no-cache',
 				'Content-Type': 'application/json',
@@ -168,9 +173,7 @@ server = http.createServer(function(request,response){
 
 	})
 
-}).listen('22222');
-
-port = server.address().port
+}).listen(port2);
 
 if (server) {
 	puppeteer.launch({headless: false,}).then(async browser => {
@@ -179,10 +182,13 @@ if (server) {
     	// 从Chromium 断开连接
     	browser.disconnect();
 	});
-	console.log('chromeheadless fetcher runing on port ' + port)
+	console.log('chromeheadless fetcher runing on port ' + port2)
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }
+
+
+
 
 
 
