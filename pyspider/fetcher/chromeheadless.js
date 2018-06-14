@@ -7,10 +7,10 @@ const Koa = require('./node_modules/koa')
 
 // const app = new Koa()
 // app.listen(process.argv[2])
-//
-const port2 = process.argv[2]
 
-let port,server,fetch="",browser,browserWSEndpoint,
+const port = process.argv[2]
+
+let server,fetch="",browser,browserWSEndpoint,
 	wait_before_end = 1000
 
 server = http.createServer(function(request,response){
@@ -173,7 +173,7 @@ server = http.createServer(function(request,response){
 
 	})
 
-}).listen(port2);
+}).listen(port);
 
 if (server) {
 	puppeteer.launch({headless: false,}).then(async browser => {
@@ -182,7 +182,7 @@ if (server) {
     	// 从Chromium 断开连接
     	browser.disconnect();
 	});
-	console.log('chromeheadless fetcher runing on port ' + port2)
+	console.log('chromeheadless fetcher runing on port ' + port)
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }
