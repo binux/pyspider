@@ -1,38 +1,22 @@
 'use strict';
 
 const puppeteer = require('puppeteer')
-const http = require('http')
 const devices = require('puppeteer/DeviceDescriptors');
 const Koa = require('./node_modules/koa')
+var bodyParser = require('koa-bodyparser');
 
-// const app = new Koa()
-// app.listen(process.argv[2])
-//
-const port2 = process.argv[2]
+var app = new Koa()
+app.use(bodyParser());
+// 获取到系统指定跑在哪个端口
+const port = process.argv[2]
 
-let port,server,fetch="",browser,browserWSEndpoint,
-	wait_before_end = 1000
-
-server = http.createServer(function(request,response){
-	// fetch用于存储web界面传过来的内容
-	fetch=""
-	if (request.method == 'GET') {
-		const body = "method not allowed!"
-		response.statusCode = 403
-		response.headers = {
-			'Cache': 'no-cache',
-        	'Content-Length': body.length
-		}
-		response.write(body)
-		response.end()
-		return
-	}
-
-	request.on('data',function(chunk){
-		fetch += chunk
-	})
-
-	request.on('end',function(data){
+// 定义koa所运行的内容
+app.use(async (ctx,next) => {
+	await next();
+	if(ctx.request.method == 'POST') {
+		console.log("koa is runing !")
+		const fetch = JSON.parse(ctx.request.rawBody)
+		console.log(JSON.stringify(fetch,null,2))
 		(async () => {
 			let result = await {}
 			try{
@@ -171,27 +155,30 @@ server = http.createServer(function(request,response){
 
 		})()
 
-	})
 
-}).listen(port2);
+	} else {
+		console.log("forbidden!!!")
+		const body = "method not allowed !!! "
+		ctx.response.statusCode = 403;
+		ctx.response.set({
+			'Cache': 'no-cache',
+        	'Content-Length': body.length
+		})
+		ctx.response.body = `<h1>${body}</h1>`;
+	}
+});
 
-if (server) {
+app.listen(port)
+
+// 启动puppeteer，并断开与浏览器的连接
+if (app) {
 	puppeteer.launch({headless: false,}).then(async browser => {
    		// 保存 Endpoint，这样就可以重新连接 Chromium
-    	browserWSEndpoint = browser.wsEndpoint();
+    	const browserWSEndpoint = await browser.wsEndpoint();
     	// 从Chromium 断开连接
-    	browser.disconnect();
+    	await browser.disconnect();
 	});
-	console.log('chromeheadless fetcher runing on port ' + port2)
+	console.log('chromeheadless fetcher runing on port ' + port)
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }
-
-
-
-
-
-
-
-
-
