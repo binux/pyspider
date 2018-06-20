@@ -189,13 +189,16 @@
 
 const puppeteer = require('puppeteer')
 const devices = require('puppeteer/DeviceDescriptors');
-const Koa = require('./node_modules/koa')
+const Koa = require('koa')
 var bodyParser = require('koa-bodyparser');
 
 var app = new Koa()
 app.use(bodyParser());
 // 获取到系统指定跑在哪个端口
 const port = process.argv[2]
+let _fetch="",
+	browser="",
+	browserWSEndpoint="";
 
 // 定义koa所运行的内容
 app.use(async (ctx,next) => {
@@ -228,7 +231,8 @@ const fetch = async (_fetch) => {
 		// 用于存储结果
 		console.log("fetch的内容："+ JSON.stringify(_fetch))
 		const start_time = Date.now()
-		const _fetch = JSON.parse(_fetch)
+		// const _fetch = JSON.parse(fetch_t)
+		// const _fetch = fetch_t
 		console.log("服务器接收到的数据：　"+_fetch.url);
 		// 是否启用代理
 		if (_fetch.proxy && _fetch.proxy.includes("://")) {
@@ -305,7 +309,7 @@ const fetch = async (_fetch) => {
 		}
 
 		// 点击
-		if(_fetch.click_list.length !== 0){
+		if(_fetch.click_list && _fetch.click_list.length !== 0){
 			const click_list = fetch.click_list
 			for (let key in click_list) {
 				let click_ele = await page.$(click_list[key])
@@ -337,19 +341,17 @@ const fetch = async (_fetch) => {
 			headers: "",
 			url: "",
 			cookies: "",
-			time: (Date.now() - start_time) / 1000,
+			time: "",
 			js_script_result: null,
 			save: _fetch.save
 		}
-		page.close()
 	}
 
 	const body = JSON.stringify(result, null, 2)
 	return body
 }
-app.listen(port)
+app.listen(22222)
 
-let browserWSEndpoint = ""
 // 启动puppeteer，并断开与浏览器的连接
 if (app) {
 	puppeteer.launch({headless: false,}).then(async browser => {
@@ -362,6 +364,15 @@ if (app) {
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }
+
+
+
+
+
+
+
+
+
 
 
 
