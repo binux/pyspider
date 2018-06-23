@@ -325,6 +325,7 @@ const fetch = async (_fetch) => {
 		}
 
 		const content = await page.content();
+		const cookies = await page.cookies(_fetch.url);
 		result = {
 				orig_url: _fetch.url,
 				status_code: response.status() || 599,
@@ -332,7 +333,7 @@ const fetch = async (_fetch) => {
 				content: content,
 				headers: response.headers(),
 				url: page.url(),
-				cookies: page.cookies(_fetch.url),
+				cookies: cookies,
 				time: (Date.now() - start_time) / 1000,
 				js_script_result: null,
 				save: _fetch.save
