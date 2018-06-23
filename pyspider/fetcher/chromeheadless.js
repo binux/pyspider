@@ -187,16 +187,17 @@
 
 'use strict';
 
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer');
 const devices = require('puppeteer/DeviceDescriptors');
-const Koa = require('koa')
+const Koa = require('koa');
 var bodyParser = require('koa-bodyparser');
 
-var app = new Koa()
+var app = new Koa();
 app.use(bodyParser());
 // 获取到系统指定跑在哪个端口
-const port = process.argv[2]
-let _fetch="",
+const port = process.argv[2];
+let result = "",
+	_fetch="",
 	browser="",
 	browserWSEndpoint="";
 
@@ -205,8 +206,8 @@ app.use(async (ctx,next) => {
 	await next();
 	if(ctx.request.method == 'POST') {
 		console.log("koa is runing !");
-		const _fetch = JSON.parse(ctx.request.rawBody);
-		const body = fetch(_fetch);
+		_fetch = JSON.parse(ctx.request.rawBody);
+		const body = await fetch(_fetch);
 		ctx.response.status_code = 200;
 		ctx.response.set({
 			'Cache': 'no-cache',
@@ -214,26 +215,24 @@ app.use(async (ctx,next) => {
 		});
 		ctx.response.body = body;
 	} else {
-		console.log("forbidden!!!")
-		const body = "method not allowed !!! "
+		console.log("forbidden!!!");
+		const body = "method not allowed !!! ";
 		ctx.response.statusCode = 403;
 		ctx.response.set({
 			'Cache': 'no-cache',
         	'Content-Length': body.length
-		})
+		});
 		ctx.response.body = `<h1>${body}</h1>`;
 	}
 });
 
 const fetch = async (_fetch) => {
-	let result = {}
 	try{
 		// 用于存储结果
-		console.log("fetch的内容："+ JSON.stringify(_fetch))
-		const start_time = Date.now()
-		// const _fetch = JSON.parse(fetch_t)
-		// const _fetch = fetch_t
-		console.log("服务器接收到的数据：　"+_fetch.url);
+		console.log("fetch的内容："+ JSON.stringify(_fetch));
+		const start_time = Date.now();
+
+		console.log("服务器接收到的url：　"+_fetch.url);
 		// 是否启用代理
 		if (_fetch.proxy && _fetch.proxy.includes("://")) {
 			_fetch.proxy = '--proxy-server=' + _fetch.proxy.replace(/http:\/\//,"").replace(/https:\/\//,"")
@@ -248,9 +247,9 @@ const fetch = async (_fetch) => {
 		}else{
 			browser = await puppeteer.connect({browserWSEndpoint})
 		}
-
-		const page = await browser.newPage();
+		
 		// 设置浏览器视窗的大小
+		const page = await browser.newPage();
 
 		// 选择设备
 		if (_fetch.devices) {
@@ -262,21 +261,28 @@ const fetch = async (_fetch) => {
 			})
 		}
 
-		// 进入被抓取的页面
-		const response = await page.goto(_fetch.url)
-		await page.waitFor(3000)
-
 		// 页面加载完毕时输出
-		await page.once('load',() => console.log(" page load finished !!! "))
+		page.once('load',() => console.log("page load finished !!! "));
+
+		// 设置请求头
+		page.setExtraHTTPHeaders(_fetch.headers);
 
 		// 监听网页的console输出的内容
-		await page.on('console', msg => {
+		page.on('console', msg => {
 			if (typeof msg === 'object') {
 				console.log(msg.text())
 			}else{
 				console.log(msg)
 			}
-		})
+		});
+
+		// 请求失败的情况
+		page.on('requestfailed', request => {
+			console.log("失败了："+request.url() + '失败的原因：' + request.failure().errorText);
+		});
+		// 进入被抓取的页面
+		const response = await page.goto(_fetch.url);
+		await page.waitFor(1000);
 
 		// 翻页
 		if (_fetch.next) {
@@ -290,11 +296,11 @@ const fetch = async (_fetch) => {
 				}
 			}
 		}
-		console.log('我来了！！！！！')
+		console.log('我来了！！！！！');
 		// 滚动
 		let scrollStep = _fetch.scrollStep; //每次滚动的步长
-		let scrollEnable = _fetch.scrollEnable // 是否需要启动滚动
-		let scrollPosition = _fetch.scrollPosition // 滚动到哪个位置
+		let scrollEnable = _fetch.scrollEnable; // 是否需要启动滚动
+		let scrollPosition = _fetch.scrollPosition; // 滚动到哪个位置
 		while (scrollEnable) {
 			scrollEnable = await page.evaluate((scrollStep,scrollPosition) => {
 				let scrollTop = document.scrollingElement.scrollTop;
@@ -305,12 +311,12 @@ const fetch = async (_fetch) => {
 					return document.body.clientHeight > scrollTop + 768 ? true : false
 				}
 			}, scrollStep,scrollPosition);
-			await page.waitFor(_fetch.scrollTime) // 每次滚动的间隔时间
+			await page.waitFor(_fetch.scrollTime); // 每次滚动的间隔时间
 		}
 
 		// 点击
 		if(_fetch.click_list && _fetch.click_list.length !== 0){
-			const click_list = fetch.click_list
+			const click_list = _fetch.click_list;
 			for (let key in click_list) {
 				let click_ele = await page.$(click_list[key])
 				await click_ele.click()
@@ -318,7 +324,7 @@ const fetch = async (_fetch) => {
 			}
 		}
 
-		const content = page.content()
+		const content = await page.content();
 		result = {
 				orig_url: _fetch.url,
 				status_code: response.status() || 599,
@@ -331,7 +337,8 @@ const fetch = async (_fetch) => {
 				js_script_result: null,
 				save: _fetch.save
 			}
-		await page.close()
+		await page.close();
+		return result;
 	}catch(e){
 		result = {
 			orig_url: _fetch.url,
@@ -347,8 +354,8 @@ const fetch = async (_fetch) => {
 		}
 	}
 
-	const body = JSON.stringify(result, null, 2)
-	return body
+	const body = JSON.stringify(result, null, 2);
+	return body;
 }
 app.listen(22222)
 
@@ -360,10 +367,18 @@ if (app) {
     	// 从Chromium 断开连接
     	await browser.disconnect();
 	});
-	console.log('chromeheadless fetcher runing on port ' + port)
+	console.log('chromeheadless fetcher runing on port ' + port);
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }
+
+
+
+
+
+
+
+
 
 
 
