@@ -29,7 +29,7 @@ class TestResponse(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.fetcher = Fetcher(None, None, async=False)
+        self.fetcher = Fetcher(None, None, async_mode=False)
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
         time.sleep(0.5)
