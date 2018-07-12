@@ -452,6 +452,7 @@ def chromeheadless(ctx, nodejs_path, port, auto_restart, args):
     import subprocess
     g = ctx.obj
     _quit = []
+    print("这是node的：" +nodejs_path+"  : "+str(port)+" : "+ str(auto_restart))
     chromeheadless_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/chromeheadless.js')
     cmd = [nodejs_path,] + list(args or []) + [chromeheadless_fetcher, str(port)]
