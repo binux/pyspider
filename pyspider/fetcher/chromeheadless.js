@@ -15,7 +15,9 @@ let result = "",
 	browser="",
 	first=true,
 	browserWSEndpoint="",
-	start_time = "";
+	start_time = "",
+	finish = false,
+	response = "",
 	script_result = "";
 
 // 定义koa所运行的内容
@@ -55,7 +57,7 @@ const fetch = async (_fetch) => {
 			browser = await puppeteer.connect({browserWSEndpoint})
 		}
 		// 用于存储结果
-		console.log("fetch的内容："+ JSON.stringify(_fetch,null,2));
+		// console.log("fetch的内容："+ JSON.stringify(_fetch,null,2));
 		console.log("服务器接收到的url：　"+_fetch.url);
 		
 		// 是否启用代理
@@ -76,9 +78,14 @@ const fetch = async (_fetch) => {
 		// 设置浏览器视窗的大小
 		const page = await browser.newPage();
 
+		// 设置user-agent
+		if (_fetch.headers && _fetch.headers['User-Agent']) {
+			await page.setUserAgent(_fetch.headers['User-Agent']);
+		}
+
 		// 选择设备
 		if (_fetch.devices) {
-			await page.emulate(devices[fetch.devices]);
+			await page.emulate(devices[_fetch.devices]);
 		}else{
 			await page.setViewport({
 				width:_fetch.js_viewport_width || 1024,
@@ -87,7 +94,30 @@ const fetch = async (_fetch) => {
 		}
 
 		// 初始页面加载完毕时输出
-		page.once('load',() => console.log("page load finished !!! "));
+		page.once('domcontentloaded',() => {
+			console.log("page load finished !!! ");
+			finish = true;
+		});
+		
+		// let index = 0,index1;
+		function logRequest(interceptedRequest) {
+			console.log('A request was made:', interceptedRequest.url());
+			// index += 1;
+		}
+		page.on('request', logRequest);
+
+		// function make_sure(){
+		// 	console.log("进来了！！！！" + index + " --- "+index1);
+		// 	if(index === index1){
+		// 		finish = true;
+		// 		return "";
+		// 	}else{
+		// 		index1 = index;
+		// 	}
+		// 	setTimeout(make_sure,150)
+		// }
+		// make_sure();
+		// console.log("我是finish：" + finish);
 
 		// 设置请求头
 		page.setExtraHTTPHeaders(_fetch.headers);
@@ -111,32 +141,38 @@ const fetch = async (_fetch) => {
 			response = await page.evaluate(`$.post("${_fetch.url}",${_fetch.data})`);
 		}else{
 			response = await page.goto(_fetch.url);
+			await page.waitFor(1000);
 		}
 
-		// 执行自定义的JS
-		if(_fetch.js_script && _fetch.js_script != ""){
-			script_result = await page.evaluate(_fetch.js_script);
-		}
-	
-		console.log('返回数据！！！');
+		if(finish){
+			// 执行自定义的JS
+			if(_fetch.js_script && _fetch.js_script != ""){
+				script_result = await page.evaluate(_fetch.js_script);
+				await page.waitFor(1000);
+			}
+		
+			console.log('返回数据！！！');
 
-		const content = await page.content();
-		const cookies = await page.cookies(_fetch.url);
-		result = {
-			orig_url: _fetch.url,
-			status_code: response.status() || 599,
-			error: null,
-			content: content,
-			headers: response.headers(),
-			url: page.url(),
-			cookies: cookies,
-			time: (Date.now() - start_time) / 1000,
-			js_script_result: script_result,
-			save: _fetch.save
+			const content = await page.content();
+			const cookies = await page.cookies(_fetch.url);
+			result = {
+				orig_url: _fetch.url,
+				status_code: response.status() || 599,
+				error: null,
+				content: content,
+				headers: response.headers(),
+				url: page.url(),
+				cookies: cookies,
+				time: (Date.now() - start_time) / 1000,
+				js_script_result: script_result,
+				save: _fetch.save
+			}
+			console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
+			finish = false;
+			console.log("我完成了！！！！！！"+finish);
+			await page.close();
+			return result;
 		}
-		console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
-		await page.close();
-		return result;
 	}catch(e){
 		result = {
 			orig_url: _fetch.url,
