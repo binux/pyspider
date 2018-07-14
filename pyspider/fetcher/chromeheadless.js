@@ -59,7 +59,7 @@ const fetch = async (_fetch) => {
 		// 用于存储结果
 		// console.log("fetch的内容："+ JSON.stringify(_fetch,null,2));
 		console.log("服务器接收到的url：　"+_fetch.url);
-		
+
 		// 是否启用代理
 		if (_fetch.proxy && _fetch.proxy.includes("://")) {
 			_fetch.proxy = '--proxy-server=' + _fetch.proxy.replace(/http:\/\//,"").replace(/https:\/\//,"")
@@ -74,9 +74,10 @@ const fetch = async (_fetch) => {
 				args: [_fetch.proxy]
 			});
 		}
-		
+
 		// 设置浏览器视窗的大小
 		const page = await browser.newPage();
+		await page.setRequestInterception(true);
 
 		// 设置user-agent
 		if (_fetch.headers && _fetch.headers['User-Agent']) {
@@ -96,28 +97,49 @@ const fetch = async (_fetch) => {
 		// 初始页面加载完毕时输出
 		page.once('domcontentloaded',() => {
 			console.log("page load finished !!! ");
-			finish = true;
 		});
-		
-		// let index = 0,index1;
-		function logRequest(interceptedRequest) {
-			console.log('A request was made:', interceptedRequest.url());
-			// index += 1;
-		}
-		page.on('request', logRequest);
 
-		// function make_sure(){
-		// 	console.log("进来了！！！！" + index + " --- "+index1);
-		// 	if(index === index1){
-		// 		finish = true;
-		// 		return "";
-		// 	}else{
-		// 		index1 = index;
-		// 	}
-		// 	setTimeout(make_sure,150)
+		// function logRequest(interceptedRequest,request) {
+		// 	console.log('A request was made:', interceptedRequest.url());
 		// }
-		// make_sure();
-		// console.log("我是finish：" + finish);
+		// page.on('request', logRequest);
+
+		if(!_fetch.load_images){
+			page.on('request',request => {
+				if (request.resourceType() === 'image')
+					request.abort();
+				else
+					request.continue();
+			})
+		}
+
+		let index = 0,index1;
+		const count= () => {
+			index += 1;
+			console.log("我是一个index：" + index);
+		};
+		page.on('requestfinished',count);
+
+		const make_sure = () =>{
+			return new Promise((resolve,reject) => {
+				setTimeout(function(){
+					if(index === index1){
+						console.log(index + " --- " + index1);
+						console.log("进球了！！！！");
+						resolve (true);
+					}else {
+						console.log("球没有进！！！");
+                        index1 = index;
+                        resolve(false);
+                    }
+                    make_sure()
+				},200)
+			})
+		};
+
+		finish = await make_sure();
+
+		console.log("我是finish：" + finish);
 
 		// 设置请求头
 		page.setExtraHTTPHeaders(_fetch.headers);
@@ -141,16 +163,15 @@ const fetch = async (_fetch) => {
 			response = await page.evaluate(`$.post("${_fetch.url}",${_fetch.data})`);
 		}else{
 			response = await page.goto(_fetch.url);
-			await page.waitFor(1000);
+			finish = await make_sure();
 		}
 
 		if(finish){
 			// 执行自定义的JS
 			if(_fetch.js_script && _fetch.js_script != ""){
 				script_result = await page.evaluate(_fetch.js_script);
-				await page.waitFor(1000);
 			}
-		
+
 			console.log('返回数据！！！');
 
 			const content = await page.content();
@@ -166,7 +187,7 @@ const fetch = async (_fetch) => {
 				time: (Date.now() - start_time) / 1000,
 				js_script_result: script_result,
 				save: _fetch.save
-			}
+			};
 			console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
 			finish = false;
 			console.log("我完成了！！！！！！"+finish);
@@ -190,8 +211,8 @@ const fetch = async (_fetch) => {
 
 	const body = JSON.stringify(result, null, 2);
 	return body;
-}
-app.listen(port)
+};
+app.listen(port);
 
 // 启动服务器
 if (app) {
