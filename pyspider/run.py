@@ -82,7 +82,7 @@ def connect_rpc(ctx, param, value):
               help='[deprecated] beanstalk config for beanstalk queue. '
               'please use --message-queue instead.')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
-@click.option('--chromeheadless-proxy', envvar='CHROMEHEADLESS_PROXY', help="chromeheadless proxy ip:port")
+@click.option('--chromium-proxy', envvar='CHROMIUM_PROXY', help="chromium proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.option('--add-sys-path/--not-add-sys-path', default=True, is_flag=True,
               help='add current working directory to python lib search path')
@@ -245,7 +245,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
                       poolsize=poolsize, proxy=proxy, async=async)
     fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
-    fetcher.chromeheadless_proxy = g.chromeheadless_proxy
+    fetcher.chromium_proxy = g.chromium_proxy
     fetcher.splash_endpoint = splash_endpoint
     if user_agent:
         fetcher.user_agent = user_agent
@@ -401,7 +401,6 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     import subprocess
     g = ctx.obj
     _quit = []
-    print("这是phantomjs：" +phantomjs_path+"  : "+str(port)+" : "+ str(auto_restart))
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     cmd = [phantomjs_path,
@@ -411,7 +410,6 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
            '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
     try:
-        print('这是 phantmosjs的CMD:' + str(cmd))
         _phantomjs = subprocess.Popen(cmd)
     except OSError:
         logging.warning('phantomjs not found, continue running without it.')
@@ -439,50 +437,48 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
 
 @cli.command()
 @click.option('--nodejs-path', default='node', help='nodejs path')
-@click.option('--port', default=22222, help='chromeheadless port')
-@click.option('--auto-restart', default=False, help='auto restart chromeheadless if crashed')
+@click.option('--port', default=22222, help='chromium port')
+@click.option('--auto-restart', default=False, help='auto restart chromium if crashed')
 @click.argument('args', nargs=-1)
 @click.pass_context
-def chromeheadless(ctx, nodejs_path, port, auto_restart, args):
+def chromium(ctx, nodejs_path, port, auto_restart, args):
     """
-    Run chromeheadless fetcher if nodejs is installed.
+    Run chromium fetcher if nodejs is installed.
     """
     args = args or ctx.default_map and ctx.default_map.get('args', [])
 
     import subprocess
     g = ctx.obj
     _quit = []
-    print("这是node的：" +nodejs_path+"  : "+str(port)+" : "+ str(auto_restart))
-    chromeheadless_fetcher = os.path.join(
-        os.path.dirname(pyspider.__file__), 'fetcher/chromeheadless.js')
-    cmd = [nodejs_path,] + list(args or []) + [chromeheadless_fetcher, str(port)]
+    chromium_fetcher = os.path.join(
+        os.path.dirname(pyspider.__file__), 'fetcher/chromium_fetcher.js')
+    cmd = [nodejs_path,] + list(args or []) + [chromium_fetcher, str(port)]
 
     try:
-        print('这是 chromeheadless CMD:' + str(cmd))
-        _chromeheadless = subprocess.Popen(cmd)
+        _chromium = subprocess.Popen(cmd)
     except OSError:
         logging.warning('nodejs not found, continue running without it.')
         return None
 
     def quit(*args, **kwargs):
         _quit.append(1)
-        _chromeheadless.kill()
-        _chromeheadless.wait()
-        logging.info('chromeheadless exited.')
+        _chromium.kill()
+        _chromium.wait()
+        logging.info('chromium exited.')
 
-    if not g.get('chromeheadless_proxy'):
-        g['chromeheadless_proxy'] = '127.0.0.1:%s' % port
+    if not g.get('chromium_proxy'):
+        g['chromium_proxy'] = '127.0.0.1:%s' % port
 
-    chromeheadless = utils.ObjectDict(port=port, quit=quit)
-    g.instances.append(chromeheadless)
+    chromium = utils.ObjectDict(port=port, quit=quit)
+    g.instances.append(chromium)
     if g.get('testing_mode'):
-        return chromeheadless
+        return chromium
 
     while True:
-        _chromeheadless.wait()
+        _chromium.wait()
         if _quit or not auto_restart:
             break
-        _chromeheadless = subprocess.Popen(cmd)
+        _chromium = subprocess.Popen(cmd)
 
 @cli.command()
 @click.option('--fetcher-num', default=1, help='instance num of fetcher')
@@ -519,14 +515,14 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
             if threads[-1].is_alive() and not g.get('phantomjs_proxy'):
                 g['phantomjs_proxy'] = '127.0.0.1:%s' % phantomjs_config.get('port', 25555)
 
-        # chromeheadless
-        if not g.get('chromeheadless_proxy'):
-            chromeheadless_config = g.config.get('chromeheadless', {})
-            chromeheadless_config.setdefault('auto_restart', True)
-            threads.append(run_in(ctx.invoke, chromeheadless, **chromeheadless_config))
+        # chromium
+        if not g.get('chromium_proxy'):
+            chromium_config = g.config.get('chromium', {})
+            chromium_config.setdefault('auto_restart', True)
+            threads.append(run_in(ctx.invoke, chromium, **chromium_config))
             time.sleep(2)
-            if threads[-2].is_alive() and not g.get('chromeheadless_proxy'):
-                g['chromeheadless_proxy'] = '127.0.0.1:%s' % chromeheadless_config.get('port', 22222)
+            if threads[-2].is_alive() and not g.get('chromium_proxy'):
+                g['chromium_proxy'] = '127.0.0.1:%s' % chromium_config.get('port', 22222)
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
@@ -632,9 +628,8 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
     logging.getLogger('webui').setLevel(logging.ERROR)
     logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
+    threads = []
     try:
-        threads = []
-
         # result worker
         result_worker_config = g.config.get('result_worker', {})
         for i in range(result_worker_num):
@@ -714,11 +709,11 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
               help='enable interactive mode, you can choose crawl url.')
 @click.option('--phantomjs', 'enable_phantomjs', default=False, is_flag=True,
               help='enable phantomjs, will spawn a subprocess for phantomjs')
-@click.option('--chromeheadless', 'enable_chromeheadless', default=False, is_flag=True,
-              help='enable chromeheadless, will spawn a subprocess for chromeheadless')
+@click.option('--chromium', 'enable_chromium', default=False, is_flag=True,
+              help='enable chromium, will spawn a subprocess for chromium')
 @click.argument('scripts', nargs=-1)
 @click.pass_context
-def one(ctx, interactive, enable_phantomjs, scripts):
+def one(ctx, interactive, enable_phantomjs, enable_chromium, scripts):
     """
     One mode not only means all-in-one, it runs every thing in one process over
     tornado.ioloop, for debug purpose
@@ -744,13 +739,13 @@ def one(ctx, interactive, enable_phantomjs, scripts):
     else:
         phantomjs_obj = None
 
-    if enable_chromeheadless:
-        chromeheadless_config = g.config.get('chromeheadless',{})
-        chromeheadless_obj = ctx.invoke(chromeheadless,**chromeheadless_config)
-        if chromeheadless_obj:
-            g.setdefault('chromeheadless_proxy','127.0.0.1:%s' % chromeheadless_obj.port)
+    if enable_chromium:
+        chromium_config = g.config.get('chromium',{})
+        chromium_obj = ctx.invoke(chromium,**chromium_config)
+        if chromium_obj:
+            g.setdefault('chromium_proxy','127.0.0.1:%s' % chromium_obj.port)
     else:
-        chromeheadless_obj = None
+        chromium_obj = None
 
     result_worker_config = g.config.get('result_worker', {})
     if g.resultdb is None:
@@ -787,6 +782,8 @@ def one(ctx, interactive, enable_phantomjs, scripts):
         scheduler_obj.quit()
         if phantomjs_obj:
             phantomjs_obj.quit()
+        if chromium_obj:
+            chromium_obj.quit()
 
 
 @cli.command()

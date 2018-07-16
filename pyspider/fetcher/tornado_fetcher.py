@@ -74,7 +74,7 @@ class Fetcher(object):
         'connect_timeout': 20,
     }
     phantomjs_proxy = None
-    chromeheadless_proxy = None
+    chromium_proxy = None
     splash_endpoint = None
     splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
     robot_txt_age = 60*60  # 1h
@@ -136,9 +136,9 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
                 type = 'phantomjs'
                 result = yield self.phantomjs_fetch(url, task)
-            elif task.get('fetch', {}).get('fetch_type') in ('chrome', 'chromeheadless'):
-                type = 'chromeheadless'
-                result = yield self.chromeheadless_fetch(url, task)
+            elif task.get('fetch', {}).get('fetch_type') in ('chrome', 'chromium'):
+                type = 'chromium'
+                result = yield self.chromium_fetch(url, task)
             elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
                 type = 'splash'
                 result = yield self.splash_fetch(url, task)
@@ -452,7 +452,6 @@ class Fetcher(object):
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
-        print("这是phantomjs的fetch ： " + str(fetch))
         task_fetch = task.get('fetch', {})
         for each in task_fetch:
             if each not in fetch:
@@ -531,18 +530,17 @@ class Fetcher(object):
         raise gen.Return(result)
 
     @gen.coroutine
-    def chromeheadless_fetch(self, url, task):
-        '''Fetch with chromeheadless proxy'''
+    def chromium_fetch(self, url, task):
+        '''Fetch with chromium proxy'''
         start_time = time.time()
-        self.on_fetch('chromeheadless', task)
-        handle_error = lambda x: self.handle_error('chromeheadless', url, task, start_time, x)
-        print("进入了chromeheadless！ " + str(self.chromeheadless_proxy))
+        self.on_fetch('chromium', task)
+        handle_error = lambda x: self.handle_error('chromium', url, task, start_time, x)
 
-        # check chromeheadless proxy is enabled
-        if not self.chromeheadless_proxy:
+        # check chromium proxy is enabled
+        if not self.chromium_proxy:
             result = {
                 "orig_url": url,
-                "content": "chromeheadless is not enabled.",
+                "content": "chromium is not enabled.",
                 "headers": {},
                 "status_code": 501,
                 "url": url,
@@ -555,7 +553,6 @@ class Fetcher(object):
 
         # setup request parameters
         fetch = self.pack_tornado_request_parameters(url, task)
-        print("这是Chromeheadless的fetch ： " + str(fetch))
         task_fetch = task.get('fetch', {})
         for each in task_fetch:
             if each not in fetch:
@@ -598,7 +595,7 @@ class Fetcher(object):
         fetch['headers'] = dict(fetch['headers'])
         try:
             request = tornado.httpclient.HTTPRequest(
-                url=self.chromeheadless_proxy, method="POST",
+                url=self.chromium_proxy, method="POST",
                 body=json.dumps(fetch), **request_conf)
         except Exception as e:
             raise gen.Return(handle_error(e))
@@ -612,7 +609,7 @@ class Fetcher(object):
                 raise gen.Return(handle_error(e))
 
         if not response.body:
-            raise gen.Return(handle_error(Exception('no response from chromeheadless: %r' % response)))
+            raise gen.Return(handle_error(Exception('no response from chromium: %r' % response)))
 
         result = {}
         try:
