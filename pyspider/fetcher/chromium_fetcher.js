@@ -1,3 +1,4 @@
+// 最新bug：使用最新的puppeteer时会下载最新的Chromeium浏览器，导致抓取网页时，第二次进入网页时response为null的情况出现；
 'use strict';
 
 const puppeteer = require('puppeteer');
