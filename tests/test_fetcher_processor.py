@@ -23,7 +23,7 @@ class TestFetcherProcessor(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = ProjectDB([os.path.join(os.path.dirname(__file__), 'data_fetcher_processor_handler.py')])
-        self.fetcher = Fetcher(None, None, async=False)
+        self.fetcher = Fetcher(None, None, async_mode=False)
         self.status_queue = Queue()
         self.newtask_queue = Queue()
         self.result_queue = Queue()
