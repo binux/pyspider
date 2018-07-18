@@ -5,6 +5,7 @@ const puppeteer = require('puppeteer');
 const device = require('puppeteer/DeviceDescriptors');
 const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
+var request = require('request');
 
 const app = new Koa();
 app.use(bodyParser());
@@ -12,23 +13,22 @@ app.use(bodyParser());
 const port = process.argv[2];
 
 let result = "",
-	_fetch="",
-	browser="",
-	first=true,
-	browserWSEndpoint="",
-	start_time = "",
+	_fetch = "",
+	browser = "",
+	first = true,
 	finish = false,
-	response = "",
-	content = "",
-	page = "",
-	script_result = "";
+	body = "";
 
-// 定义koa所运行的内容
+// koa server
 app.use(async (ctx,next) => {
 	await next();
 	if(ctx.request.method === 'POST') {
 		_fetch = JSON.parse(ctx.request.rawBody);
-		const body = await fetch(_fetch);
+		if(_fetch.method === 'POST' || _fetch.method === 'post'){
+			body = await post(_fetch);
+		}else{
+			body = await get(_fetch);
+		}
 		ctx.response.status_code = 200;
 		ctx.response.set({
 			'Cache': 'no-cache',
@@ -47,12 +47,14 @@ app.use(async (ctx,next) => {
 	}
 });
 
-const fetch = async (_fetch) => {
+// get method with puppeteer
+const get = async (_fetch) => {
+	const start_time = Date.now();
+	let response = "",
+		script_result = "",
+		content = "",
+		page = "";
 	try{
-		start_time = Date.now();
-		// 用于存储结果
-		// console.log("fetch的内容："+ JSON.stringify(_fetch,null,2));
-		// console.log("服务器接收到的url：　"+_fetch.url);
 
 		// use proxy ?
 		if (_fetch.proxy && _fetch.proxy.includes("://")) {
@@ -74,15 +76,12 @@ const fetch = async (_fetch) => {
 				headless: _fetch.headless !== false,
 				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 20*1000,
 			});
-			browserWSEndpoint = await browser.wsEndpoint();
 			first = false;
-		}else{
-			// 因为设计的是浏览器要是不开代理的情况下只打开一次，
-			// 所以这里就不考虑不是第一次，但还是设定和上一次不一样的浏览器启动情况
-			// 如第一次是headless false 第二次却是headless true
-			// 频繁的打开关闭浏览器很影响性能
-			browser = await puppeteer.connect({browserWSEndpoint})
 		}
+		// 因为设计的是浏览器要是不开代理的情况下只打开一次，
+		// 所以这里就不考虑不是第一次，但还是设定和上一次不一样的浏览器启动情况
+		// 如第一次是headless false 第二次却是headless true
+		// 频繁的打开关闭浏览器很影响性能
 
 		// create and set page
 		page = await browser.newPage();
@@ -167,23 +166,17 @@ const fetch = async (_fetch) => {
 			})
 		};
 
-		// go to the page crawled （consider post method）
-		if(_fetch.method === 'POST' || _fetch.method === 'post'){
-			await page.goto(_fetch.url);
-			response = await page.evaluate(`$.post("${_fetch.url}",${_fetch.data})`);
-		}else{
-			response = await page.goto(_fetch.url);
-			finish = await make_result();
-		}
-
+		// go to the page crawled
+		response = await page.goto(_fetch.url);
+		finish = await make_result();
+		
 		if(finish){
 			// run js_script
 			if(_fetch.js_script){
 				script_result = await page.evaluate(_fetch.js_script);
 				await make_result();
 			}
-			console.log('finish ！！！');
-			// console.log(response);
+			// console.log('finish ！！！');
 			// to make result
 			content = await page.content();
 			const cookies = await page.cookies(_fetch.url);
@@ -218,8 +211,57 @@ const fetch = async (_fetch) => {
 			save: _fetch.save
 		}
 	}
-
+	// console.log(JSON.stringify(result, null, 2));
     return JSON.stringify(result, null, 2);
+};
+
+// post method with request
+const post = async (_fetch) => {
+	return new Promise((resolve, reject) => {
+		const start_time = Date.now();
+        request({
+            url: _fetch.url,
+            method: 'POST',
+            headers:_fetch.headers,
+            body: JSON.stringify(_fetch.data),
+        },(error, response, body) => {
+            if (!error && response.statusCode == 200) {
+                //输出返回的内容
+				// console.log("success !");
+				result = {
+					orig_url: _fetch.url,
+					status_code: response.statusCode || 599,
+					error: null,
+					content: body,
+					headers: response.headers,
+					url: response.url,
+					cookies: {},
+					time: (Date.now() - start_time) / 1000,
+					js_script_result: null,
+					save: _fetch.save
+				};
+				console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
+                resolve(result)
+            }else{
+				//不为200时的返回内容
+				// console.log("something error !");
+				result = {
+					orig_url: _fetch.url,
+					status_code: response.statusCode || 599,
+					error: null,
+					content: body,
+					headers: response.headers,
+					url: response.url,
+					cookies: {},
+					time: (Date.now() - start_time) / 1000,
+					js_script_result: null,
+					save: _fetch.save
+				};
+				console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
+				resolve(result)
+			}
+        });
+    })
 };
 app.listen(port);
 
