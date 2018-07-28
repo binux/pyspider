@@ -57,27 +57,22 @@ const get = async (_fetch) => {
 	try{
 
 		// use proxy ?
-		if (_fetch.proxy && _fetch.proxy.includes("://")) {
-			_fetch.proxy = '--proxy-server=' + _fetch.proxy.replace(/http:\/\//,"").replace(/https:\/\//,"");
+		if (_fetch.proxy && first && !_fetch.proxy.includes("://")) {
+			_fetch.proxy = '--proxy-server=http://' + _fetch.proxy;
 			browser = await puppeteer.launch({
 				headless: _fetch.headless !== false,
-				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 20*1000,
+				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 				args: [_fetch.proxy]
 			});
-		} else if (_fetch.proxy){
-			_fetch.proxy = '--proxy-server=' + _fetch.proxy;
+			first = false;
+		} else if(first) {
 			browser = await puppeteer.launch({
 				headless: _fetch.headless !== false,
-				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 20*1000,
-				args: [_fetch.proxy]
-			});
-		} else if(first){
-			browser = await puppeteer.launch({
-				headless: _fetch.headless !== false,
-				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 20*1000,
+				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 			});
 			first = false;
 		}
+		
 		// 因为设计的是浏览器要是不开代理的情况下只打开一次，
 		// 所以这里就不考虑不是第一次，但还是设定和上一次不一样的浏览器启动情况
 		// 如第一次是headless false 第二次却是headless true
