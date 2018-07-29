@@ -120,6 +120,15 @@ const get = async (_fetch) => {
 		// set request headers
 		page.setExtraHTTPHeaders(_fetch.headers);
 
+		// set cookies
+		if(_fetch.cookies){
+			const cookies = [];
+			for(let each in _fetch.cookies){
+				cookies.push({name:each,value:_fetch.cookies[each],url:_fetch.url})
+			}
+			await page.setCookie(cookies);
+		}
+		
 		// print the page console messages
 		page.on('console', msg => {
 			if (typeof msg === 'object') {
@@ -137,7 +146,7 @@ const get = async (_fetch) => {
 		// to make sure request finish
 		let counter_1 = 0,
 			counter_2;
-		const counter= () => {
+		const counter = () => {
 			counter_1 += 1;
 			// console.log("我是一个counter_1：" + counter_1);
 		};
