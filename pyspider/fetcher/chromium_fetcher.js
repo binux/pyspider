@@ -71,7 +71,7 @@ const get = async (_fetch) => {
 			});
 			first = false;
 		}
-		
+
 		// 因为设计的是浏览器要是不开代理的情况下只打开一次，
 		// 所以这里就不考虑不是第一次，但还是设定和上一次不一样的浏览器启动情况
 		// 如第一次是headless false 第二次却是headless true
@@ -127,7 +127,7 @@ const get = async (_fetch) => {
 			}
 			await page.setCookie(cookies);
 		}
-		
+
 		// print the page console messages
 		page.on('console', msg => {
 			if (typeof msg === 'object') {
@@ -172,7 +172,15 @@ const get = async (_fetch) => {
 		// go to the page crawled
 		response = await page.goto(_fetch.url);
 		finish = await make_result();
-		
+
+		// get <frame> and <iframe> tag content
+		const iframes = await page.frames();
+		for(let i in iframes){
+			// console.log(`这是第${i}个iframe：`);
+			let iframe_content = await iframes[i].content();
+			content = content + iframe_content + "\n";
+		}
+
 		if(finish){
 			// run js_script
 			if(_fetch.js_script){
@@ -181,7 +189,7 @@ const get = async (_fetch) => {
 			}
 			// console.log('finish ！！！');
 			// to make result
-			content = await page.content();
+			content = content + "\n" + await page.content();
 			const cookies = await page.cookies(_fetch.url);
 			result = {
 				orig_url: _fetch.url,
@@ -246,7 +254,7 @@ const post = async (_fetch) => {
 				console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
                 resolve(result)
             }else{
-				//不为200时的返回内容
+				//异常时的返回内容
 				// console.log("something error !");
 				result = {
 					orig_url: _fetch.url,

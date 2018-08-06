@@ -48,7 +48,7 @@ RUN pip install -e .[all]
 #         && cnpm install request
 
 RUN cd /opt/pyspider/pyspider/fetcher \
-        && npm install puppeteer \
+        && npm install puppeteer@1.6.2 \
         && npm install koa \
         && npm install koa-bodyparser \
         && npm install request
