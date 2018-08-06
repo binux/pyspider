@@ -42,13 +42,13 @@ RUN pip install -e .[all]
 
 # if you are in China recommend run cnpm in China
 # RUN cd /opt/pyspider/pyspider/fetcher \
-#         && cnpm install puppeteer \
+#         && cnpm install puppeteer@1.6.2 \
 #         && cnpm install koa \
 #         && cnpm install koa-bodyparser \
 #         && cnpm install request
 
 RUN cd /opt/pyspider/pyspider/fetcher \
-        && npm install puppeteer \
+        && npm install puppeteer@1.6.2 \
         && npm install koa \
         && npm install koa-bodyparser \
         && npm install request
