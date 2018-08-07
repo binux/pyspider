@@ -61,13 +61,14 @@ const get = async (_fetch) => {
 			browser = await puppeteer.launch({
 				headless: _fetch.headless !== false,
 				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
-				args: [_fetch.proxy]
+				args: [_fetch.proxy,'--no-sandbox', '--disable-setuid-sandbox']
 			});
 			first = false;
 		} else if(first) {
 			browser = await puppeteer.launch({
 				headless: _fetch.headless !== false,
 				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
+				args:['--no-sandbox', '--disable-setuid-sandbox']
 			});
 			first = false;
 		}
