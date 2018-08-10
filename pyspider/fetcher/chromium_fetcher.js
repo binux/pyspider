@@ -14,7 +14,7 @@ const port = process.argv[2];
 let result = "",
 	_fetch = "",
 	browser = "",
-	first = true,
+	proxy = "",
 	finish = false,
 	body = "";
 
@@ -54,28 +54,47 @@ const get = async (_fetch) => {
 		content = "",
 		page = "";
 	try{
-
 		// use proxy ?
-		if (_fetch.proxy && first && !_fetch.proxy.includes("://")) {
-			_fetch.proxy = '--proxy-server=http://' + _fetch.proxy;
-			browser = await puppeteer.launch({
-				headless: _fetch.headless !== false,
-				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
-				args: [_fetch.proxy]
-			});
-			first = false;
-		} else if(first) {
-			browser = await puppeteer.launch({
-				headless: _fetch.headless !== false,
-				timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
-			});
-			first = false;
-		}
+		// 频繁的打开关闭浏览器很影响性能，故只有代理发生改变才会重启浏览器
+		if (_fetch.proxy) {
+			const temp_proxy = _fetch.proxy;
+			proxy = temp_proxy;
 
-		// 因为设计的是浏览器要是不开代理的情况下只打开一次，
-		// 所以这里就不考虑不是第一次，但还是设定和上一次不一样的浏览器启动情况
-		// 如第一次是headless false 第二次却是headless true
-		// 频繁的打开关闭浏览器很影响性能
+			if (!_fetch.proxy.includes("://")){
+				_fetch.proxy = `--proxy-server=http://${_fetch.proxy}`;
+			}else{
+                _fetch.proxy = `--proxy-server=${_fetch.proxy}`;
+            }
+
+			if ((browser !== "" && proxy !== temp_proxy) ) {
+				await browser.close();
+				browser = await puppeteer.launch({
+					headless: _fetch.headless !== false,
+					timeout: _fetch.timeout ? _fetch.timeout * 1000 : 30 * 1000,
+					args: [_fetch.proxy]
+				});
+			}else if (browser === ""){
+				browser = await puppeteer.launch({
+					headless: _fetch.headless !== false,
+					timeout: _fetch.timeout ? _fetch.timeout * 1000 : 30 * 1000,
+					args: [_fetch.proxy]
+				});
+			}
+		} else {
+			if (browser === ""){
+				browser = await puppeteer.launch({
+					headless: _fetch.headless !== false,
+					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000
+				});
+			} else if (proxy !== ""){
+				await browser.close();
+				browser = await puppeteer.launch({
+					headless: _fetch.headless !== false,
+					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000
+				});
+				proxy = ""
+			}
+		}
 
 		// create and set page
 		page = await browser.newPage();
