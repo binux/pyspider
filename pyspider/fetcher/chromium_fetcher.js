@@ -71,26 +71,28 @@ const get = async (_fetch) => {
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
 					timeout: _fetch.timeout ? _fetch.timeout * 1000 : 30 * 1000,
-					args: [_fetch.proxy]
+					args: [_fetch.proxy, '--no-sandbox', '--disable-setuid-sandbox']
 				});
 			}else if (browser === ""){
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
 					timeout: _fetch.timeout ? _fetch.timeout * 1000 : 30 * 1000,
-					args: [_fetch.proxy]
+					args: [_fetch.proxy,'--no-sandbox', '--disable-setuid-sandbox']
 				});
 			}
 		} else {
 			if (browser === ""){
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
-					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000
+					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
+					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 			} else if (proxy !== ""){
 				await browser.close();
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
-					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000
+					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
+					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 				proxy = ""
 			}
@@ -146,7 +148,7 @@ const get = async (_fetch) => {
 			}
 			await page.setCookie(cookies);
 		}
-
+		
 		// print the page console messages
 		page.on('console', msg => {
 			if (typeof msg === 'object') {
@@ -192,14 +194,14 @@ const get = async (_fetch) => {
 		response = await page.goto(_fetch.url);
 		finish = await make_result();
 
-		// get <frame> and <iframe> tag content
+        // get <frame> and <iframe> tag content
 		const iframes = await page.frames();
 		for(let i in iframes){
 			// console.log(`这是第${i}个iframe：`);
 			let iframe_content = await iframes[i].content();
 			content = content + iframe_content + "\n";
 		}
-
+		
 		if(finish){
 			// run js_script
 			if(_fetch.js_script){
@@ -226,6 +228,8 @@ const get = async (_fetch) => {
 			finish = false;
 			// console.log("我完成了！！！！！！"+finish);
 			await page.close();
+		}else{
+			throw "Timeout to get page !"
 		}
 	}catch(e){
 		result = {
@@ -273,7 +277,7 @@ const post = async (_fetch) => {
 				console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
                 resolve(result)
             }else{
-				//异常时的返回内容
+				//不为200时的返回内容
 				// console.log("something error !");
 				result = {
 					orig_url: _fetch.url,
