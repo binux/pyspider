@@ -301,7 +301,7 @@ app.listen(port);
 
 // start server
 if (app) {
-	console.log('Chromeium fetcher runing on port ' + port);
+	console.log('Chromium fetcher runing on port ' + port);
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }
