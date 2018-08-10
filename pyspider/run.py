@@ -223,12 +223,13 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
 @click.option('--phantomjs-endpoint', help="endpoint of phantomjs, start via pyspider phantomjs")
+@click.option('--chromium-endpoint', help="endpoint of chromium, start via pyspider chromium")
 @click.option('--splash-endpoint', help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls,
+            timeout, phantomjs_endpoint, splash_endpoint, chromium_endpoint,fetcher_cls,
             async=True, get_object=False, no_input=False):
     """
     Run Fetcher.
@@ -245,7 +246,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
                       poolsize=poolsize, proxy=proxy, async=async)
     fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
-    fetcher.chromium_proxy = g.chromium_proxy
+    fetcher.chromium_proxy = chromium_endpoint or g.chromium_proxy
     fetcher.splash_endpoint = splash_endpoint
     if user_agent:
         fetcher.user_agent = user_agent
@@ -405,7 +406,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
     cmd = [phantomjs_path,
            # this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
-           #'--load-images=false',
+           # '--load-images=false',
            '--ssl-protocol=any',
            '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
@@ -521,7 +522,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
             chromium_config.setdefault('auto_restart', True)
             threads.append(run_in(ctx.invoke, chromium, **chromium_config))
             time.sleep(2)
-            if threads[-2].is_alive() and not g.get('chromium_proxy'):
+            if threads[-1].is_alive() and not g.get('chromium_proxy'):
                 g['chromium_proxy'] = '127.0.0.1:%s' % chromium_config.get('port', 22222)
 
         # result worker
