@@ -88,13 +88,13 @@ const get = async (_fetch) => {
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 			} else if (proxy !== ""){
+				proxy = ""
 				await browser.close();
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
 					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
-				proxy = ""
 			}
 		}
 
