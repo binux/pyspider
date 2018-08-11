@@ -88,13 +88,13 @@ const get = async (_fetch) => {
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 			} else if (proxy !== ""){
+				proxy = ""
 				await browser.close();
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
 					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
-				proxy = ""
 			}
 		}
 
@@ -301,7 +301,7 @@ app.listen(port);
 
 // start server
 if (app) {
-	console.log('Chromeium fetcher runing on port ' + port);
+	console.log('Chromium fetcher runing on port ' + port);
 }else{
 	console.log('Error: Could not create web server listening on port ' + port);
 }

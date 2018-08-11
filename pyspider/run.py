@@ -157,6 +157,12 @@ def cli(ctx, **kwargs):
         pass
     elif os.environ.get('PHANTOMJS_NAME'):
         kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT_25555_TCP'][len('tcp://'):]
+    
+    # chromium-proxy
+    if kwargs.get('chromium_proxy'):
+        pass
+    elif os.environ.get('CHROMIUM_NAME'):
+        kwargs['chromium_proxy'] = os.environ['CHROMIUM_PORT_22222_TCP'][len('tcp://'):]
 
     ctx.obj = utils.ObjectDict(ctx.obj or {})
     ctx.obj['instances'] = []
