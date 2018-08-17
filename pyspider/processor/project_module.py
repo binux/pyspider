@@ -47,6 +47,15 @@ class ProjectManager(object):
             'debug': project.get('status', 'DEBUG') == 'DEBUG',
         })
 
+        # reload all projects.* modules
+        module_list = []
+        for name, module in six.iteritems(sys.modules):
+            if name.startswith('projects.'):
+                module_list.append(name)
+
+        for name in module_list:
+            del sys.modules[name]
+
         loader = ProjectLoader(project)
         module = loader.load_module(project['name'])
 
