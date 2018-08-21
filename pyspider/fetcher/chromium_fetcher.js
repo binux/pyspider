@@ -66,7 +66,7 @@ const get = async (_fetch) => {
                 _fetch.proxy = `--proxy-server=${_fetch.proxy}`;
             }
 
-			if ((browser !== "" && proxy !== temp_proxy) ) {
+			if (browser !== "" && proxy !== temp_proxy) {
 				await browser.close();
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
