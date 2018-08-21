@@ -55,7 +55,7 @@ const get = async (_fetch) => {
 		page = "";
 	try{
 		// use proxy ?
-		// 频繁的打开关闭浏览器很影响性能，故只有代理发生改变才会重启浏览器
+		// Frequent opening and closing of the browser affects performance, so only the proxt changes will restart the browser.
 		if (_fetch.proxy) {
 			const temp_proxy = _fetch.proxy;
 			proxy = temp_proxy;
@@ -160,7 +160,7 @@ const get = async (_fetch) => {
 
 		// request failed
 		// page.on('requestfailed', request => {
-		// 	console.log("失败了："+request.url() + '失败的原因：' + request.failure().errorText);
+		// 	console.log(`failure：${request.url()} because：${request.failure().errorText}`);
 		// });
 
 		// to make sure request finish
@@ -168,11 +168,10 @@ const get = async (_fetch) => {
 			counter_2;
 		const counter = () => {
 			counter_1 += 1;
-			// console.log("我是一个counter_1：" + counter_1);
 		};
 		page.on('requestfinished',counter);
 
-		// every 200ms check request is completed without
+		// every 200ms check request is completed ?
 		const make_result = () =>{
 			return new Promise((resolve,reject) => {
 				setTimeout(function(){
@@ -195,12 +194,12 @@ const get = async (_fetch) => {
 		finish = await make_result();
 
         // get <frame> and <iframe> tag content
-		const iframes = await page.frames();
-		for(let i in iframes){
-			// console.log(`这是第${i}个iframe：`);
-			let iframe_content = await iframes[i].content();
-			content = content + iframe_content + "\n";
-		}
+		// const iframes = await page.frames();
+		// for(let i in iframes){
+		// 	console.log(`this is ${i} iframe`);
+		// 	let iframe_content = await iframes[i].content();
+		// 	content = content + iframe_content + "\n";
+		// }
 		
 		if(finish){
 			// run js_script
@@ -208,7 +207,7 @@ const get = async (_fetch) => {
 				script_result = await page.evaluate(_fetch.js_script);
 				await make_result();
 			}
-			// console.log('finish ！！！');
+
 			// to make result
 			content = content + "\n" + await page.content();
 			const cookies = await page.cookies(_fetch.url);
@@ -226,7 +225,7 @@ const get = async (_fetch) => {
 			};
 			console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
 			finish = false;
-			// console.log("我完成了！！！！！！"+finish);
+			// console.log("finish");
 			await page.close();
 		}else{
 			throw "Timeout to get page !"
@@ -260,7 +259,7 @@ const post = async (_fetch) => {
             body: JSON.stringify(_fetch.data),
         },(error, response, body) => {
             if (!error && response.statusCode == 200) {
-                //输出返回的内容
+                //return the content 
 				// console.log("success !");
 				result = {
 					orig_url: _fetch.url,
@@ -277,7 +276,7 @@ const post = async (_fetch) => {
 				console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
                 resolve(result)
             }else{
-				//不为200时的返回内容
+				// when request failure
 				// console.log("something error !");
 				result = {
 					orig_url: _fetch.url,
