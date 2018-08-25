@@ -1,5 +1,5 @@
 FROM python:2.7
-MAINTAINER twy
+MAINTAINER binux <roy@binux.me>
 
 # install phantomjs
 RUN mkdir -p /opt/phantomjs \
@@ -42,13 +42,13 @@ RUN pip install -e .[all]
 
 # if you are in China recommend run cnpm in China
 # RUN cd /opt/pyspider/pyspider/fetcher \
-#         && cnpm install puppeteer@1.6.2 \
+#         && cnpm install puppeteer \
 #         && cnpm install koa \
 #         && cnpm install koa-bodyparser \
 #         && cnpm install request
 
 RUN cd /opt/pyspider/pyspider/fetcher \
-        && npm install puppeteer@1.6.2 \
+        && npm install puppeteer \
         && npm install koa \
         && npm install koa-bodyparser \
         && npm install request
