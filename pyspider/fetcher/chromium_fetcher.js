@@ -67,6 +67,7 @@ const get = async (_fetch) => {
             }
 
 			if (browser !== "" && proxy !== temp_proxy) {
+				console.log(`Swith proxy to: ${_fetch.proxy}`);
 				await browser.close();
 				browser = await puppeteer.launch({
 					headless: _fetch.headless !== false,
@@ -91,7 +92,7 @@ const get = async (_fetch) => {
 				proxy = ""
 				await browser.close();
 				browser = await puppeteer.launch({
-					headless: _fetch.headless !== false,
+				    	headless: _fetch.headless !== false,
 					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
