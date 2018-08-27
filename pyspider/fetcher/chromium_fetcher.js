@@ -14,7 +14,8 @@ const port = process.argv[2];
 let result = "",
 	_fetch = "",
 	browser = "",
-	proxy = "",
+	// use for judge proxy switch ? 
+	pre_proxy = "",
 	finish = false,
 	body = "";
 
@@ -57,8 +58,7 @@ const get = async (_fetch) => {
 		// use proxy ?
 		// Frequent opening and closing of the browser affects performance, so only the proxt changes will restart the browser.
 		if (_fetch.proxy) {
-			const temp_proxy = _fetch.proxy;
-			proxy = temp_proxy;
+			const now_proxy = _fetch.proxy;
 
 			if (!_fetch.proxy.includes("://")){
 				_fetch.proxy = `--proxy-server=http://${_fetch.proxy}`;
@@ -66,7 +66,7 @@ const get = async (_fetch) => {
                 _fetch.proxy = `--proxy-server=${_fetch.proxy}`;
             }
 
-			if (browser !== "" && proxy !== temp_proxy) {
+			if (browser !== "" && pre_proxy !== now_proxy) {
 				console.log(`Swith proxy to: ${_fetch.proxy}`);
 				await browser.close();
 				browser = await puppeteer.launch({
@@ -81,6 +81,8 @@ const get = async (_fetch) => {
 					args: [_fetch.proxy,'--no-sandbox', '--disable-setuid-sandbox']
 				});
 			}
+			// pre_proxy is last request to use there compare it to now_proxy to judge the proxy is switch ?
+			pre_proxy = now_proxy;
 		} else {
 			if (browser === ""){
 				browser = await puppeteer.launch({
@@ -89,7 +91,7 @@ const get = async (_fetch) => {
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
 			} else if (proxy !== ""){
-				proxy = ""
+				proxy = "";
 				await browser.close();
 				browser = await puppeteer.launch({
 				    	headless: _fetch.headless !== false,
@@ -149,7 +151,7 @@ const get = async (_fetch) => {
 			}
 			await page.setCookie(cookies);
 		}
-		
+
 		// print the page console messages
 		page.on('console', msg => {
 			if (typeof msg === 'object') {
@@ -201,7 +203,7 @@ const get = async (_fetch) => {
 		// 	let iframe_content = await iframes[i].content();
 		// 	content = content + iframe_content + "\n";
 		// }
-		
+
 		if(finish){
 			// run js_script
 			if(_fetch.js_script){
@@ -227,7 +229,6 @@ const get = async (_fetch) => {
 			console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
 			finish = false;
 			// console.log("finish");
-			await page.close();
 		}else{
 			throw "Timeout to get page !"
 		}
@@ -246,6 +247,7 @@ const get = async (_fetch) => {
 		}
 	}
 	// console.log(JSON.stringify(result, null, 2));
+	await page.close();
     return JSON.stringify(result, null, 2);
 };
 
@@ -260,7 +262,7 @@ const post = async (_fetch) => {
             body: JSON.stringify(_fetch.data),
         },(error, response, body) => {
             if (!error && response.statusCode == 200) {
-                //return the content 
+                //return the content
 				// console.log("success !");
 				result = {
 					orig_url: _fetch.url,
