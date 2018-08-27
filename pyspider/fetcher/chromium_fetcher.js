@@ -81,8 +81,7 @@ const get = async (_fetch) => {
 					args: [_fetch.proxy,'--no-sandbox', '--disable-setuid-sandbox']
 				});
 			}
-			// pre_proxy is last request to use there compare it to now_proxy to judge the proxy is switch ?
-			pre_proxy = now_proxy;
+			
 		} else {
 			if (browser === ""){
 				browser = await puppeteer.launch({
@@ -90,16 +89,18 @@ const get = async (_fetch) => {
 					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
-			} else if (proxy !== ""){
-				proxy = "";
+			} else if (pre_proxy !== ""){
+				pre_proxy = "";
 				await browser.close();
 				browser = await puppeteer.launch({
 				    	headless: _fetch.headless !== false,
 					timeout:_fetch.timeout ? _fetch.timeout * 1000 : 30*1000,
 					args: ['--no-sandbox', '--disable-setuid-sandbox']
 				});
-			}
+			} 
 		}
+		// pre_proxy is last request to use there compare it to now_proxy to judge the proxy is switch ?
+		pre_proxy = _fetch.proxy;
 
 		// create and set page
 		page = await browser.newPage();
