@@ -1,0 +1,12 @@
+{
+  "taskdb_demo": "mysql+taskdb://user:password@host:port/taskdb",
+  "projectdb_demo": "mysql+projectdb://user:password@host:port/projectdb",
+  "resultdb_demo": "mysql+resultdb://user:password@host:port/resultdb",
+  "message_queue_demo": "redis://host:port/0",
+  "webui_demo": {
+    "port": 5000,
+    "username": "admin",
+    "password": "admin",
+    "need-auth": true
+  }
+}

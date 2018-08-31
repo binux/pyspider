@@ -1,5 +1,7 @@
-FROM python:2.7
+FROM python:3.5
 MAINTAINER binux <roy@binux.me>
+
+RUN apt-get update
 
 # install phantomjs
 RUN mkdir -p /opt/phantomjs \
@@ -11,7 +13,7 @@ RUN mkdir -p /opt/phantomjs \
 
 
 # install requirements
-RUN pip install --egg 'https://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-2.1.5.zip#md5=ce4a24cb1746c1c8f6189a97087f21c1'
+RUN pip install 'https://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-2.1.5.zip#md5=ce4a24cb1746c1c8f6189a97087f21c1'
 COPY requirements.txt /opt/pyspider/requirements.txt
 RUN pip install -r /opt/pyspider/requirements.txt
 
@@ -23,6 +25,6 @@ WORKDIR /opt/pyspider
 RUN pip install -e .[all]
 
 VOLUME ["/opt/pyspider"]
-ENTRYPOINT ["pyspider"]
+ENTRYPOINT ["pyspider","-c","/opt/pyspider/config.json"]
 
 EXPOSE 5000 23333 24444 25555
