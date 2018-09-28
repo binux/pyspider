@@ -15,6 +15,7 @@ COPY requirements.txt /opt/pyspider/requirements.txt
 
 RUN pip install -r /opt/pyspider/requirements.txt
 
+# install nodejs
 RUN mkdir -p /opt/nodejs \
         && cd /opt/nodejs \
         && wget -O node-v8.11.3-linux-x64.tar.xz https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz \
