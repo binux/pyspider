@@ -13,11 +13,8 @@ RUN mkdir -p /opt/phantomjs \
 # RUN pip install --egg 'https://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-2.1.5.zip#md5=ce4a24cb1746c1c8f6189a97087f21c1'
 COPY requirements.txt /opt/pyspider/requirements.txt
 
-# When use pip in China download is too slow so recommend use https://pypi.tuna.tsinghua.edu.cn/simple
-# RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r /opt/pyspider/requirements.txt
 RUN pip install -r /opt/pyspider/requirements.txt
 
-# if you are in China recommend run cnpm in China
 RUN mkdir -p /opt/nodejs \
         && cd /opt/nodejs \
         && wget -O node-v8.11.3-linux-x64.tar.xz https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz \
@@ -25,8 +22,6 @@ RUN mkdir -p /opt/nodejs \
         && ln -s /opt/nodejs/bin/node /usr/local/bin/node \
         && ln -s /opt/nodejs/bin/npm /usr/local/bin/npm \
         && rm node-v8.11.3-linux-x64.tar.xz 
-        # && npm install -g cnpm --registry=https://registry.npm.taobao.org \
-        # && ln -s /opt/nodejs/bin/cnpm /usr/local/bin/cnpm
 
 # add all repo
 ADD ./ /opt/pyspider
@@ -34,18 +29,9 @@ ADD ./ /opt/pyspider
 # run test
 WORKDIR /opt/pyspider
 
-# When use pip in China download is too slow so recommed use https://pypi.tuna.tsinghua.edu.cn/simple
-# RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -e .[all]
 RUN pip install -e .[all]
 
 # install puppeteer、koa、koa-bodyparser、request
-
-# if you are in China recommend run cnpm in China
-# RUN cd /opt/pyspider/pyspider/fetcher \
-#         && cnpm install puppeteer \
-#         && cnpm install koa \
-#         && cnpm install koa-bodyparser \
-#         && cnpm install request
 
 RUN cd /opt/pyspider/pyspider/fetcher \
         && npm install puppeteer \
