@@ -1,0 +1,104 @@
+phantomjs:
+  image: 'daocloud.io/djytwy/pyspider:latest'
+  command: phantomjs
+  cpu_shares: 512
+  environment:
+    - 'EXCLUDE_PORTS=5000,23333,24444,6666,22222'
+  expose:
+    - '25555'
+  mem_limit: 512m
+  restart: always
+phantomjs-lb:
+  image: 'dockercloud/haproxy:latest'
+  links:
+    - phantomjs
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
+
+chromium:
+  image: 'daocloud.io/djytwy/pyspider:latest'
+  command: chromium
+  environment:
+    - 'EXCLUDE_PORTS=5000,23333,24444,6666,25555'
+  expose:
+    - '22222'
+  restart: always
+chromium-lb:
+  image: 'dockercloud/haproxy:latest'
+  links:
+    - chromium
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
+
+fetcher:
+  image: 'daocloud.io/djytwy/pyspider:latest'
+  # command: --message-queue "redis://172.17.0.12:6379/1" --phantomjs-proxy "phantomjs:80" --chromium-proxy "chromium:80" fetcher --xmlrpc
+  command: '--message-queue "amqp://guest:guest@172.17.0.3:5672/" --phantomjs-proxy "phantomjs:80" --chromium-proxy "chromium:80" fetcher --xmlrpc'
+  cpu_shares: 512
+  environment:
+    - 'EXCLUDE_PORTS=5000,25555,23333,22222,6666'
+  links:
+    - 'phantomjs-lb:phantomjs'
+    - 'chromium-lb:chromium'
+    - 'squid'
+  mem_limit: 128m
+  restart: always
+fetcher-lb:
+  image: 'dockercloud/haproxy:latest'
+  links:
+    - fetcher
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
+
+processor:
+  image: 'daocloud.io/djytwy/pyspider:latest'
+  command: '--projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" --message-queue "amqp://guest:guest@172.17.0.3:5672/" processor'
+  # command: --projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" --message-queue "redis://172.17.0.12:6379/1" processor
+  cpu_shares: 512
+  mem_limit: 256m
+  restart: always
+
+result-worker:
+  image: 'daocloud.io/djytwy/pyspider:latest'
+  # command: --taskdb "sqlalchemy+postgresql+taskdb://postgres:twy930107@172.17.0.2:5432/taskdb"  --projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" --resultdb "sqlalchemy+postgresql+resultdb://postgres:twy930107@172.17.0.2:5432/resultdb" --message-queue "redis://172.17.0.12:6379/1" result_worker
+  command: '--taskdb "sqlalchemy+postgresql+taskdb://postgres:twy930107@172.17.0.2:5432/taskdb"  --projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" --resultdb "sqlalchemy+postgresql+resultdb://postgres:twy930107@172.17.0.2:5432/resultdb" --message-queue "amqp://guest:guest@172.17.0.3:5672/" result_worker'
+  cpu_shares: 512
+  mem_limit: 256m
+  restart: always
+
+webui:
+  image: 'daocloud.io/djytwy/pyspider:latest'
+  # command: --taskdb "sqlalchemy+postgresql+taskdb://postgres:twy930107@172.17.0.2:5432/taskdb"  --projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" --resultdb "sqlalchemy+postgresql+resultdb://postgres:twy930107@172.17.0.2:5432/resultdb" --message-queue "redis://172.17.0.12:6379/1" webui --max-rate 0.2 --max-burst 3 --scheduler-rpc "http://172.17.0.5:23333/" --fetcher-rpc "http://fetcher/"
+  command: '--taskdb "sqlalchemy+postgresql+taskdb://postgres:twy930107@172.17.0.2:5432/taskdb"  --projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" --resultdb "sqlalchemy+postgresql+resultdb://postgres:twy930107@172.17.0.2:5432/resultdb" --message-queue "amqp://guest:guest@172.17.0.3:5672/" webui --max-rate 0.2 --max-burst 3 --scheduler-rpc "http://172.17.0.5:23333/" --fetcher-rpc "http://fetcher/"'
+  cpu_shares: 256
+  environment:
+    - 'EXCLUDE_PORTS=24444,25555,23333,22222,6666'
+  links:
+    - fetcher-lb:fetcher
+  ports:
+    - 80:5000
+  mem_limit: 256m
+  restart: always
+webui-lb:
+  image: 'dockercloud/haproxy:latest'
+  links:
+    - webui
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  restart: always
+
+
+# run scheduler outside compose with message queue is rabbitmq ：
+# docker run --name scheduler -d -p 23333:23333 --restart=always daocloud.io/djytwy/pyspider:latest \
+#     --taskdb "sqlalchemy+postgresql+taskdb://postgres:twy930107@172.17.0.2:5432/taskdb" \
+#     --resultdb "sqlalchemy+postgresql+resultdb://postgres:twy930107@172.17.0.2:5432/resultdb" \
+#     --projectdb "sqlalchemy+postgresql+projectdb://postgres:twy930107@172.17.0.2:5432/projectdb" \
+#     --message-queue "amqp://guest:guest@172.17.0.3:5672" \
+#     scheduler --inqueue-limit 5000 --delete-time 43200
+
+
+# run squid outside compose
+# docker run -it -p 3128:3128 --name squid --rm -v /etc/squid/squid.conf:/etc/squid/squid.conf -v /etc/squid/peers.conf:/etc/squid/peers.conf  docker.io/sameersbn/squid:latest
