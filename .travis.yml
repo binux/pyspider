@@ -9,7 +9,7 @@ python:
     - "3.4"
     - "3.5"
     - "3.6"
-    - "3.7-dev"
+    - "3.7"
 services:
     - docker
     - mongodb
@@ -25,8 +25,8 @@ addons:
     - mysql-client-core-5.6
     - mysql-client-5.6
 before_install:
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then sudo add-apt-repository ppa:deadsnakes/ppa -y; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then sudo sudo apt-get update; fi
+#    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then sudo add-apt-repository ppa:deadsnakes/ppa -y; fi
+#    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then sudo sudo apt-get update; fi
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
@@ -40,7 +40,7 @@ before_script:
     - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - sleep 10
 install:
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then source .travis_py37_workaround.sh; fi
+#    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then source .travis_py37_workaround.sh; fi
     - pip install mysql-connector-python
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
     - pip install --no-use-wheel lxml
