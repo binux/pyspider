@@ -228,7 +228,7 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
             timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls,
-            async=True, get_object=False, no_input=False):
+            async_mode=True, get_object=False, no_input=False):
     """
     Run Fetcher.
     """
@@ -242,7 +242,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
         inqueue = g.scheduler2fetcher
         outqueue = g.fetcher2processor
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
-                      poolsize=poolsize, proxy=proxy, async=async)
+                      poolsize=poolsize, proxy=proxy, async_mode=async_mode)
     fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
     fetcher.splash_endpoint = splash_endpoint
     if user_agent:
@@ -362,7 +362,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     else:
         # get fetcher instance for webui
         fetcher_config = g.config.get('fetcher', {})
-        webui_fetcher = ctx.invoke(fetcher, async=False, get_object=True, no_input=True, **fetcher_config)
+        webui_fetcher = ctx.invoke(fetcher, async_mode=False, get_object=True, no_input=True, **fetcher_config)
 
         app.config['fetch'] = lambda x: webui_fetcher.fetch(x)
 

@@ -78,7 +78,7 @@ class Fetcher(object):
     splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
     robot_txt_age = 60*60  # 1h
 
-    def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async=True):
+    def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async_mode=True):
         self.inqueue = inqueue
         self.outqueue = outqueue
 
@@ -86,7 +86,7 @@ class Fetcher(object):
         self._running = False
         self._quit = False
         self.proxy = proxy
-        self.async = async
+        self.async = async_mode
         self.ioloop = tornado.ioloop.IOLoop()
 
         self.robots_txt_cache = {}

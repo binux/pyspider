@@ -83,6 +83,7 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
 
     From tornado
     """
+
     if not date:
         return '-'
     if isinstance(date, float) or isinstance(date, int):
@@ -106,30 +107,12 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
 
     format = None
     if not full_format:
-        if relative and days == 0:
-            if seconds < 50:
-                return ("1 second ago" if seconds <= 1 else
-                        "%(seconds)d seconds ago") % {"seconds": seconds}
-
-            if seconds < 50 * 60:
-                minutes = round(seconds / 60.0)
-                return ("1 minute ago" if minutes <= 1 else
-                        "%(minutes)d minutes ago") % {"minutes": minutes}
-
-            hours = round(seconds / (60.0 * 60))
-            return ("1 hour ago" if hours <= 1 else
-                    "%(hours)d hours ago") % {"hours": hours}
-
-        if days == 0:
-            format = "%(time)s"
-        elif days == 1 and local_date.day == local_yesterday.day and \
-                relative:
-            format = "yesterday" if shorter else "yesterday at %(time)s"
-        elif days < 5:
-            format = "%(weekday)s" if shorter else "%(weekday)s at %(time)s"
-        elif days < 334:  # 11mo, since confusing for same month last year
-            format = "%(month)s-%(day)s" if shorter else \
-                "%(month)s-%(day)s at %(time)s"
+        ret_, fff_format = fix_full_format(days, seconds, relative, shorter, local_date, local_yesterday)
+        format = fff_format
+        if ret_:
+            return format
+        else:
+            format = format
 
     if format is None:
         format = "%(month_name)s %(day)s, %(year)s" if shorter else \
@@ -146,6 +129,33 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
         "time": str_time
     }
 
+
+def fix_full_format(days, seconds, relative, shorter, local_date, local_yesterday):
+    if relative and days == 0:
+        if seconds < 50:
+            return True, (("1 second ago" if seconds <= 1 else
+                    "%(seconds)d seconds ago") % {"seconds": seconds})
+
+        if seconds < 50 * 60:
+            minutes = round(seconds / 60.0)
+            return True, (("1 minute ago" if minutes <= 1 else
+                    "%(minutes)d minutes ago") % {"minutes": minutes})
+
+        hours = round(seconds / (60.0 * 60))
+        return True, (("1 hour ago" if hours <= 1 else
+                "%(hours)d hours ago") % {"hours": hours})
+    format = None
+    if days == 0:
+        format = "%(time)s"
+    elif days == 1 and local_date.day == local_yesterday.day and \
+            relative:
+        format = "yesterday" if shorter else "yesterday at %(time)s"
+    elif days < 5:
+        format = "%(weekday)s" if shorter else "%(weekday)s at %(time)s"
+    elif days < 334:  # 11mo, since confusing for same month last year
+        format = "%(month)s-%(day)s" if shorter else \
+            "%(month)s-%(day)s at %(time)s"
+    return False, format
 
 class TimeoutError(Exception):
     pass

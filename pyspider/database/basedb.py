@@ -11,6 +11,7 @@ import logging
 logger = logging.getLogger('database.basedb')
 
 from six import itervalues
+from pyspider.libs import utils
 
 
 class BaseDB:
@@ -72,7 +73,10 @@ class BaseDB:
         logger.debug("<sql: %s>", sql_query)
 
         dbcur = self._execute(sql_query, where_values)
-        fields = [f[0] for f in dbcur.description]
+
+        # f[0] may return bytes type
+        # https://github.com/mysql/mysql-connector-python/pull/37
+        fields = [utils.text(f[0]) for f in dbcur.description]
 
         for row in dbcur:
             yield dict(zip(fields, row))

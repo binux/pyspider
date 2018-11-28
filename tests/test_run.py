@@ -72,7 +72,7 @@ class TestRun(unittest.TestCase):
         self.assertEqual(ctx.obj.debug, True)
 
         import mysql.connector
-        with self.assertRaises(mysql.connector.InterfaceError):
+        with self.assertRaises(mysql.connector.Error):
             ctx.obj.taskdb
 
         with self.assertRaises(Exception):

@@ -23,7 +23,7 @@ class TestFetcherProcessor(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = ProjectDB([os.path.join(os.path.dirname(__file__), 'data_fetcher_processor_handler.py')])
-        self.fetcher = Fetcher(None, None, async=False)
+        self.fetcher = Fetcher(None, None, async_mode=False)
         self.status_queue = Queue()
         self.newtask_queue = Queue()
         self.result_queue = Queue()
@@ -486,6 +486,6 @@ class TestFetcherProcessor(unittest.TestCase):
 
     def test_zzz_connect_timeout(self):
         start_time = time.time()
-        status, newtasks, result = self.crawl('http://1.1.1.1/', connect_timeout=5, callback=self.catch_http_error)
+        status, newtasks, result = self.crawl('http://240.0.0.1/', connect_timeout=5, callback=self.catch_http_error)
         end_time = time.time()
         self.assertTrue(5 <= end_time - start_time <= 6)

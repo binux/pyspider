@@ -6,7 +6,7 @@ lxml
 pycurl
 pyquery
 requests>=2.2
-tornado>=3.2
+tornado==4.5.3
 mysql-connector-python>=1.2.2
 pika>=0.9.14
 pymongo>=2.7.2

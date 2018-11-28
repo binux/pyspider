@@ -5,4 +5,4 @@
 #         http://binux.me
 # Created on 2014-11-17 19:17:12
 
-__version__ = '0.3.10-dev'
+__version__ = '0.3.10'
