@@ -423,7 +423,7 @@ class Scheduler(object):
         if now - self._last_tick < 1:
             return False
         self._last_tick += 1
-        for project in itervalues(self.projects):
+        for project in self.projects.values():
             if not project.active:
                 continue
             if project.waiting_get_info:
@@ -481,7 +481,7 @@ class Scheduler(object):
 
         # dynamic assign select limit for each project, use qsize as weight
         project_weights, total_weight = dict(), 0
-        for project in itervalues(self.projects):  # type:Project
+        for project in self.projects.values():  # type:Project
             if not project.active:
                 continue
             # only check project pause when select new tasks, cronjob and new request still working
@@ -630,7 +630,7 @@ class Scheduler(object):
     def _check_delete(self):
         '''Check project delete'''
         now = time.time()
-        for project in list(itervalues(self.projects)):
+        for project in self.projects.values():
             if project.db_status != 'STOP':
                 continue
             if now - project.updatetime < self.DELETE_TIME:
