@@ -2,7 +2,6 @@ sudo: required
 language: python
 cache: pip
 python:
-    - "2.6"
     - "2.7"
     - "3.3"
     - "3.4"
@@ -38,8 +37,9 @@ before_script:
 install:
     - pip install mysql-connector-python
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
-    - pip install --no-use-wheel lxml
-    - pip install --allow-all-external -e .[all,test]
+
+    - if [[ $TRAVIS_PYTHON_VERSION != '3.5' ]]; then pip install --no-use-wheel lxml; else pip install lxml; fi
+    - if [[ $TRAVIS_PYTHON_VERSION != '3.5' ]]; then pip install --allow-all-external -e .[all,test]; else pip install -e .[all,test]; fi
     - pip install coveralls
 script:
     - coverage run setup.py test
