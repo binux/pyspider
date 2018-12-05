@@ -173,7 +173,7 @@ const get = async (_fetch) => {
 		const counter = () => {
 			counter_1 += 1;
 		};
-		page.on('requestfinished',counter);
+		page.on('request',counter);
 
 		// every 200ms check request is completed ?
 		const make_result = () =>{
@@ -189,7 +189,7 @@ const get = async (_fetch) => {
                         counter_2 = counter_1;
                         resolve(make_result());
                     }
-				},200)
+				},500)
 			})
 		};
 
