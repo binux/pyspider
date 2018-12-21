@@ -1,20 +1,24 @@
 'use strict';
 
-const puppeteer = require('puppeteer');
-const device = require('puppeteer/DeviceDescriptors');
-const Koa = require('koa');
-const bodyParser = require('koa-bodyparser');
-var request = require('request');
+const puppeteer = require('puppeteer'),
+    device = require('puppeteer/DeviceDescriptors'),
+    Koa = require('koa'),
+    bodyParser = require('koa-bodyparser'),
+    request = require('request'),
+    // to get the port which server run
+    port = process.argv[2],
+    // wait time after a request
+    wait_before_end = 1000;
 
+// start Koa server
 const app = new Koa();
 app.use(bodyParser());
-// to get the port which server run
-const port = process.argv[2];
 
-const wait_before_end = 1000 ;
+
 let _fetch = "",
     result = "",
-	browser = "",
+    browser = "",
+    browser_with_proxy = "",
 	body = "";
 
 // koa server
@@ -22,10 +26,14 @@ app.use(async (ctx,next) => {
 	await next();
 	if(ctx.request.method === 'POST') {
 		_fetch = JSON.parse(ctx.request.rawBody);
-		if(_fetch.method === 'POST' || _fetch.method === 'post'){
+		if(_fetch.method === 'POST' || _fetch.method === 'post') {
 			body = await post(_fetch);
-		}else{
-			body = await get(_fetch);
+		} else {
+		    await launch_browser(_fetch);
+		    if(_fetch.proxy)
+			    body = await get(_fetch,browser_with_proxy);
+            else
+                body = await get(_fetch,browser);
 		}
 		ctx.response.status_code = 200;
 		ctx.response.set({
@@ -46,8 +54,8 @@ app.use(async (ctx,next) => {
 });
 
 // get method with puppeteer
-const get = async _fetch => {
-    return new Promise(async (resolve,rejects)  => {
+const get = async (_fetch, browser) => {
+    return new Promise(async resolve  => {
         const start_time = Date.now();
         let response = "",
             script_result = "",
@@ -57,29 +65,6 @@ const get = async _fetch => {
             page_timeout = "",
             finished = false,
             page = "";
-
-        // use proxy ?
-        if (!browser) {
-            if (_fetch.proxy) {
-
-                if (!_fetch.proxy.includes("://")){
-                    _fetch.proxy = `--proxy-server=http://${_fetch.proxy}`;
-                }else{
-                    _fetch.proxy = `--proxy-server=${_fetch.proxy}`;
-                }
-
-                browser = await puppeteer.launch({
-                    headless: _fetch.headless !== false,
-                    args: [_fetch.proxy,'--no-sandbox', '--disable-setuid-sandbox']
-                });
-
-            } else {
-                browser = await puppeteer.launch({
-                    headless: _fetch.headless !== false,
-                    args: ['--no-sandbox', '--disable-setuid-sandbox']
-                });
-            }
-        }
 
         // create and set page
         page = await browser.newPage();
@@ -147,16 +132,16 @@ const get = async _fetch => {
         // 	console.log(`failure：${request.url()} because：${request.failure().errorText}`);
         // });
 
-        page.on('requestfinished', request => {
+        page.on('requestfinished', async request => {
             console.log(`Request finished: [${request.method()}] ${request.url()}`);
             if (loaded) {
                 end_time = Date.now() + wait_before_end;
-                make_result().then(result => resolve(result));
+                await make_result().then(result => resolve(result));
             }
         });
 
         const make_result = () => {
-            return new Promise((resolve, reject) => {
+            return new Promise(resolve => {
                 setTimeout(async() => {
                     if (finished) {
                         return "";
@@ -209,12 +194,29 @@ const get = async _fetch => {
             })
         };
 
-        response = await page.goto(_fetch.url);
+        try {
+            response = await page.goto(_fetch.url);
+        } catch (e) {
+            result = {
+                orig_url: _fetch.url,
+                status_code: 599,
+                error: e.toString(),
+                content: content || "",
+                headers: {},
+                url: _fetch.url,
+                cookies: {},
+                time: (Date.now() - start_time) / 1000,
+                js_script_result: null,
+                save: _fetch.save
+            };
+            await page.close();
+            resolve (result)
+        }
     });
 };
 
 // post method with request
-const post = async (_fetch) => {
+const post = _fetch => {
 	return new Promise((resolve, reject) => {
 		const start_time = Date.now();
         request({
@@ -223,9 +225,8 @@ const post = async (_fetch) => {
             headers:_fetch.headers,
             body: JSON.stringify(_fetch.data),
         },(error, response, body) => {
-            if (!error && response.statusCode == 200) {
+            if (!error && response.statusCode === 200) {
                 //return the content
-				// console.log("success !");
 				result = {
 					orig_url: _fetch.url,
 					status_code: response.statusCode || 599,
@@ -261,6 +262,35 @@ const post = async (_fetch) => {
         });
     })
 };
+
+// launch two browsers a browser launch with proxy (if has proxy)
+const launch_browser = _fetch => {
+    return new Promise(async resolve => {
+        if (!browser && !_fetch.proxy) {
+            browser = await puppeteer.launch({
+                headless: _fetch.headless !== false,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+            resolve(browser)
+        }else if (!browser_with_proxy && _fetch.proxy) {
+            if (!_fetch.proxy.includes("://")) {
+                _fetch.proxy = `--proxy-server=http://${_fetch.proxy}`;
+            } else {
+                _fetch.proxy = `--proxy-server=${_fetch.proxy}`;
+            }
+            browser_with_proxy = await puppeteer.launch({
+                headless: _fetch.headless !== false,
+                args: [_fetch.proxy,'--no-sandbox', '--disable-setuid-sandbox']
+            });
+            resolve(browser_with_proxy)
+        }else if (_fetch.proxy) {
+            resolve(browser_with_proxy);
+        } else
+            resolve(browser);
+
+    })
+};
+
 app.listen(port);
 
 // start server
