@@ -68,7 +68,9 @@ TODO
 
 ### v0.4.0
 
-- [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
+- [ ] 加入文本分析的功能，在爬取的阶段就对内容进行筛选
+- [ ] 调用百度的图片识别API对爬取网页中的图片进行识别和筛选
+- [ ] 建立所爬取网站内的搜索功能
 
 
 License
