@@ -136,7 +136,7 @@ const get = async (_fetch, browser) => {
             console.log(`Request finished: [${request.method()}] ${request.url()}`);
             if (loaded) {
                 end_time = Date.now() + wait_before_end;
-                await make_result().then(result => resolve(result));
+                resolve(await make_result()) 
             }
         });
 
