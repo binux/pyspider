@@ -10,15 +10,17 @@ const puppeteer = require('puppeteer'),
     // wait time after a request
     wait_before_end = 1000;
 
+    console.debug = function(){};
+
 // start Koa server
 const app = new Koa();
 app.use(bodyParser());
 
 
 let _fetch = "",
-    result = "",
     browser = "",
     browser_with_proxy = "",
+    result = "",
 	body = "";
 
 // koa server
@@ -55,13 +57,13 @@ app.use(async (ctx,next) => {
 
 // get method with puppeteer
 const get = async (_fetch, browser) => {
-    return new Promise(async resolve  => {
+    return new Promise(async resolve => {
         const start_time = Date.now();
-        let response = "",
+        let first_response = null,
             script_result = "",
             content = "",
             loaded = "",
-            end_time = "",
+            end_time = null,
             page_timeout = "",
             finished = false,
             page = "";
@@ -70,8 +72,6 @@ const get = async (_fetch, browser) => {
         page = await browser.newPage();
         page_timeout = _fetch.timeout ? _fetch.timeout * 1000 : 20*1000;
         page.setDefaultNavigationTimeout(page_timeout);
-
-        await page.setRequestInterception(true);
 
         // set user-agent
         if (_fetch.headers && _fetch.headers['User-Agent']) {
@@ -88,26 +88,6 @@ const get = async (_fetch, browser) => {
             })
         }
 
-        // when base page load finish
-        page.once('domcontentloaded',async () => {
-            loaded = true;
-            console.log("base page load finished !!!");
-            // run js_script
-            if(_fetch.js_script && _fetch.js_run_at !== "document-start") {
-                script_result = await page.evaluate(_fetch.js_script);
-            }
-        });
-
-        // load images ?
-        page.on('request', request => {
-           if(request.resourceType() === 'image' && !_fetch.load_images){
-                request.abort();
-           } else {
-                console.log(`Starting request: [${request.method()}] ${request.url()} `);
-                request.continue();
-           }
-        });
-
         // set request headers
         page.setExtraHTTPHeaders(_fetch.headers);
 
@@ -120,82 +100,121 @@ const get = async (_fetch, browser) => {
             await page.setCookie(cookies);
         }
 
+        // when base page load finish
+        page.once('domcontentloaded',async () => {
+            loaded = true;
+            console.debug("base page load finished !!!");
+            // run js_script
+            if(_fetch.js_script && _fetch.js_run_at !== "document-start") {
+                script_result = await page.evaluate(_fetch.js_script);
+            }
+            end_time = Date.now() + wait_before_end;
+            setTimeout(make_result, wait_before_end);
+        });
+
+        // request start and load images ?
+        page.on('request', request => {
+           if(request.resourceType() === 'image' && !_fetch.load_images){
+                request.abort();
+           } else {
+                console.debug(`Starting request: [${request.method()}] ${request.url()} `);
+                request.continue();
+           }
+           end_time = null;
+        });
+
         // print the page console messages (filter type=image if load_images=False or undefined)
         page.on('console', msg => {
             if (typeof msg === 'object' && msg.text() !== "Failed to load resource: net::ERR_FAILED") {
-                console.log('console:' + msg.text())
+                console.debug('console:' + msg.text())
             }
         });
 
         // request failed
-        // page.on('requestfailed', request => {
-        // 	console.log(`failure：${request.url()} because：${request.failure().errorText}`);
-        // });
-
-        page.on('requestfinished', async request => {
-            console.log(`Request finished: [${request.method()}] ${request.url()}`);
+        page.on('requestfailed', request => {
+            if (request.resourceType() !== 'image' && _fetch.load_images) {
+                console.debug(`Request fail: [${request.method()}] ${request.url()} because：${request.failure().errorText}`);
+            }
+        	if (first_response === null) {
+        	    first_response = request.response()
+            }
             if (loaded) {
                 end_time = Date.now() + wait_before_end;
-                resolve(await make_result()) 
+                setTimeout(make_result, wait_before_end);
             }
         });
 
-        const make_result = () => {
-            return new Promise(resolve => {
-                setTimeout(async() => {
-                    if (finished) {
-                        return "";
-                    }
-                    if (Date.now() - start_time < page_timeout) {
-                        if (!!!end_time) {
-                            return "";
-                        }
-                        if (end_time > Date.now()) {
-                            setTimeout(make_result, Math.min(Date.now() - end_time, 100));
-                            return "";
-                        }
-                    }
-                    console.log("make_result !!!");
-                    // to make result
-                    content = content + "\n" + await page.content();
-                    const cookies = await page.cookies(_fetch.url);
-                    try {
-                        result = {
-                            orig_url: _fetch.url,
-                            status_code: response.status() || 599,
-                            error: null,
-                            content: content,
-                            headers: response.headers(),
-                            url: page.url(),
-                            cookies: cookies,
-                            time: (Date.now() - start_time) / 1000,
-                            js_script_result: script_result,
-                            save: _fetch.save
-                        };
-                        console.log("["+result.status_code+"] "+result.orig_url+" "+result.time);
-                        finished = true;
-                    } catch(e) {
-                        result = {
-                            orig_url: _fetch.url,
-                            status_code: 599,
-                            error: e.toString(),
-                            content: content || "",
-                            headers: {},
-                            url: _fetch.url,
-                            cookies: {},
-                            time: (Date.now() - start_time) / 1000,
-                            js_script_result: null,
-                            save: _fetch.save
-                        }
-                    }
-                    resolve(result);
-                    await page.close();
-                },wait_before_end + 10);
-            })
+        // request finish
+        page.on('requestfinished', request => {
+            console.debug(`Request finished: [${request.method()}] ${request.url()}`);
+            if (loaded) {
+                end_time = Date.now() + wait_before_end;
+                setTimeout(make_result, wait_before_end);
+            }
+        });
+        
+        // response 
+        page.on('response', response => {
+            if (first_response === null && response.status() != 301 && response.status() != 302) {
+                first_response = response;
+            }
+        });
+
+        const make_result = async () => {
+            if (finished) {
+                return;
+            }
+            if (Date.now() - start_time < page_timeout) {
+                if (!!!end_time) {
+                    return;
+                }
+                if (end_time > Date.now()) {
+                    setTimeout(make_result, Math.min(Date.now() - end_time, 100));
+                    return;
+                }
+            }
+            console.debug("make_result !!!");
+            // to make result
+            try {
+                content = content + "\n" + await page.content();
+                const cookies = await page.cookies(_fetch.url);
+                result = {
+                    orig_url: _fetch.url,
+                    status_code: first_response.status() || 599,
+                    error: null,
+                    content: content,
+                    headers: first_response.headers(),
+                    url: page.url(),
+                    cookies: cookies,
+                    time: (Date.now() - start_time) / 1000,
+                    js_script_result: script_result,
+                    save: _fetch.save
+                }
+            } catch(e) {
+                result = {
+                    orig_url: _fetch.url,
+                    status_code: 599,
+                    error: e.toString(),
+                    content: content || "",
+                    headers: {},
+                    url: _fetch.url,
+                    cookies: {},
+                    time: (Date.now() - start_time) / 1000,
+                    js_script_result: null,
+                    save: _fetch.save
+                }
+            }
+            finished = true;
+            console.debug("["+result.status_code+"] "+result.orig_url+" "+result.time);
+            resolve(result);
+            await page.close();
         };
 
+        setTimeout(make_result, page_timeout + 100);
+
         try {
-            response = await page.goto(_fetch.url);
+            await page.setRequestInterception(true);
+            await page.goto(_fetch.url);
         } catch (e) {
             result = {
                 orig_url: _fetch.url,
@@ -210,14 +229,13 @@ const get = async (_fetch, browser) => {
                 save: _fetch.save
             };
             await page.close();
-            resolve (result)
         }
-    });
+    })
 };
 
 // post method with request
 const post = _fetch => {
-	return new Promise((resolve, reject) => {
+	return new Promise( resolve => {
 		const start_time = Date.now();
         request({
             url: _fetch.url,
@@ -287,7 +305,6 @@ const launch_browser = _fetch => {
             resolve(browser_with_proxy);
         } else
             resolve(browser);
-
     })
 };
 
