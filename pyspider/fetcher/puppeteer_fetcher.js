@@ -18,11 +18,11 @@ app.use(async (req, res, next) => {
                 options.proxy = "http://" + options.proxy;
             }
             browser_settings["args"] = ['--no-sandbox', "--disable-setuid-sandbox", "--proxy-server="+options.proxy];
-        };
-        browser_settings["headless"] = options.headless === "false"? false:true;
+        }
+        browser_settings["headless"] = options.headless === "false"? false:true
         browser = await puppeteer.launch(browser_settings);
         init_browser=false;
-        console.log("init browser success!")
+        console.log("init browser success!");
         next();
     } else {
         next();
@@ -83,7 +83,7 @@ async function _fetch(page, options) {
                 };
                 console.log(data);
                 interceptedRequest.continue(data);
-                request_reseted = true;
+                request_reseted = true
             }
         })
     } else {
@@ -106,7 +106,7 @@ async function _fetch(page, options) {
     } else {
         page.on("request", request => {
             if (!!!request_reseted)
-                request.continue();
+                request.continue()
         })
     }
 
@@ -120,14 +120,14 @@ async function _fetch(page, options) {
 
     let page_settings = {};
     var page_timeout = options.timeout ? options.timeout * 1000 : 20 * 1000;
-    page_settings["timeout"] = page_timeout;
+    page_settings["timeout"] = page_timeout
     page_settings["waitUntil"] = ["domcontentloaded", "networkidle0"];
 
     var response = await page.goto(options.url, page_settings);
 
     if (error_message) {
         throw error_message
-    };
+    }
 
     if (options.js_script) {
         console.log('running document-end script.');
@@ -140,7 +140,7 @@ async function _fetch(page, options) {
         await page.screenshot({path: options.screenshot_path});
     }
 
-    options.response = response;
+    options.response = response
 }
 
 async function make_result(page, options, error) {
@@ -161,7 +161,7 @@ async function make_result(page, options, error) {
         status_code = response.status();
         headers = response.headers();
         page_content = await page.content();
-    };
+    }
 
     return {
         orig_url: options.url,
@@ -190,15 +190,15 @@ app.get("/", function (request, response) {
 app.post("/", async (request, response) => {
     var options = request.body;
     result = await fetch(options);
-    response.send(result);
+    response.send(result)
 });
 
 
 var port = 22222;
 if (process.argv.length === 3) {
-    port = parseInt(process.argv[2]);
+    port = parseInt(process.argv[2])
 }
 
 app.listen(port, function () {
-    console.log("server listen: " + port);;
+    console.log("server listen: " + port);
 });
