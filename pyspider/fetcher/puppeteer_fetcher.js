@@ -187,14 +187,33 @@ app.get("/", function (request, response) {
     response.send(body);
 });
 
+
+
+let max_open_pages = 5;
+let opened_page_nums = 0;
+
 app.post("/", async (request, response) => {
-    var options = request.body;
-    result = await fetch(options);
-    response.send(result)
+    console.log("opened pages: " + opened_page_nums);
+    if (opened_page_nums >= max_open_pages){
+        body = "browser pages is too many, open new browser process!";
+        response.status(403);
+        response.set({
+            "cache": "no-cache",
+            "Content-Length": body.length
+        });
+        response.send(body);
+    } else {
+        opened_page_nums += 1;
+        let options = request.body;
+        result = await fetch(options);
+        opened_page_nums -= 1;
+        response.send(result)
+    }
 });
 
 
-var port = 22222;
+let port = 22222;
+
 if (process.argv.length === 3) {
     port = parseInt(process.argv[2])
 }
