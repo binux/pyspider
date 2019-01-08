@@ -4,6 +4,7 @@ data/*
 .idea
 # C extensions
 *.so
+.vscode
 
 # Packages
 *.egg
