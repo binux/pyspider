@@ -41,3 +41,5 @@ nosetests.xml
 
 # Osx
 .DS_Store
+
+venv
