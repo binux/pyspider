@@ -17,7 +17,7 @@ then
     docker run --restart=always -itd --name ${PROD_TAG} -p 5000:5000 -p 23333:23333 -p 24444:24444 -p 25555:25555 ${PROD_TAG}
 fi
 
-if [ $1 = "stop" ]
+if [[ $1 = "stop" ]]
 then
     echo "####################docker stop####################"
     docker rm -f $(docker ps | grep ${PROD_TAG}| awk '{print $1}')
