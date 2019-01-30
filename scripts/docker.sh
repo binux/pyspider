@@ -2,19 +2,14 @@
 
 # docker toolbox
 # args:
-# build, pull, push, list, run, stop
+# build, pull, push, list, run, stop, go
 PROD_VERSION=`git rev-parse --short HEAD`
 REGISTRY_TAG=harbor.lizc.in
 PROD_GROUP=ops
 PROD_NAME=pyspier
 PRO_TAG=${REGISTRY_TAG}/${PROD_GROUP}/${PROD_NAME}:${PROD_VERSION}
 
-if [[ $1 = "pull" ]]
-then
-    echo "####################pull ${PRO_TAG} ####################"
-    docker pull ${PRO_TAG}
-    echo "####################pull done####################"
-fi
+echo "####################current product version ${PRO_TAG} ####################"
 
 #if [ $1 = "run" ]
 #then
@@ -51,7 +46,7 @@ then
     fi
 fi
 
-if [ $1 = "go" ]
+if [[ $1 = "go" ]]
 then
     docker build -t ${PRO_TAG} .
     echo "####################docker build done####################"
@@ -59,8 +54,23 @@ then
     echo "####################docker push done####################"
 fi
 
-if [ $1 = "build" ]
+if [[ $1 = "build" ]]
 then
     docker build -t ${PRO_TAG} .
     echo "####################docker build done####################"
+fi
+
+if [[ $1 = "push" ]]
+then
+    echo "####################pull ${PRO_TAG} ####################"
+    docker push ${PRO_TAG}
+    echo "####################pull done####################"
+fi
+
+
+if [[ $1 = "pull" ]]
+then
+    echo "####################pull ${PRO_TAG} ####################"
+    docker pull ${PRO_TAG}
+    echo "####################pull done####################"
 fi
