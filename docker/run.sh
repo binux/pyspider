@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+dir=`cd "$(dirname "$0")"; pwd`
+cd ${dir}
+cd ../
+echo ">> enter into $(pwd)"
+
 REGISTRY_TAG=harbor.lizc.in
 PROD_GROUP=ops
 PROD_NAME=pyspier
