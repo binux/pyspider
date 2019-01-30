@@ -2,7 +2,6 @@
 
 dir=`cd "$(dirname "$0")"; pwd`
 cd ${dir}
-cd ../
 echo ">> enter into $(pwd)"
 
 REGISTRY_TAG=harbor.lizc.in
