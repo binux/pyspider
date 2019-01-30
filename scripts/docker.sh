@@ -9,7 +9,7 @@ PROD_GROUP=ops
 PROD_NAME=pyspier
 PRO_TAG=${REGISTRY_TAG}/${PROD_GROUP}/${PROD_NAME}:${PROD_VERSION}
 
-if [ $1 = "pull" ]
+if [[ $1 = "pull" ]]
 then
     echo "####################pull ${PRO_TAG} ####################"
     docker pull ${PRO_TAG}
@@ -40,16 +40,16 @@ fi
 #    echo "#################### $2 stop done####################"
 #fi
 
-#if [ $1 = "list" ]
-#then
-#    echo "####################docker list####################"
-#    if [ $2 = "all" ]
-#    then
-#        docker ps | grep nav
-#    else
-#        docker ps | grep nav_$2
-#    fi
-#fi
+if [[ $1 = "list" ]]
+then
+    echo "####################docker list####################"
+    if [[ $2 = "all" ]]
+    then
+        docker ps -a | grep ${PROD_NAME}
+    else
+        docker ps -a | grep ${PROD_NAME}:${PROD_VERSION}
+    fi
+fi
 
 if [ $1 = "go" ]
 then
