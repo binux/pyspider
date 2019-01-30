@@ -21,7 +21,7 @@ if [[ $1 = "stop" ]]
 then
     echo "####################docker stop####################"
     docker rm -f $(docker ps | grep ${PROD_TAG}| awk '{print $1}')
-    echo "#################### $2 stop done####################"
+    echo "#################### $2 stop done##################"
 fi
 
 if [[ $1 = "list" ]]
@@ -39,7 +39,7 @@ then
     docker build -t ${PROD_TAG} .
     echo "####################docker build done####################"
     docker push ${PROD_TAG}
-    echo "####################docker push done####################"
+    echo "####################docker push done#####################"
 fi
 
 if [[ $1 = "build" ]]
@@ -52,13 +52,12 @@ if [[ $1 = "push" ]]
 then
     echo "####################pull ${PROD_TAG} ####################"
     docker push ${PROD_TAG}
-    echo "####################pull done####################"
+    echo "####################pull done############################"
 fi
-
 
 if [[ $1 = "pull" ]]
 then
     echo "####################pull ${PROD_TAG} ####################"
     docker pull ${PROD_TAG}
-    echo "####################pull done####################"
+    echo "####################pull done############################"
 fi
