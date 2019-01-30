@@ -1,5 +1,5 @@
-FROM python:2.7
-MAINTAINER binux <roy@binux.me>
+FROM python:3.7
+MAINTAINER lizc <owner@lizc.in>
 
 # install phantomjs
 RUN mkdir -p /opt/phantomjs \
@@ -9,9 +9,7 @@ RUN mkdir -p /opt/phantomjs \
         && ln -s /opt/phantomjs/bin/phantomjs /usr/local/bin/phantomjs \
         && rm phantomjs.tar.bz2
 
-
 # install requirements
-RUN pip install --egg 'https://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-2.1.5.zip#md5=ce4a24cb1746c1c8f6189a97087f21c1'
 COPY requirements.txt /opt/pyspider/requirements.txt
 RUN pip install -r /opt/pyspider/requirements.txt
 
