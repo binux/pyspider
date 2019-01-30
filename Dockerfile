@@ -11,7 +11,7 @@ RUN mkdir -p /opt/phantomjs \
 
 # install requirements
 COPY requirements.txt /opt/pyspider/requirements.txt
-RUN pip install -r /opt/pyspider/requirements.txt
+RUN pip install -r /opt/pyspider/requirements.txt -i http://pypi.douban.com/simple --trusted-host=pypi.douban.com
 
 # add all repo
 ADD ./ /opt/pyspider
