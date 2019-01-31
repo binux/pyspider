@@ -22,7 +22,6 @@ if [[ $1 = "stop" ]]
 then
     echo "#################### Docker Stop ####################"
     running_container_name=`docker ps | grep ${PROD_TAG}| awk '{print $1}'`
-    echo "#################### ${running_container_name} ####################"
     docker stop ${running_container_name}
     if [[ $2 = "f" ]]
     then
