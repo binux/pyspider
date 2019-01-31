@@ -1,4 +1,4 @@
-FROM harbor.lizc.in/ops/pyspider:base
+FROM harbor.lizc.in/ops/pyspier:base
 MAINTAINER lizc <owner@lizc.in>
 
 # add all repo

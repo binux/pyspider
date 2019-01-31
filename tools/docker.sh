@@ -15,15 +15,16 @@ echo "#################### Current Product Version: ${PROD_TAG} ################
 if [[ $1 = "run" ]]
 then
     echo "#################### Docker Run ####################"
-    docker run --restart=always -itd --name ${PROD_TAG} -p 5000:5000 -p 23333:23333 -p 24444:24444 -p 25555:25555 ${PROD_TAG}
+    docker run --restart=always -itd --name ${PROD_VERSION} -p 5000:5000 -p 23333:23333 -p 24444:24444 -p 25555:25555 ${PROD_TAG}
 fi
 
 if [[ $1 = "stop" ]]
 then
     echo "#################### Docker Stop ####################"
-    running_container_name=`$(docker ps | grep ${PROD_TAG}| awk '{print $1}')`
+    running_container_name=`docker ps | grep ${PROD_TAG}| awk '{print $1}'`
+    echo "#################### ${running_container_name} ####################"
     docker stop ${running_container_name}
-    if [[$2 = "f"]]
+    if [[ $2 = "f" ]]
     then
         docker rm -f ${running_container_name}
     fi
