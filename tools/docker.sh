@@ -21,7 +21,12 @@ fi
 if [[ $1 = "stop" ]]
 then
     echo "#################### Docker Stop ####################"
-    docker rm -f $(docker ps | grep ${PROD_TAG}| awk '{print $1}')
+    running_container_name=`$(docker ps | grep ${PROD_TAG}| awk '{print $1}')`
+    docker stop ${running_container_name}
+    if [[$2 = "f"]]
+    then
+        docker rm -f ${running_container_name}
+    fi
 fi
 
 if [[ $1 = "list" ]]
