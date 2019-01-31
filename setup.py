@@ -90,10 +90,10 @@ setup(
     description='A Powerful Spider System in Python',
     long_description=long_description,
 
-    url='https://github.com/binux/pyspider',
+    url='https://github.com/LiZhenchong/pyspider',
 
-    author='Roy Binux',
-    author_email='roy@binux.me',
+    author='Joe',
+    author_email='li.joe@outlook.com',
 
     license='Apache License, Version 2.0',
 
