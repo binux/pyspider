@@ -138,7 +138,7 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
                 type = 'splash'
                 result = yield self.splash_fetch(url, task)
-            elif task.get('fetch', {}).get('fetch_type') in ('puppeteer'):
+            elif task.get('fetch', {}).get('fetch_type') in ('puppeteer', ):
                 type = 'puppeteer'
                 result = yield self.puppeteer_fetch(url, task)
             else:
