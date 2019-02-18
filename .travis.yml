@@ -3,7 +3,7 @@ language: python
 cache: pip
 python:
     - "2.7"
-    - "3.3"
+    #- "3.3" travis-ci use lxml-4.3.1 which dosen's support python 3.3 
     - "3.4"
     - "3.5"
     - "3.6"
