@@ -1,9 +1,10 @@
 sudo: required
 language: python
 cache: pip
+python:
+  - "2.7"
 matrix:
   include:
-    - python: 2.7
     - python: 3.3
     - python: 3.4
     - python: 3.5
@@ -39,15 +40,7 @@ before_script:
     - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - sleep 10
 install:
-    - pip install mysql-connector-python
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
-
-    - |
-      if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then
-        pip install lxml==4.2.6
-      else
-        pip install lxml
-      fi
     - pip install -e .[all,test]
     - pip install coveralls
 script:
