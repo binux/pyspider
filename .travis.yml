@@ -2,13 +2,13 @@ sudo: required
 language: python
 cache: pip
 python:
-  - 2.7
   - 3.3
   - 3.4
   - 3.5
   - 3.6
 matrix:
-  include:
+    allow_failures:
+    - python: 2.7
     - python: 3.7
       dist: xenial
 services:
@@ -16,6 +16,7 @@ services:
     - mongodb
     - rabbitmq
     - redis-server
+    - mysql
     #- elasticsearch
     - postgresql
 addons:
