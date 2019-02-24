@@ -19,14 +19,15 @@ services:
     - postgresql
 addons:
   postgresql: "9.4"
-  apt:
-    packages:
-    - mysql-server
-    - mysql-client-core
-    - mysql-client
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd
+    - |
+      if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then
+        sudo apt-get install -y mysql-server-5.7 mysql-client-core-5.7 mysql-client-5.7
+      else
+        sudo apt-get install -y mysql-server-5.6 mysql-client-core-5.6 mysql-client-5.6
+      fi
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
     - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.0/elasticsearch-2.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.0.deb && sudo service elasticsearch restart
