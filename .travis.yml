@@ -1,10 +1,9 @@
 sudo: required
 language: python
 cache: pip
-python:
-  - "2.7"
 matrix:
   include:
+    - python: 2.7
     - python: 3.3
     - python: 3.4
     - python: 3.5
