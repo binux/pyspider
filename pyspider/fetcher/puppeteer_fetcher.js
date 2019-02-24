@@ -18,6 +18,8 @@ app.use(async (req, res, next) => {
                 options.proxy = "http://" + options.proxy;
             }
             browser_settings["args"] = ['--no-sandbox', "--disable-setuid-sandbox", "--proxy-server="+options.proxy];
+        } else {
+          browser_settings["args"] = ['--no-sandbox', "--disable-setuid-sandbox"];
         }
         browser_settings["headless"] = options.headless === "false"? false:true
         browser = await puppeteer.launch(browser_settings);
@@ -39,6 +41,7 @@ async function fetch(options) {
         await page.close();
         return result
     } catch (error) {
+        console.log('catch error ', error);
         var result = await make_result(page, options, error);
         await page.close();
         return result
@@ -55,7 +58,6 @@ async function _fetch(page, options) {
     });
 
     if (options.headers) {
-        options.headers = JSON.parse(options.headers);
         await page.setExtraHTTPHeaders(options.headers);
     }
 
@@ -114,15 +116,13 @@ async function _fetch(page, options) {
     page.on("error", e => {
         error_message = e
     });
-    page.on("pageerror", e => {
-        error_message = e
-    });
 
     let page_settings = {};
     var page_timeout = options.timeout ? options.timeout * 1000 : 20 * 1000;
     page_settings["timeout"] = page_timeout
     page_settings["waitUntil"] = ["domcontentloaded", "networkidle0"];
 
+    console.log('goto ', options.url)
     var response = await page.goto(options.url, page_settings);
 
     if (error_message) {
@@ -219,5 +219,5 @@ if (process.argv.length === 3) {
 }
 
 app.listen(port, function () {
-    console.log("server listen: " + port);
+    console.log("puppeteer fetcher running on port " + port);
 });

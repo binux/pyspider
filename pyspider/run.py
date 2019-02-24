@@ -82,6 +82,7 @@ def connect_rpc(ctx, param, value):
               help='[deprecated] beanstalk config for beanstalk queue. '
               'please use --message-queue instead.')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
+@click.option('--puppeteer-proxy', envvar='PUPPETEER_PROXY', help="puppeteer proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
 @click.option('--add-sys-path/--not-add-sys-path', default=True, is_flag=True,
               help='add current working directory to python lib search path')
@@ -157,6 +158,12 @@ def cli(ctx, **kwargs):
     elif os.environ.get('PHANTOMJS_NAME'):
         kwargs['phantomjs_proxy'] = os.environ['PHANTOMJS_PORT_25555_TCP'][len('tcp://'):]
 
+    # puppeteer-proxy
+    if kwargs.get('puppeteer_proxy'):
+        pass
+    elif os.environ.get('PUPPETEER_NAME'):
+        kwargs['puppeteer_proxy'] = os.environ['PUPPETEER_PORT_22222_TCP'][len('tcp://'):]
+
     ctx.obj = utils.ObjectDict(ctx.obj or {})
     ctx.obj['instances'] = []
     ctx.obj.update(kwargs)
@@ -222,12 +229,13 @@ def scheduler(ctx, xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--user-agent', help='user agent')
 @click.option('--timeout', help='default fetch timeout')
 @click.option('--phantomjs-endpoint', help="endpoint of phantomjs, start via pyspider phantomjs")
+@click.option('--puppeteer-endpoint', help="endpoint of puppeteer, start via pyspider puppeteer")
 @click.option('--splash-endpoint', help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.pass_context
 def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
-            timeout, phantomjs_endpoint, splash_endpoint, fetcher_cls,
+            timeout, phantomjs_endpoint, puppeteer_endpoint, splash_endpoint, fetcher_cls,
             async_mode=True, get_object=False, no_input=False):
     """
     Run Fetcher.
@@ -244,6 +252,7 @@ def fetcher(ctx, xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
     fetcher = Fetcher(inqueue=inqueue, outqueue=outqueue,
                       poolsize=poolsize, proxy=proxy, async_mode=async_mode)
     fetcher.phantomjs_proxy = phantomjs_endpoint or g.phantomjs_proxy
+    fetcher.puppeteer_proxy = puppeteer_endpoint or g.puppeteer_proxy
     fetcher.splash_endpoint = splash_endpoint
     if user_agent:
         fetcher.user_agent = user_agent
@@ -433,6 +442,49 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
             break
         _phantomjs = subprocess.Popen(cmd)
 
+@cli.command()
+@click.option('--port', default=22222, help='puppeteer port')
+@click.option('--auto-restart', default=False, help='auto restart puppeteer if crashed')
+@click.argument('args', nargs=-1)
+@click.pass_context
+def puppeteer(ctx, port, auto_restart, args):
+    """
+    Run puppeteer fetcher if puppeteer is installed.
+    """
+
+    import subprocess
+    g = ctx.obj
+    _quit = []
+    puppeteer_fetcher = os.path.join(
+        os.path.dirname(pyspider.__file__), 'fetcher/puppeteer_fetcher.js')
+    cmd = ['node', puppeteer_fetcher, str(port)]
+
+    try:
+        _puppeteer = subprocess.Popen(cmd)
+    except OSError:
+        logging.warning('puppeteer not found, continue running without it.')
+        return None
+
+    def quit(*args, **kwargs):
+        _quit.append(1)
+        _puppeteer.kill()
+        _puppeteer.wait()
+        logging.info('puppeteer exited.')
+
+    if not g.get('puppeteer_proxy'):
+        g['puppeteer_proxy'] = '127.0.0.1:%s' % port
+
+    puppeteer = utils.ObjectDict(port=port, quit=quit)
+    g.instances.append(puppeteer)
+    if g.get('testing_mode'):
+        return puppeteer
+
+    while True:
+        _puppeteer.wait()
+        if _quit or not auto_restart:
+            break
+        _puppeteer = subprocess.Popen(cmd)
+
 
 @cli.command()
 @click.option('--fetcher-num', default=1, help='instance num of fetcher')
@@ -468,6 +520,15 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
             time.sleep(2)
             if threads[-1].is_alive() and not g.get('phantomjs_proxy'):
                 g['phantomjs_proxy'] = '127.0.0.1:%s' % phantomjs_config.get('port', 25555)
+
+        # puppeteer
+        if not g.get('puppeteer_proxy'):
+            puppeteer_config = g.config.get('puppeteer', {})
+            puppeteer_config.setdefault('auto_restart', True)
+            threads.append(run_in(ctx.invoke, puppeteer, **puppeteer_config))
+            time.sleep(2)
+            if threads[-1].is_alive() and not g.get('puppeteer_proxy'):
+                g['puppeteer_proxy'] = '127.0.0.1:%s' % puppeteer_config.get('port', 22222)
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
@@ -655,9 +716,11 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
               help='enable interactive mode, you can choose crawl url.')
 @click.option('--phantomjs', 'enable_phantomjs', default=False, is_flag=True,
               help='enable phantomjs, will spawn a subprocess for phantomjs')
+@click.option('--puppeteer', 'enable_puppeteer', default=False, is_flag=True,
+              help='enable puppeteer, will spawn a subprocess for puppeteer')
 @click.argument('scripts', nargs=-1)
 @click.pass_context
-def one(ctx, interactive, enable_phantomjs, scripts):
+def one(ctx, interactive, enable_phantomjs, enable_puppeteer, scripts):
     """
     One mode not only means all-in-one, it runs every thing in one process over
     tornado.ioloop, for debug purpose
@@ -682,6 +745,14 @@ def one(ctx, interactive, enable_phantomjs, scripts):
             g.setdefault('phantomjs_proxy', '127.0.0.1:%s' % phantomjs_obj.port)
     else:
         phantomjs_obj = None
+
+    if enable_puppeteer:
+        puppeteer_config = g.config.get('puppeteer', {})
+        puppeteer_obj = ctx.invoke(puppeteer, **puppeteer_config)
+        if puppeteer_obj:
+            g.setdefault('puppeteer_proxy', '127.0.0.1:%s' % puppeteer.port)
+    else:
+        puppeteer_obj = None
 
     result_worker_config = g.config.get('result_worker', {})
     if g.resultdb is None:
@@ -718,6 +789,8 @@ def one(ctx, interactive, enable_phantomjs, scripts):
         scheduler_obj.quit()
         if phantomjs_obj:
             phantomjs_obj.quit()
+        if puppeteer_obj:
+            puppeteer_obj.quit()
 
 
 @cli.command()
