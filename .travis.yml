@@ -16,6 +16,7 @@ services:
     - mongodb
     - rabbitmq
     - redis-server
+    - mysql
     #- elasticsearch
     - postgresql
 addons:
