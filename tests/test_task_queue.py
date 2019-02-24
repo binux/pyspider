@@ -31,7 +31,7 @@ class TestTaskQueue(unittest.TestCase):
             q = queues[it.priority]  # type:Queue.Queue
             q.put(it)
             tasks[it.taskid] = it
-            six.print_('put, taskid=', it.taskid, 'priority=', it.priority, 'exetime=', it.exetime)
+            # six.print_('put, taskid=', it.taskid, 'priority=', it.priority, 'exetime=', it.exetime)
         for i in range(0, 100):
             task_id = tq.get()
             task = tasks[task_id]
@@ -39,7 +39,7 @@ class TestTaskQueue(unittest.TestCase):
             expect_task = q.get()
             self.assertEqual(task_id, expect_task.taskid)
             self.assertEqual(task.priority, int(9 - i // 10))
-            six.print_('get, taskid=', task.taskid, 'priority=', task.priority, 'exetime=', task.exetime)
+            # six.print_('get, taskid=', task.taskid, 'priority=', task.priority, 'exetime=', task.exetime)
 
         self.assertEqual(tq.size(), 100)
         self.assertEqual(tq.priority_queue.qsize(), 0)
@@ -54,7 +54,7 @@ class TestTaskQueue(unittest.TestCase):
 class TestTimeQueue(unittest.TestCase):
     def test_time_queue(self):
 
-        six.print_('Test time queue order by time only')
+        # six.print_('Test time queue order by time only')
 
         tq = TaskQueue(rate=300, burst=1000)
 
@@ -66,7 +66,7 @@ class TestTimeQueue(unittest.TestCase):
             it = InQueueTask(str(i), priority=int(i // 10), exetime=time.time() + (i + 1) * interval)
             tq.put(it.taskid, it.priority, it.exetime)
             fifo_queue.put(it)
-            six.print_('put, taskid=', it.taskid, 'priority=', it.priority, 'exetime=', it.exetime)
+            # six.print_('put, taskid=', it.taskid, 'priority=', it.priority, 'exetime=', it.exetime)
 
         self.assertEqual(tq.priority_queue.qsize(), 0)
         self.assertEqual(tq.processing.qsize(), 0)
@@ -76,7 +76,7 @@ class TestTimeQueue(unittest.TestCase):
             t1 = fifo_queue.get()
             t2 = tq.time_queue.get()
             self.assertEqual(t1.taskid, t2.taskid)
-            six.print_('get, taskid=', t2.taskid, 'priority=', t2.priority, 'exetime=', t2.exetime)
+            # six.print_('get, taskid=', t2.taskid, 'priority=', t2.priority, 'exetime=', t2.exetime)
         self.assertEqual(tq.priority_queue.qsize(), 0)
         self.assertEqual(tq.processing.qsize(), 0)
         self.assertEqual(tq.time_queue.qsize(), 0)

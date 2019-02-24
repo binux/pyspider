@@ -123,9 +123,7 @@ async function _fetch(page, options) {
     page_settings["waitUntil"] = ["domcontentloaded", "networkidle0"];
 
     console.log('goto ', options.url)
-    await page.goto(options.url, page_settings);
-
-    var response = await page.waitForResponse(() => true);
+    var response = await page.goto(options.url, page_settings);
 
     if (error_message) {
         throw error_message
@@ -207,7 +205,6 @@ app.post("/", async (request, response) => {
     } else {
         opened_page_nums += 1;
         let options = request.body;
-        console.log('post ', options);
         result = await fetch(options);
         opened_page_nums -= 1;
         response.send(result)
