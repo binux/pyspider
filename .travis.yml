@@ -35,6 +35,7 @@ before_script:
     - sleep 10
 install:
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo apt-get install libc6; fi
     - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then sudo apt-get install libgnutls28-dev; fi
     - pip install -e .[all,test]
     - pip install coveralls
