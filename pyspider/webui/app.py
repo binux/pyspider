@@ -92,7 +92,7 @@ app.jinja_env.line_statement_prefix = '#'
 app.jinja_env.globals.update(builtins.__dict__)
 
 app.config.update({
-    'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async=False).fetch(x),
+    'fetch': lambda x: tornado_fetcher.Fetcher(None, None, async_mode=False).fetch(x),
     'taskdb': None,
     'projectdb': None,
     'scheduler_rpc': None,

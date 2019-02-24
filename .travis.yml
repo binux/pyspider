@@ -2,10 +2,15 @@ sudo: required
 language: python
 cache: pip
 python:
-    - "2.7"
-    - "3.4"
-    - "3.5"
-    - "3.6"
+  - 2.7
+  - 3.3
+  - 3.4
+  - 3.5
+  - 3.6
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
 services:
     - docker
     - mongodb
@@ -15,11 +20,6 @@ services:
     - postgresql
 addons:
   postgresql: "9.4"
-  apt:
-    packages:
-    - mysql-server-5.6
-    - mysql-client-core-5.6
-    - mysql-client-5.6
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd
@@ -34,11 +34,10 @@ before_script:
     - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - sleep 10
 install:
-    - pip install mysql-connector-python
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
-
-    - if [[ $TRAVIS_PYTHON_VERSION != '3.5' ]]; then pip install lxml --no-binary :all:; else pip install lxml; fi
-    - if [[ $TRAVIS_PYTHON_VERSION != '3.5' ]]; then pip install --allow-all-external -e .[all,test]; else pip install -e .[all,test]; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo apt-get install libc6; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then sudo apt-get install libgnutls28-dev; fi
+    - pip install -e .[all,test]
     - pip install coveralls
 script:
     - coverage run setup.py test
