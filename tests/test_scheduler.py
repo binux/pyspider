@@ -5,12 +5,13 @@
 #         http://binux.me
 # Created on 2014-02-08 22:37:13
 
-import os
-import time
-import shutil
-import unittest2 as unittest
-import logging
 import logging.config
+import os
+import shutil
+import time
+
+import unittest2 as unittest
+
 logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.scheduler.task_queue import TaskQueue
@@ -116,14 +117,17 @@ class TestScheduler(unittest.TestCase):
 
         def get_taskdb():
             return taskdb.TaskDB(self.taskdb_path)
+
         self.taskdb = get_taskdb()
 
         def get_projectdb():
             return projectdb.ProjectDB(self.projectdb_path)
+
         self.projectdb = get_projectdb()
 
         def get_resultdb():
             return resultdb.ResultDB(self.resultdb_path)
+
         self.resultdb = get_resultdb()
 
         self.newtask_queue = Queue(10)
@@ -210,9 +214,9 @@ class TestScheduler(unittest.TestCase):
             'project': 'test_project',
             'track': {
                 'save': {
-                    }
                 }
-            })
+            }
+        })
         # test_project on_get_info {}
 
     def test_34_new_not_used_project(self):
@@ -329,9 +333,8 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })  # task retry 0/3 test_project:taskid url
-        from six.moves import queue as Queue
         # with self.assertRaises(Queue.Empty):
-            # task = self.scheduler2fetcher.get(timeout=4)
+        # task = self.scheduler2fetcher.get(timeout=4)
         task = self.scheduler2fetcher.get(timeout=5)  # select test_project:taskid url
         self.assertIsNotNone(task)
 
@@ -510,19 +513,19 @@ class TestScheduler(unittest.TestCase):
 
     def test_a30_task_verify(self):
         self.assertFalse(self.rpc.newtask({
-            #'taskid': 'taskid#',
+            # 'taskid': 'taskid#',
             'project': 'test_project',
             'url': 'url',
         }))  # taskid not in task: {'project': 'test_project', 'url': 'url'}
         self.assertFalse(self.rpc.newtask({
             'taskid': 'taskid#',
-            #'project': 'test_project',
+            # 'project': 'test_project',
             'url': 'url',
         }))  # project not in task: {'url': 'url', 'taskid': 'taskid#'}
         self.assertFalse(self.rpc.newtask({
             'taskid': 'taskid#',
             'project': 'test_project',
-            #'url': 'url',
+            # 'url': 'url',
         }))  # url not in task: {'project': 'test_project', 'taskid': 'taskid#'}
         self.assertFalse(self.rpc.newtask({
             'taskid': 'taskid#',
@@ -665,7 +668,7 @@ class TestScheduler(unittest.TestCase):
         # task_queue = [ test_project:taskid_to_cancel ]
 
         time.sleep(0.2)
-        self.assertEqual(self.rpc.size(), current_size+1)
+        self.assertEqual(self.rpc.size(), current_size + 1)
 
         self.newtask_queue.put({
             'taskid': 'taskid_to_cancel',
@@ -715,7 +718,7 @@ class TestScheduler(unittest.TestCase):
 
     def test_x20_delete_project(self):
         self.assertIsNotNone(self.projectdb.get('test_inqueue_project'))
-        #self.assertIsNotNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
+        # self.assertIsNotNone(self.taskdb.get_task('test_inqueue_project', 'taskid1'))
         self.projectdb.update('test_inqueue_project', status="STOP", group="lock,delete")
         time.sleep(1)
         self.assertIsNone(self.projectdb.get('test_inqueue_project'))
@@ -737,6 +740,7 @@ class TestScheduler(unittest.TestCase):
 
 
 from pyspider.scheduler.scheduler import Project
+
 
 class TestProject(unittest.TestCase):
     task_pack = {
@@ -856,6 +860,21 @@ class TestProject(unittest.TestCase):
         for i in range(self.scheduler.UNPAUSE_CHECK_NUM):
             self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
         for i in range(self.scheduler.FAIL_PAUSE_NUM):
+            self.project.active_tasks.appendleft((time.time(), dict(self.task_pack)))
+        self.assertFalse(self.project.paused)
+        self.assertFalse(self.project._paused)
+
+    def test_pause_80_paused_again(self):
+        for i in range(self.scheduler.FAIL_PAUSE_NUM):
+            self.project.active_tasks.appendleft((time.time(), dict(self.status_fail_pack)))
+        self.assertTrue(self.project.paused)
+
+    def test_pause_90_unpause_checking(self):
+        time.sleep(3)
+        self.assertFalse(self.project.paused)
+
+    def test_pause_99_unpaused(self):
+        for i in range(self.scheduler.ACTIVE_TASKS):
             self.project.active_tasks.appendleft((time.time(), dict(self.task_pack)))
         self.assertFalse(self.project.paused)
         self.assertFalse(self.project._paused)
