@@ -1,0 +1,33 @@
+{
+  "name": "pyspider",
+  "version": "1.0.0",
+  "description": "To run puppeteer ",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "dependencies": {
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "puppeteer": "^1.13.0",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djytwy/pyspider.git"
+  },
+  "keywords": [
+    "pyspider"
+  ],
+  "author": "twy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/djytwy/pyspider/issues"
+  },
+  "homepage": "https://github.com/djytwy/pyspider#readme"
+}

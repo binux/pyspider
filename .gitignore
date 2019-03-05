@@ -4,6 +4,7 @@ data/*
 .idea
 # C extensions
 *.so
+node_modules
 
 # Packages
 *.egg
@@ -37,3 +38,4 @@ nosetests.xml
 .project
 .pydevproject
 .idea
+node_modules
