@@ -281,7 +281,9 @@ const post = _fetch => {
     })
 };
 
-// launch two browsers a browser launch with proxy (if has proxy)
+/*Launch two browsers: a browser launch with proxy another not with proxy (if has proxy).
+  The browser will launch only once in pyspider.
+*/
 const launch_browser = _fetch => {
     return new Promise(async resolve => {
         if (!browser && !_fetch.proxy) {

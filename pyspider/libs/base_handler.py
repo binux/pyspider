@@ -360,8 +360,8 @@ class BaseHandler(object):
           last_modified
           auto_recrawl
 
-          device           # 选择使用何种设备进行网页浏览 
-          headless         # 是否启用headless模式
+          device           # set device to crawl web page
+          headless         # whether to use the headless mode (only in visual browser system eg: windows 10, MacOS)
 
           fetch_type
           js_run_at
