@@ -31,4 +31,4 @@ headless(bool default false): this param can control chromeheadless whether laun
 def on_start(self):
     self.crawl('http://www.example.org/', callback=self.callback,fetch_type="chrome",headless=False)
 ```
-#### Waring: headless only use in debug mode and in visual browser for product environment please set it false.
+#### Waring: headless only use in debug mode and in visual browser(eg: windows 10 and MacOS) for product environment please set it false.And browser launch only once in pyspider. 
