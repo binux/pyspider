@@ -1,5 +1,10 @@
 # Introduction:
  This is pyspider and add the chromeheadless ([puppeteer](https://github.com/GoogleChrome/puppeteer)) to crawl the web page.And now it stable operation for 3 months in production environment .
+
+Note: When you install Puppeteer, it downloads a recent version of Chromium (~170MB Mac, ~282MB Linux, ~280MB Win) that is guaranteed to work with the API. 
+## requirement:
+nodejs >= v8 5.4
+
 # Usage:
 ```
 git clone git@github.com:djytwy/pyspider.git
