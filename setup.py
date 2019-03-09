@@ -22,7 +22,7 @@ install_requires = [
     'Jinja2>=2.7',
     'chardet>=2.2',
     'cssselect>=0.9',
-    'lxml',
+    'lxml' if sys.version_info[:2] != (3, 3) else "lxml<=4.2.6",
     'pycurl',
     'requests>=2.2',
     'Flask-Login>=0.2.11',
