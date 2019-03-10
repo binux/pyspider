@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:3.6
 MAINTAINER binux <roy@binux.me>
 
 # install phantomjs
@@ -10,7 +10,7 @@ RUN mkdir -p /opt/phantomjs \
         && rm phantomjs.tar.bz2
 
 # install nodejs
-ENV NODEJS_VERSION=8.15.0 \
+ENV NODEJS_VERSION=10.15.3 \
     PATH=$PATH:/opt/node/bin
 
 WORKDIR "/opt/node"
