@@ -189,7 +189,7 @@ app.get("/", function (request, response) {
 
 
 
-let max_open_pages = 5;
+let max_open_pages = 100;
 let opened_page_nums = 0;
 
 app.post("/", async (request, response) => {
