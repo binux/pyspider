@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.6.8-alpine3.8
 MAINTAINER binux <roy@binux.me>
 
 # install phantomjs
@@ -33,11 +33,7 @@ WORKDIR /opt/pyspider
 RUN pip install -e .[all]
 
 # install puppeteer、koa、koa-bodyparser、request
-RUN cd /opt/pyspider/pyspider/fetcher \
-        && npm install puppeteer \
-        && npm install koa \
-        && npm install koa-bodyparser \
-        && npm install request
+RUN npm install
 
 # install chromium dependencies
 RUN apt-get update \
