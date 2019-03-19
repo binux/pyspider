@@ -12,6 +12,8 @@ try:
 except ImportError:
     import urlparse
 
+import six.moves.urllib_parse
+
 
 def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
     """
@@ -67,7 +69,7 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
                 logging.warning('redis DB must zero-based numeric index, using 0 instead')
                 db = 0
 
-            password = parsed.password or None
+            password = six.moves.urllib_parse.unquote(parsed.password) or None
 
             return Queue(name=name, host=parsed.hostname, port=parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
     elif url.startswith('kombu+'):
