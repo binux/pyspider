@@ -349,7 +349,7 @@ class Scheduler(object):
         '''Check status queue'''
         cnt = 0
         try:
-            while True:
+            while cnt <= self.LOOP_LIMIT:
                 task = self.status_queue.get_nowait()
                 # check _on_get_info result here
                 if task.get('taskid') == '_on_get_info' and 'project' in task and 'track' in task:
