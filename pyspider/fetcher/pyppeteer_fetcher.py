@@ -118,7 +118,6 @@ class PostHandler(tornado.web.RequestHandler):
     async def post(self, *args, **kwargs):
         raw_data = self.request.body.decode('utf8')
         fetch = json.loads(raw_data, encoding='utf-8')
-        start_time = datetime.datetime.now()
         result = await self._fetch(fetch)
         #print(result)
         self.write(result)
