@@ -125,6 +125,7 @@ class PostHandler(tornado.web.RequestHandler):
 class ForwordProxy():
     def __init__(self,loop,port):
         self.loop = loop
+        self.port = port
     async def pipe(self,reader, writer):
         try:
             while not reader.at_eof():
