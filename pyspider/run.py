@@ -543,8 +543,10 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
         # fetcher
         fetcher_config = g.config.get('fetcher', {})
         fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-        for i in range(fetcher_num):
-            threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
+        threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
+        for i in range(1, fetcher_num):
+            fetcher_obj = ctx.invoke(fetcher, get_object=True, **fetcher_config)
+            threads.append(run_in(fetcher_obj.run))
 
         # scheduler
         scheduler_config = g.config.get('scheduler', {})
