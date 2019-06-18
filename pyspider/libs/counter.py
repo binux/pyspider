@@ -155,6 +155,7 @@ class TimebaseAverageEventCounter(BaseCounter):
             self.times.append(self.cache_start)
             self.on_append(self.cache_value, self.cache_start)
             self.cache_value = 0
+            self.cache_event = 0
             self.cache_start = None
 
         if self.window_size != self.max_window_size and self._first_data_time is not None:
