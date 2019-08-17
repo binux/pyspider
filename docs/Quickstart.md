@@ -24,6 +24,25 @@ note that PhantomJS will be enabled only if it is excutable in the `PATH` or in 
 
 **WARNING:** WebUI is opened to public by default, it can be used to execute any command which may harm to you system. Please use it in internal network or [enable `need-auth` for webui](http://docs.pyspider.org/en/latest/Command-Line/#-config).
 
+**windows**
+
+Before install pyspider,install [PycURL](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pycurl) first.Choose the version fit your system and python version.
+```
+pip install your_download_file_full_path_name
+eg:
+pip install G:\DevelopSetup\pycurl-7.43.0.3-cp37-cp37m-win32.whl
+```
+**Python3.7**
+
+If you use python3.7.
+1. change pyspider project all **async** to some other name(eg:aasync.recommand use pytcharm whole project to replace async,**check  words and match case checkbox!**)
+2. edit file: ../python3.7/site-packages/pyspider/webui/webdav.py 
+```python
+'domaincontroller': NeedAuthController(app),
+#change to:
+'http_authenticator':{ 'HTTPAuthenticator':NeedAuthController(app) },
+```
+
 Your First Script
 -----------------
 
