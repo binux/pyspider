@@ -174,7 +174,10 @@ class TestRun(unittest.TestCase):
     def test_90_docker_scheduler(self):
         try:
             os.environ['SCHEDULER_NAME'] = 'scheduler'
-            os.environ['SCHEDULER_PORT_23333_TCP'] = 'tpc://binux:25678'
+
+            #os.environ['SCHEDULER_PORT_23333_TCP'] = 'tpc://binux:25678'
+            # NOTE: I don't understand the use of SCHEDULER_PORT_23333_TCP. As far as I'm concerned, either SCHEDULER_NAME should be used as the hostname and there should be a second environment variable such as SCHEDULER_PORT to specify the port or you just specify both in SCHEDULER_NAME (perhaps change to SCHEDULER_HOST). Right now the port is hardcoded and this needs to be changed. If I ever make a pull request for this I'd like some feedback here.
+
             ctx = run.cli.make_context('test', [], None,
                                        obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
@@ -182,12 +185,12 @@ class TestRun(unittest.TestCase):
             webui_ctx = webui.make_context('webui', [], ctx)
             app = webui.invoke(webui_ctx)
             rpc = app.config['scheduler_rpc']
-            self.assertEqual(rpc._ServerProxy__host, 'binux:25678')
+            self.assertEqual(rpc._ServerProxy__host, 'scheduler:23333')
         except Exception as e:
             self.assertIsNone(e)
         finally:
             del os.environ['SCHEDULER_NAME']
-            del os.environ['SCHEDULER_PORT_23333_TCP']
+            #del os.environ['SCHEDULER_PORT_23333_TCP']
 
     def test_a100_all(self):
         import subprocess
