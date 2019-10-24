@@ -8,7 +8,7 @@
 import os
 import time
 import shutil
-import unittest2 as unittest
+import unittest
 import logging
 import logging.config
 logging.config.fileConfig("pyspider/logging.conf")

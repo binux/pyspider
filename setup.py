@@ -18,18 +18,18 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 import pyspider
 
 install_requires = [
-    'Flask>=0.10',
-    'Jinja2>=2.7',
-    'chardet>=2.2',
-    'cssselect>=0.9',
-    'lxml' if sys.version_info[:2] != (3, 3) else "lxml<=4.2.6",
-    'pycurl',
-    'requests>=2.2',
-    'Flask-Login>=0.2.11',
-    'u-msgpack-python>=1.6',
-    'click>=3.3',
-    'six>=1.5.0',
-    'tblib>=1.3.0'
+    'Flask==0.10',
+    'Jinja2==2.7',
+    'chardet==2.2.1',
+    'cssselect==0.9',
+    "lxml==4.3.3",
+    'pycurl==7.43.0.3',
+    'requests==2.2',
+    'Flask-Login==0.2.11',
+    'u-msgpack-python==1.6',
+    'click==3.3',
+    'six==1.9',
+    'tblib==1.4.0'
 ]
 
 if sys.version_info < (2, 7):  # 2.6
@@ -40,7 +40,7 @@ if sys.version_info < (2, 7):  # 2.6
     ])
 elif sys.version_info >= (3, 0):  # 3.*
     install_requires.extend([
-        'wsgidav>=2.0.0',
+        'wsgidav==2.3.0',
         'tornado>=3.2,<=4.5.3',
         'pyquery',
     ])
@@ -52,12 +52,12 @@ else:  # 2.7
     ])
 
 extras_require_all = [
-    'mysql-connector-python>=1.2.2',
-    'pymongo>=2.7.2',
-    'redis',
-    'redis-py-cluster',
-    'psycopg2',
-    'elasticsearch>=2.0.0,<2.4.0',
+    'mysql-connector-python==8.0.16',
+    'pymongo==2.7.2',
+    'redis==2.10.6',
+    'redis-py-cluster==1.3.6',
+    'psycopg2==2.8.2',
+    'elasticsearch==2.3.0',
 ]
 if sys.version_info < (2, 7):  # 2.6
     extras_require_all.extend([
@@ -66,12 +66,13 @@ if sys.version_info < (2, 7):  # 2.6
         'pika>=0.9.14',
         'beanstalkc',
         'SQLAlchemy>=0.9.7,<=1.1.13',
+        'unittest2>=0.5.1',
     ])
 elif sys.version_info >= (3, 0):  # 3.*
     extras_require_all.extend([
-        'kombu',
-        'amqp>=2.1.1',
-        'SQLAlchemy>=0.9.7',
+        'kombu==4.4.0',
+        'amqp==2.4.0',
+        'SQLAlchemy==0.9.7',
     ])
 else:  # 2.7
     extras_require_all.extend([
@@ -80,6 +81,7 @@ else:  # 2.7
         'beanstalkc',
         'amqp>=1.3.0',
         'SQLAlchemy>=0.9.7',
+        'unittest2>=0.5.1',
     ])
 
 
@@ -127,11 +129,10 @@ setup(
     extras_require={
         'all': extras_require_all,
         'test': [
-            'unittest2>=0.5.1',
             'coverage',
             'httpbin<=0.5.0',
-            'pyproxy>=0.1.6',
-            'easywebdav',
+            'pyproxy==0.1.6',
+            'easywebdav==1.2.0',
         ]
     },
 

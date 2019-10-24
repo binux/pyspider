@@ -10,7 +10,7 @@ from __future__ import unicode_literals, division
 import os
 import six
 import time
-import unittest2 as unittest
+import unittest
 
 from pyspider import database
 from pyspider.database.base.taskdb import TaskDB

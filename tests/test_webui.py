@@ -10,7 +10,7 @@ import re
 import time
 import json
 import shutil
-import unittest2 as unittest
+import unittest
 
 from pyspider import run
 from pyspider.libs import utils

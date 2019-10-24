@@ -10,7 +10,6 @@ tornado==4.5.3
 mysql-connector-python==8.0.16
 pika==0.9.14
 pymongo==2.7.2
-unittest2==0.5.1
 Flask-Login==0.2.11
 u-msgpack-python==1.6
 click==3.3
@@ -21,5 +20,5 @@ redis==2.10.6
 redis-py-cluster==1.3.6
 kombu==4.4.0
 psycopg2==2.8.2
-elasticsearch==6.3.1
+elasticsearch==2.3.0
 tblib==1.4.0

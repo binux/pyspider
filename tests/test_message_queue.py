@@ -8,7 +8,7 @@
 import os
 import six
 import time
-import unittest2 as unittest
+import unittest
 
 from pyspider.libs import utils
 from six.moves import queue as Queue

@@ -10,7 +10,7 @@ import os
 import copy
 import time
 import httpbin
-import unittest2 as unittest
+import unittest
 
 import logging
 import logging.config

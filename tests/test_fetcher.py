@@ -12,7 +12,7 @@ import time
 import socket
 import umsgpack
 import subprocess
-import unittest2 as unittest
+import unittest
 
 import logging
 import logging.config

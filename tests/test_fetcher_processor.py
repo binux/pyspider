@@ -9,7 +9,7 @@ import os
 import time
 import httpbin
 import subprocess
-import unittest2 as unittest
+import unittest
 
 from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
