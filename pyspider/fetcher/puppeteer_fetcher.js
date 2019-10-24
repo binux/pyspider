@@ -1,4 +1,3 @@
-console.log("[puppeteer_fetcher] - requiring express..")
 const express = require("express");
 const puppeteer = require('puppeteer');
 const bodyParser = require('body-parser');

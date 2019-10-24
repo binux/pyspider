@@ -464,15 +464,7 @@ def puppeteer(ctx, port, auto_restart, args):
     puppeteer_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/puppeteer_fetcher.js')
 
-    cmd = ['pwd']
-    testa = subprocess.Popen(cmd)
-    cmd = ['ls', '-la', '../']
-    testb = subprocess.Popen(cmd)
-    cmd = ['ls', '-la', './']
-    testc = subprocess.Popen(cmd)
-
     cmd = ['node', puppeteer_fetcher, str(port)]
-
     try:
         _puppeteer = subprocess.Popen(cmd)
     except OSError:

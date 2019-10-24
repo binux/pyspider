@@ -190,8 +190,6 @@ class TestRun(unittest.TestCase):
             del os.environ['SCHEDULER_PORT_23333_TCP']
 
     def test_a100_all(self):
-        print("HERE")
-
         import subprocess
         #cmd = [sys.executable]
         cmd = ['coverage', 'run']
@@ -203,14 +201,12 @@ class TestRun(unittest.TestCase):
             'all',
         ], close_fds=True, preexec_fn=os.setsid)
 
-        print("HERE2")
         try:
             limit = 30
             while limit >= 0:
                 time.sleep(3)
                 # click run
                 try:
-                    print("Posting - http://localhost:5000/run")
                     requests.post('http://localhost:5000/run', data={
                         'project': 'data_sample_handler',
                     })
@@ -220,15 +216,11 @@ class TestRun(unittest.TestCase):
                 break
 
             limit = 30
-            print("Getting - http://localhost:5000/counter")
             data = requests.get('http://localhost:5000/counter')
-            print(data)
             self.assertEqual(data.status_code, 200)
             while data.json().get('data_sample_handler', {}).get('5m', {}).get('success', 0) < 5:
                 time.sleep(1)
-                print("Getting (loop) - http://localhost:5000/counter")
                 data = requests.get('http://localhost:5000/counter')
-                print(data)
                 limit -= 1
                 if limit <= 0:
                     break
