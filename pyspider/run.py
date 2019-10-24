@@ -216,8 +216,7 @@ def scheduler(ctx, no_xmlrpc, xmlrpc_host, xmlrpc_port,
         return scheduler
 
     if not no_xmlrpc:
-        # using run_in_thread here fails to complete and does not open the port
-        utils.run_in_subprocess(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
+        utils.run_in_thread(scheduler.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
 
     scheduler.run()
 
@@ -267,8 +266,7 @@ def fetcher(ctx, no_xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agen
         return fetcher
 
     if not no_xmlrpc:
-        # using run_in_thread here fails to complete and does not open the port
-        utils.run_in_subprocess(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
+        utils.run_in_thread(fetcher.xmlrpc_run, port=xmlrpc_port, bind=xmlrpc_host)
 
     fetcher.run()
 
