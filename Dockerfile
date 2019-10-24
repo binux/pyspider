@@ -8,6 +8,8 @@ RUN mkdir -p /opt/phantomjs \
         && tar xavf phantomjs.tar.bz2 --strip-components 1 \
         && ln -s /opt/phantomjs/bin/phantomjs /usr/local/bin/phantomjs \
         && rm phantomjs.tar.bz2
+# Fix Error: libssl_conf.so: cannot open shared object file: No such file or directory
+ENV OPENSSL_CONF=/etc/ssl/
 
 # install nodejs
 ENV NODEJS_VERSION=8.15.0 \
@@ -33,7 +35,7 @@ RUN pip install -e .[all]
 
 RUN npm i puppeteer express
 
-VOLUME ["/opt/pyspider"]
+#VOLUME ["/opt/pyspider"]
 ENTRYPOINT ["pyspider"]
 
 EXPOSE 5000 23333 24444 25555 22222
