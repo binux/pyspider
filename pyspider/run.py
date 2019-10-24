@@ -463,6 +463,10 @@ def puppeteer(ctx, port, auto_restart, args):
     _quit = []
     puppeteer_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/puppeteer_fetcher.js')
+
+    cmd = ['ls', '-la', '../']
+    test = subprocess.Popen(cmd)
+
     cmd = ['node', puppeteer_fetcher, str(port)]
 
     try:
