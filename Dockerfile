@@ -19,7 +19,6 @@ RUN apt-get -qq update && apt-get -qq install -y curl ca-certificates libx11-xcb
     curl -sL https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz | tar xz --strip-components=1 && \
     rm -rf /var/lib/apt/lists/*
 RUN npm install puppeteer express
-ENV NODE_PATH=/opt/node/node_modules
 
 # install requirements
 COPY requirements.txt /opt/pyspider/requirements.txt
@@ -31,6 +30,9 @@ ADD ./ /opt/pyspider
 # run test
 WORKDIR /opt/pyspider
 RUN pip install -e .[all]
+
+# Create a symbolic link to node_modules
+RUN ln -s /opt/node/node_modules ./node_modules
 
 #VOLUME ["/opt/pyspider"]
 ENTRYPOINT ["pyspider"]
