@@ -210,6 +210,7 @@ class TestRun(unittest.TestCase):
                 time.sleep(3)
                 # click run
                 try:
+                    print("Posting - http://localhost:5000/run")
                     requests.post('http://localhost:5000/run', data={
                         'project': 'data_sample_handler',
                     })
@@ -219,17 +220,23 @@ class TestRun(unittest.TestCase):
                 break
 
             limit = 30
+            print("Getting - http://localhost:5000/counter")
             data = requests.get('http://localhost:5000/counter')
+            print(data)
             self.assertEqual(data.status_code, 200)
             while data.json().get('data_sample_handler', {}).get('5m', {}).get('success', 0) < 5:
                 time.sleep(1)
+                print("Getting (loop) - http://localhost:5000/counter")
                 data = requests.get('http://localhost:5000/counter')
+                print(data)
                 limit -= 1
                 if limit <= 0:
                     break
 
             self.assertGreater(limit, 0)
+            print("Getting - http://localhost:5000/results?project=data_sample_handler")
             rv = requests.get('http://localhost:5000/results?project=data_sample_handler')
+            print(rv)
             self.assertIn('<th>url</th>', rv.text)
             self.assertIn('class=url', rv.text)
         except:
