@@ -45,7 +45,6 @@ class TestWebUI(unittest.TestCase):
         self.threads.append(run_in_thread(scheduler.run))
 
         ctx = run.fetcher.make_context('fetcher', [
-            '--xmlrpc',
             '--xmlrpc-port', '24444',
         ], self.ctx)
         fetcher = run.fetcher.invoke(ctx)
