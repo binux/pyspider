@@ -139,7 +139,7 @@ class TestRun(unittest.TestCase):
             del os.environ['MONGODB_PORT_27017_TCP_ADDR']
             del os.environ['MONGODB_PORT_27017_TCP_PORT']
 
-    @unittest.skip('noly available in docker')
+    @unittest.skip('only available in docker')
     @unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
     def test_70_docker_mysql(self):
         try:
@@ -190,6 +190,8 @@ class TestRun(unittest.TestCase):
             del os.environ['SCHEDULER_PORT_23333_TCP']
 
     def test_a100_all(self):
+        print("HERE")
+
         import subprocess
         #cmd = [sys.executable]
         cmd = ['coverage', 'run']
@@ -201,7 +203,7 @@ class TestRun(unittest.TestCase):
             'all',
         ], close_fds=True, preexec_fn=os.setsid)
 
-
+        print("HERE2")
         try:
             limit = 30
             while limit >= 0:
