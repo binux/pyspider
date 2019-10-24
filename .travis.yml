@@ -27,6 +27,7 @@ before_install:
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
     - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.0/elasticsearch-2.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.0.deb && sudo service elasticsearch restart
+    - npm install express puppeteer
     - sudo docker pull scrapinghub/splash
     - sudo docker run -d --net=host scrapinghub/splash
 before_script:
