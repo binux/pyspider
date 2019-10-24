@@ -13,13 +13,13 @@ ENV OPENSSL_CONF=/etc/ssl/
 
 # install nodejs
 ENV NODEJS_VERSION=8.15.0 \
-    PATH=$PATH:/opt/node/bin \
-    NODE_PATH=/opt/node/node_modules
+    PATH=$PATH:/opt/node/bin
 WORKDIR "/opt/node"
 RUN apt-get -qq update && apt-get -qq install -y curl ca-certificates libx11-xcb1 libxtst6 libnss3 libasound2 libatk-bridge2.0-0 libgtk-3-0 --no-install-recommends && \
     curl -sL https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-x64.tar.gz | tar xz --strip-components=1 && \
     rm -rf /var/lib/apt/lists/*
 RUN npm install puppeteer express
+ENV NODE_PATH=/opt/node/node_modules
 
 # install requirements
 COPY requirements.txt /opt/pyspider/requirements.txt
