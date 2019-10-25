@@ -176,7 +176,14 @@ class TestRun(unittest.TestCase):
             os.environ['SCHEDULER_NAME'] = 'scheduler'
 
             #os.environ['SCHEDULER_PORT_23333_TCP'] = 'tpc://binux:25678'
-            # NOTE: I don't understand the use of SCHEDULER_PORT_23333_TCP. As far as I'm concerned, either SCHEDULER_NAME should be used as the hostname and there should be a second environment variable such as SCHEDULER_PORT to specify the port or you just specify both in SCHEDULER_NAME (perhaps change to SCHEDULER_HOST). Right now the port is hardcoded and this needs to be changed. If I ever make a pull request for this I'd like some feedback here.
+            # NOTE: I don't understand the use of SCHEDULER_PORT_23333_TCP. As far as I'm concerned,
+            # either SCHEDULER_NAME should be used as the hostname and there should be a second environment
+            # variable such as SCHEDULER_PORT to specify the port.
+            # Right now the port is hardcoded and this needs to be changed.
+            # If I ever make a pull request for this I'd like some feedback here.
+
+            # Having looked at more of the code here, SCHEDULER_PORT_23333_TCP_ADDR and SCHEDULER_PORT_23333_TCP_PORT
+            # should be used.
 
             ctx = run.cli.make_context('test', [], None,
                                        obj=dict(testing_mode=True))
@@ -229,9 +236,7 @@ class TestRun(unittest.TestCase):
                     break
 
             self.assertGreater(limit, 0)
-            print("Getting - http://localhost:5000/results?project=data_sample_handler")
             rv = requests.get('http://localhost:5000/results?project=data_sample_handler')
-            print(rv)
             self.assertIn('<th>url</th>', rv.text)
             self.assertIn('class=url', rv.text)
         except:

@@ -209,7 +209,7 @@ if (system.args.length !== 2) {
   });
 
   if (service) {
-    console.log('[phantomjs_fetcher] phantomjs fetcher running on port ' + port);
+    console.log('phantomjs fetcher running on port ' + port);
   } else {
     console.log('Error: Could not create web server listening on port ' + port);
     phantom.exit();
