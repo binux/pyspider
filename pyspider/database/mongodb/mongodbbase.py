@@ -38,7 +38,7 @@ class SplitTableMixin(object):
             if each.startswith('system.'):
                 continue
             if each.startswith(prefix):
-                self.projects(each[len(prefix):])
+                self.projects.add(each[len(prefix):])
 
     def drop(self, project):
         if project not in self.projects:
