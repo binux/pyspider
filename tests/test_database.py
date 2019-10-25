@@ -84,6 +84,7 @@ class TaskDBCase(object):
 
     def test_25_get_task(self):
         task = self.taskdb.get_task('project', 'taskid2')
+        self.assertIsNotNone(task)
         self.assertEqual(task['taskid'], 'taskid2')
         self.assertEqual(task['project'], self.sample_task['project'])
         self.assertEqual(task['url'], self.sample_task['url'])
@@ -253,6 +254,7 @@ class ResultDBCase(object):
     def test_10_save(self):
         self.resultdb.save('test_project', 'test_taskid', 'test_url', 'result')
         result = self.resultdb.get('test_project', 'test_taskid')
+        self.assertIsNotNone(result)
         self.assertEqual(result['result'], 'result')
 
         self.resultdb.save('test_project', 'test_taskid', 'test_url_updated', 'result_updated')
@@ -268,6 +270,7 @@ class ResultDBCase(object):
         self.assertIsNone(result)
 
         result = self.resultdb.get('test_project', 'test_taskid', fields=('url', ))
+        self.assertIsNotNone(result)
         self.assertIn('url', result)
         self.assertNotIn('result', result)
 
