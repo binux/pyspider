@@ -80,7 +80,11 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
     def _stringify(data):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
-                data[each] = json.dumps(data[each])
+                if data[each]:
+                    data[each] = json.dumps(data[each])
+                else:
+                    data[each] = {}
+
         return data
 
     def load_tasks(self, status, project=None, fields=None):
