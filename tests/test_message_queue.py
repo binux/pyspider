@@ -261,6 +261,6 @@ class TestKombuRedisQueue(TestKombuQueue):
 class TestKombuBeanstalkQueue(TestKombuQueue):
     kombu_url = 'kombu+beanstalk://'
 
-@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
 class TestKombuMongoDBQueue(TestKombuQueue):
     kombu_url = 'kombu+mongodb://'
