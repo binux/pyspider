@@ -19,8 +19,7 @@ class SplitTableMixin(object):
 
     @property
     def projects(self):
-        if time.time() - getattr(self, '_last_update_projects', 0) \
-                > self.UPDATE_PROJECTS_TIME:
+        if time.time() - getattr(self, '_last_update_projects', 0) > self.UPDATE_PROJECTS_TIME:
             self._list_project()
         return self._projects
 
@@ -39,7 +38,7 @@ class SplitTableMixin(object):
             if each.startswith('system.'):
                 continue
             if each.startswith(prefix):
-                self.projects.add(each[len(prefix):])
+                self.projects(each[len(prefix):])
 
     def drop(self, project):
         if project not in self.projects:
