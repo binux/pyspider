@@ -174,6 +174,7 @@ def cli(ctx, **kwargs):
 
 
 @cli.command()
+@click.option('--xmlrpc', is_flag=True, help="Enable xmlrpc (Default=True)")
 @click.option('--no-xmlrpc', is_flag=True, help="Disable xmlrpc")
 @click.option('--xmlrpc-host', default='0.0.0.0')
 @click.option('--xmlrpc-port', envvar='SCHEDULER_XMLRPC_PORT', default=23333)
@@ -189,7 +190,7 @@ def cli(ctx, **kwargs):
               help='scheduler class to be used.')
 @click.option('--threads', default=None, help='thread number for ThreadBaseScheduler, default: 4')
 @click.pass_context
-def scheduler(ctx, no_xmlrpc, xmlrpc_host, xmlrpc_port,
+def scheduler(ctx, xmlrpc, no_xmlrpc, xmlrpc_host, xmlrpc_port,
               inqueue_limit, delete_time, active_tasks, loop_limit, fail_pause_num,
               scheduler_cls, threads, get_object=False):
     """
@@ -222,6 +223,7 @@ def scheduler(ctx, no_xmlrpc, xmlrpc_host, xmlrpc_port,
 
 
 @cli.command()
+@click.option('--xmlrpc', is_flag=True, help="Enable xmlrpc (Default=True)")
 @click.option('--no-xmlrpc', is_flag=True, help="Disable xmlrpc")
 @click.option('--xmlrpc-host', default='0.0.0.0')
 @click.option('--xmlrpc-port', envvar='FETCHER_XMLRPC_PORT', default=24444)
@@ -235,7 +237,7 @@ def scheduler(ctx, no_xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.pass_context
-def fetcher(ctx, no_xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
+def fetcher(ctx, xmlrpc, no_xmlrpc, xmlrpc_host, xmlrpc_port, poolsize, proxy, user_agent,
             timeout, phantomjs_endpoint, puppeteer_endpoint, splash_endpoint, fetcher_cls,
             async_mode=True, get_object=False, no_input=False):
     """
