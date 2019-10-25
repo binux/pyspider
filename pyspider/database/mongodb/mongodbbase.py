@@ -35,10 +35,13 @@ class SplitTableMixin(object):
         else:
             prefix = ''
         for each in self.database.collection_names():
+            print("[MONGO _list_project] collection_name: {}".format(each))
             if each.startswith('system.'):
                 continue
             if each.startswith(prefix):
+                print("[MONGO _list_project] adding {} to projects..".format(each))
                 self.projects.add(each[len(prefix):])
+                print("[MONGO _list_project] self.projects() = {}".format(self.projects))
 
     def drop(self, project):
         if project not in self.projects:
