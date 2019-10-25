@@ -93,10 +93,11 @@ class PikaQueue(object):
         import pika
         import pika.exceptions
 
-        self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
-
         print("[RabbitMQ reconnect] - amqp_url: {}".format(self.amqp_url))
         print("[RabbitMQ reconnect] - Connecting to: {}".format(pika.URLParameters(self.amqp_url)))
+
+        self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
+
 
         self.channel = self.connection.channel()
         try:
