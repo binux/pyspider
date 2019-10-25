@@ -63,14 +63,15 @@ class ResultDB(SplitTableMixin, BaseResultDB):
                 data[key] = utils.text(value)
         if 'result' in data:
             if isinstance(data['result'], bytearray):
-                data['result'] = str(data['result'], encoding="utf-8")
-            data['result'] = json.loads(data['result'])
+                data['result'] = data['result'].decode("utf-8")
+            if data['result'] is not None:
+                data['result'] = json.loads(data['result'])
         return data
 
     @staticmethod
     def _stringify(data):
         if 'result' in data:
-            data['result'] = utils.utf8(json.dumps(data['result']))
+            data['result'] = json.dumps(data['result']).encode("utf-8")
         return data
 
     def save(self, project, taskid, url, result):
