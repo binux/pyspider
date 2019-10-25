@@ -9,10 +9,11 @@ import time
 
 
 def result2dict(columns, task):
-    r = {}
-    for key in task.keys():
-        r[key] = task[key]
-    return r
+    return task.__dict__
+    #r = {}
+    #for key in task.keys():
+    #    r[key] = task[key]
+    #return r
 
 
 class SplitTableMixin(object):
