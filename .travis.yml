@@ -46,8 +46,7 @@ install:
     - pip install -e .[all,test]
     - pip install coveralls
 script:
-    #- coverage run setup.py test
-    - python setup.py test
-#after_success:
-    #- coverage combine
-    #- coveralls
+    - coverage run setup.py test
+after_success:
+    - coverage combine
+    - coveralls
