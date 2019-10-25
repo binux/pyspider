@@ -12,7 +12,7 @@ import json
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, Unicode, func)
+                        Integer, String, Float, UnicodeText, func)
 from sqlalchemy.engine.url import make_url
 from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
@@ -28,10 +28,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                            Column('project', String(64)),
                            Column('url', String(1024)),
                            Column('status', Integer),
-                           Column('schedule', Unicode()),
-                           Column('fetch', Unicode()),
-                           Column('process', Unicode()),
-                           Column('track', Unicode()),
+                           Column('schedule', UnicodeText()),
+                           Column('fetch', UnicodeText()),
+                           Column('process', UnicodeText()),
+                           Column('track', UnicodeText()),
                            Column('lastcrawltime', Float(32)),
                            Column('updatetime', Float(32)),
                            mysql_engine='InnoDB',
