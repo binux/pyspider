@@ -13,7 +13,7 @@ pymongo==2.7.2
 Flask-Login==0.2.11
 u-msgpack-python==1.6
 click==6.6
-SQLAlchemy==0.9.7
+SQLAlchemy==1.2.0
 six==1.10.0
 amqp==2.4.0
 redis==2.10.6
