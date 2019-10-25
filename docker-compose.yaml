@@ -1,0 +1,86 @@
+version: "3.7"
+
+# docker build ./ -t pyspider:latest
+
+services:
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    networks:
+      - pyspider
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    volumes:
+      - /tmp:/var/lib/mysql
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - pyspider
+  phantomjs:
+    image: pyspider:latest
+    container_name: phantomjs
+    networks:
+      - pyspider
+    command: phantomjs
+    depends_on:
+      - mysql
+      - rabbitmq
+  result:
+    image: pyspider:latest
+    container_name: result
+    networks:
+      - pyspider
+    command: result_worker
+    depends_on:
+      - mysql
+      - rabbitmq
+  processor:
+    container_name: processor
+    image: pyspider:latest
+    networks:
+      - pyspider
+    command: processor
+    depends_on:
+      - mysql
+      - rabbitmq
+  fetcher:
+    image: pyspider:latest
+    container_name: fetcher
+    networks:
+      - pyspider
+    command : fetcher
+    depends_on:
+      - mysql
+      - rabbitmq
+  scheduler:
+    image: pyspider:latest
+    container_name: scheduler
+    networks:
+      - pyspider
+    command: scheduler
+    depends_on:
+      - mysql
+      - rabbitmq
+  webui:
+    image: pyspider:latest
+    container_name: webui
+    ports:
+      - "5050:5000"
+    networks:
+      - pyspider
+    volumes:
+      - /Users/Keith/Documents/Projects/IB/pyspider/data:/opt/pyspider/data
+    environment:
+      - SCHEDULER_NAME=scheduler
+    command: webui
+    depends_on:
+      - mysql
+      - rabbitmq
+
+networks:
+  pyspider:
+    external:
+      name: pyspider
+  default:
+    driver: bridge
