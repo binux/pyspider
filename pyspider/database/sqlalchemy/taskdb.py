@@ -12,7 +12,7 @@ import json
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, UnicodeText, func)
+                        Integer, String, Float, Text, func)
 from sqlalchemy.engine.url import make_url
 from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
@@ -28,10 +28,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                            Column('project', String(64)),
                            Column('url', String(1024)),
                            Column('status', Integer),
-                           Column('schedule', UnicodeText()),
-                           Column('fetch', UnicodeText()),
-                           Column('process', UnicodeText()),
-                           Column('track', UnicodeText()),
+                           Column('schedule', Text()),
+                           Column('fetch', Text()),
+                           Column('process', Text()),
+                           Column('track', Text()),
                            Column('lastcrawltime', Float(32)),
                            Column('updatetime', Float(32)),
                            mysql_engine='InnoDB',
@@ -71,7 +71,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    data[each] = json.loads(data[each].decode("utf-8"))
+                    data[each] = json.loads(data[each])
                 else:
                     data[each] = {}
         return data
@@ -81,9 +81,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for each in ('schedule', 'fetch', 'process', 'track'):
             if each in data:
                 if data[each]:
-                    data[each] = json.dumps(data[each]).encode("utf-8")
+                    data[each] = json.dumps(data[each])
                 else:
-                    data[each] = json.dumps({}).encode("utf-8")
+                    data[each] = json.dumps({})
         return data
 
     def load_tasks(self, status, project=None, fields=None):
