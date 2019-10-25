@@ -21,6 +21,10 @@ services:
     - postgresql
 addons:
   postgresql: "9.4"
+  apt:
+    packages:
+    - rabbitmq-server
+    
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd libgnutls28-dev
