@@ -72,7 +72,7 @@ elif sys.version_info >= (3, 0):  # 3.*
     extras_require_all.extend([
         'kombu==4.4.0',
         'amqp==2.4.0',
-        'SQLAlchemy==1.2.0',
+        'SQLAlchemy==1.2.3',
     ])
 else:  # 2.7
     extras_require_all.extend([
