@@ -48,7 +48,13 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         return data
 
     def save(self, project, taskid, url, result):
+
+        print("[MONGO save] - Saving {} to project {}".format(taskid, project))
+
         if project not in self.projects:
+
+            print("[MONGO save] - Creating Project {}".format(project))
+
             self._create_project(project)
         collection_name = self._collection_name(project)
         obj = {
@@ -81,7 +87,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         return self.database[collection_name].count()
 
     def get(self, project, taskid, fields=None):
+
+        print("[MONGO get] - Getting {} from project {}".format(taskid, project))
+
         if project not in self.projects:
+            print("[MONGO get] - Project {} not in projects!".format(project))
             self._list_project()
         if project not in self.projects:
             return
