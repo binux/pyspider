@@ -94,6 +94,10 @@ class PikaQueue(object):
         import pika.exceptions
 
         self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
+
+        print("[RabbitMQ reconnect] - amqp_url: {}".format(self.amqp_url))
+        print("[RabbitMQ reconnect] - Connecting to: {}".format(pika.URLParameters(self.amqp_url)))
+
         self.channel = self.connection.channel()
         try:
             self.channel.queue_declare(self.name)
@@ -232,7 +236,7 @@ class AmqpQueue(PikaQueue):
                                           userid=parsed.username or 'guest',
                                           password=parsed.password or 'guest',
                                           virtual_host=unquote(
-                                              parsed.path.lstrip('/') or '%2F'))
+                                              parsed.path.lstrip('/') or '%2F')).connect()
         self.channel = self.connection.channel()
         try:
             self.channel.queue_declare(self.name)
