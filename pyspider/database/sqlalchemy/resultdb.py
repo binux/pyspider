@@ -65,7 +65,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             if isinstance(data['result'], bytearray):
                 data['result'] = data['result'].decode("utf-8")
             if data['result'] is not None:
-                data['result'] = json.loads(data['result'])
+                try:
+                    data['result'] = json.loads(data['result'])
+                except json.decoder.JSONDecodeError:
+                    print(data['result'])
+                    raise
         return data
 
     @staticmethod
