@@ -12,7 +12,7 @@ import json
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column,
-                        String, Float, LargeBinary)
+                        String, Float, Unicode)
 from sqlalchemy.engine.url import make_url
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.libs import utils
@@ -26,7 +26,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.table = Table('__tablename__', MetaData(),
                            Column('taskid', String(64), primary_key=True, nullable=False),
                            Column('url', String(1024)),
-                           Column('result', LargeBinary),
+                           Column('result', Unicode),
                            Column('updatetime', Float(32)),
                            mysql_engine='InnoDB',
                            mysql_charset='utf8'
@@ -63,7 +63,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
                 data[key] = utils.text(value)
         if 'result' in data:
             if isinstance(data['result'], bytearray):
-                data['result'] = str(data['result'])
+                data['result'] = str(data['result'], encoding="utf-8")
             data['result'] = json.loads(data['result'])
         return data
 

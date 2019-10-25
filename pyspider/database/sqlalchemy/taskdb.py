@@ -12,7 +12,7 @@ import json
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, LargeBinary, func)
+                        Integer, String, Float, Unicode, func)
 from sqlalchemy.engine.url import make_url
 from pyspider.libs import utils
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
@@ -28,10 +28,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                            Column('project', String(64)),
                            Column('url', String(1024)),
                            Column('status', Integer),
-                           Column('schedule', LargeBinary),
-                           Column('fetch', LargeBinary),
-                           Column('process', LargeBinary),
-                           Column('track', LargeBinary),
+                           Column('schedule', Unicode),
+                           Column('fetch', Unicode),
+                           Column('process', Unicode),
+                           Column('track', Unicode),
                            Column('lastcrawltime', Float(32)),
                            Column('updatetime', Float(32)),
                            mysql_engine='InnoDB',
@@ -72,7 +72,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             if each in data:
                 if data[each]:
                     if isinstance(data[each], bytearray):
-                        data[each] = str(data[each])
+                        data[each] = str(data[each], encoding="utf-8")
                     data[each] = json.loads(data[each])
                 else:
                     data[each] = {}
