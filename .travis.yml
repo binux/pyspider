@@ -24,7 +24,7 @@ addons:
   apt:
     packages:
     - rabbitmq-server
-    
+
 before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y beanstalkd libgnutls28-dev
@@ -46,7 +46,8 @@ install:
     - pip install -e .[all,test]
     - pip install coveralls
 script:
-    - coverage run setup.py test
-after_success:
-    - coverage combine
-    - coveralls
+    #- coverage run setup.py test
+    - python setup.py test
+#after_success:
+    #- coverage combine
+    #- coveralls
