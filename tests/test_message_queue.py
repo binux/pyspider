@@ -73,7 +73,7 @@ class BuiltinQueue(TestMessageQueue, unittest.TestCase):
             self.q3 = connect_message_queue('test_queue_for_threading_test')
 
 
-@unittest.skipIf(six.PY3, 'pika not suport python 3')
+#@unittest.skipIf(six.PY3, 'pika not suport python 3')
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
 
