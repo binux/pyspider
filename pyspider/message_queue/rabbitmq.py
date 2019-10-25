@@ -275,4 +275,4 @@ class AmqpQueue(PikaQueue):
                 self.channel.basic_ack(message.delivery_tag)
         return umsgpack.unpackb(message.body)
 
-Queue = AmqpQueue
+Queue = PikaQueue
