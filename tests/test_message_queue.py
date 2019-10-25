@@ -115,6 +115,7 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
             self.q1.put('TEST_DATA6', timeout=0.01)
 
 
+@unittest.skipIf(six.PY3, 'Python 3 now using Pika')
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
