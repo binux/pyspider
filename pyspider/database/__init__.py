@@ -32,6 +32,8 @@ def connect_database(url):
         redis+taskdb://host:port/db
     elasticsearch:
         elasticsearch+type://host:port/?index=pyspider
+    couchdb:
+        couchdb+type://[username:password@]host[:port]
     local:
         local+projectdb://filepath,filepath
 
@@ -205,18 +207,17 @@ def _connect_elasticsearch(parsed, dbtype):
 
 def _connect_couchdb(parsed, dbtype, url):
     url = url.replace(parsed.scheme, 'couchdb')
-    parames = {}
-    if parsed.path.strip('/'):
-        parames['database'] = parsed.path.strip('/')
+    params = {}
+    print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB
-        return TaskDB(url, **parames)
+        return TaskDB(url, **params)
     elif dbtype == 'projectdb':
         from .couchdb.projectdb import ProjectDB
-        return ProjectDB(url, **parames)
+        return ProjectDB(url, **params)
     elif dbtype == 'resultdb':
         from .couchdb.resultdb import ResultDB
-        return ResultDB(url, **parames)
+        return ResultDB(url, **params)
     else:
         raise LookupError
