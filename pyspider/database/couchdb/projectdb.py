@@ -33,6 +33,10 @@ class ProjectDB(BaseProjectDB):
         return res
 
     def update(self, name, obj={}, **kwargs):
+        # TODO: If name doesn't exist, return None
+        print('[couchdb projectdb update] - name: {} get: {}'.format(name, self.get(name)))
+        if self.get(name) is None:
+            return None
         obj = dict(obj)
         obj.update(kwargs)
         self.insert(name, obj)
