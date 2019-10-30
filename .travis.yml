@@ -28,6 +28,7 @@ addons:
 
 before_install:
     - sudo apt-get update -qq
+    - sudo apt-get upgrade couchdb
     - sudo apt-get install -y beanstalkd libgnutls28-dev
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
