@@ -46,8 +46,7 @@ class ProjectDB(BaseProjectDB):
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb get_all] - url: {} res: {}'.format(url, res))
-        return res
-
+        return res['docs']
 
     def get(self, name, fields=None):
         if fields is None:
@@ -60,7 +59,7 @@ class ProjectDB(BaseProjectDB):
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb get] - url: {} res: {}'.format(url, res))
-        return res
+        return res['docs'][0]
 
     def check_update(self, timestamp, fields=None):
         if fields is None:
