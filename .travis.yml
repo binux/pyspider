@@ -30,12 +30,7 @@ before_install:
     - curl -L https://couchdb.apache.org/repo/bintray-pubkey.asc | sudo apt-key add -
     - sudo apt-get update -qq
     - sudo apt-get install -y couchdb
-    - adduser --system --shell /bin/bash --group --gecos "CouchDB Administrator" couchdb
-    - cp -R /path/to/couchdb/rel/couchdb /home/couchdb
-    - chown -R couchdb:couchdb /home/couchdb
-    - find /home/couchdb -type d -exec chmod 0770 {} \;
-    - chmod 0644 /home/couchdb/etc/*
-    - sudo -i -u couchdb /home/couchdb/bin/couchdb
+    - sudo systemctl start couchdb
     - sudo apt-get install -y beanstalkd libgnutls28-dev
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
