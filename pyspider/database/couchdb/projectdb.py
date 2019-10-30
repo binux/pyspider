@@ -29,7 +29,7 @@ class ProjectDB(BaseProjectDB):
         obj['name'] = name
         obj['updatetime'] = time.time()
         res = requests.put(url, data = json.dumps(obj), headers = {"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb insert] - url: {} res: {}'.format(url,res))
+        print('[couchdb projectdb insert] - url: {} data: {} res: {}'.format(url, json.dumps(obj), res))
         return res
 
     def update(self, name, obj={}, **kwargs):
