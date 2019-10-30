@@ -14,10 +14,10 @@ class ProjectDB(BaseProjectDB):
     def _default_fields(self, each):
         if each is None:
             return each
-        each.setdefault('group', None)
+        each.setdefault('group')
         each.setdefault('status', 'TODO')
         each.setdefault('script', '')
-        each.setdefault('comments', None)
+        each.setdefault('comments')
         each.setdefault('rate', 0)
         each.setdefault('burst', 0)
         each.setdefault('updatetime', 0)
