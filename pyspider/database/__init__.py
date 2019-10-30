@@ -89,6 +89,9 @@ def _connect_database(url):  # NOQA
     elif engine == 'elasticsearch' or engine == 'es':
         return _connect_elasticsearch(parsed, dbtype)
 
+    elif engine == 'couchdb':
+        return _connect_couchdb(parsed, dbtype, url)
+
     else:
         raise Exception('unknown engine: %s' % engine)
 
@@ -198,3 +201,22 @@ def _connect_elasticsearch(parsed, dbtype):
     elif dbtype == 'taskdb':
         from .elasticsearch.taskdb import TaskDB
         return TaskDB([parsed.netloc], index=index)
+
+
+def _connect_couchdb(parsed, dbtype, url):
+    url = url.replace(parsed.scheme, 'couchdb')
+    parames = {}
+    if parsed.path.strip('/'):
+        parames['database'] = parsed.path.strip('/')
+
+    if dbtype == 'taskdb':
+        from .couchdb.taskdb import TaskDB
+        return TaskDB(url, **parames)
+    elif dbtype == 'projectdb':
+        from .couchdb.projectdb import ProjectDB
+        return ProjectDB(url, **parames)
+    elif dbtype == 'resultdb':
+        from .couchdb.resultdb import ResultDB
+        return ResultDB(url, **parames)
+    else:
+        raise LookupError

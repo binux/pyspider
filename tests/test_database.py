@@ -690,5 +690,21 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
     def tearDownClass(self):
         self.taskdb.es.indices.delete(index='test_pyspider_taskdb', ignore=[400, 404])
 
+
+@unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.projectdb = database.connect_database(
+            'couchdb+projectdb://localhost/pyspider_test_projectdb'
+        )
+        self.assertIsNotNone(self, self.projectdb)
+
+    @classmethod
+    def tearDownClass(self):
+        self.projectdb.conn.drop_database(self.projectdb.database.name)
+
+
 if __name__ == '__main__':
     unittest.main()
