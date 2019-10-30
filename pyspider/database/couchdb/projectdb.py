@@ -28,7 +28,7 @@ class ProjectDB(BaseProjectDB):
         obj['name'] = name
         obj['updatetime'] = time.time()
         res = requests.put(url, data = json.dumps(obj), headers = {"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb insert] - res: {}'.format(res))
+        print('[couchdb projectdb insert] - url: {} res: {}'.format(url,res))
         return res
 
     def update(self, name, obj={}, **kwargs):
@@ -42,7 +42,7 @@ class ProjectDB(BaseProjectDB):
             "fields": fields
         }
         res = requests.post(self.url+"_find", data=json.dumps(payload)).json()
-        print('[couchdb projectdb get_all] - res: {}'.format(res))
+        print('[couchdb projectdb get_all] - url: {} res: {}'.format(self.url, res))
         return res
 
 
@@ -53,7 +53,7 @@ class ProjectDB(BaseProjectDB):
             "limit": 1
         }
         res = requests.post(self.url + "_find", data=json.dumps(payload)).json()
-        print('[couchdb projectdb get] - res: {}'.format(res))
+        print('[couchdb projectdb get] - url: {} res: {}'.format(self.url, res))
         return res
 
     def check_update(self, timestamp, fields=None):
@@ -63,8 +63,8 @@ class ProjectDB(BaseProjectDB):
                 yield self._default_fields(project)
 
     def drop(self, name):
-        doc = json.loads(self.get(name))
+        doc = self.get(name)
         res = requests.delete(self.url+name+"/"+doc["_rev"]).json()
-        print('[couchdb projectdb drop] - res: {}'.format(res))
+        print('[couchdb projectdb drop] - url: {} res: {}'.format(self.url, res))
         return res
 
