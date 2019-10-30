@@ -206,7 +206,8 @@ def _connect_elasticsearch(parsed, dbtype):
 
 
 def _connect_couchdb(parsed, dbtype, url):
-    url = parsed.netloc + "/"
+    # TODO: Add https + auth as parameters
+    url = "http://" + parsed.netloc + "/"
     params = {}
     print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
 
