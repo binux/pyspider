@@ -37,6 +37,7 @@ class ProjectDB(BaseProjectDB):
             return None
         obj = dict(obj)
         obj.update(kwargs)
+        obj['updatetime'] = time.time()
         self.insert(name, obj)
 
     def get_all(self, fields=None):
@@ -70,10 +71,10 @@ class ProjectDB(BaseProjectDB):
     def check_update(self, timestamp, fields=None):
         if fields is None:
             fields = []
-        for project in self.get_all(fields=('updatetime', 'name')):
+        for project in self.get_all():
+            # save an extra request
             if project['updatetime'] > timestamp:
-                project = self.get(project['name'], fields)
-                yield self._default_fields(project)
+                yield project
 
     def drop(self, name):
         doc = self.get(name)
