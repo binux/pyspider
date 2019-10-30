@@ -40,7 +40,7 @@ class ProjectDB(BaseProjectDB):
             "selector": {},
             "fields": fields
         }
-        return requests.post(self.url+"_find", data=payload)
+        return json.loads(requests.post(self.url+"_find", data=json.dumps(payload)).json())
 
     def get(self, name, fields=None):
         payload = {
@@ -48,7 +48,7 @@ class ProjectDB(BaseProjectDB):
             "fields": fields,
             "limit": 1
         }
-        return requests.post(self.url + "_find", data=payload)
+        return json.loads(requests.post(self.url + "_find", data=json.dumps(payload)).json())
 
     def check_update(self, timestamp, fields=None):
         for project in self.get_all(fields=('updatetime', 'name')):
@@ -58,5 +58,5 @@ class ProjectDB(BaseProjectDB):
 
     def drop(self, name):
         doc = json.loads(self.get(name))
-        return requests.delete(self.url+name+"/"+doc["_rev"])
+        return json.loads(requests.delete(self.url+name+"/"+doc["_rev"]).json())
 
