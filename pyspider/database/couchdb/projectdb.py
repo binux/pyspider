@@ -6,6 +6,7 @@ class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
 
     def __init__(self, url, database='projectdb'):
+        self.base_url = url
         self.url = url + database + "/"
         self.database = database
         self.insert('', {})
@@ -74,5 +75,10 @@ class ProjectDB(BaseProjectDB):
         url = self.url + name + "/" + doc["_rev"]
         res = requests.delete(url, headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb drop] - url: {} res: {}'.format(url, res))
+        return res
+
+    def drop_database(self):
+        res = requests.delete(self.base_url, headers={"Content-Type": "application/json"}).json()
+        print('[couchdb projectdb drop_database] - url: {} res: {}'.format(self.base_url, res))
         return res
 

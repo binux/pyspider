@@ -703,7 +703,7 @@ class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.projectdb.conn.drop_database(self.projectdb.database.name)
+        self.projectdb.drop_database()
 
 
 if __name__ == '__main__':
