@@ -37,6 +37,8 @@ class ProjectDB(BaseProjectDB):
         self.insert(name, obj)
 
     def get_all(self, fields=None):
+        if fields is None:
+            fields = []
         payload = {
             "selector": {},
             "fields": fields
@@ -48,6 +50,8 @@ class ProjectDB(BaseProjectDB):
 
 
     def get(self, name, fields=None):
+        if fields is None:
+            fields = []
         payload = {
             "selector": {"name": name},
             "fields": fields,
@@ -59,6 +63,8 @@ class ProjectDB(BaseProjectDB):
         return res
 
     def check_update(self, timestamp, fields=None):
+        if fields is None:
+            fields = []
         for project in self.get_all(fields=('updatetime', 'name')):
             if project['updatetime'] > timestamp:
                 project = self.get(project['name'], fields)
