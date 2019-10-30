@@ -33,8 +33,6 @@ class ProjectDB(BaseProjectDB):
         return res
 
     def update(self, name, obj={}, **kwargs):
-        # TODO: If name doesn't exist, return None
-        print('[couchdb projectdb update] - name: {} get: {}'.format(name, self.get(name)))
         if self.get(name) is None:
             return None
         obj = dict(obj)
@@ -64,6 +62,8 @@ class ProjectDB(BaseProjectDB):
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb get] - url: {} res: {}'.format(url, res))
+        if len(res['docs']) == 0:
+            return None
         return res['docs'][0]
 
     def check_update(self, timestamp, fields=None):
