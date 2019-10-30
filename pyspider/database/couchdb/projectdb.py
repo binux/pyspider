@@ -42,7 +42,7 @@ class ProjectDB(BaseProjectDB):
             "fields": fields
         }
         url = self.url + "_find"
-        res = requests.post(url, data=json.dumps(payload)).json()
+        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb get_all] - url: {} res: {}'.format(url, res))
         return res
 
@@ -54,7 +54,7 @@ class ProjectDB(BaseProjectDB):
             "limit": 1
         }
         url = self.url + "_find"
-        res = requests.post(url, data=json.dumps(payload)).json()
+        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb get] - url: {} res: {}'.format(url, res))
         return res
 
@@ -67,7 +67,7 @@ class ProjectDB(BaseProjectDB):
     def drop(self, name):
         doc = self.get(name)
         url = self.url + name + "/" + doc["_rev"]
-        res = requests.delete(url).json()
+        res = requests.delete(url, headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb drop] - url: {} res: {}'.format(url, res))
         return res
 
