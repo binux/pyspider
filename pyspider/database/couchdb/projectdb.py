@@ -27,8 +27,9 @@ class ProjectDB(BaseProjectDB):
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
-        print("[couchdb insert] - insert url: {} obj: {}".format(url, json.dumps(obj)))
-        return requests.put(url, data = json.dumps(obj), headers = {"Content-Type": "application/json"})
+        res = requests.put(url, data = json.dumps(obj), headers = {"Content-Type": "application/json"}).json()
+        print('[couchdb projectdb insert] - res: {}'.format(res))
+        return res
 
     def update(self, name, obj={}, **kwargs):
         obj = dict(obj)
@@ -40,7 +41,10 @@ class ProjectDB(BaseProjectDB):
             "selector": {},
             "fields": fields
         }
-        return json.loads(requests.post(self.url+"_find", data=json.dumps(payload)).json())
+        res = requests.post(self.url+"_find", data=json.dumps(payload)).json()
+        print('[couchdb projectdb get_all] - res: {}'.format(res))
+        return res
+
 
     def get(self, name, fields=None):
         payload = {
@@ -48,7 +52,9 @@ class ProjectDB(BaseProjectDB):
             "fields": fields,
             "limit": 1
         }
-        return json.loads(requests.post(self.url + "_find", data=json.dumps(payload)).json())
+        res = requests.post(self.url + "_find", data=json.dumps(payload)).json()
+        print('[couchdb projectdb get] - res: {}'.format(res))
+        return res
 
     def check_update(self, timestamp, fields=None):
         for project in self.get_all(fields=('updatetime', 'name')):
@@ -58,5 +64,7 @@ class ProjectDB(BaseProjectDB):
 
     def drop(self, name):
         doc = json.loads(self.get(name))
-        return json.loads(requests.delete(self.url+name+"/"+doc["_rev"]).json())
+        res = requests.delete(self.url+name+"/"+doc["_rev"]).json()
+        print('[couchdb projectdb drop] - res: {}'.format(res))
+        return res
 
