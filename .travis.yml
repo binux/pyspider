@@ -19,7 +19,6 @@ services:
     - mysql
     #- elasticsearch
     - postgresql
-    - couchdb
 addons:
   postgresql: "9.4"
   apt:
@@ -31,6 +30,7 @@ before_install:
     - curl -L https://couchdb.apache.org/repo/bintray-pubkey.asc | sudo apt-key add -
     - sudo apt-get update -qq
     - sudo apt-get install -y couchdb
+    - sudo -i -u couchdb /home/couchdb/bin/couchdb
     - sudo apt-get install -y beanstalkd libgnutls28-dev
     - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
     - sudo service beanstalkd start
@@ -39,6 +39,8 @@ before_install:
     - sudo docker pull scrapinghub/splash
     - sudo docker run -d --net=host scrapinghub/splash
 before_script:
+    - curl -X PUT http://127.0.0.1:5984/_users
+    - curl -X PUT http://127.0.0.1:5984/_replicator
     - psql -c "CREATE DATABASE pyspider_test_taskdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - psql -c "CREATE DATABASE pyspider_test_projectdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
