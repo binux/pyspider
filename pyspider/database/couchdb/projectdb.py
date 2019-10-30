@@ -8,11 +8,6 @@ class ProjectDB(BaseProjectDB):
     def __init__(self, url, database='projectdb'):
         self.url = url
         self.database = database
-
-        if self.url[-1] != "/":
-            self.url = self.url + "/"
-        self.url = self.url + self.database
-
         self.insert('', {})
 
     def _default_fields(self, each):

@@ -697,7 +697,7 @@ class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database(
-            'couchdb+projectdb://localhost:5984/pyspider_test_projectdb'
+            'couchdb+projectdb://localhost:5984/'
         )
         self.assertIsNotNone(self, self.projectdb)
 

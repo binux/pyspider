@@ -206,7 +206,7 @@ def _connect_elasticsearch(parsed, dbtype):
 
 
 def _connect_couchdb(parsed, dbtype, url):
-    url = url.replace(parsed.scheme, 'couchdb')
+    url = parsed.netloc + "/"
     params = {}
     print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
 
