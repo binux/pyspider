@@ -14,10 +14,10 @@ class ProjectDB(BaseProjectDB):
     def _default_fields(self, each):
         if each is None:
             return each
-        each.setdefault('group', '')
+        each.setdefault('group', None)
         each.setdefault('status', 'TODO')
         each.setdefault('script', '')
-        each.setdefault('comments', [])
+        each.setdefault('comments', None)
         each.setdefault('rate', 0)
         each.setdefault('burst', 0)
         each.setdefault('updatetime', 0)
@@ -49,7 +49,8 @@ class ProjectDB(BaseProjectDB):
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb get_all] - url: {} res: {}'.format(url, res))
-        return res['docs']
+        for doc in res['docs']:
+            yield self._default_fields(doc)
 
     def get(self, name, fields=None):
         if fields is None:
@@ -64,7 +65,7 @@ class ProjectDB(BaseProjectDB):
         print('[couchdb projectdb get] - url: {} res: {}'.format(url, res))
         if len(res['docs']) == 0:
             return None
-        return res['docs'][0]
+        return self._default_fields(res['docs'][0])
 
     def check_update(self, timestamp, fields=None):
         if fields is None:
