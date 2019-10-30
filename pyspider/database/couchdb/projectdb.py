@@ -6,7 +6,7 @@ class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
 
     def __init__(self, url, database='projectdb'):
-        self.url = url
+        self.url = url + database + "/"
         self.database = database
         self.insert('', {})
 
@@ -23,7 +23,7 @@ class ProjectDB(BaseProjectDB):
         return each
 
     def insert(self, name, obj={}):
-        url = self.url + self.__collection_name__ + "/" + name
+        url = self.url + name
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
@@ -41,8 +41,9 @@ class ProjectDB(BaseProjectDB):
             "selector": {},
             "fields": fields
         }
-        res = requests.post(self.url+"_find", data=json.dumps(payload)).json()
-        print('[couchdb projectdb get_all] - url: {} res: {}'.format(self.url, res))
+        url = self.url + "_find"
+        res = requests.post(url, data=json.dumps(payload)).json()
+        print('[couchdb projectdb get_all] - url: {} res: {}'.format(url, res))
         return res
 
 
@@ -52,8 +53,9 @@ class ProjectDB(BaseProjectDB):
             "fields": fields,
             "limit": 1
         }
-        res = requests.post(self.url + "_find", data=json.dumps(payload)).json()
-        print('[couchdb projectdb get] - url: {} res: {}'.format(self.url, res))
+        url = self.url + "_find"
+        res = requests.post(url, data=json.dumps(payload)).json()
+        print('[couchdb projectdb get] - url: {} res: {}'.format(url, res))
         return res
 
     def check_update(self, timestamp, fields=None):
@@ -64,7 +66,8 @@ class ProjectDB(BaseProjectDB):
 
     def drop(self, name):
         doc = self.get(name)
-        res = requests.delete(self.url+name+"/"+doc["_rev"]).json()
-        print('[couchdb projectdb drop] - url: {} res: {}'.format(self.url, res))
+        url = self.url + name + "/" + doc["_rev"]
+        res = requests.delete(url).json()
+        print('[couchdb projectdb drop] - url: {} res: {}'.format(url, res))
         return res
 
