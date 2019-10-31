@@ -61,10 +61,9 @@ class SplitTableMixin(object):
 
 
     def get_all_docs(self, db_name):
-        url = self.base_url + db_name
-        res = requests.get(url, headers={"Content-Type": "application/json"}).json()
-        print('[couchdbbase get_all_docs] - url: {} res: {}'.format(url, res))
-        return res['docs']
+        #url = self.base_url + db_name + "/_all_docs"
+        #res = requests.get(url, headers={"Content-Type": "application/json"}).jso
+        return self.get_docs(db_name, {"selector": {}})
 
     def insert_doc(self, db_name, doc_id, doc):
         url = self.base_url + db_name + "/" + doc_id
