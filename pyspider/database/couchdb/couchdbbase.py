@@ -80,7 +80,7 @@ class SplitTableMixin(object):
         # else update the current doc
         for key in new_doc:
             doc[key] = new_doc[key]
-        url = self.base_url + db_name
+        url = self.base_url + db_name + "/" + doc_id
         res = requests.put(url, data=json.dumps(doc), headers={"Content-Type": "application/json"}).json()
         print('[couchdbbase update_doc] - url: {} new_doc: {} res: {}'.format(url, json.dumps(doc), res))
         return res
