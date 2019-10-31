@@ -56,7 +56,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if len(ret) == 0:
             return None
-        return ret
+        return ret[0]
 
     def status_count(self, project):
         if project not in self.projects:
