@@ -712,7 +712,7 @@ class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database(
-            'mongodb+resultdb://localhost:5984/'
+            'couchdb+resultdb://localhost:5984/'
         )
         self.assertIsNotNone(self, self.resultdb)
 
