@@ -42,8 +42,13 @@ class ProjectDB(BaseProjectDB):
         obj['updatetime'] = time.time()
         obj.update(kwargs)
 
+        print('[couchdb projectdb update] - update: {} obj: {}'.format(update, obj))
+
         for key in obj:
             update[key] = obj[key]
+
+        print('[couchdb projectdb update] - new_update: {}'.format(update))
+
         self.insert(name, update)
 
     def get_all(self, fields=None):
