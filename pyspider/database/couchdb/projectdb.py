@@ -6,7 +6,7 @@ class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
 
     def __init__(self, url, database='projectdb'):
-        self.url = url + self.__collection_name__ + "." + database + "/"
+        self.url = url + self.__collection_name__ + "_" + database + "/"
         self.database = database
         self.insert('', {})
 
