@@ -726,5 +726,25 @@ class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
         self.assertIn('test_create_project', self.resultdb.projects)
 
 
+@unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+class TestCouchDBTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.taskdb = database.connect_database(
+            'couchdb+taskdb://localhost:5984/'
+        )
+        self.assertIsNotNone(self, self.taskdb)
+
+    @classmethod
+    def tearDownClass(self):
+        self.taskdb.drop_database()
+
+    def test_create_project(self):
+        self.assertNotIn('test_create_project', self.taskdb.projects)
+        self.taskdb._create_project('test_create_project')
+        self.assertIn('test_create_project', self.taskdb.projects)
+
+
 if __name__ == '__main__':
     unittest.main()
