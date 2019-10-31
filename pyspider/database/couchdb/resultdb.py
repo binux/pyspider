@@ -10,7 +10,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.base_url = url
         self.url = url + self.collection_prefix + "_" + database + "/"
         self.database = database
-        self.insert('', {})
+        self.create_database(self.collection_prefix + "_" + database)
         raise NotImplementedError
 
     def _create_project(self, project):
