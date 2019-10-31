@@ -90,7 +90,7 @@ class ProjectDB(BaseProjectDB):
         doc = self.get(name)
         payload = {"rev": doc["_rev"]}
         url = self.url + name
-        res = requests.delete(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
+        res = requests.delete(url, params=payload, headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb drop] - url: {} payload: {} res: {}'.format(url, json.dumps(payload), res))
         return res
 
