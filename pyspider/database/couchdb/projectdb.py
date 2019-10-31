@@ -33,12 +33,18 @@ class ProjectDB(BaseProjectDB):
         return res
 
     def update(self, name, obj={}, **kwargs):
-        if self.get(name) is None:
+        # object contains the fields to update and their new values
+        update = self.get(name)
+        if update is None:
             return None
+
         obj = dict(obj)
-        obj.update(kwargs)
         obj['updatetime'] = time.time()
-        self.insert(name, obj)
+        obj.update(kwargs)
+
+        for key in obj:
+            update[key] = obj[key]
+        self.insert(name, update)
 
     def get_all(self, fields=None):
         if fields is None:
@@ -71,10 +77,10 @@ class ProjectDB(BaseProjectDB):
     def check_update(self, timestamp, fields=None):
         if fields is None:
             fields = []
-        for project in self.get_all():
-            # save an extra request
+        for project in self.get_all(fields=('updatetime', 'name')):
             if project['updatetime'] > timestamp:
-                yield project
+                project = self.get(project['name'], fields)
+                yield self._default_fields(project)
 
     def drop(self, name):
         doc = self.get(name)
