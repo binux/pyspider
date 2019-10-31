@@ -1,29 +1,92 @@
+import time, json
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from .couchdbbase import SplitTableMixin
 
 
 class ResultDB(SplitTableMixin, BaseResultDB):
+    collection_prefix = ''
 
     def __init__(self, url, database='resultdb'):
+        self.base_url = url
+        self.url = url + self.collection_prefix + "_" + database + "/"
+        self.database = database
+        self.insert('', {})
         raise NotImplementedError
 
     def _create_project(self, project):
-        raise NotImplementedError
+        collection_name = self._collection_name(project)
+        self.create_database(collection_name)
+        #self.database[collection_name].ensure_index('taskid')
+        self._list_project()
 
     def _parse(self, data):
-        raise NotImplementedError
+        data['_id'] = str(data['_id'])
+        if 'result' in data:
+            data['result'] = json.loads(data['result'])
+        return data
 
     def _stringify(self, data):
-        raise NotImplementedError
+        data['_id'] = str(data['_id'])
+        if 'result' in data:
+            data['result'] = json.loads(data['result'])
+        return data
 
     def save(self, project, taskid, url, result):
-        raise NotImplementedError
+        if project not in self.projects:
+            self._create_project(project)
+        collection_name = self._collection_name(project)
+        obj = {
+            'taskid': taskid,
+            'url': url,
+            'result': result,
+            'updatetime': time.time(),
+        }
+        print('[couchdb resultdb save] - collection_name: {} obj: {}'.format(collection_name, obj))
+        return self.update_doc(collection_name, {'taskid': taskid}, obj)
+        #return self.database[collection_name].update(
+        #    {'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True
+        #)
 
     def select(self, project, fields=None, offset=0, limit=0):
-        raise NotImplementedError
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
+        offset = offset or 0
+        limit = limit or 0
+        collection_name = self._collection_name(project)
+        sel = {
+            'selector': {},
+            'fields': fields,
+            'skip': offset,
+            'limit': limit
+        }
+        for result in self.get_docs(collection_name, sel):
+            yield self._parse(result)
+        #for result in self.database[collection_name].find({}, fields, skip=offset, limit=limit):
+        #    yield self._parse(result)
 
     def count(self, project):
-        raise NotImplementedError
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
+        collection_name = self._collection_name(project)
+        return len(self.get_all_docs(collection_name))
+        #return self.database[collection_name].count()
 
     def get(self, project, taskid, fields=None):
-        raise NotImplementedError
+        if project not in self.projects:
+            self._list_project()
+        if project not in self.projects:
+            return
+        collection_name = self._collection_name(project)
+        sel = {
+            'selector': {'taskid': taskid},
+            'fields': fields
+        }
+        ret = self.get_docs(collection_name, sel)[0]
+        #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
+        if not ret:
+            return ret
+        return self._parse(ret)
