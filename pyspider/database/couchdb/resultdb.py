@@ -11,7 +11,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         # TODO: Add collection_prefix
         self.url = url + database + "/"
         self.database = database
-        self.create_database(self.collection_prefix + "_" + database)
+        self.create_database(database)
 
     def _create_project(self, project):
         collection_name = self._collection_name(project)
