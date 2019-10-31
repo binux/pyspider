@@ -1,4 +1,4 @@
-import time
+import time, requests, json
 
 
 class SplitTableMixin(object):
@@ -29,8 +29,10 @@ class SplitTableMixin(object):
             prefix = "%s." % self.collection_prefix
         else:
             prefix = ''
-        for each in self.database.collection_names():
-            if each.startswith('system.'):
+
+        res = requests.get(url, data=json.dumps({}), headers={"Content-Type": "application/json"}).json()
+        for each in res:
+            if each.startswith('_'):
                 continue
             if each.startswith(prefix):
                 self.projects.add(each[len(prefix):])
