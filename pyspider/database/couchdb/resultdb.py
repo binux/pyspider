@@ -52,16 +52,23 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if project not in self.projects:
             return
         offset = offset or 0
-        limit = limit or None
+        limit = limit or 0
         collection_name = self._collection_name(project)
         if fields is None:
             fields = []
-        sel = {
-            'selector': {},
-            'fields': fields,
-            'skip': offset,
-            'limit': limit
-        }
+        if limit == 0:
+            sel = {
+                'selector': {},
+                'fields': fields,
+                'skip': offset
+            }
+        else:
+            sel = {
+              'selector': {},
+              'fields': fields,
+              'skip': offset,
+              'limit': limit
+            }
         for result in self.get_docs(collection_name, sel):
             yield result
         #for result in self.database[collection_name].find({}, fields, skip=offset, limit=limit):
