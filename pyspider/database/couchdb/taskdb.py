@@ -66,12 +66,13 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         collection_name = self._collection_name(project)
 
         def _count_for_status(collection_name, status):
-            total = len(self.get_docs(collection_name, {"selector": {}}))
+            total = len(self.get_docs(collection_name, {"selector": {'status': status}}))
             #total = collection.find({'status': status}).count()
             return {'total': total, "_id": status} if total else None
 
         c = collection_name
         ret = filter(lambda x: x,map(lambda s: _count_for_status(c, s), [self.ACTIVE, self.SUCCESS, self.FAILED]))
+        print('[couchdb taskdb status_count] ret: {}'.format(ret))
 
         result = {}
         if isinstance(ret, dict):
