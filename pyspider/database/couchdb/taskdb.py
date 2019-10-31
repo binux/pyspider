@@ -18,6 +18,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
     def _create_project(self, project):
         collection_name = self._collection_name(project)
+        self.create_database(collection_name)
         #self.database[collection_name].ensure_index('status')
         #self.database[collection_name].ensure_index('taskid')
         self._list_project()
@@ -46,7 +47,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:
+            print("[couchdb taskdb get_task] - project: {} not in projects".format(project))
             return
+        if fields is None:
+            fields = []
         collection_name = self._collection_name(project)
         ret = self.get_docs(collection_name, {"selector": {"taskid": taskid}, "fields": fields})
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
