@@ -54,6 +54,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         offset = offset or 0
         limit = limit or 0
         collection_name = self._collection_name(project)
+        if fields is None:
+            fields = []
         sel = {
             'selector': {},
             'fields': fields,
@@ -80,6 +82,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if project not in self.projects:
             return
         collection_name = self._collection_name(project)
+        if fields is None:
+            fields = []
         sel = {
             'selector': {'taskid': taskid},
             'fields': fields
