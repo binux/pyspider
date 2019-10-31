@@ -63,7 +63,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'limit': limit
         }
         for result in self.get_docs(collection_name, sel):
-            yield self._parse(result)
+            yield result
         #for result in self.database[collection_name].find({}, fields, skip=offset, limit=limit):
         #    yield self._parse(result)
 
@@ -92,7 +92,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if len(ret) == 0:
             return ret
-        return self._parse(ret[0])
+        return ret[0]
 
     def drop_database(self):
         res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
