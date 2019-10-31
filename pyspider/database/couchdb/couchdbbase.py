@@ -41,17 +41,17 @@ class SplitTableMixin(object):
 
     def create_database(self, name):
         url = self.base_url + name
-        res = requests.put(url, data=json.dumps({}), headers={"Content-Type": "application/json"}).json()
+        res = requests.put(url, headers={"Content-Type": "application/json"}).json()
         print('[couchdbbase create_database] - url: {} res: {}'.format(url, res))
         return res
 
 
     def get_docs(self, db_name, selector):
-        url = self.base_url + db_name
+        url = self.base_url + db_name + "/_find"
         payload = {
             "selector": selector
         }
-        res = requests.post(url+"_find", data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
+        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdbbase get_docs] - url: {} payload: {} res: {}'.format(url, payload, res))
         return res['docs']
 

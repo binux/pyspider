@@ -41,7 +41,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'result': result,
             'updatetime': time.time(),
         }
-        print('[couchdb resultdb save] - collection_name: {} obj: {}'.format(collection_name, obj))
         return self.update_doc(collection_name, {'taskid': taskid}, obj)
         #return self.database[collection_name].update(
         #    {'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True
