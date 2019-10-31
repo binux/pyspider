@@ -34,7 +34,7 @@ class ProjectDB(BaseProjectDB):
 
     def update(self, name, obj={}, **kwargs):
         # object contains the fields to update and their new values
-        update = self.get(name)
+        update = self.get(name) # update will contain _rev
         if update is None:
             return None
 
@@ -84,8 +84,9 @@ class ProjectDB(BaseProjectDB):
 
     def drop(self, name):
         doc = self.get(name)
+        payload = {"_rev": doc["_rev"]}
         url = self.url + name + "/" + doc["_id"]
-        res = requests.delete(url, headers={"Content-Type": "application/json"}).json()
+        res = requests.delete(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb drop] - url: {} res: {}'.format(url, res))
         return res
 
