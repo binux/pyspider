@@ -84,11 +84,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'selector': {'taskid': taskid},
             'fields': fields
         }
-        ret = self.get_docs(collection_name, sel)[0]
+        ret = self.get_docs(collection_name, sel)
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
-        if not ret:
+        if len(ret) == 0:
             return ret
-        return self._parse(ret)
+        return self._parse(ret[0])
 
     def drop_database(self):
         res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()

@@ -65,8 +65,10 @@ class SplitTableMixin(object):
 
     def update_doc(self, db_name, selector, new_doc):
         doc = self.get_docs(db_name, selector)
-        if doc is None:
+        if len(doc) == 0:
             return
+        else:
+            doc = doc[0]
         url = self.base_url + db_name
         for key in new_doc:
             doc[key] = new_doc[key]
