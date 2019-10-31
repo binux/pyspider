@@ -6,7 +6,7 @@ class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
 
     def __init__(self, url, database='projectdb'):
-        self.url = url + self.__collection_name__ + "_" + database + "/"
+        self.url = url + self.__collection_name__ + "." + database + "/"
         self.database = database
         self.insert('', {})
 
@@ -89,7 +89,7 @@ class ProjectDB(BaseProjectDB):
     def drop(self, name):
         doc = self.get(name)
         payload = {"rev": doc["_rev"]}
-        url = self.url + name + "/" + doc["_id"]
+        url = self.url + name
         res = requests.delete(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
         print('[couchdb projectdb drop] - url: {} payload: {} res: {}'.format(url, json.dumps(payload), res))
         return res
