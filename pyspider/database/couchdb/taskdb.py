@@ -17,9 +17,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
     def _create_project(self, project):
         collection_name = self._collection_name(project)
-        self.database[collection_name].ensure_index('status')
-        self.database[collection_name].ensure_index('taskid')
+        #self.database[collection_name].ensure_index('status')
+        #self.database[collection_name].ensure_index('taskid')
         self._list_project()
+        print("[couchdb taskdb _create_project] Creating project: {}".format(project))
 
     def load_tasks(self, status, project=None, fields=None):
         if not project:
@@ -34,7 +35,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             collection_name = self._collection_name(project)
             for task in self.get_docs(collection_name, {"selector": {"status": status}, "fields": fields}):
             #for task in self.database[collection_name].find({'status': status}, fields):
-                yield self._parse(task)
+                print("[couchdb taskdb load_tasks] status: {} project: {} fields: {} res: {}".format(status, project, fields, task))
+                yield task
 
     def get_task(self, project, taskid, fields=None):
         if project not in self.projects:
@@ -77,6 +79,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj['taskid'] = taskid
         obj['project'] = project
         obj['updatetime'] = time.time()
+        print("[couchdb taskdb insert] taskid: {} project: {} obj: {}".format(taskid, project, obj))
         return self.update(project, taskid, obj=obj)
 
     def update(self, project, taskid, obj={}, **kwargs):
