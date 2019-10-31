@@ -11,7 +11,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.url = url + self.collection_prefix + "_" + database + "/"
         self.database = database
         self.create_database(self.collection_prefix + "_" + database)
-        raise NotImplementedError
 
     def _create_project(self, project):
         collection_name = self._collection_name(project)
