@@ -51,8 +51,8 @@ class SplitTableMixin(object):
         payload = {
             "selector": selector
         }
-        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
-        print('[couchdbbase get_doc] - url: {} res: {}'.format(url, res))
+        res = requests.post(url+"_find", data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
+        print('[couchdbbase get_docs] - url: {} payload: {} res: {}'.format(url, payload, res))
         return res['docs']
 
 
@@ -64,7 +64,7 @@ class SplitTableMixin(object):
 
 
     def update_doc(self, db_name, selector, new_doc):
-        doc = self.get_doc(db_name, selector)
+        doc = self.get_docs(db_name, selector)
         if doc is None:
             return
         url = self.base_url + db_name
