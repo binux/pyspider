@@ -4,6 +4,7 @@ from .couchdbbase import SplitTableMixin
 
 
 class TaskDB(SplitTableMixin, BaseTaskDB):
+    collection_prefix = ''
 
     def __init__(self, url, database='taskdb'):
         self.base_url = url
