@@ -55,11 +55,8 @@ class SplitTableMixin(object):
 
     def get_docs(self, db_name, selector):
         url = self.base_url + db_name + "/_find"
-        payload = {
-            "selector": selector
-        }
-        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
-        print('[couchdbbase get_docs] - url: {} payload: {} res: {}'.format(url, payload, res))
+        res = requests.post(url, data=json.dumps(selector), headers={"Content-Type": "application/json"}).json()
+        print('[couchdbbase get_docs] - url: {} payload: {} res: {}'.format(url, selector, res))
         return res['docs']
 
 
