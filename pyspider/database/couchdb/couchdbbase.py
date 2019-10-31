@@ -49,7 +49,8 @@ class SplitTableMixin(object):
         url = self.base_url + db_name + "/" + doc_id
         res = requests.get(url, headers={"Content-Type": "application/json"}).json()
         print('[couchdbbase get_doc] - url: {} res: {}'.format(url, res))
-        if res["error"] == "not_found":
+
+        if "error" in res and res["error"] == "not_found":
             return None
         return res
 
