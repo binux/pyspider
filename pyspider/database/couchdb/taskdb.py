@@ -1,4 +1,4 @@
-import json, time
+import json, time, requests
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from .couchdbbase import SplitTableMixin
 
@@ -26,6 +26,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
     def load_tasks(self, status, project=None, fields=None):
         if not project:
             self._list_project()
+
+        if fields is None:
+            fields = []
 
         if project:
             projects = [project, ]
@@ -89,3 +92,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj['updatetime'] = time.time()
         collection_name = self._collection_name(project)
         return self.insert_doc(collection_name, taskid, json.dumps(obj))
+
+    def drop_database(self):
+        res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
+        print('[couchdb taskdb drop_database] - url: {} res: {}'.format(self.url, res))
+        return res
