@@ -706,5 +706,25 @@ class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb.drop_database()
 
 
+@unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        self.resultdb = database.connect_database(
+            'mongodb+resultdb://localhost:5984/'
+        )
+        self.assertIsNotNone(self, self.resultdb)
+
+    @classmethod
+    def tearDownClass(self):
+        self.resultdb.drop_database()
+
+    def test_create_project(self):
+        self.assertNotIn('test_create_project', self.resultdb.projects)
+        self.resultdb._create_project('test_create_project')
+        self.assertIn('test_create_project', self.resultdb.projects)
+
+
 if __name__ == '__main__':
     unittest.main()
