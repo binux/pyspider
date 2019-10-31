@@ -45,6 +45,11 @@ class SplitTableMixin(object):
         print('[couchdbbase create_database] - url: {} res: {}'.format(url, res))
         return res
 
+    def get_doc(self, db_name, doc_id):
+        url = self.base_url + db_name + "/" + doc_id
+        res = requests.get(url, headers={"Content-Type": "application/json"}).json()
+        print('[couchdbbase get_doc] - url: {} res: {}'.format(url, res))
+        return res
 
     def get_docs(self, db_name, selector):
         url = self.base_url + db_name + "/_find"
@@ -62,20 +67,23 @@ class SplitTableMixin(object):
         print('[couchdbbase get_all_docs] - url: {} res: {}'.format(url, res))
         return res['docs']
 
-
-    def update_doc(self, db_name, selector, new_doc):
-        doc = self.get_docs(db_name, selector)
-        if len(doc) == 0:
-            # insert new doc
-            doc = new_doc
-        else:
-            doc = doc[0]
-            for key in new_doc:
-                doc[key] = new_doc[key]
-        url = self.base_url + db_name
-
+    def insert_doc(self, db_name, doc_id, doc):
+        url = self.base_url + db_name + "/" + doc_id
         res = requests.put(url, data=json.dumps(doc), headers={"Content-Type": "application/json"}).json()
-        print('[couchdbbase update_doc] - url: {} res: {}'.format(url, res))
+        print('[couchdbbase insert_doc] - url: {} doc_id: {} doc: {} res: {}'.format(url, doc_id, json.dumps(doc), res))
+        return res
+
+    def update_doc(self, db_name, doc_id, new_doc):
+        doc = self.get_doc(db_name, doc_id)
+        if doc is None:
+            # insert new doc
+            return self.insert_doc(db_name, doc_id, new_doc)
+        # else update the current doc
+        for key in new_doc:
+            doc[key] = new_doc[key]
+        url = self.base_url + db_name
+        res = requests.put(url, data=json.dumps(doc), headers={"Content-Type": "application/json"}).json()
+        print('[couchdbbase update_doc] - url: {} new_doc: {} res: {}'.format(url, json.dumps(doc), res))
         return res
 
 
