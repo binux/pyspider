@@ -2,6 +2,7 @@ import time, requests, json
 
 
 class SplitTableMixin(object):
+    UPDATE_PROJECTS_TIME = 10 * 60
 
     def _collection_name(self, project):
         if self.collection_prefix:
@@ -83,4 +84,5 @@ class SplitTableMixin(object):
         collection_name = self._collection_name(project)
         res = requests.delete(self.base_url+collection_name, headers={"Content-Type": "application/json"}).json()
         self._list_project()
+
 

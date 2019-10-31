@@ -1,4 +1,4 @@
-import time, json
+import time, json, requests
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from .couchdbbase import SplitTableMixin
 
@@ -89,3 +89,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if not ret:
             return ret
         return self._parse(ret)
+
+    def drop_database(self):
+        res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
+        print('[couchdb projectdb drop_database] - url: {} res: {}'.format(self.url, res))
+        return res
