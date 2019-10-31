@@ -8,10 +8,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def __init__(self, url, database='resultdb'):
         self.base_url = url
-        if self.collection_prefix == '':
-            self.url = url + database + "/"
-        else:
-            self.url = url + self.collection_prefix + "_" + database + "/"
+        # TODO: Add collection_prefix
+        self.url = url + database + "/"
         self.database = database
         self.create_database(self.collection_prefix + "_" + database)
 
