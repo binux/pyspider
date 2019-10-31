@@ -52,7 +52,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         if project not in self.projects:
             return
         offset = offset or 0
-        limit = limit or 0
+        limit = limit or None
         collection_name = self._collection_name(project)
         if fields is None:
             fields = []
@@ -91,7 +91,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         ret = self.get_docs(collection_name, sel)
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if len(ret) == 0:
-            return ret
+            return None
         return ret[0]
 
     def drop_database(self):
