@@ -139,6 +139,23 @@ class TestRun(unittest.TestCase):
             del os.environ['MONGODB_PORT_27017_TCP_ADDR']
             del os.environ['MONGODB_PORT_27017_TCP_PORT']
 
+    @unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+    def test_60a_docker_couchdb(self):
+        try:
+            os.environ['COUCHDB_NAME'] = 'couchdb'
+            os.environ['COUCHDB_PORT_5984_TCP_ADDR'] = 'localhost'
+            os.environ['COUCHDB_PORT_5984_TCP_PORT'] = '5984'
+            ctx = run.cli.make_context('test', [], None,
+                                       obj=dict(testing_mode=True))
+            ctx = run.cli.invoke(ctx)
+            ctx.obj.resultdb
+        except Exception as e:
+            self.assertIsNone(e)
+        finally:
+            del os.environ['COUCHDB_NAME']
+            del os.environ['COUCHDB_PORT_5984_TCP_ADDR']
+            del os.environ['COUCHDB_PORT_5984_TCP_PORT']
+
     @unittest.skip('only available in docker')
     @unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
     def test_70_docker_mysql(self):
