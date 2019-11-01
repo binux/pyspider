@@ -111,6 +111,11 @@ def cli(ctx, **kwargs):
                 'mongodb+%s://%s:%s/%s' % (
                     db, os.environ['MONGODB_PORT_27017_TCP_ADDR'],
                     os.environ['MONGODB_PORT_27017_TCP_PORT'], db)))
+        elif os.environ.get('COUCHDB_NAME'):
+            kwargs[db] = utils.Get(lambda db=db: connect_database(
+                'couchdb+%s://%s:%s/%s' % (
+                    db, os.environ['COUCHDB_PORT_5984_TCP_ADDR'],
+                    os.environ['COUCHDB_PORT_5984_TCP_PORT'], db)))
         elif ctx.invoked_subcommand == 'bench':
             if kwargs['data_path'] == './data':
                 kwargs['data_path'] += '/bench'

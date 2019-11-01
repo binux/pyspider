@@ -91,6 +91,19 @@ class TestRun(unittest.TestCase):
         with self.assertRaises(ConnectionFailure):
             ctx.obj.projectdb
 
+    def test_30a_cli_command_line(self):
+        ctx = run.cli.make_context(
+            'test',
+            ['--projectdb', 'couchdb+projectdb://localhost:5984/projectdb'],
+            None,
+            obj=dict(testing_mode=True)
+        )
+        ctx = run.cli.invoke(ctx)
+
+        with self.assertRaises(Exception):
+            # TODO: MORE SPECIFIC
+            ctx.obj.projectdb
+
     def test_40_cli_env(self):
         try:
             os.environ['RESULTDB'] = 'sqlite+resultdb://'
