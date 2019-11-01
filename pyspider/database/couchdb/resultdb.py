@@ -27,6 +27,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             }
         }
         res = requests.post(self.base_url + collection_name + "/_index", data=payload).json()
+        print("[couchdb resultdb _create_project] - creating index. payload: {} res: {}".format(payload, res))
         self.index = res['id']
         #self.database[collection_name].ensure_index('taskid')
         self._list_project()
