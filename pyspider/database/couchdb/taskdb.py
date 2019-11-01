@@ -96,7 +96,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         collection_name = self._collection_name(project)
-        return self.insert_doc(collection_name, taskid, obj)
+        return self.update_doc(collection_name, taskid, obj)
 
     def drop_database(self):
         res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
