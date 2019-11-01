@@ -9,6 +9,8 @@ class ProjectDB(BaseProjectDB):
         self.url = url + self.__collection_name__ + "_" + database + "/"
         self.database = database
         self.insert('', {})
+        # TODO: Create index
+        #self.collection.ensure_index('name', unique=True)
 
     def _default_fields(self, each):
         if each is None:
@@ -28,7 +30,6 @@ class ProjectDB(BaseProjectDB):
         obj['name'] = name
         obj['updatetime'] = time.time()
         res = requests.put(url, data = json.dumps(obj), headers = {"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb insert] - url: {} data: {} res: {}'.format(url, json.dumps(obj), res))
         return res
 
     def update(self, name, obj={}, **kwargs):
@@ -36,18 +37,11 @@ class ProjectDB(BaseProjectDB):
         update = self.get(name) # update will contain _rev
         if update is None:
             return None
-
         obj = dict(obj)
         obj['updatetime'] = time.time()
         obj.update(kwargs)
-
-        print('[couchdb projectdb update] - update: {} obj: {}'.format(update, obj))
-
         for key in obj:
             update[key] = obj[key]
-
-        print('[couchdb projectdb update] - new_update: {}'.format(update))
-
         self.insert(name, update)
 
     def get_all(self, fields=None):
@@ -59,7 +53,6 @@ class ProjectDB(BaseProjectDB):
         }
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb get_all] - url: {} res: {}'.format(url, res))
         for doc in res['docs']:
             yield self._default_fields(doc)
 
@@ -73,7 +66,6 @@ class ProjectDB(BaseProjectDB):
         }
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb get] - url: {} res: {}'.format(url, res))
         if len(res['docs']) == 0:
             return None
         return self._default_fields(res['docs'][0])
@@ -90,12 +82,8 @@ class ProjectDB(BaseProjectDB):
         doc = self.get(name)
         payload = {"rev": doc["_rev"]}
         url = self.url + name
-        res = requests.delete(url, params=payload, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb drop] - url: {} payload: {} res: {}'.format(url, json.dumps(payload), res))
-        return res
+        return requests.delete(url, params=payload, headers={"Content-Type": "application/json"}).json()
 
     def drop_database(self):
-        res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb drop_database] - url: {} res: {}'.format(self.url, res))
-        return res
+        return requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
 

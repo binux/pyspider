@@ -8,7 +8,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def __init__(self, url, database='resultdb'):
         self.base_url = url
-        # TODO: Add collection_prefix
         self.url = url + database + "/"
         self.database = database
         self.create_database(database)
@@ -19,6 +18,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
     def _create_project(self, project):
         collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
+        # TODO: Create index
         #self.database[collection_name].ensure_index('taskid')
         self._list_project()
 
@@ -33,9 +33,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'updatetime': time.time(),
         }
         return self.update_doc(collection_name, taskid, obj)
-        #return self.database[collection_name].update(
-        #    {'taskid': taskid}, {"$set": self._stringify(obj)}, upsert=True
-        #)
 
     def select(self, project, fields=None, offset=0, limit=0):
         if project not in self.projects:
@@ -93,12 +90,10 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         return ret[0]
 
     def drop_database(self):
-        res = self.delete(self.url)
-        return res
+        return self.delete(self.url)
 
     def drop(self, project):
         # drop the project
         collection_name = self._get_collection_name(project)
         url = self.base_url + collection_name
-        res = self.delete(url)
-        return res
+        return self.delete(url)
