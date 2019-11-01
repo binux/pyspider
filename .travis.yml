@@ -2,15 +2,11 @@ sudo: required
 language: python
 cache: pip
 python:
-  - 3.3
   - 3.4
   - 3.5
   - 3.6
-matrix:
-    allow_failures:
-    - python: 2.7
-    - python: 3.7
-      dist: xenial
+  - 3.7
+  - 3.8
 services:
     - docker
     - mongodb
@@ -47,7 +43,6 @@ before_script:
     - sleep 10
 install:
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then sudo apt-get install libc6; fi
     - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then sudo apt-get install libgnutls28-dev; fi
     - pip install -e .[all,test]
     - pip install coveralls
