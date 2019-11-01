@@ -25,9 +25,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         # create index
         payload = {
             'index': {
-                'fields': ['status', 'taskid'],
-                'name': collection_name
-            }
+                'fields': ['status', 'taskid']
+            },
+            'name': collection_name
         }
         res = requests.post(self.base_url + collection_name + "/_index", data=json.dumps(payload),
                             headers={"Content-Type": "application/json"}).json()

@@ -12,9 +12,9 @@ class ProjectDB(BaseProjectDB):
         # create index
         payload = {
             'index': {
-                'fields': ['name'],
-                'name': self.__collection_name__ + "_" + database
-            }
+                'fields': ['name']
+            },
+            'name': self.__collection_name__ + "_" + database
         }
         res = requests.post(self.url+"_index", data=json.dumps(payload),
                             headers={"Content-Type": "application/json"}).json()

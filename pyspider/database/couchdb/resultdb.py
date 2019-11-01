@@ -22,9 +22,9 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         # create index
         payload = {
             'index': {
-                'fields': ['taskid'],
-                'name': collection_name
-            }
+                'fields': ['taskid']
+            },
+            'name': collection_name
         }
         res = requests.post(self.base_url + collection_name + "/_index", data=json.dumps(payload),
                             headers={"Content-Type": "application/json"}).json()
