@@ -13,8 +13,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.database = database
         self.create_database(database)
 
+    def _get_collection_name(self, project):
+        return self.database + "_" + self._collection_name(project)
+
     def _create_project(self, project):
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
         #self.database[collection_name].ensure_index('taskid')
         self._list_project()
@@ -34,7 +37,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
     def save(self, project, taskid, url, result):
         if project not in self.projects:
             self._create_project(project)
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         obj = {
             'taskid': taskid,
             'url': url,
@@ -53,7 +56,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             return
         offset = offset or 0
         limit = limit or 0
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         if fields is None:
             fields = []
         if limit == 0:
@@ -79,7 +82,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             self._list_project()
         if project not in self.projects:
             return
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         return len(self.get_all_docs(collection_name))
         #return self.database[collection_name].count()
 
@@ -88,7 +91,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             self._list_project()
         if project not in self.projects:
             return
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         if fields is None:
             fields = []
         sel = {

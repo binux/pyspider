@@ -16,8 +16,11 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.projects = set()
         self._list_project()
 
+    def _get_collection_name(self, project):
+        return self.database + "_" + self._collection_name(project)
+
     def _create_project(self, project):
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
         #self.database[collection_name].ensure_index('status')
         #self.database[collection_name].ensure_index('taskid')
@@ -37,7 +40,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             projects = self.projects
 
         for project in projects:
-            collection_name = self._collection_name(project)
+            collection_name = self._get_collection_name(project)
             for task in self.get_docs(collection_name, {"selector": {"status": status}, "fields": fields}):
             #for task in self.database[collection_name].find({'status': status}, fields):
                 print("[couchdb taskdb load_tasks] status: {} project: {} fields: {} res: {}".format(status, project, fields, task))
@@ -51,7 +54,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             return
         if fields is None:
             fields = []
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         ret = self.get_docs(collection_name, {"selector": {"taskid": taskid}, "fields": fields})
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if len(ret) == 0:
@@ -63,7 +66,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             self._list_project()
         if project not in self.projects:
             return {}
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
 
         def _count_for_status(collection_name, status):
             total = len(self.get_docs(collection_name, {"selector": {'status': status}}))
@@ -95,7 +98,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         return self.update_doc(collection_name, taskid, obj)
 
     def drop_database(self):
