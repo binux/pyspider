@@ -95,6 +95,7 @@ class ProjectDB(BaseProjectDB):
         return res
 
     def drop_database(self):
-        res = self.delete(self.url)
+        res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
+        print('[couchdb projectdb drop_database] - url: {} res: {}'.format(self.url, res))
         return res
 
