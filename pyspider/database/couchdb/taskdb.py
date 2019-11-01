@@ -11,6 +11,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.url = url + database + "/"
         self.database = database
         self.create_database(database)
+        self.index = None
 
         self.projects = set()
         self._list_project()
@@ -21,7 +22,15 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
     def _create_project(self, project):
         collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
-        # TODO: Create index
+        # create index
+        payload = {
+            'index': {
+                'fields': ['status', 'taskid'],
+                'name': collection_name
+            }
+        }
+        res = requests.post(self.base_url + collection_name + "/_index", data=payload).json()
+        self.index = res['id']
         #self.database[collection_name].ensure_index('status')
         #self.database[collection_name].ensure_index('taskid')
         self._list_project()

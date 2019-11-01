@@ -9,7 +9,15 @@ class ProjectDB(BaseProjectDB):
         self.url = url + self.__collection_name__ + "_" + database + "/"
         self.database = database
         self.insert('', {})
-        # TODO: Create index
+        # create index
+        payload = {
+            'index': {
+                'fields': ['name'],
+                'name': self.__collection_name__ + "_" + database
+            }
+        }
+        res = requests.post(self.base_url + self.__collection_name__ + "_" + database + "/_index", data=payload).json()
+        self.index = res['id']
         #self.collection.ensure_index('name', unique=True)
 
     def _default_fields(self, each):
@@ -49,7 +57,8 @@ class ProjectDB(BaseProjectDB):
             fields = []
         payload = {
             "selector": {},
-            "fields": fields
+            "fields": fields,
+            "use_index": self.index
         }
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
@@ -62,7 +71,8 @@ class ProjectDB(BaseProjectDB):
         payload = {
             "selector": {"name": name},
             "fields": fields,
-            "limit": 1
+            "limit": 1,
+            "use_index": self.index
         }
         url = self.url + "_find"
         res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()

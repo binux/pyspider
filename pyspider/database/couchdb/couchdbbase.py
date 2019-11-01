@@ -57,6 +57,7 @@ class SplitTableMixin(object):
 
     def get_docs(self, db_name, selector):
         url = self.base_url + db_name + "/_find"
+        selector['use_index'] = self.index
         res = requests.post(url, data=json.dumps(selector), headers={"Content-Type": "application/json"}).json()
         if 'error' in res and res['error'] == 'not_found':
             return []

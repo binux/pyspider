@@ -11,6 +11,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.url = url + database + "/"
         self.database = database
         self.create_database(database)
+        self.index = None
 
     def _get_collection_name(self, project):
         return self.database + "_" + self._collection_name(project)
@@ -18,7 +19,15 @@ class ResultDB(SplitTableMixin, BaseResultDB):
     def _create_project(self, project):
         collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
-        # TODO: Create index
+        # create index
+        payload = {
+            'index': {
+                'fields': ['taskid'],
+                'name': collection_name
+            }
+        }
+        res = requests.post(self.base_url + collection_name + "/_index", data=payload).json()
+        self.index = res['id']
         #self.database[collection_name].ensure_index('taskid')
         self._list_project()
 
