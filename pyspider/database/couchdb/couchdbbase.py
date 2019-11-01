@@ -13,7 +13,7 @@ class SplitTableMixin(object):
     @property
     def projects(self):
         if time.time() - getattr(self, '_last_update_projects', 0) > self.UPDATE_PROJECTS_TIME:
-            self._list_project(self.database)
+            self._list_project()
         return self._projects
 
 
@@ -90,5 +90,8 @@ class SplitTableMixin(object):
         print('[couchdbbase update_doc] - url: {} new_doc: {} res: {}'.format(url, json.dumps(doc), res))
         return res
 
-
+    def delete(self, url):
+        res = requests.delete(url, headers={"Content-Type": "application/json"}).json()
+        print('[couchdbbase delete] - url: {} res: {}'.format(self.url, res))
+        return res
 

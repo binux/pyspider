@@ -102,12 +102,11 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         return self.update_doc(collection_name, taskid, obj)
 
     def drop_database(self):
-        res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb taskdb drop_database] - url: {} res: {}'.format(self.url, res))
+        res = self.delete(self.url)
         return res
 
     def drop(self, project):
         collection_name = self._get_collection_name(project)
-        res = requests.delete(self.base_url + collection_name, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb taskdb drop_collection] - url: {} res: {}'.format(self.url, res))
+        url = self.base_url + collection_name
+        res = self.delete(url)
         return res

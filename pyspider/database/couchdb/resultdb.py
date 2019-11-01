@@ -93,13 +93,12 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         return ret[0]
 
     def drop_database(self):
-        res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb resultdb drop_database] - url: {} res: {}'.format(self.url, res))
+        res = self.delete(self.url)
         return res
 
     def drop(self, project):
         # drop the project
         collection_name = self._get_collection_name(project)
-        res = requests.delete(self.base_url+collection_name, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb resultdb drop] - url: {} res: {}'.format(self.url, res))
+        url = self.base_url + collection_name
+        res = self.delete(url)
         return res
