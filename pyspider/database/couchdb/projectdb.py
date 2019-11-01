@@ -16,7 +16,8 @@ class ProjectDB(BaseProjectDB):
                 'name': self.__collection_name__ + "_" + database
             }
         }
-        res = requests.post(self.url+"_index", data=json.dumps(payload)).json()
+        res = requests.post(self.url+"_index", data=json.dumps(payload),
+                            headers={"Content-Type": "application/json"}).json()
         print("[couchdb projectdb init] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
         #self.collection.ensure_index('name', unique=True)

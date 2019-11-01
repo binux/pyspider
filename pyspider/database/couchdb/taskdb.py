@@ -29,7 +29,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                 'name': collection_name
             }
         }
-        res = requests.post(self.base_url + collection_name + "/_index", data=json.dumps(payload)).json()
+        res = requests.post(self.base_url + collection_name + "/_index", data=json.dumps(payload),
+                            headers={"Content-Type": "application/json"}).json()
         print("[couchdb taskdb _create_project] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
         #self.database[collection_name].ensure_index('status')
