@@ -462,6 +462,7 @@ class TestSplashFetcher(unittest.TestCase):
         
     @classmethod
     def tearDownClass(self):
+        self.rpc("close")()
         self.proxy_thread.terminate()
         self.proxy_thread.wait()
         self.httpbin_thread.terminate()
