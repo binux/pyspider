@@ -88,8 +88,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         }
         ret = self.get_docs(collection_name, sel)
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
-        if ret is None:
-            return None
         return ret[0]
 
     def drop_database(self):

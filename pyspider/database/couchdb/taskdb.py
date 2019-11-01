@@ -41,7 +41,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
         for project in projects:
             collection_name = self._get_collection_name(project)
-            for task in self.get_docs(collection_name, {"selector": {"status": status}, "fields": fields}) or []:
+            for task in self.get_docs(collection_name, {"selector": {"status": status}, "fields": fields}):
             #for task in self.database[collection_name].find({'status': status}, fields):
                 print("[couchdb taskdb load_tasks] status: {} project: {} fields: {} res: {}".format(status, project, fields, task))
                 yield task
@@ -57,8 +57,6 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         collection_name = self._get_collection_name(project)
         ret = self.get_docs(collection_name, {"selector": {"taskid": taskid}, "fields": fields})
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
-        if ret is None:
-            return None
         return ret[0]
 
     def status_count(self, project):
