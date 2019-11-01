@@ -13,28 +13,19 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.database = database
         self.create_database(database)
 
+    def _get_collection_name(self, project):
+        return self.database + "_" + self._collection_name(project)
+
     def _create_project(self, project):
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
         #self.database[collection_name].ensure_index('taskid')
-        self._list_project()
-
-    def _parse(self, data):
-        data['_id'] = str(data['_id'])
-        if 'result' in data:
-            data['result'] = json.loads(data['result'])
-        return data
-
-    def _stringify(self, data):
-        data['_id'] = str(data['_id'])
-        if 'result' in data:
-            data['result'] = json.loads(data['result'])
-        return data
+        self._list_project(self.database)
 
     def save(self, project, taskid, url, result):
         if project not in self.projects:
             self._create_project(project)
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         obj = {
             'taskid': taskid,
             'url': url,
@@ -48,12 +39,12 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def select(self, project, fields=None, offset=0, limit=0):
         if project not in self.projects:
-            self._list_project()
+            self._list_project(self.database)
         if project not in self.projects:
             return
         offset = offset or 0
         limit = limit or 0
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         if fields is None:
             fields = []
         if limit == 0:
@@ -76,19 +67,19 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def count(self, project):
         if project not in self.projects:
-            self._list_project()
+            self._list_project(self.database)
         if project not in self.projects:
             return
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         return len(self.get_all_docs(collection_name))
         #return self.database[collection_name].count()
 
     def get(self, project, taskid, fields=None):
         if project not in self.projects:
-            self._list_project()
+            self._list_project(self.database)
         if project not in self.projects:
             return
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         if fields is None:
             fields = []
         sel = {
@@ -103,5 +94,11 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def drop_database(self):
         res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb projectdb drop_database] - url: {} res: {}'.format(self.url, res))
+        print('[couchdb resultdb drop_database] - url: {} res: {}'.format(self.url, res))
+        return res
+
+    def drop(self, project):
+        collection_name = self._get_collection_name(project)
+        res = requests.delete(self.base_url+collection_name, headers={"Content-Type": "application/json"}).json()
+        print('[couchdb resultdb drop_collection] - url: {} res: {}'.format(self.url, res))
         return res

@@ -14,19 +14,22 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.create_database(database)
 
         self.projects = set()
-        self._list_project()
+        self._list_project(self.database)
+
+    def _get_collection_name(self, project):
+        return self.database + "_" + self._collection_name(project)
 
     def _create_project(self, project):
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
         #self.database[collection_name].ensure_index('status')
         #self.database[collection_name].ensure_index('taskid')
-        self._list_project()
+        self._list_project(self.database)
         print("[couchdb taskdb _create_project] Creating project: {}".format(project))
 
     def load_tasks(self, status, project=None, fields=None):
         if not project:
-            self._list_project()
+            self._list_project(self.database)
 
         if fields is None:
             fields = []
@@ -37,7 +40,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             projects = self.projects
 
         for project in projects:
-            collection_name = self._collection_name(project)
+            collection_name = self._get_collection_name(project)
             for task in self.get_docs(collection_name, {"selector": {"status": status}, "fields": fields}):
             #for task in self.database[collection_name].find({'status': status}, fields):
                 print("[couchdb taskdb load_tasks] status: {} project: {} fields: {} res: {}".format(status, project, fields, task))
@@ -45,13 +48,13 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
     def get_task(self, project, taskid, fields=None):
         if project not in self.projects:
-            self._list_project()
+            self._list_project(self.database)
         if project not in self.projects:
             print("[couchdb taskdb get_task] - project: {} not in projects".format(project))
             return
         if fields is None:
             fields = []
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         ret = self.get_docs(collection_name, {"selector": {"taskid": taskid}, "fields": fields})
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if len(ret) == 0:
@@ -60,10 +63,10 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
     def status_count(self, project):
         if project not in self.projects:
-            self._list_project()
+            self._list_project(self.database)
         if project not in self.projects:
             return {}
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
 
         def _count_for_status(collection_name, status):
             total = len(self.get_docs(collection_name, {"selector": {'status': status}}))
@@ -95,10 +98,16 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
-        collection_name = self._collection_name(project)
+        collection_name = self._get_collection_name(project)
         return self.update_doc(collection_name, taskid, obj)
 
     def drop_database(self):
         res = requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
         print('[couchdb taskdb drop_database] - url: {} res: {}'.format(self.url, res))
+        return res
+
+    def drop(self, project):
+        collection_name = self._get_collection_name(project)
+        res = requests.delete(self.base_url + collection_name, headers={"Content-Type": "application/json"}).json()
+        print('[couchdb taskdb drop_collection] - url: {} res: {}'.format(self.url, res))
         return res

@@ -13,7 +13,7 @@ class SplitTableMixin(object):
     @property
     def projects(self):
         if time.time() - getattr(self, '_last_update_projects', 0) > self.UPDATE_PROJECTS_TIME:
-            self._list_project()
+            self._list_project(self.database)
         return self._projects
 
 
@@ -22,7 +22,7 @@ class SplitTableMixin(object):
         self._projects = value
 
 
-    def _list_project(self):
+    def _list_project(self, db):
         self._last_update_projects = time.time()
         self.projects = set()
         if self.collection_prefix:
@@ -30,12 +30,14 @@ class SplitTableMixin(object):
         else:
             prefix = ''
 
-        res = requests.get(self.base_url+"_all_dbs", data=json.dumps({}), headers={"Content-Type": "application/json"}).json()
+        url = self.base_url + "_all_dbs"
+        res = requests.get(url, data=json.dumps({}), headers={"Content-Type": "application/json"}).json()
+        print('[couchdbbase _list_project] - url: {} res: {}'.format(url, res))
         for each in res:
             if each.startswith('_'):
                 continue
-            if each.startswith(prefix):
-                self.projects.add(each[len(prefix):])
+            if each.startswith(db):
+                self.projects.add(each[len(db)+1+len(prefix):])
 
 
     def create_database(self, name):
@@ -86,15 +88,5 @@ class SplitTableMixin(object):
         print('[couchdbbase update_doc] - url: {} new_doc: {} res: {}'.format(url, json.dumps(doc), res))
         return res
 
-
-
-    def drop(self, project):
-        if project not in self.projects:
-            self._list_project()
-        if project not in self.projects:
-            return
-        collection_name = self._collection_name(project)
-        res = requests.delete(self.base_url+collection_name, headers={"Content-Type": "application/json"}).json()
-        self._list_project()
 
 
