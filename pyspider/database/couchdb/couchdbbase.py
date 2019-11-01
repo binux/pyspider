@@ -1,6 +1,5 @@
 import time, requests, json
 
-
 class SplitTableMixin(object):
     UPDATE_PROJECTS_TIME = 10 * 60
 
@@ -42,6 +41,8 @@ class SplitTableMixin(object):
     def create_database(self, name):
         url = self.base_url + name
         res = requests.put(url, headers={"Content-Type": "application/json"}).json()
+        if name == "test_create_project":
+            raise Exception
         print('[couchdbbase create_database] - url: {} res: {}'.format(url, res))
         return res
 

@@ -312,6 +312,7 @@ class ResultDBCase(object):
     def test_60_relist_projects(self):
         if hasattr(self.resultdb, '_list_project'):
             self.resultdb._list_project()
+            # TODO: Needs fix
             self.assertNotIn('system.indexes', self.resultdb.projects)
 
     def test_z10_drop(self):
