@@ -63,6 +63,8 @@ class SplitTableMixin(object):
         print('[couchdbbase get_docs] - url: {} payload: {} res: {}'.format(url, selector, res))
         if 'error' in res and res['error'] == 'not_found':
             return None
+        if len(res['docs']) == 0:
+            return None
         return res['docs']
 
 

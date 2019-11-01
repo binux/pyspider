@@ -57,7 +57,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         collection_name = self._get_collection_name(project)
         ret = self.get_docs(collection_name, {"selector": {"taskid": taskid}, "fields": fields})
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
-        if len(ret) == 0:
+        if ret is None:
             return None
         return ret[0]
 
