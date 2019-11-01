@@ -31,7 +31,10 @@ class SplitTableMixin(object):
             prefix = ''
 
         url = self.base_url + "_all_dbs"
-        res = requests.get(url, data=json.dumps({}), headers={"Content-Type": "application/json"}).json()
+        res = requests.get(url,
+                           data=json.dumps({}),
+                           headers={"Content-Type": "application/json"},
+                           auth=(self.username, self.password)).json()
         for each in res:
             if each.startswith('_'):
                 continue
@@ -41,15 +44,17 @@ class SplitTableMixin(object):
 
     def create_database(self, name):
         url = self.base_url + name
-        res = requests.put(url, headers={"Content-Type": "application/json"}).json()
-        if name == "test_create_project":
-            raise Exception
+        res = requests.put(url,
+                           headers={"Content-Type": "application/json"},
+                           auth=(self.username, self.password)).json()
         return res
 
 
     def get_doc(self, db_name, doc_id):
         url = self.base_url + db_name + "/" + doc_id
-        res = requests.get(url, headers={"Content-Type": "application/json"}).json()
+        res = requests.get(url,
+                           headers={"Content-Type": "application/json"},
+                           auth=(self.username, self.password)).json()
         if "error" in res and res["error"] == "not_found":
             return None
         return res
@@ -58,7 +63,10 @@ class SplitTableMixin(object):
     def get_docs(self, db_name, selector):
         url = self.base_url + db_name + "/_find"
         selector['use_index'] = self.index
-        res = requests.post(url, data=json.dumps(selector), headers={"Content-Type": "application/json"}).json()
+        res = requests.post(url,
+                            data=json.dumps(selector),
+                            headers={"Content-Type": "application/json"},
+                            auth=(self.username, self.password)).json()
         if 'error' in res and res['error'] == 'not_found':
             return []
         return res['docs']
@@ -70,7 +78,10 @@ class SplitTableMixin(object):
 
     def insert_doc(self, db_name, doc_id, doc):
         url = self.base_url + db_name + "/" + doc_id
-        return requests.put(url, data=json.dumps(doc), headers={"Content-Type": "application/json"}).json()
+        return requests.put(url,
+                            data=json.dumps(doc),
+                            headers={"Content-Type": "application/json"},
+                            auth=(self.username, self.password)).json()
 
 
     def update_doc(self, db_name, doc_id, new_doc):
@@ -80,9 +91,14 @@ class SplitTableMixin(object):
         for key in new_doc:
             doc[key] = new_doc[key]
         url = self.base_url + db_name + "/" + doc_id
-        return requests.put(url, data=json.dumps(doc), headers={"Content-Type": "application/json"}).json()
+        return requests.put(url,
+                            data=json.dumps(doc),
+                            headers={"Content-Type": "application/json"},
+                            auth=(self.username, self.password)).json()
 
 
     def delete(self, url):
-        return requests.delete(url, headers={"Content-Type": "application/json"}).json()
+        return requests.delete(url,
+                               headers={"Content-Type": "application/json"},
+                               auth=(self.username, self.password)).json()
 

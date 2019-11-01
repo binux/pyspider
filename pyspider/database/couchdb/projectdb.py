@@ -5,10 +5,18 @@ from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
 
-    def __init__(self, url, database='projectdb'):
+    def __init__(self, url, database='projectdb', username='username', password='password'):
+        self.username = username
+        self.password = password
         self.url = url + self.__collection_name__ + "_" + database + "/"
         self.database = database
         self.insert('', {})
+
+        # Create the db
+        res = requests.put(self.url,
+                           headers={"Content-Type": "application/json"},
+                           auth=(self.username, self.password)).json()
+        print('[couchdb projectdb init] creating db.. url: {} res: {}'.format(self.url, res))
         # create index
         payload = {
             'index': {
@@ -17,7 +25,8 @@ class ProjectDB(BaseProjectDB):
             'name': self.__collection_name__ + "_" + database
         }
         res = requests.post(self.url+"_index", data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"}).json()
+                            headers={"Content-Type": "application/json"},
+                            auth=(self.username, self.password)).json()
         print("[couchdb projectdb init] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
         #self.collection.ensure_index('name', unique=True)
@@ -39,7 +48,10 @@ class ProjectDB(BaseProjectDB):
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
-        res = requests.put(url, data = json.dumps(obj), headers = {"Content-Type": "application/json"}).json()
+        res = requests.put(url,
+                           data = json.dumps(obj),
+                           headers = {"Content-Type": "application/json"},
+                           auth=(self.username, self.password)).json()
         return res
 
     def update(self, name, obj={}, **kwargs):
@@ -52,7 +64,7 @@ class ProjectDB(BaseProjectDB):
         obj.update(kwargs)
         for key in obj:
             update[key] = obj[key]
-        self.insert(name, update)
+        return self.insert(name, update)
 
     def get_all(self, fields=None):
         if fields is None:
@@ -63,7 +75,10 @@ class ProjectDB(BaseProjectDB):
             "use_index": self.index
         }
         url = self.url + "_find"
-        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
+        res = requests.post(url,
+                            data=json.dumps(payload),
+                            headers={"Content-Type": "application/json"},
+                            auth=(self.username, self.password)).json()
         for doc in res['docs']:
             yield self._default_fields(doc)
 
@@ -77,7 +92,10 @@ class ProjectDB(BaseProjectDB):
             "use_index": self.index
         }
         url = self.url + "_find"
-        res = requests.post(url, data=json.dumps(payload), headers={"Content-Type": "application/json"}).json()
+        res = requests.post(url,
+                            data=json.dumps(payload),
+                            headers={"Content-Type": "application/json"},
+                            auth = (self.username, self.password)).json()
         if len(res['docs']) == 0:
             return None
         return self._default_fields(res['docs'][0])
@@ -94,8 +112,13 @@ class ProjectDB(BaseProjectDB):
         doc = self.get(name)
         payload = {"rev": doc["_rev"]}
         url = self.url + name
-        return requests.delete(url, params=payload, headers={"Content-Type": "application/json"}).json()
+        return requests.delete(url,
+                               params=payload,
+                               headers={"Content-Type": "application/json"},
+                               auth=(self.username, self.password)).json()
 
     def drop_database(self):
-        return requests.delete(self.url, headers={"Content-Type": "application/json"}).json()
+        return requests.delete(self.url,
+                               headers={"Content-Type": "application/json"},
+                               auth=(self.username, self.password)).json()
 

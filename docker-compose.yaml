@@ -4,64 +4,95 @@ version: "3.7"
 
 services:
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:alpine
     container_name: rabbitmq
     networks:
       - pyspider
-  mysql:
-    image: mysql:latest
-    container_name: mysql
-    volumes:
-      - /tmp:/var/lib/mysql
-    environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    command: rabbitmq-server
+  couchdb:
+    image: couchdb:latest
+    container_name: couchdb
     networks:
       - pyspider
+    ports:
+      - "5984:5984"
+    env_file: .env
+
+  #mysql:
+  #  image: mysql:latest
+  #  container_name: mysql
+  #  volumes:
+  #    - /tmp:/var/lib/mysql
+  #  environment:
+  #    - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+  #  networks:
+  #    - pyspider
+  #  env_file: .env
   phantomjs:
     image: pyspider:latest
     container_name: phantomjs
     networks:
       - pyspider
-    command: phantomjs
+    env_file: .env
+    volumes:
+      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+    command: -c config.json phantomjs
     depends_on:
-      - mysql
+      - couchdb
       - rabbitmq
+    restart: unless-stopped
   result:
     image: pyspider:latest
     container_name: result
     networks:
       - pyspider
-    command: result_worker
+    env_file: .env
+    volumes:
+      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+    command: -c config.json result_worker
     depends_on:
-      - mysql
+      - couchdb
       - rabbitmq
+    restart: unless-stopped # Sometimes we'll get a connection refused error because couchdb has yet to fully start
   processor:
     container_name: processor
     image: pyspider:latest
     networks:
       - pyspider
-    command: processor
+    env_file: .env
+    volumes:
+      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+    command: -c config.json processor
     depends_on:
-      - mysql
+      - couchdb
       - rabbitmq
+    restart: unless-stopped
   fetcher:
     image: pyspider:latest
     container_name: fetcher
     networks:
       - pyspider
-    command : fetcher
+    env_file: .env
+    volumes:
+      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+    command : -c config.json fetcher
     depends_on:
-      - mysql
+      - couchdb
       - rabbitmq
+    restart: unless-stopped
   scheduler:
     image: pyspider:latest
     container_name: scheduler
     networks:
       - pyspider
-    command: scheduler
+    env_file: .env
+    volumes:
+      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+    command: -c config.json scheduler
     depends_on:
-      - mysql
+      - couchdb
       - rabbitmq
+    restart: unless-stopped
   webui:
     image: pyspider:latest
     container_name: webui
@@ -69,14 +100,16 @@ services:
       - "5050:5000"
     networks:
       - pyspider
+    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/IB/pyspider/data:/opt/pyspider/data
+      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
     environment:
       - SCHEDULER_NAME=scheduler
-    command: webui
+    command: -c config.json webui
     depends_on:
-      - mysql
+      - couchdb
       - rabbitmq
+    restart: unless-stopped
 
 networks:
   pyspider:

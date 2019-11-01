@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
+import os, requests
 from six.moves.urllib.parse import urlparse, parse_qs
 
 
@@ -209,7 +210,14 @@ def _connect_couchdb(parsed, dbtype, url):
     # TODO: Add https + auth as parameters
     url = "http://" + parsed.netloc + "/"
     params = {}
+    params['username'] = os.environ.get('COUCHDB_USER')
+    params['password'] = os.environ.get('COUCHDB_PASSWORD')
     print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
+
+    requests.put(url+"_users",
+                 auth=(params['username'], params['password']))
+    requests.put(url+"_replicator",
+                 auth=(params['username'], params['password']))
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB

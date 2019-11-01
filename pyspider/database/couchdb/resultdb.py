@@ -6,7 +6,10 @@ from .couchdbbase import SplitTableMixin
 class ResultDB(SplitTableMixin, BaseResultDB):
     collection_prefix = ''
 
-    def __init__(self, url, database='resultdb'):
+    def __init__(self, url, database='resultdb', username='username', password='password'):
+        self.username = username
+        self.password = password
+
         self.base_url = url
         self.url = url + database + "/"
         self.database = database
@@ -26,8 +29,12 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             },
             'name': collection_name
         }
-        res = requests.post(self.base_url + collection_name + "/_index", data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"}).json()
+
+        res = requests.post(self.base_url + collection_name + "/_index",
+                            data=json.dumps(payload),
+                            headers={"Content-Type": "application/json"},
+                            auth=(self.username, self.password)).json()
+
         print("[couchdb resultdb _create_project] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
         #self.database[collection_name].ensure_index('taskid')
