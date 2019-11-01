@@ -22,7 +22,7 @@ class SplitTableMixin(object):
         self._projects = value
 
 
-    def _list_project(self, db):
+    def _list_project(self):
         self._last_update_projects = time.time()
         self.projects = set()
         if self.collection_prefix:
@@ -36,8 +36,8 @@ class SplitTableMixin(object):
         for each in res:
             if each.startswith('_'):
                 continue
-            if each.startswith(db):
-                self.projects.add(each[len(db)+1+len(prefix):])
+            if each.startswith(self.database):
+                self.projects.add(each[len(self.database)+1+len(prefix):])
 
 
     def create_database(self, name):
@@ -61,6 +61,8 @@ class SplitTableMixin(object):
         url = self.base_url + db_name + "/_find"
         res = requests.post(url, data=json.dumps(selector), headers={"Content-Type": "application/json"}).json()
         print('[couchdbbase get_docs] - url: {} payload: {} res: {}'.format(url, selector, res))
+        if 'error' in res and res['error'] == 'not_found':
+            return None
         return res['docs']
 
 

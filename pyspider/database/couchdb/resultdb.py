@@ -20,7 +20,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         collection_name = self._get_collection_name(project)
         self.create_database(collection_name)
         #self.database[collection_name].ensure_index('taskid')
-        self._list_project(self.database)
+        self._list_project()
 
     def save(self, project, taskid, url, result):
         if project not in self.projects:
@@ -39,7 +39,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def select(self, project, fields=None, offset=0, limit=0):
         if project not in self.projects:
-            self._list_project(self.database)
+            self._list_project()
         if project not in self.projects:
             return
         offset = offset or 0
@@ -67,7 +67,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def count(self, project):
         if project not in self.projects:
-            self._list_project(self.database)
+            self._list_project()
         if project not in self.projects:
             return
         collection_name = self._get_collection_name(project)
@@ -76,7 +76,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
     def get(self, project, taskid, fields=None):
         if project not in self.projects:
-            self._list_project(self.database)
+            self._list_project()
         if project not in self.projects:
             return
         collection_name = self._get_collection_name(project)
@@ -88,7 +88,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         }
         ret = self.get_docs(collection_name, sel)
         #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
-        if len(ret) == 0:
+        if ret is None or len(ret) == 0:
             return None
         return ret[0]
 
@@ -98,7 +98,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         return res
 
     def drop(self, project):
+        # drop the project
         collection_name = self._get_collection_name(project)
         res = requests.delete(self.base_url+collection_name, headers={"Content-Type": "application/json"}).json()
-        print('[couchdb resultdb drop_collection] - url: {} res: {}'.format(self.url, res))
+        print('[couchdb resultdb drop] - url: {} res: {}'.format(self.url, res))
         return res

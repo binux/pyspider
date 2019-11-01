@@ -14,7 +14,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.create_database(database)
 
         self.projects = set()
-        self._list_project(self.database)
+        self._list_project()
 
     def _get_collection_name(self, project):
         return self.database + "_" + self._collection_name(project)
@@ -24,12 +24,12 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.create_database(collection_name)
         #self.database[collection_name].ensure_index('status')
         #self.database[collection_name].ensure_index('taskid')
-        self._list_project(self.database)
+        self._list_project()
         print("[couchdb taskdb _create_project] Creating project: {}".format(project))
 
     def load_tasks(self, status, project=None, fields=None):
         if not project:
-            self._list_project(self.database)
+            self._list_project()
 
         if fields is None:
             fields = []
@@ -48,7 +48,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
     def get_task(self, project, taskid, fields=None):
         if project not in self.projects:
-            self._list_project(self.database)
+            self._list_project()
         if project not in self.projects:
             print("[couchdb taskdb get_task] - project: {} not in projects".format(project))
             return
@@ -63,7 +63,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
 
     def status_count(self, project):
         if project not in self.projects:
-            self._list_project(self.database)
+            self._list_project()
         if project not in self.projects:
             return {}
         collection_name = self._get_collection_name(project)
