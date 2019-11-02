@@ -22,8 +22,7 @@ addons:
     - rabbitmq-server
 
 env:
-  - COUCHDB_USER=user
-  - COUCHDB_PASSWORD=password
+  - COUCHDB_USER=user COUCHDB_PASSWORD=password
 
 before_install:
     - echo "deb https://apache.bintray.com/couchdb-deb xenial main" | sudo tee -a /etc/apt/sources.list

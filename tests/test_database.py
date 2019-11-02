@@ -700,14 +700,10 @@ class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
             'couchdb+projectdb://localhost:5984/'
         )
         self.assertIsNotNone(self, self.projectdb)
-        os.environ["COUCHDB_USER"] = "user"
-        os.environ["COUCHDB_PASSWORD"] = "password"
 
     @classmethod
     def tearDownClass(self):
         self.projectdb.drop_database()
-        del os.environ['COUCHDB_USER']
-        del os.environ['COUCHDB_PASSWORD']
 
 
 @unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
@@ -719,14 +715,10 @@ class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
             'couchdb+resultdb://localhost:5984/'
         )
         self.assertIsNotNone(self, self.resultdb)
-        os.environ["COUCHDB_USER"] = "user"
-        os.environ["COUCHDB_PASSWORD"] = "password"
 
     @classmethod
     def tearDownClass(self):
         self.resultdb.drop_database()
-        del os.environ['COUCHDB_USER']
-        del os.environ['COUCHDB_PASSWORD']
 
     def test_create_project(self):
         self.assertNotIn('test_create_project', self.resultdb.projects)
@@ -743,14 +735,10 @@ class TestCouchDBTaskDB(TaskDBCase, unittest.TestCase):
             'couchdb+taskdb://localhost:5984/'
         )
         self.assertIsNotNone(self, self.taskdb)
-        os.environ["COUCHDB_USER"] = "user"
-        os.environ["COUCHDB_PASSWORD"] = "password"
 
     @classmethod
     def tearDownClass(self):
         self.taskdb.drop_database()
-        del os.environ['COUCHDB_USER']
-        del os.environ['COUCHDB_PASSWORD']
 
     def test_create_project(self):
         self.assertNotIn('test_create_project', self.taskdb.projects)
