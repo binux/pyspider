@@ -735,6 +735,8 @@ class TestCouchDBTaskDB(TaskDBCase, unittest.TestCase):
             'couchdb+taskdb://localhost:5984/'
         )
         self.assertIsNotNone(self, self.taskdb)
+        os.environ["COUCHDB_USER"] = "user"
+        os.environ["COUCHDB_PASSWORD"] = "password"
 
     @classmethod
     def tearDownClass(self):
