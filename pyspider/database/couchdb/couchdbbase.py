@@ -47,6 +47,8 @@ class SplitTableMixin(object):
         res = requests.put(url,
                            headers={"Content-Type": "application/json"},
                            auth=(self.username, self.password)).json()
+        if 'error' in res and res['error'] == 'unauthorized':
+            raise Exception("Supplied credentials are incorrect. User: {} Password: {}".format(self.username, self.password))
         return res
 
 
