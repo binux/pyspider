@@ -158,6 +158,8 @@ class TestRun(unittest.TestCase):
             os.environ['COUCHDB_NAME'] = 'couchdb'
             os.environ['COUCHDB_PORT_5984_TCP_ADDR'] = 'localhost'
             os.environ['COUCHDB_PORT_5984_TCP_PORT'] = '5984'
+            os.environ["COUCHDB_USER"] = "test"
+            os.environ["COUCHDB_PASSWORD"] = "password"
             ctx = run.cli.make_context('test', [], None,
                                        obj=dict(testing_mode=True))
             ctx = run.cli.invoke(ctx)
@@ -168,6 +170,8 @@ class TestRun(unittest.TestCase):
             del os.environ['COUCHDB_NAME']
             del os.environ['COUCHDB_PORT_5984_TCP_ADDR']
             del os.environ['COUCHDB_PORT_5984_TCP_PORT']
+            del os.environ["COUCHDB_USER"]
+            del os.environ["COUCHDB_PASSWORD"]
 
     @unittest.skip('only available in docker')
     @unittest.skipIf(os.environ.get('IGNORE_MYSQL') or os.environ.get('IGNORE_ALL'), 'no mysql server for test.')
