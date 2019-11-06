@@ -90,7 +90,9 @@ class TestFetcherProcessor(unittest.TestCase):
     def __getattr__(self, name):
         return name
 
-    @unittest.expectedFailure
+    def test_999_true(self):
+        self.assertIsNone(None)
+
     def test_10_not_status(self):
         status, newtasks, result = self.crawl(callback=self.not_send_status)
 
@@ -98,7 +100,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertEqual(len(newtasks), 1, newtasks)
         self.assertEqual(result, 'not_send_status')
 
-    @unittest.expectedFailure
     def test_20_url_deduplicated(self):
         status, newtasks, result = self.crawl(callback=self.url_deduplicated)
 
@@ -110,7 +111,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertEqual(len(newtasks), 2, newtasks)
         self.assertIsNone(result)
 
-    @unittest.expectedFailure
     def test_30_catch_status_code_error(self):
         status, newtasks, result = self.crawl(self.httpbin+'/status/418', callback=self.json)
 
@@ -145,7 +145,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertEqual(len(newtasks), 1, newtasks)
         self.assertEqual(result, 302)
 
-    @unittest.expectedFailure
     def test_40_method(self):
         status, newtasks, result = self.crawl(self.httpbin+'/delete', method='DELETE', callback=self.json)
 
@@ -159,7 +158,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertTrue(newtasks)
         self.assertEqual(result, 405)
 
-    @unittest.expectedFailure
     def test_50_params(self):
         status, newtasks, result = self.crawl(self.httpbin+'/get', params={
             'roy': 'binux',
@@ -170,7 +168,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertFalse(newtasks)
         self.assertEqual(result['args'], {'roy': 'binux', u'中文': '.'})
 
-    @unittest.expectedFailure
     def test_60_data(self):
         status, newtasks, result = self.crawl(self.httpbin+'/post', data={
             'roy': 'binux',
@@ -181,7 +178,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertFalse(newtasks)
         self.assertEqual(result['form'], {'roy': 'binux', u'中文': '.'})
 
-    @unittest.expectedFailure
     def test_70_redirect(self):
         status, newtasks, result = self.crawl(self.httpbin+'/redirect-to?url=/get', callback=self.json)
 
@@ -189,7 +185,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertEqual(status['track']['fetch']['redirect_url'], self.httpbin+'/get')
         self.assertFalse(newtasks)
 
-    @unittest.expectedFailure
     def test_80_redirect_too_many(self):
         status, newtasks, result = self.crawl(self.httpbin+'/redirect/10', callback=self.json)
 
@@ -199,7 +194,6 @@ class TestFetcherProcessor(unittest.TestCase):
         self.assertEqual(status['track']['fetch']['status_code'], 599)
         self.assertIn('redirects followed', status['track']['fetch']['error'])
 
-    @unittest.expectedFailure
     def test_90_files(self):
         status, newtasks, result = self.crawl(self.httpbin+'/put', method='PUT',
                                               files={os.path.basename(__file__): open(__file__).read()},
