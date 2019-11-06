@@ -269,7 +269,8 @@ class BaseHandler(object):
             print(type(callback))
             print(callable(callback))
             print(hasattr(self, callback))
-            if isinstance(callback, six.string_types) and hasattr(self, callback):
+            print(hasattr(self, callback.__name__))
+            if isinstance(callback, six.string_types) and hasattr(self, callback.__name__):
                 func = getattr(self, callback)
             elif callable(callback) and hasattr(self, callback):
                 func = getattr(self, callback)
