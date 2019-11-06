@@ -49,7 +49,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.httpbin_thread.join()
 
     @classmethod
-    def test(self):
+    def some_class_method(self):
         return True
 
     def test_999_true(self):
