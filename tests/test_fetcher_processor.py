@@ -89,9 +89,12 @@ class TestFetcherProcessor(unittest.TestCase):
             return False
         return status.get('track', {}).get(type, {}).get('ok', False)
 
+    '''
+    #not used
     @classmethod
     def __getattr__(self, name):
         return name
+    '''
 
     @classmethod
     def some_class_method(self):
