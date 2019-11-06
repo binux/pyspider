@@ -5,7 +5,7 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
-import os, requests
+import os, requests, json
 from six.moves.urllib.parse import urlparse, parse_qs
 
 
@@ -214,10 +214,15 @@ def _connect_couchdb(parsed, dbtype, url):
     params['password'] = os.environ.get('COUCHDB_PASSWORD') or 'password'
     print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
 
-    requests.put(url+"_users",
-                 auth=(params['username'], params['password']))
-    requests.put(url+"_replicator",
-                 auth=(params['username'], params['password']))
+    requests.put(url+"_users")
+    requests.put(url+"_replicator")
+    # create the user
+    requests.put(url+"_users/org.couchdb.user:"+ params['username'],
+                 headers = {"Content-Type": "application/json"},
+                 data=json.dumps({'name': params['username'],
+                                  'password': params['password'],
+                                  'roles': [],
+                                  'type': 'user'}))
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB
