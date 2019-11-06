@@ -1,4 +1,5 @@
 import time, requests, json
+from requests.auth import HTTPBasicAuth
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
 
@@ -15,7 +16,7 @@ class ProjectDB(BaseProjectDB):
         # Create the db
         res = requests.put(self.url,
                            headers={"Content-Type": "application/json"},
-                           auth=(self.username, self.password)).json()
+                           auth=HTTPBasicAuth(self.username, self.password)).json()
         if 'error' in res and res['error'] == 'unauthorized':
             raise Exception(
                 "Supplied credentials are incorrect. User: {} Password: {}".format(self.username, self.password))
@@ -30,7 +31,7 @@ class ProjectDB(BaseProjectDB):
         }
         res = requests.post(self.url+"_index", data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
         print("[couchdb projectdb init] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
         #self.collection.ensure_index('name', unique=True)
@@ -55,7 +56,7 @@ class ProjectDB(BaseProjectDB):
         res = requests.put(url,
                            data = json.dumps(obj),
                            headers = {"Content-Type": "application/json"},
-                           auth=(self.username, self.password)).json()
+                           auth=HTTPBasicAuth(self.username, self.password)).json()
         return res
 
     def update(self, name, obj={}, **kwargs):
@@ -82,7 +83,7 @@ class ProjectDB(BaseProjectDB):
         res = requests.post(url,
                             data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
         for doc in res['docs']:
             yield self._default_fields(doc)
 
@@ -99,7 +100,7 @@ class ProjectDB(BaseProjectDB):
         res = requests.post(url,
                             data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
-                            auth = (self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
         if len(res['docs']) == 0:
             return None
         return self._default_fields(res['docs'][0])
@@ -119,10 +120,10 @@ class ProjectDB(BaseProjectDB):
         return requests.delete(url,
                                params=payload,
                                headers={"Content-Type": "application/json"},
-                               auth=(self.username, self.password)).json()
+                               auth=HTTPBasicAuth(self.username, self.password)).json()
 
     def drop_database(self):
         return requests.delete(self.url,
                                headers={"Content-Type": "application/json"},
-                               auth=(self.username, self.password)).json()
+                               auth=HTTPBasicAuth(self.username, self.password)).json()
 

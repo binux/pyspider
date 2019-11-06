@@ -1,4 +1,5 @@
 import json, time, requests
+from requests.auth import HTTPBasicAuth
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from .couchdbbase import SplitTableMixin
 
@@ -34,7 +35,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         res = requests.post(self.base_url + collection_name + "/_index",
                             data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
         print("[couchdb taskdb _create_project] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
         #self.database[collection_name].ensure_index('status')

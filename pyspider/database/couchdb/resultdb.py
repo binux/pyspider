@@ -1,4 +1,5 @@
 import time, json, requests
+from requests.auth import HTTPBasicAuth
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from .couchdbbase import SplitTableMixin
 
@@ -33,7 +34,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         res = requests.post(self.base_url + collection_name + "/_index",
                             data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
 
         print("[couchdb resultdb _create_project] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']

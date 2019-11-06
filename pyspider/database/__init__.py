@@ -224,6 +224,14 @@ def _connect_couchdb(parsed, dbtype, url):
                                   'roles': [],
                                   'type': 'user'}))
     print("[_connect_couchdb] - Creating User: {} {} res: {}".format(params['username'], params['password'], res))
+    # test the user
+    res = requests.post(url + '_session',
+                        headers={"Content-Type": "application/x-www-form-urlencoded"},
+                        data={
+                            'name': params['username'],
+                            'password': params['password']
+                        })
+    print("[_connect_couchdb] - Testing User res: {}".format(res))
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB

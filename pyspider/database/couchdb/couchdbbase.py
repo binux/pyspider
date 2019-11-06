@@ -1,4 +1,5 @@
 import time, requests, json
+from requests.auth import HTTPBasicAuth
 
 class SplitTableMixin(object):
     UPDATE_PROJECTS_TIME = 10 * 60
@@ -34,7 +35,7 @@ class SplitTableMixin(object):
         res = requests.get(url,
                            data=json.dumps({}),
                            headers={"Content-Type": "application/json"},
-                           auth=(self.username, self.password)).json()
+                           auth=HTTPBasicAuth(self.username, self.password)).json()
         for each in res:
             if each.startswith('_'):
                 continue
@@ -46,7 +47,7 @@ class SplitTableMixin(object):
         url = self.base_url + name
         res = requests.put(url,
                            headers={"Content-Type": "application/json"},
-                           auth=(self.username, self.password)).json()
+                           auth=HTTPBasicAuth(self.username, self.password)).json()
         if 'error' in res and res['error'] == 'unauthorized':
             raise Exception("Supplied credentials are incorrect. User: {} Password: {}".format(self.username, self.password))
         return res
@@ -56,7 +57,7 @@ class SplitTableMixin(object):
         url = self.base_url + db_name + "/" + doc_id
         res = requests.get(url,
                            headers={"Content-Type": "application/json"},
-                           auth=(self.username, self.password)).json()
+                           auth=HTTPBasicAuth(self.username, self.password)).json()
         if "error" in res and res["error"] == "not_found":
             return None
         return res
@@ -68,7 +69,7 @@ class SplitTableMixin(object):
         res = requests.post(url,
                             data=json.dumps(selector),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
         if 'error' in res and res['error'] == 'not_found':
             return []
         return res['docs']
@@ -83,7 +84,7 @@ class SplitTableMixin(object):
         return requests.put(url,
                             data=json.dumps(doc),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
 
 
     def update_doc(self, db_name, doc_id, new_doc):
@@ -96,11 +97,11 @@ class SplitTableMixin(object):
         return requests.put(url,
                             data=json.dumps(doc),
                             headers={"Content-Type": "application/json"},
-                            auth=(self.username, self.password)).json()
+                            auth=HTTPBasicAuth(self.username, self.password)).json()
 
 
     def delete(self, url):
         return requests.delete(url,
                                headers={"Content-Type": "application/json"},
-                               auth=(self.username, self.password)).json()
+                               auth=HTTPBasicAuth(self.username, self.password)).json()
 
