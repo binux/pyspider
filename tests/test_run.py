@@ -155,6 +155,10 @@ class TestRun(unittest.TestCase):
     @unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
     def test_60a_docker_couchdb(self):
         try:
+            # create a test admin user
+            import requests
+            requests.put('http://localhost:5984/_node/_local/_config/admins/test',
+                         data='"password"')
             os.environ['COUCHDB_NAME'] = 'couchdb'
             os.environ['COUCHDB_PORT_5984_TCP_ADDR'] = 'localhost'
             os.environ['COUCHDB_PORT_5984_TCP_PORT'] = '5984'
@@ -167,6 +171,11 @@ class TestRun(unittest.TestCase):
         except Exception as e:
             self.assertIsNone(e)
         finally:
+            # remove the test admin user
+            import requests
+            from requests.auth import HTTPBasicAuth
+            requests.delete('http://localhost:5984/_node/_local/_config/admins/test',
+                            auth=HTTPBasicAuth('test', 'password'))
             del os.environ['COUCHDB_NAME']
             del os.environ['COUCHDB_PORT_5984_TCP_ADDR']
             del os.environ['COUCHDB_PORT_5984_TCP_PORT']
