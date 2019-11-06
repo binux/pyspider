@@ -19,7 +19,9 @@ class ProjectDB(BaseProjectDB):
                            auth=HTTPBasicAuth(self.username, self.password)).json()
         if 'error' in res and res['error'] == 'unauthorized':
             raise Exception(
-                "Supplied credentials are incorrect. User: {} Password: {}".format(self.username, self.password))
+                "Supplied credentials are incorrect. Reason: {} for User: {} Password: {}".format(res['reason'],
+                                                                                                  self.username,
+                                                                                                  self.password))
 
         print('[couchdb projectdb init] creating db.. url: {} res: {}'.format(self.url, res))
         # create index

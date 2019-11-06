@@ -49,7 +49,7 @@ class SplitTableMixin(object):
                            headers={"Content-Type": "application/json"},
                            auth=HTTPBasicAuth(self.username, self.password)).json()
         if 'error' in res and res['error'] == 'unauthorized':
-            raise Exception("Supplied credentials are incorrect. User: {} Password: {}".format(self.username, self.password))
+            raise Exception("Supplied credentials are incorrect. Reason: {} for User: {} Password: {}".format(res['reason'], self.username, self.password))
         return res
 
 
