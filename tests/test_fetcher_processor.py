@@ -48,6 +48,7 @@ class TestFetcherProcessor(unittest.TestCase):
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
+    @classmethod
     def crawl(self, url=None, track=None, **kwargs):
         if url is None and kwargs.get('callback'):
             url = dataurl.encode(utils.text(kwargs.get('callback')))
@@ -74,15 +75,18 @@ class TestFetcherProcessor(unittest.TestCase):
             _, result = self.result_queue.get()
         return status, newtasks, result
 
+    @classmethod
     def status_ok(self, status, type):
         if not status:
             return False
         return status.get('track', {}).get(type, {}).get('ok', False)
 
+    @classmethod
     def assertStatusOk(self, status):
         self.assertTrue(self.status_ok(status, 'fetch'), status.get('track', {}).get('fetch'))
         self.assertTrue(self.status_ok(status, 'process'), status.get('track', {}).get('process'))
 
+    @classmethod
     def __getattr__(self, name):
         return name
 
