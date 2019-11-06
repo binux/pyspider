@@ -104,7 +104,7 @@ services:
     volumes:
       - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
     environment:
-      - SCHEDULER_NAME=scheduler
+      - SCHEDULER_PORT_23333_TCP_ADDR=scheduler
     command: -c config.json webui
     depends_on:
       - couchdb

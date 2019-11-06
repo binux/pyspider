@@ -385,9 +385,10 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     # scheduler rpc
     if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
-    if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
+    if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
         app.config['scheduler_rpc'] = connect_rpc(ctx, None,
-                                                  'http://{}:{}/'.format(os.environ.get('SCHEDULER_NAME'), 23333))
+                                                  'http://{}:{}/'.format(os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'),
+                                                                         os.environ.get('SCHEDULER_PORT_23333_TCP_PORT')))
     elif scheduler_rpc is None:
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
     else:
@@ -813,9 +814,9 @@ def send_message(ctx, scheduler_rpc, project, message):
     """
     if isinstance(scheduler_rpc, six.string_types):
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
-    if scheduler_rpc is None and os.environ.get('SCHEDULER_NAME'):
-        scheduler_rpc = connect_rpc(ctx, None, 'http://%s/' % (
-            os.environ['SCHEDULER_PORT_23333_TCP'][len('tcp://'):]))
+    if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
+        scheduler_rpc = connect_rpc(ctx, None, 'http://%s:%s/' % (os.environ['SCHEDULER_PORT_23333_TCP_ADDR'],
+                                                                  os.environ['SCHEDULER_PORT_23333_TCP_PORT'] or 23333))
     if scheduler_rpc is None:
         scheduler_rpc = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
 
