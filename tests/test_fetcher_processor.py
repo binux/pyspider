@@ -16,9 +16,10 @@ from pyspider.fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.libs import utils, dataurl
 from six.moves.queue import Queue
+from pyspider.tests.data_fetcher_processor_handler import Handler
 
 
-class TestFetcherProcessor(unittest.TestCase):
+class TestFetcherProcessor(Handler, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
