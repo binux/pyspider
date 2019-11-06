@@ -48,47 +48,5 @@ class TestFetcherProcessor(unittest.TestCase):
         self.httpbin_thread.terminate()
         self.httpbin_thread.join()
 
-    @classmethod
-    def crawl(self, url=None, track=None, **kwargs):
-        if url is None and kwargs.get('callback'):
-            url = dataurl.encode(utils.text(kwargs.get('callback')))
-
-        project_data = self.processor.project_manager.get(self.project_name)
-        assert project_data, "can't find project: %s" % self.project_name
-        instance = project_data['instance']
-        instance._reset()
-        task = instance.crawl(url, **kwargs)
-        if isinstance(task, list):
-            task = task[0]
-        task['track'] = track
-        result = self.fetcher.fetch(task)
-        self.processor.on_task(task, result)
-
-        status = None
-        while not self.status_queue.empty():
-            status = self.status_queue.get()
-        newtasks = []
-        while not self.newtask_queue.empty():
-            newtasks = self.newtask_queue.get()
-        result = None
-        while not self.result_queue.empty():
-            _, result = self.result_queue.get()
-        return status, newtasks, result
-
-    @classmethod
-    def status_ok(self, status, type):
-        if not status:
-            return False
-        return status.get('track', {}).get(type, {}).get('ok', False)
-
-    @classmethod
-    def assertStatusOk(self, status):
-        self.assertTrue(self.status_ok(status, 'fetch'), status.get('track', {}).get('fetch'))
-        self.assertTrue(self.status_ok(status, 'process'), status.get('track', {}).get('process'))
-
-    @classmethod
-    def __getattr__(self, name):
-        return name
-
     def test_999_true(self):
         self.assertIsNone(None)
