@@ -88,7 +88,7 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
         return status.get('track', {}).get(type, {}).get('ok', False)
 
     def test_10_not_status(self):
-        status, newtasks, result = self.crawl(callback=self.not_send_status)
+        status, newtasks, result = self.crawl(callback=self.not_send_status.__name__)
 
         self.assertIsNone(status)
         self.assertEqual(len(newtasks), 1, newtasks)
