@@ -210,8 +210,8 @@ def _connect_couchdb(parsed, dbtype, url):
     # TODO: Add https + auth as parameters
     url = "http://" + parsed.netloc + "/"
     params = {}
-    params['username'] = os.environ.get('COUCHDB_USER')
-    params['password'] = os.environ.get('COUCHDB_PASSWORD')
+    params['username'] = os.environ.get('COUCHDB_USER') or 'user'
+    params['password'] = os.environ.get('COUCHDB_PASSWORD') or 'password'
     print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
 
     requests.put(url+"_users",
