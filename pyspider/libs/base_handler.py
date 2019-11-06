@@ -264,14 +264,13 @@ class BaseHandler(object):
 
         if kwargs.get('callback'):
             callback = kwargs['callback']
-            print("HERE")
             if isinstance(callback, six.string_types) and hasattr(self, callback):
-                func = getattr(self, callback)
-            elif six.callable(callback) and hasattr(self, callback.__name__):
-                print("HERE2")
                 func = getattr(self, callback)
             elif six.callable(callback) and six.get_method_self(callback) is self:
                 func = callback
+                kwargs['callback'] = func.__name__
+            elif six.callable(callback) and hasattr(self, callback.__name__):
+                func = getattr(self, callback)
                 kwargs['callback'] = func.__name__
             else:
                 raise NotImplementedError("self.%s() not implemented!" % callback)
