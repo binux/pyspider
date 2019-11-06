@@ -145,8 +145,6 @@ def cli(ctx, **kwargs):
     elif os.environ.get('RABBITMQ_NAME'):
         kwargs['message_queue'] = ("amqp://guest:guest@%(RABBITMQ_PORT_5672_TCP_ADDR)s"
                                    ":%(RABBITMQ_PORT_5672_TCP_PORT)s/%%2F" % os.environ)
-    elif kwargs.get('beanstalk'):
-        kwargs['message_queue'] = "beanstalk://%s/" % kwargs['beanstalk']
 
     for name in ('newtask_queue', 'status_queue', 'scheduler2fetcher',
                  'fetcher2processor', 'processor2result'):

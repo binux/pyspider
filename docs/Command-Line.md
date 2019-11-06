@@ -90,8 +90,6 @@ type:
 rabbitmq:
     amqp://username:password@host:5672/%2F
     see https://www.rabbitmq.com/uri-spec.html
-beanstalk:
-    beanstalk://host:11300/
 redis:
     redis://host:6379/db
     redis://host1:port1,host2:port2,...,hostn:portn (for redis 3.x in cluster mode)

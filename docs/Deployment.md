@@ -10,7 +10,7 @@ Installation
 
 To deploy pyspider components in each single processes, you need at least one database service. pyspider now supports [MySQL](http://www.mysql.com/), [MongoDB](http://www.mongodb.org/) and [PostgreSQL](http://www.postgresql.org/). You can choose one of them.
 
-And you need a message queue service to connect the components together. You can use [RabbitMQ](http://www.rabbitmq.com/), [Beanstalk](http://kr.github.io/beanstalkd/) or [Redis](http://redis.io/) as message queue.
+And you need a message queue service to connect the components together. You can use [RabbitMQ](http://www.rabbitmq.com/) or [Redis](http://redis.io/) as message queue.
 
 `pip install --allow-all-external pyspider[all]`
 
@@ -81,8 +81,6 @@ You can use connection URL to specify the message queue:
 rabbitmq:
     amqp://username:password@host:5672/%2F
     Refer: https://www.rabbitmq.com/uri-spec.html
-beanstalk:
-    beanstalk://host:11300/
 redis:
     redis://host:6379/db
     redis://host1:port1,host2:port2,...,hostn:portn (for redis 3.x in cluster mode)

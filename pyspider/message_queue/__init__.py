@@ -23,8 +23,6 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
     rabbitmq:
         amqp://username:password@host:5672/%2F
         see https://www.rabbitmq.com/uri-spec.html
-    beanstalk:
-        beanstalk://host:11300/
     redis:
         redis://host:6379/db
         redis://host1:port1,host2:port2,...,hostn:portn (for redis 3.x in cluster mode)
@@ -43,9 +41,6 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
     if parsed.scheme == 'amqp':
         from .rabbitmq import Queue
         return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
-    elif parsed.scheme == 'beanstalk':
-        from .beanstalk import Queue
-        return Queue(name, host=parsed.netloc, maxsize=maxsize)
     elif parsed.scheme == 'redis':
         from .redis_queue import Queue
         if ',' in parsed.netloc:

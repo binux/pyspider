@@ -32,21 +32,9 @@ install_requires = [
     'tblib==1.4.0'
 ]
 
-if sys.version_info < (2, 7):  # 2.6
-    install_requires.extend([
-        'wsgidav<2.0.0',
-        'tornado>=3.2,<4.5',
-        'pyquery<1.3.0',
-    ])
-elif sys.version_info >= (3, 0):  # 3.*
+if sys.version_info >= (3, 0):  # 3.*
     install_requires.extend([
         'wsgidav==2.3.0',
-        'tornado>=3.2,<=4.5.3',
-        'pyquery',
-    ])
-else:  # 2.7
-    install_requires.extend([
-        'wsgidav',
         'tornado>=3.2,<=4.5.3',
         'pyquery',
     ])
@@ -59,30 +47,12 @@ extras_require_all = [
     'psycopg2==2.8.2',
     'elasticsearch==2.3.0',
 ]
-if sys.version_info < (2, 7):  # 2.6
-    extras_require_all.extend([
-        'kombu<4.0',
-        'amqp>=1.3.0,<2.0',
-        'pika>=0.9.14',
-        'beanstalkc',
-        'SQLAlchemy>=0.9.7,<=1.1.13',
-        'unittest2>=0.5.1',
-    ])
-elif sys.version_info >= (3, 0):  # 3.*
+if sys.version_info >= (3, 0):  # 3.*
     extras_require_all.extend([
         'kombu==4.4.0',
         'amqp==2.4.0',
         'SQLAlchemy==1.3.10',
         'pika==1.1.0'
-    ])
-else:  # 2.7
-    extras_require_all.extend([
-        'kombu',
-        'pika>=0.9.14',
-        'beanstalkc',
-        'amqp>=1.3.0',
-        'SQLAlchemy>=0.9.7',
-        'unittest2>=0.5.1',
     ])
 
 
@@ -102,13 +72,13 @@ setup(
 
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
 
         'License :: OSI Approved :: Apache Software License',
 
