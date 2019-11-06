@@ -22,8 +22,6 @@ class ProjectDB(BaseProjectDB):
                 "Supplied credentials are incorrect. Reason: {} for User: {} Password: {}".format(res['reason'],
                                                                                                   self.username,
                                                                                                   self.password))
-
-        print('[couchdb projectdb init] creating db.. url: {} res: {}'.format(self.url, res))
         # create index
         payload = {
             'index': {
@@ -34,9 +32,7 @@ class ProjectDB(BaseProjectDB):
         res = requests.post(self.url+"_index", data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
                             auth=HTTPBasicAuth(self.username, self.password)).json()
-        print("[couchdb projectdb init] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
-        #self.collection.ensure_index('name', unique=True)
 
     def _default_fields(self, each):
         if each is None:

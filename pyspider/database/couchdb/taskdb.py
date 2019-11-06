@@ -36,10 +36,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                             data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
                             auth=HTTPBasicAuth(self.username, self.password)).json()
-        print("[couchdb taskdb _create_project] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
-        #self.database[collection_name].ensure_index('status')
-        #self.database[collection_name].ensure_index('taskid')
         self._list_project()
 
     def load_tasks(self, status, project=None, fields=None):

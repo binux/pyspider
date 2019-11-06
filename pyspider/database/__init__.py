@@ -34,7 +34,7 @@ def connect_database(url):
     elasticsearch:
         elasticsearch+type://host:port/?index=pyspider
     couchdb:
-        couchdb+type://[username:password@]host[:port]
+        couchdb+type://host[:port]
     local:
         local+projectdb://filepath,filepath
 
@@ -212,26 +212,13 @@ def _connect_couchdb(parsed, dbtype, url):
     params = {}
     params['username'] = os.environ.get('COUCHDB_USER') or 'user'
     params['password'] = os.environ.get('COUCHDB_PASSWORD') or 'password'
-    print("[_connect_couchdb] - url: {} parsed: {}".format(url, parsed))
 
     requests.put(url+"_users")
     requests.put(url+"_replicator")
-    # create the user
-    res = requests.put(url+"_users/org.couchdb.user:"+ params['username'],
-                 headers = {"Content-Type": "application/json"},
-                 data=json.dumps({'name': params['username'],
-                                  'password': params['password'],
-                                  'roles': [],
-                                  'type': 'user'}))
-    print("[_connect_couchdb] - Creating User: {} {} res: {}".format(params['username'], params['password'], res))
-    # test the user
-    res = requests.post(url + '_session',
-                        headers={"Content-Type": "application/x-www-form-urlencoded"},
-                        data={
-                            'name': params['username'],
-                            'password': params['password']
-                        })
-    print("[_connect_couchdb] - Testing User res: {}".format(res))
+    # create the admin user
+    # NOTE: Over docker, this user is already created when COUCHDB_USER and COUCHDB_PASSWORD are set
+    requests.put(url+'_node/_local/_config/admins/'+ params['username'],
+                 data=params['password'])
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB

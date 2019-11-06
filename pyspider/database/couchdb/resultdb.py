@@ -35,10 +35,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
                             data=json.dumps(payload),
                             headers={"Content-Type": "application/json"},
                             auth=HTTPBasicAuth(self.username, self.password)).json()
-
-        print("[couchdb resultdb _create_project] - creating index. payload: {} res: {}".format(json.dumps(payload), res))
         self.index = res['id']
-        #self.database[collection_name].ensure_index('taskid')
         self._list_project()
 
     def save(self, project, taskid, url, result):
@@ -78,8 +75,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             }
         for result in self.get_docs(collection_name, sel):
             yield result
-        #for result in self.database[collection_name].find({}, fields, skip=offset, limit=limit):
-        #    yield self._parse(result)
 
     def count(self, project):
         if project not in self.projects:
@@ -88,7 +83,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             return
         collection_name = self._get_collection_name(project)
         return len(self.get_all_docs(collection_name))
-        #return self.database[collection_name].count()
 
     def get(self, project, taskid, fields=None):
         if project not in self.projects:
@@ -103,7 +97,6 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'fields': fields
         }
         ret = self.get_docs(collection_name, sel)
-        #ret = self.database[collection_name].find_one({'taskid': taskid}, fields)
         if len(ret) == 0:
             return None
         return ret[0]
