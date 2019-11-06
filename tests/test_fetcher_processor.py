@@ -75,6 +75,12 @@ class TestFetcherProcessor(unittest.TestCase):
         while not self.result_queue.empty():
             _, result = self.result_queue.get()
         return status, newtasks, result
+    
+    
+    @classmethod
+    def assertStatusOk(self, status):
+        self.assertTrue(self.status_ok(status, 'fetch'), status.get('track', {}).get('fetch'))
+        self.assertTrue(self.status_ok(status, 'process'), status.get('track', {}).get('process'))
     '''
 
     @classmethod
@@ -82,11 +88,6 @@ class TestFetcherProcessor(unittest.TestCase):
         if not status:
             return False
         return status.get('track', {}).get(type, {}).get('ok', False)
-
-    @classmethod
-    def assertStatusOk(self, status):
-        self.assertTrue(self.status_ok(status, 'fetch'), status.get('track', {}).get('fetch'))
-        self.assertTrue(self.status_ok(status, 'process'), status.get('track', {}).get('process'))
 
     @classmethod
     def __getattr__(self, name):
