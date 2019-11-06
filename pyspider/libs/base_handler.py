@@ -270,7 +270,7 @@ class BaseHandler(object):
                 func = callback
                 kwargs['callback'] = func.__name__
             elif six.callable(callback) and hasattr(self, callback.__name__):
-                func = getattr(self, callback)
+                func = getattr(self, callback.__name__)
                 kwargs['callback'] = func.__name__
             else:
                 raise NotImplementedError("self.%s() not implemented!" % callback)
