@@ -264,7 +264,14 @@ class BaseHandler(object):
 
         if kwargs.get('callback'):
             callback = kwargs['callback']
+            print("HERE")
+            print(callback)
+            print(type(callback))
+            print(callable(callback))
+            print(hasattr(self, callback))
             if isinstance(callback, six.string_types) and hasattr(self, callback):
+                func = getattr(self, callback)
+            elif callable(callback) and hasattr(self, callback):
                 func = getattr(self, callback)
             elif six.callable(callback) and six.get_method_self(callback) is self:
                 func = callback
