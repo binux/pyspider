@@ -217,12 +217,13 @@ def _connect_couchdb(parsed, dbtype, url):
     requests.put(url+"_users")
     requests.put(url+"_replicator")
     # create the user
-    requests.put(url+"_users/org.couchdb.user:"+ params['username'],
+    res = requests.put(url+"_users/org.couchdb.user:"+ params['username'],
                  headers = {"Content-Type": "application/json"},
                  data=json.dumps({'name': params['username'],
                                   'password': params['password'],
                                   'roles': [],
                                   'type': 'user'}))
+    print("[_connect_couchdb] - Creating User: {} {} res: {}".format(params['username'], params['password'], res))
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB
