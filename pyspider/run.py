@@ -390,7 +390,7 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
     if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
         app.config['scheduler_rpc'] = connect_rpc(ctx, None,
                                                   'http://{}:{}/'.format(os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'),
-                                                                         os.environ.get('SCHEDULER_PORT_23333_TCP_PORT')))
+                                                                         os.environ.get('SCHEDULER_PORT_23333_TCP_PORT') or 23333))
     elif scheduler_rpc is None:
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
     else:
