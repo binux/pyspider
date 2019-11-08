@@ -1,7 +1,10 @@
 version: "3.7"
 
-# docker build ./ -t pyspider:latest
 # replace /path/to/dir/ to point to config_example.json
+
+# The RabbitMQ and CouchDB services can take some time to startup.
+# During this time most of the pyspider services will exit and restart.
+# Once RabbitMQ and CouchDB are fully up and running everything should run as normal.
 
 services:
   rabbitmq:
