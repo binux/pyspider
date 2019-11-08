@@ -8,7 +8,7 @@ To deploy pyspider in product environment, running component in each process and
 Installation
 ------------
 
-To deploy pyspider components in each single processes, you need at least one database service. pyspider now supports [MySQL](http://www.mysql.com/), [MongoDB](http://www.mongodb.org/) and [PostgreSQL](http://www.postgresql.org/). You can choose one of them.
+To deploy pyspider components in each single processes, you need at least one database service. pyspider now supports [MySQL](http://www.mysql.com/), [CouchDB](https://couchdb.apache.org), [MongoDB](http://www.mongodb.org/) and [PostgreSQL](http://www.postgresql.org/). You can choose one of them.
 
 And you need a message queue service to connect the components together. You can use [RabbitMQ](http://www.rabbitmq.com/) or [Redis](http://redis.io/) as message queue.
 
@@ -63,6 +63,8 @@ sqlite:
 mongodb:
     mongodb+type://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
     more: http://docs.mongodb.org/manual/reference/connection-string/
+couchdb:
+    couchdb+type://[username:password@]host[:port][?options]]
 sqlalchemy:
     sqlalchemy+postgresql+type://user:passwd@host:port/database
     sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database

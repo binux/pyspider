@@ -1,6 +1,7 @@
 version: "3.7"
 
 # docker build ./ -t pyspider:latest
+# replace /path/to/dir/ to point to config_example.json
 
 services:
   rabbitmq:
@@ -16,8 +17,12 @@ services:
       - pyspider
     ports:
       - "5984:5984"
-    env_file: .env
-
+    environment:
+      - COUCHDB_NAME=couchdb
+      - COUCHDB_USER=user
+      - COUCHDB_PASSWORD=password
+      - COUCHDB_HTTPS=true
+  # OR we can replace couchdb with mysql
   #mysql:
   #  image: mysql:latest
   #  container_name: mysql
@@ -27,15 +32,13 @@ services:
   #    - MYSQL_ALLOW_EMPTY_PASSWORD=yes
   #  networks:
   #    - pyspider
-  #  env_file: .env
   phantomjs:
     image: pyspider:latest
     container_name: phantomjs
     networks:
       - pyspider
-    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+      - /path/to/dir/config_example.json:/opt/pyspider/config.json
     command: -c config.json phantomjs
     depends_on:
       - couchdb
@@ -46,9 +49,8 @@ services:
     container_name: result
     networks:
       - pyspider
-    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+      - /path/to/dir/config_example.json:/opt/pyspider/config.json
     command: -c config.json result_worker
     depends_on:
       - couchdb
@@ -59,9 +61,8 @@ services:
     image: pyspider:latest
     networks:
       - pyspider
-    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+      - /path/to/dir/config_example.json:/opt/pyspider/config.json
     command: -c config.json processor
     depends_on:
       - couchdb
@@ -72,9 +73,8 @@ services:
     container_name: fetcher
     networks:
       - pyspider
-    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+      - /path/to/dir/config_example.json:/opt/pyspider/config.json
     command : -c config.json fetcher
     depends_on:
       - couchdb
@@ -85,9 +85,8 @@ services:
     container_name: scheduler
     networks:
       - pyspider
-    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+      - /path/to/dir/config_example.json:/opt/pyspider/config.json
     command: -c config.json scheduler
     depends_on:
       - couchdb
@@ -100,9 +99,8 @@ services:
       - "5050:5000"
     networks:
       - pyspider
-    env_file: .env
     volumes:
-      - /Users/Keith/Documents/Projects/python/python_projects/pyspider/pyspider/config_example.json:/opt/pyspider/config.json
+      - /path/to/dir/config_example.json:/opt/pyspider/config.json
     environment:
       - SCHEDULER_PORT_23333_TCP_ADDR=scheduler
     command: -c config.json webui

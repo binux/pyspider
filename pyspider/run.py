@@ -114,8 +114,10 @@ def cli(ctx, **kwargs):
         elif os.environ.get('COUCHDB_NAME'):
             kwargs[db] = utils.Get(lambda db=db: connect_database(
                 'couchdb+%s://%s:%s/%s' % (
-                    db, os.environ['COUCHDB_PORT_5984_TCP_ADDR'],
-                    os.environ['COUCHDB_PORT_5984_TCP_PORT'], db)))
+                    db,
+                    os.environ['COUCHDB_PORT_5984_TCP_ADDR'] or 'couchdb',
+                    os.environ['COUCHDB_PORT_5984_TCP_PORT'] or '5984',
+                    db)))
         elif ctx.invoked_subcommand == 'bench':
             if kwargs['data_path'] == './data':
                 kwargs['data_path'] += '/bench'

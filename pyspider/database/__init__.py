@@ -34,7 +34,7 @@ def connect_database(url):
     elasticsearch:
         elasticsearch+type://host:port/?index=pyspider
     couchdb:
-        couchdb+type://host[:port]
+        couchdb+type://[username:password@]host[:port]
     local:
         local+projectdb://filepath,filepath
 
@@ -207,14 +207,29 @@ def _connect_elasticsearch(parsed, dbtype):
 
 
 def _connect_couchdb(parsed, dbtype, url):
-    # TODO: Add https + auth as parameters
-    url = "http://" + parsed.netloc + "/"
+    if os.environ.get('COUCHDB_HTTPS'):
+        url = "https://" + parsed.netloc + "/"
+    else:
+        url = "http://" + parsed.netloc + "/"
     params = {}
-    params['username'] = os.environ.get('COUCHDB_USER') or 'user'
-    params['password'] = os.environ.get('COUCHDB_PASSWORD') or 'password'
 
+    username = None
+    password = None
+    if '@' in parsed.netloc:
+        # netloc looks like: 'user:pass@couchdb:999'
+        url = parsed.netloc[parsed.netloc.find("@")+1:]
+        # extract the username and password
+        username = parsed.netloc[:parsed.netloc.find(":")]
+        password = parsed.netloc[parsed.netloc.find(":")+1:parsed.netloc.find("@")]
+
+    # default to env, then url, then hard coded
+    params['username'] = os.environ.get('COUCHDB_USER') or username or 'user'
+    params['password'] = os.environ.get('COUCHDB_PASSWORD') or password or 'password'
+
+    # create required CouchDB databases if not already present
     requests.put(url+"_users")
     requests.put(url+"_replicator")
+    
     # create the admin user
     # NOTE: Over docker, this user is already created when COUCHDB_USER and COUCHDB_PASSWORD are set
     requests.put(url+'_node/_local/_config/admins/'+ params['username'],
