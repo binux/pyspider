@@ -10,7 +10,7 @@ import os
 import copy
 import time
 import httpbin
-import unittest2 as unittest
+import unittest
 
 import logging
 import logging.config
@@ -91,5 +91,5 @@ class TestResponse(unittest.TestCase):
 
     def test_70_reraise_exception(self):
         response = self.get('file://abc')
-        with self.assertRaisesRegexp(Exception, 'HTTP 599'):
+        with self.assertRaisesRegex(Exception, 'HTTP 599'):
             response.raise_for_status()

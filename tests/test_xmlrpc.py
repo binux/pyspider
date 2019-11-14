@@ -14,7 +14,7 @@
 #
 #   Origin: https://code.google.com/p/wsgi-xmlrpc/
 
-import unittest2 as unittest
+import unittest
 import tornado.wsgi
 import tornado.ioloop
 import tornado.httpserver

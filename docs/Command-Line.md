@@ -72,6 +72,8 @@ sqlite:
 mongodb:
     mongodb+type://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
     more: http://docs.mongodb.org/manual/reference/connection-string/
+couchdb:
+    couchdb+type://[username:password@]host[:port]
 sqlalchemy:
     sqlalchemy+postgresql+type://user:passwd@host:port/database
     sqlalchemy+mysql+mysqlconnector+type://user:passwd@host:port/database
@@ -90,8 +92,6 @@ type:
 rabbitmq:
     amqp://username:password@host:5672/%2F
     see https://www.rabbitmq.com/uri-spec.html
-beanstalk:
-    beanstalk://host:11300/
 redis:
     redis://host:6379/db
     redis://host1:port1,host2:port2,...,hostn:portn (for redis 3.x in cluster mode)

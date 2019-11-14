@@ -87,6 +87,7 @@ def project_update():
                 return 'rpc error', 200
         return 'ok', 200
     else:
+        app.logger.warning("[webui index] projectdb.update() error - res: {}".format(ret))
         return 'update error', 500
 
 

@@ -5,7 +5,7 @@
 #         http://binux.me
 # Created on 2017-02-26 10:35:23
 
-import unittest2 as unittest
+import unittest
 
 from pyspider.libs.base_handler import BaseHandler
 

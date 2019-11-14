@@ -1,0 +1,11 @@
+{
+  "taskdb": "couchdb+taskdb://couchdb:5984",
+  "projectdb": "couchdb+projectdb://couchdb:5984",
+  "resultdb": "couchdb+resultdb://couchdb:5984",
+  "message_queue": "amqp://rabbitmq:5672/%2F",
+  "webui": {
+    "username": "username",
+    "password": "password",
+    "need-auth": true
+  }
+}

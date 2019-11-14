@@ -269,6 +269,9 @@ class BaseHandler(object):
             elif six.callable(callback) and six.get_method_self(callback) is self:
                 func = callback
                 kwargs['callback'] = func.__name__
+            elif six.callable(callback) and hasattr(self, callback.__name__):
+                func = getattr(self, callback.__name__)
+                kwargs['callback'] = func.__name__
             else:
                 raise NotImplementedError("self.%s() not implemented!" % callback)
             if hasattr(func, '_config'):
