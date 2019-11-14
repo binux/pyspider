@@ -213,18 +213,9 @@ def _connect_couchdb(parsed, dbtype, url):
         url = "http://" + parsed.netloc + "/"
     params = {}
 
-    username = None
-    password = None
-    if '@' in parsed.netloc:
-        # netloc looks like: 'user:pass@couchdb:999'
-        url = parsed.netloc[parsed.netloc.find("@")+1:]
-        # extract the username and password
-        username = parsed.netloc[:parsed.netloc.find(":")]
-        password = parsed.netloc[parsed.netloc.find(":")+1:parsed.netloc.find("@")]
-
     # default to env, then url, then hard coded
-    params['username'] = os.environ.get('COUCHDB_USER') or username or 'user'
-    params['password'] = os.environ.get('COUCHDB_PASSWORD') or password or 'password'
+    params['username'] = os.environ.get('COUCHDB_USER') or parsed.username or 'user'
+    params['password'] = os.environ.get('COUCHDB_PASSWORD') or parsed.password or 'password'
 
     # create necessary DBs + the admin user
     res = requests.put(url + "_users")
