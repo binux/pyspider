@@ -1,4 +1,3 @@
-sudo: required
 language: python
 cache: pip
 python:
@@ -10,7 +9,7 @@ services:
     - docker
     - mongodb
     - rabbitmq
-    - redis-server
+    - redis
     - mysql
     # - elasticsearch
     - postgresql
