@@ -72,9 +72,6 @@ setup(
 
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -100,7 +97,8 @@ setup(
         'all': extras_require_all,
         'test': [
             'coverage',
-            'httpbin<=0.5.0',
+            'Werkzeug==0.16.1',
+            'httpbin==0.7.0',
             'pyproxy==0.1.6',
             'easywebdav==1.2.0',
         ]
