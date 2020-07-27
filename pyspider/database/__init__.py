@@ -214,26 +214,8 @@ def _connect_couchdb(parsed, dbtype, url):
     params = {}
 
     # default to env, then url, then hard coded
-    params['username'] = os.environ.get('COUCHDB_USER') or parsed.username or 'user'
-    params['password'] = os.environ.get('COUCHDB_PASSWORD') or parsed.password or 'password'
-
-    # create necessary DBs + the admin user
-    res = requests.put(url + "_users")
-    if 'error' in res and res['error'] == 'unauthorized':
-        # user is already created. This will happen if CouchDB is running in docker
-        # and COUCHDB_USER and COUCHDB_PASSWORD are set
-        from requests.auth import HTTPBasicAuth
-        requests.put(url + "_users",
-                     auth=HTTPBasicAuth(params['username'], params['password']))
-        requests.put(url + "_replicator",
-                     auth=HTTPBasicAuth(params['username'], params['password']))
-        requests.put(url + '_node/_local/_config/admins/' + params['username'],
-                     data=params['password'],
-                     auth=HTTPBasicAuth(params['username'], params['password']))
-    else:
-        requests.put(url + "_replicator")
-        requests.put(url + '_node/_local/_config/admins/' + params['username'],
-                    data=params['password'])
+    params['username'] = os.environ.get('COUCHDB_USER') or parsed.username
+    params['password'] = os.environ.get('COUCHDB_PASSWORD') or parsed.password
 
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB
