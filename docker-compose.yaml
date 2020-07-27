@@ -13,26 +13,15 @@ services:
     networks:
       - pyspider
     command: rabbitmq-server
-  couchdb:
-    image: couchdb:latest
-    container_name: couchdb
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    volumes:
+      - /tmp:/var/lib/mysql
     environment:
-      - COUCHDB_USER=user
-      - COUCHDB_PASSWORD=password
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     networks:
       - pyspider
-    ports:
-      - "5984:5984"
-  # OR we can replace couchdb with mysql
-  #mysql:
-  #  image: mysql:latest
-  #  container_name: mysql
-  #  volumes:
-  #    - /tmp:/var/lib/mysql
-  #  environment:
-  #    - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-  #  networks:
-  #    - pyspider
   phantomjs:
     image: pyspider:latest
     container_name: phantomjs
