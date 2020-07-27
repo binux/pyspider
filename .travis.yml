@@ -13,12 +13,13 @@ services:
     - mysql
     # - elasticsearch
     - postgresql
-    - couchdb
 addons:
   postgresql: "9.4"
   apt:
     packages:
     - rabbitmq-server
+env:
+    - IGNORE_COUCHDB=1
 
 before_install:
     - sudo apt-get update -qq

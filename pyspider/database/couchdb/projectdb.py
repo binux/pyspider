@@ -31,7 +31,7 @@ class ProjectDB(BaseProjectDB):
             },
             'name': self.__collection_name__ + "_" + database
         }
-        res = self.session.post(self.url+"_index", json=payload).json()
+        res = self.session.post(self.url + "_index", json=payload).json()
         self.index = res['id']
 
     def _default_fields(self, each):
