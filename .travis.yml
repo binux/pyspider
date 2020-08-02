@@ -1,8 +1,6 @@
-sudo: required
 language: python
 cache: pip
 python:
-  - 3.4
   - 3.5
   - 3.6
   - 3.7
@@ -11,29 +9,25 @@ services:
     - docker
     - mongodb
     - rabbitmq
-    - redis-server
+    - redis
     - mysql
-    #- elasticsearch
+    # - elasticsearch
     - postgresql
 addons:
   postgresql: "9.4"
   apt:
     packages:
     - rabbitmq-server
+env:
+    - IGNORE_COUCHDB=1
 
 before_install:
-    - echo "deb https://apache.bintray.com/couchdb-deb xenial main" | sudo tee -a /etc/apt/sources.list
-    - curl -L https://couchdb.apache.org/repo/bintray-pubkey.asc | sudo apt-key add -
     - sudo apt-get update -qq
-    - sudo apt-get install -y couchdb
-    - sudo systemctl start couchdb
     - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.0/elasticsearch-2.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.0.deb && sudo service elasticsearch restart
     - npm install express puppeteer
     - sudo docker pull scrapinghub/splash
     - sudo docker run -d --net=host scrapinghub/splash
 before_script:
-    - curl -X PUT http://127.0.0.1:5984/_users
-    - curl -X PUT http://127.0.0.1:5984/_replicator
     - psql -c "CREATE DATABASE pyspider_test_taskdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - psql -c "CREATE DATABASE pyspider_test_projectdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres

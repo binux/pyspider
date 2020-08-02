@@ -1,5 +1,4 @@
-import json, time, requests
-from requests.auth import HTTPBasicAuth
+import json, time
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from .couchdbbase import SplitTableMixin
 
@@ -7,15 +6,17 @@ from .couchdbbase import SplitTableMixin
 class TaskDB(SplitTableMixin, BaseTaskDB):
     collection_prefix = ''
 
-    def __init__(self, url, database='taskdb', username='username', password='password'):
+    def __init__(self, url, database='taskdb', username=None, password=None):
         self.username = username
         self.password = password
         self.base_url = url
         self.url = url + database + "/"
         self.database = database
-        self.create_database(database)
         self.index = None
 
+        super().__init__()
+
+        self.create_database(database)
         self.projects = set()
         self._list_project()
 
@@ -32,10 +33,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             },
             'name': collection_name
         }
-        res = requests.post(self.base_url + collection_name + "/_index",
-                            data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"},
-                            auth=HTTPBasicAuth(self.username, self.password)).json()
+        res = self.session.post(self.base_url + collection_name + "/_index", json=payload).json()
         self.index = res['id']
         self._list_project()
 

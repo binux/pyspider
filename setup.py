@@ -20,24 +20,20 @@ import pyspider
 install_requires = [
     'Flask==0.10',
     'Jinja2==2.7',
-    'chardet==2.2.1',
+    'chardet==3.0.4',
     'cssselect==0.9',
     "lxml==4.3.3",
     'pycurl==7.43.0.3',
-    'requests==2.2',
+    'requests==2.24.0',
     'Flask-Login==0.2.11',
     'u-msgpack-python==1.6',
     'click==3.3',
     'six==1.10.0',
-    'tblib==1.4.0'
+    'tblib==1.4.0',
+    'wsgidav==2.3.0',
+    'tornado>=3.2,<=4.5.3',
+    'pyquery',
 ]
-
-if sys.version_info >= (3, 0):  # 3.*
-    install_requires.extend([
-        'wsgidav==2.3.0',
-        'tornado>=3.2,<=4.5.3',
-        'pyquery',
-    ])
 
 extras_require_all = [
     'mysql-connector-python==8.0.16',
@@ -46,15 +42,11 @@ extras_require_all = [
     'redis-py-cluster==1.3.6',
     'psycopg2==2.8.2',
     'elasticsearch==2.3.0',
+    'kombu==4.4.0',
+    'amqp==2.4.0',
+    'SQLAlchemy==1.3.10',
+    'pika==1.1.0'
 ]
-if sys.version_info >= (3, 0):  # 3.*
-    extras_require_all.extend([
-        'kombu==4.4.0',
-        'amqp==2.4.0',
-        'SQLAlchemy==1.3.10',
-        'pika==1.1.0'
-    ])
-
 
 setup(
     name='pyspider',
@@ -72,9 +64,6 @@ setup(
 
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -100,7 +89,8 @@ setup(
         'all': extras_require_all,
         'test': [
             'coverage',
-            'httpbin<=0.5.0',
+            'Werkzeug==0.16.1',
+            'httpbin==0.7.0',
             'pyproxy==0.1.6',
             'easywebdav==1.2.0',
         ]

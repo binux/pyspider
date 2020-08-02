@@ -697,11 +697,6 @@ class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # create a test admin user
-        import requests
-        requests.put('http://localhost:5984/_node/_local/_config/admins/test',
-                     data='"password"')
-        os.environ["COUCHDB_USER"] = "test"
-        os.environ["COUCHDB_PASSWORD"] = "password"
         self.projectdb = database.connect_database(
             'couchdb+projectdb://localhost:5984/'
         )
@@ -710,12 +705,6 @@ class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         # remove the test admin user
-        import requests
-        from requests.auth import HTTPBasicAuth
-        requests.delete('http://localhost:5984/_node/_local/_config/admins/test',
-                        auth=HTTPBasicAuth('test', 'password'))
-        del os.environ["COUCHDB_USER"]
-        del os.environ["COUCHDB_PASSWORD"]
         self.projectdb.drop_database()
 
 
@@ -725,11 +714,6 @@ class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         # create a test admin user
-        import requests
-        requests.put('http://localhost:5984/_node/_local/_config/admins/test',
-                     data='"password"')
-        os.environ["COUCHDB_USER"] = "test"
-        os.environ["COUCHDB_PASSWORD"] = "password"
         self.resultdb = database.connect_database(
             'couchdb+resultdb://localhost:5984/'
         )
@@ -738,12 +722,6 @@ class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         # remove the test admin user
-        import requests
-        from requests.auth import HTTPBasicAuth
-        requests.delete('http://localhost:5984/_node/_local/_config/admins/test',
-                        auth=HTTPBasicAuth('test', 'password'))
-        del os.environ["COUCHDB_USER"]
-        del os.environ["COUCHDB_PASSWORD"]
         self.resultdb.drop_database()
 
     def test_create_project(self):
@@ -759,10 +737,6 @@ class TestCouchDBTaskDB(TaskDBCase, unittest.TestCase):
     def setUpClass(self):
         # create a test admin user
         import requests
-        requests.put('http://localhost:5984/_node/_local/_config/admins/test',
-                     data='"password"')
-        os.environ["COUCHDB_USER"] = "test"
-        os.environ["COUCHDB_PASSWORD"] = "password"
         self.taskdb = database.connect_database(
             'couchdb+taskdb://localhost:5984/'
         )
@@ -773,10 +747,6 @@ class TestCouchDBTaskDB(TaskDBCase, unittest.TestCase):
         # remove the test admin user
         import requests
         from requests.auth import HTTPBasicAuth
-        requests.delete('http://localhost:5984/_node/_local/_config/admins/test',
-                        auth=HTTPBasicAuth('test', 'password'))
-        del os.environ["COUCHDB_USER"]
-        del os.environ["COUCHDB_PASSWORD"]
         self.taskdb.drop_database()
 
     def test_create_project(self):

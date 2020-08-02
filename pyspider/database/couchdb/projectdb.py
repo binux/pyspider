@@ -6,17 +6,19 @@ from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 class ProjectDB(BaseProjectDB):
     __collection_name__ = 'projectdb'
 
-    def __init__(self, url, database='projectdb', username='username', password='password'):
+    def __init__(self, url, database='projectdb', username=None, password=None):
         self.username = username
         self.password = password
         self.url = url + self.__collection_name__ + "_" + database + "/"
         self.database = database
-        self.insert('', {})
+
+        self.session = requests.session()
+        if username:
+            self.session.auth = HTTPBasicAuth(self.username, self.password)
+        self.session.headers.update({'Content-Type': 'application/json'})
 
         # Create the db
-        res = requests.put(self.url,
-                           headers={"Content-Type": "application/json"},
-                           auth=HTTPBasicAuth(self.username, self.password)).json()
+        res = self.session.put(self.url).json()
         if 'error' in res and res['error'] == 'unauthorized':
             raise Exception(
                 "Supplied credentials are incorrect. Reason: {} for User: {} Password: {}".format(res['reason'],
@@ -29,9 +31,7 @@ class ProjectDB(BaseProjectDB):
             },
             'name': self.__collection_name__ + "_" + database
         }
-        res = requests.post(self.url+"_index", data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"},
-                            auth=HTTPBasicAuth(self.username, self.password)).json()
+        res = self.session.post(self.url + "_index", json=payload).json()
         self.index = res['id']
 
     def _default_fields(self, each):
@@ -51,10 +51,7 @@ class ProjectDB(BaseProjectDB):
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
-        res = requests.put(url,
-                           data = json.dumps(obj),
-                           headers = {"Content-Type": "application/json"},
-                           auth=HTTPBasicAuth(self.username, self.password)).json()
+        res = self.session.put(url, json=obj).json()
         return res
 
     def update(self, name, obj={}, **kwargs):
@@ -78,10 +75,7 @@ class ProjectDB(BaseProjectDB):
             "use_index": self.index
         }
         url = self.url + "_find"
-        res = requests.post(url,
-                            data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"},
-                            auth=HTTPBasicAuth(self.username, self.password)).json()
+        res = self.session.post(url, json=payload).json()
         for doc in res['docs']:
             yield self._default_fields(doc)
 
@@ -95,10 +89,7 @@ class ProjectDB(BaseProjectDB):
             "use_index": self.index
         }
         url = self.url + "_find"
-        res = requests.post(url,
-                            data=json.dumps(payload),
-                            headers={"Content-Type": "application/json"},
-                            auth=HTTPBasicAuth(self.username, self.password)).json()
+        res = self.session.post(url, json=payload).json()
         if len(res['docs']) == 0:
             return None
         return self._default_fields(res['docs'][0])
@@ -115,13 +106,7 @@ class ProjectDB(BaseProjectDB):
         doc = self.get(name)
         payload = {"rev": doc["_rev"]}
         url = self.url + name
-        return requests.delete(url,
-                               params=payload,
-                               headers={"Content-Type": "application/json"},
-                               auth=HTTPBasicAuth(self.username, self.password)).json()
+        return self.session.delete(url, params=payload).json()
 
     def drop_database(self):
-        return requests.delete(self.url,
-                               headers={"Content-Type": "application/json"},
-                               auth=HTTPBasicAuth(self.username, self.password)).json()
-
+        return self.session.delete(self.url).json()
