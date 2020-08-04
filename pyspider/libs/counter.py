@@ -330,7 +330,7 @@ class CounterManager(DictMixin):
     """
     A dict like counter manager.
 
-    When using a tuple as event key, say: ('foo', 'bar'), You can visite counter
+    When using a tuple as event key, say: ('foo', 'bar'), You can visit counter
     with manager['foo']['bar'].  Or get all counters which first element is 'foo'
     by manager['foo'].
 

@@ -344,7 +344,7 @@ class Get(object):
 
 class ObjectDict(dict):
     """
-    Object like dict, every dict[key] can visite by dict.key
+    Object like dict, every dict[key] can visit by dict.key
 
     If dict[key] is `Get`, calculate it's value.
     """
