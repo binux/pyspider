@@ -3,7 +3,7 @@ Level 3: Render with PhantomJS
 
 Sometimes web page is too complex to find out the API request. It's time to meet the power of [PhantomJS].
 
-To use PhantomJS, you should have PhantomJS [installed](http://phantomjs.org/download.html). If you are running pyspider with `all` mode, PhantomJS is enabled if excutable in the `PATH`.
+To use PhantomJS, you should have PhantomJS [installed](http://phantomjs.org/download.html). If you are running pyspider with `all` mode, PhantomJS is enabled if executable in the `PATH`.
 
 Make sure phantomjs is working by running
 ```
@@ -43,7 +43,7 @@ Running JavaScript on Page
 
 We will try to scrape images from [http://www.pinterest.com/categories/popular/](http://www.pinterest.com/categories/popular/) in this section. Only 25 images is shown at the beginning, more images would be loaded when you scroll to the bottom of the page.
 
-To scrape images as many as posible we can use a [`js_script` parameter](/apis/self.crawl/#enable-javascript-fetcher-need-support-by-fetcher) to set some function wrapped JavaScript codes to simulate the scroll action: 
+To scrape images as many as possible we can use a [`js_script` parameter](/apis/self.crawl/#enable-javascript-fetcher-need-support-by-fetcher) to set some function wrapped JavaScript codes to simulate the scroll action: 
 
 ```
 class Handler(BaseHandler):

@@ -56,4 +56,4 @@ You can have only have one scheduler, and multiple fetcher/processor/result_work
 
 For example, the number between scheduler and fetcher indicate the queue size of scheduler to fetchers, when it's hitting 100 (default maximum queue size), fetcher might crashed, or you should considered adding more fetchers.
 
-The number `0+0` below fetcher indicate the queue size of new tasks and status packs between processors and schduler. You can put your mouse over the numbers to see the tips.
+The number `0+0` below fetcher indicate the queue size of new tasks and status packs between processors and scheduler. You can put your mouse over the numbers to see the tips.

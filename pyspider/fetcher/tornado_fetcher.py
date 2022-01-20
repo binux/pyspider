@@ -265,7 +265,7 @@ class Fetcher(object):
                 _t = track_headers.get('etag')
             if _t and 'If-None-Match' not in fetch['headers']:
                 fetch['headers']['If-None-Match'] = _t
-        # last modifed
+        # last modified
         if task_fetch.get('last_modified', task_fetch.get('last_modifed', True)):
             last_modified = task_fetch.get('last_modified', task_fetch.get('last_modifed', True))
             _t = None

@@ -19,7 +19,7 @@ class BaseDB:
     '''
     BaseDB
 
-    dbcur should be overwirte
+    dbcur should be overwrite
     '''
     __tablename__ = None
     placeholder = '%s'

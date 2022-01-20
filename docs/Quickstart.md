@@ -18,7 +18,7 @@ to install binary packages first.
 
 please install PhantomJS if needed: http://phantomjs.org/build.html
 
-note that PhantomJS will be enabled only if it is excutable in the `PATH` or in the System Environment
+note that PhantomJS will be enabled only if it is executable in the `PATH` or in the System Environment
 
 **Note:** `pyspider` command is running pyspider in `all` mode, which running components in threads or subprocesses. For production environment, please refer to [Deployment](Deployment).
 

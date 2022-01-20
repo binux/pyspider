@@ -440,7 +440,7 @@ class BaseHandler(object):
 
         # When triggered, a '_on_cronjob' task is sent from scheudler with 'tick' in
         # Response.save. Scheduler may at least send the trigger task every GCD of the
-        # inverval of the cronjobs. The method should check the tick for each cronjob
+        # interval of the cronjobs. The method should check the tick for each cronjob
         # function to confirm the execute interval.
         for cronjob in self._cron_jobs:
             if response.save['tick'] % cronjob.tick != 0:
@@ -449,7 +449,7 @@ class BaseHandler(object):
             self._run_func(function, response, task)
 
     def _on_get_info(self, response, task):
-        """Sending runtime infomation about this script."""
+        """Sending runtime information about this script."""
         for each in response.save or []:
             if each == 'min_tick':
                 self.save[each] = self._min_tick

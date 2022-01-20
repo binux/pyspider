@@ -156,7 +156,7 @@ class Response(object):
             except LookupError:
                 # lxml would raise LookupError when encoding not supported
                 # try fromstring without encoding instead.
-                # on windows, unicode is not availabe as encoding for lxml
+                # on windows, unicode is not available as encoding for lxml
                 self._elements = lxml.html.fromstring(self.content)
         if isinstance(self._elements, lxml.etree._ElementTree):
             self._elements = self._elements.getroot()

@@ -38,7 +38,7 @@ class ResultWorker(object):
                 result=result
             )
         else:
-            logger.warning('result UNKNOW -> %.30r' % result)
+            logger.warning('result UNKNOWN -> %.30r' % result)
             return
 
     def quit(self):
@@ -83,5 +83,5 @@ class OneResultWorker(ResultWorker):
                 'updatetime': time.time()
             }))
         else:
-            logger.warning('result UNKNOW -> %.30r' % result)
+            logger.warning('result UNKNOWN -> %.30r' % result)
             return
