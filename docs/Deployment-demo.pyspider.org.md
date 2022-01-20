@@ -112,7 +112,7 @@ With the config, you can change the scale by `docker-compose scale phantomjs=2 p
 
 #### load balance
 
-phantomjs-lb, fetcher-lb, webui-lb are automaticlly configed haproxy, allow any number of upstreams.
+phantomjs-lb, fetcher-lb, webui-lb are automatically configured haproxy, allow any number of upstreams.
 
 #### phantomjs
 
@@ -120,7 +120,7 @@ phantomjs have memory leak issue, memory limit applied, and it's recommended to 
 
 #### fetcher
 
-fetcher is implemented with aync IO, it supportes 100 concurrent connections. If the upstream queue are not choked, one fetcher should be enough.
+fetcher is implemented with aync IO, it supports 100 concurrent connections. If the upstream queue are not choked, one fetcher should be enough.
 
 #### processor
 

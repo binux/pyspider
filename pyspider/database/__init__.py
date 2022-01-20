@@ -185,7 +185,7 @@ def _connect_sqlalchemy(parsed, dbtype,url, other_scheme):
 
 
 def _connect_elasticsearch(parsed, dbtype):
-    # in python 2.6 url like "http://host/?query", query will not been splitted
+    # in python 2.6 url like "http://host/?query", query will not been split
     if parsed.path.startswith('/?'):
         index = parse_qs(parsed.path[2:])
     else:

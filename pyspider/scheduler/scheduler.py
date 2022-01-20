@@ -245,7 +245,7 @@ class Scheduler(object):
                 },
             })
 
-        # load task queue when project is running and delete task_queue when project is stoped
+        # load task queue when project is running and delete task_queue when project is stopped
         if project.active:
             if not project.task_loaded:
                 self._load_tasks(project)
@@ -989,7 +989,7 @@ class Scheduler(object):
 
     def on_select_task(self, task):
         '''Called when a task is selected to fetch & process'''
-        # inject informations about project
+        # inject information about project
         logger.info('select %(project)s:%(taskid)s %(url)s', task)
 
         project_info = self.projects.get(task['project'])

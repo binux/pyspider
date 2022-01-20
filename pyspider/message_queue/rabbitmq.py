@@ -68,11 +68,11 @@ class PikaQueue(object):
         amqp_url:   https://www.rabbitmq.com/uri-spec.html
         maxsize:    an integer that sets the upperbound limit on the number of
                     items that can be placed in the queue.
-        lazy_limit: as rabbitmq is shared between multipul instance, for a strict
+        lazy_limit: as rabbitmq is shared between multiple instance, for a strict
                     limit on the number of items in the queue. PikaQueue have to
                     update current queue size before every put operation. When
                     `lazy_limit` is enabled, PikaQueue will check queue size every
-                    max_size / 10 put operation for better performace.
+                    max_size / 10 put operation for better performance.
         """
         self.name = name
         self.amqp_url = amqp_url
@@ -201,11 +201,11 @@ class AmqpQueue(PikaQueue):
         amqp_url:   https://www.rabbitmq.com/uri-spec.html
         maxsize:    an integer that sets the upperbound limit on the number of
                     items that can be placed in the queue.
-        lazy_limit: as rabbitmq is shared between multipul instance, for a strict
+        lazy_limit: as rabbitmq is shared between multiple instance, for a strict
                     limit on the number of items in the queue. PikaQueue have to
                     update current queue size before every put operation. When
                     `lazy_limit` is enabled, PikaQueue will check queue size every
-                    max_size / 10 put operation for better performace.
+                    max_size / 10 put operation for better performance.
         """
         self.name = name
         self.amqp_url = amqp_url

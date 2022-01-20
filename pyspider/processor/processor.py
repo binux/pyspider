@@ -21,7 +21,7 @@ from .project_module import ProjectManager, ProjectFinder
 
 
 class ProcessorResult(object):
-    """The result and logs producted by a callback"""
+    """The result and logs produced by a callback"""
 
     def __init__(self, result=None, follows=(), messages=(),
                  logs=(), exception=None, extinfo=None, save=None):
@@ -45,7 +45,7 @@ class ProcessorResult(object):
         """handler the log records to formatted string"""
 
         result = []
-        formater = LogFormatter(color=False)
+        formatter = LogFormatter(color=False)
         for record in self.logs:
             if isinstance(record, six.string_types):
                 result.append(pretty_unicode(record))
@@ -54,7 +54,7 @@ class ProcessorResult(object):
                     a, b, tb = record.exc_info
                     tb = hide_me(tb, globals())
                     record.exc_info = a, b, tb
-                result.append(pretty_unicode(formater.format(record)))
+                result.append(pretty_unicode(formatter.format(record)))
                 result.append(u'\n')
         return u''.join(result)
 
