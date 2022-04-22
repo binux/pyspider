@@ -22,3 +22,6 @@ kombu==4.4.0
 psycopg2==2.8.2
 elasticsearch==2.3.0
 tblib==1.4.0
+markupsafe==1.1.1
+itsdangerous==1.1.0
+Werkzeug==0.16.1
