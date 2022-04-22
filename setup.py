@@ -23,7 +23,7 @@ install_requires = [
     'chardet==3.0.4',
     'cssselect==0.9',
     "lxml==4.3.3",
-    'pycurl==7.43.0.3',
+    'pycurl==7.45.1',
     'requests==2.24.0',
     'Flask-Login==0.2.11',
     'u-msgpack-python==1.6',
