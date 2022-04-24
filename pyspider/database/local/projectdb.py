@@ -69,13 +69,13 @@ class ProjectDB(BaseProjectDB):
                 'burst': burst,
                 'updatetime': os.path.getmtime(filename),
             }
-        except OSError as e:
-            logging.error('loading project script error: %s', e)
+        except OSError as err:
+            logging.error('loading project script error: %s', err)
             return None
 
     def get_all(self, fields=None):
-        for projectname in self.projects:
-            yield self.get(projectname, fields)
+        for project_name in self.projects:
+            yield self.get(project_name, fields)
 
     def get(self, name, fields=None):
         if name not in self.projects:
