@@ -10,8 +10,6 @@
 import logging
 import time
 
-logger = logging.getLogger('bench')
-
 from six.moves import queue as Queue
 
 from pyspider.fetcher.tornado_fetcher import Fetcher
@@ -19,6 +17,8 @@ from pyspider.libs.utils import md5string
 from pyspider.processor import Processor
 from pyspider.result import ResultWorker
 from pyspider.scheduler import ThreadBaseScheduler as Scheduler
+
+logger = logging.getLogger('bench')
 
 
 def bench_test_taskdb(taskdb):
@@ -191,6 +191,7 @@ def bench_test_message_queue(queue):
 
 class BenchMixin(object):
     """Report to logger for bench test"""
+
     def _bench_init(self):
         self.done_cnt = 0
         self.start_time = time.time()

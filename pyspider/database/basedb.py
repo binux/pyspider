@@ -9,11 +9,11 @@ from __future__ import absolute_import, division, unicode_literals
 
 import logging
 
-logger = logging.getLogger('database.basedb')
-
 from six import itervalues
 
 from pyspider.libs import utils
+
+logger = logging.getLogger('database.basedb')
 
 
 class BaseDB:

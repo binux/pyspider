@@ -9,8 +9,6 @@ import logging
 import os
 import sys
 
-logger = logging.getLogger("webui")
-
 from flask import Flask
 from six import reraise
 from six.moves import builtins
@@ -18,8 +16,11 @@ from six.moves.urllib.parse import urljoin
 
 from pyspider.fetcher import tornado_fetcher
 
+logger = logging.getLogger("webui")
+
 if os.name == 'nt':
     import mimetypes
+
     mimetypes.add_type("text/css", ".css", True)
 
 
@@ -116,4 +117,6 @@ def cdn_url_handler(error, endpoint, kwargs):
             reraise(exc_type, exc_value, tb)
         else:
             raise error
+
+
 app.handle_url_build_error = cdn_url_handler

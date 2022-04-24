@@ -11,9 +11,6 @@ import time
 import traceback
 
 import six
-
-logger = logging.getLogger("processor")
-
 from six.moves import queue as Queue
 
 from pyspider.libs import utils
@@ -23,7 +20,7 @@ from pyspider.libs.utils import hide_me, pretty_unicode
 
 from .project_module import ProjectFinder, ProjectManager
 
-
+logger = logging.getLogger("processor")
 class ProcessorResult(object):
     """The result and logs producted by a callback"""
 
