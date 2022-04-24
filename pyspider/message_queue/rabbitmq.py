@@ -5,19 +5,21 @@
 #         http://binux.me
 # Created on 2012-11-15 17:27:54
 
-import time
-import socket
-import select
 import logging
-import umsgpack
+import select
+import socket
 import threading
+import time
 
 import amqp
+import umsgpack
 from six.moves.urllib.parse import unquote
+
 try:
     from urllib import parse as urlparse
 except ImportError:
     import urlparse
+
 from six.moves import queue as BaseQueue
 
 

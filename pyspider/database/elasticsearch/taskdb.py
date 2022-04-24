@@ -6,11 +6,12 @@
 # Created on 2016-01-20 20:20:55
 
 
-import time
 import json
+import time
 
 import elasticsearch.helpers
 from elasticsearch import Elasticsearch
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 
 

@@ -7,8 +7,8 @@
 
 import socket
 
+from flask import json, render_template, request
 from six import iteritems, itervalues
-from flask import render_template, request, json
 
 try:
     import flask_login as login

@@ -6,12 +6,14 @@
 # Created on 2014-12-08 22:31:17
 
 import random
+
 try:
     from urllib import urlencode
 except ImportError:
     from urllib.parse import urlencode
 
 from flask import request
+
 from .app import app
 
 

@@ -10,6 +10,7 @@ import time
 
 import elasticsearch.helpers
 from elasticsearch import Elasticsearch
+
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 
 

@@ -5,12 +5,14 @@
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-from __future__ import unicode_literals, division, absolute_import
+from __future__ import absolute_import, division, unicode_literals
 
 import logging
+
 logger = logging.getLogger('database.basedb')
 
 from six import itervalues
+
 from pyspider.libs import utils
 
 

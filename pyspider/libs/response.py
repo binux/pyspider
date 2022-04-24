@@ -6,16 +6,18 @@
 # Created on 2012-11-02 11:16:02
 
 import cgi
-import re
-import six
 import json
+import re
+
 import chardet
-import lxml.html
 import lxml.etree
-from tblib import Traceback
+import lxml.html
+import six
 from pyquery import PyQuery
-from requests.structures import CaseInsensitiveDict
 from requests import HTTPError
+from requests.structures import CaseInsensitiveDict
+from tblib import Traceback
+
 from pyspider.libs import utils
 
 

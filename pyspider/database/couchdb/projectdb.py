@@ -1,5 +1,9 @@
-import time, requests, json
+import json
+import time
+
+import requests
 from requests.auth import HTTPBasicAuth
+
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
 

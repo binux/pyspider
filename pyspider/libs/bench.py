@@ -7,16 +7,18 @@
 # rate: 10000000000
 # burst: 10000000000
 
-import time
 import logging
+import time
+
 logger = logging.getLogger('bench')
 
 from six.moves import queue as Queue
-from pyspider.scheduler import ThreadBaseScheduler as Scheduler
+
 from pyspider.fetcher.tornado_fetcher import Fetcher
+from pyspider.libs.utils import md5string
 from pyspider.processor import Processor
 from pyspider.result import ResultWorker
-from pyspider.libs.utils import md5string
+from pyspider.scheduler import ThreadBaseScheduler as Scheduler
 
 
 def bench_test_taskdb(taskdb):

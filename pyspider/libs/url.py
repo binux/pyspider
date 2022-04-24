@@ -6,11 +6,11 @@
 # Created on 2012-11-09 14:39:57
 
 import mimetypes
+import shlex
 
 import six
-import shlex
-from six.moves.urllib.parse import urlparse, urlunparse
 from requests.models import RequestEncodingMixin
+from six.moves.urllib.parse import urlparse, urlunparse
 
 
 def get_content_type(filename):

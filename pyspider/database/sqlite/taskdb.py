@@ -5,13 +5,14 @@
 #         http://binux.me
 # Created on 2014-02-08 10:25:34
 
+import json
 import re
 import time
-import json
 
-from .sqlitebase import SQLiteMixin, SplitTableMixin
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
+
+from .sqlitebase import SplitTableMixin, SQLiteMixin
 
 
 class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):

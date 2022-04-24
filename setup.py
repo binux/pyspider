@@ -24,7 +24,7 @@ install_requires = [
     'cssselect==0.9',
     "lxml==4.3.3",
     'pycurl==7.45.1',
-    'requests==2.24.0',
+    'requests==2.27.1',
     'Flask-Login==0.2.11',
     'u-msgpack-python==1.6',
     'click==3.3',

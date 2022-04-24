@@ -5,17 +5,19 @@
 #         http://binux.me
 # Created on 2014-12-04 22:33:43
 
-import re
-import six
-import time
 import json
-import sqlalchemy.exc
+import re
+import time
 
-from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, Text, func)
+import six
+import sqlalchemy.exc
+from sqlalchemy import (Column, Float, Index, Integer, MetaData, String, Table,
+                        Text, create_engine, func)
 from sqlalchemy.engine.url import make_url
-from pyspider.libs import utils
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
+from pyspider.libs import utils
+
 from .sqlalchemybase import SplitTableMixin, result2dict
 
 

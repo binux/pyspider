@@ -1,5 +1,9 @@
-import time, requests, json
+import json
+import time
+
+import requests
 from requests.auth import HTTPBasicAuth
+
 
 class SplitTableMixin(object):
     UPDATE_PROJECTS_TIME = 10 * 60

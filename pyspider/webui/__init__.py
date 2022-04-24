@@ -5,4 +5,4 @@
 #         http://binux.me
 # Created on 2014-02-22 23:20:40
 
-from . import app, index, debug, task, result, login
+from . import app, debug, index, login, result, task

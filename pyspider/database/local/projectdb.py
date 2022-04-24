@@ -5,11 +5,12 @@
 #         http://binux.me
 # Created on 2015-01-17 12:32:17
 
-import os
-import re
-import six
 import glob
 import logging
+import os
+import re
+
+import six
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 

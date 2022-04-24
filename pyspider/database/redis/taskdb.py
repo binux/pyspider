@@ -5,15 +5,16 @@
 #         http://binux.me
 # Created on 2015-05-16 21:01:52
 
-import six
-import time
-import json
-import redis
-import logging
 import itertools
+import json
+import logging
+import time
 
-from pyspider.libs import utils
+import redis
+import six
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
+from pyspider.libs import utils
 
 
 class TaskDB(BaseTaskDB):

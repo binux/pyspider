@@ -5,21 +5,21 @@
 #         http://binux.me
 # Created on 2014-02-16 23:12:48
 
-import sys
-import inspect
-import functools
 import fractions
+import functools
+import inspect
+import sys
 
 import six
 from six import add_metaclass, iteritems
 
-from pyspider.libs.url import (
-    quote_chinese, _build_url, _encode_params,
-    _encode_multipart_formdata, curl_to_arguments)
-from pyspider.libs.utils import md5string, timeout
 from pyspider.libs.ListIO import ListO
-from pyspider.libs.response import rebuild_response
 from pyspider.libs.pprint import pprint
+from pyspider.libs.response import rebuild_response
+from pyspider.libs.url import (_build_url, _encode_multipart_formdata,
+                               _encode_params, curl_to_arguments,
+                               quote_chinese)
+from pyspider.libs.utils import md5string, timeout
 from pyspider.processor import ProcessorResult
 
 
@@ -380,7 +380,7 @@ class BaseHandler(object):
           save
           taskid
 
-          full documents: http://pyspider.readthedocs.org/en/latest/apis/self.crawl/
+          full documents: https://pyspider.readthedocs.io/en/latest/apis/self.crawl/
         '''
 
         if isinstance(url, six.string_types) and url.startswith('curl '):
@@ -422,7 +422,7 @@ class BaseHandler(object):
     def on_finished(self, response, task):
         """
         Triggered when all tasks in task queue finished.
-        http://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
+        https://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
         """
         pass
 

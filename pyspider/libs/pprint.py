@@ -36,10 +36,10 @@ saferepr()
 
 from __future__ import print_function
 
-import six
 import sys as _sys
-
 from io import BytesIO, StringIO
+
+import six
 
 __all__ = ["pprint", "pformat", "isreadable", "isrecursive", "saferepr",
            "PrettyPrinter"]

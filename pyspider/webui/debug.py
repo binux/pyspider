@@ -6,22 +6,24 @@
 # Created on 2014-02-23 00:19:06
 
 
+import datetime
+import inspect
+import socket
 import sys
 import time
-import socket
-import inspect
-import datetime
 import traceback
-from flask import render_template, request, json
+
+from flask import json, render_template, request
 
 try:
     import flask_login as login
 except ImportError:
     from flask.ext import login
 
-from pyspider.libs import utils, sample_handler, dataurl
+from pyspider.libs import dataurl, sample_handler, utils
 from pyspider.libs.response import rebuild_response
-from pyspider.processor.project_module import ProjectManager, ProjectFinder
+from pyspider.processor.project_module import ProjectFinder, ProjectManager
+
 from .app import app
 
 default_task = {

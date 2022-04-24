@@ -6,10 +6,12 @@
 # Created on 2014-07-17 21:06:43
 
 import time
+
 import mysql.connector
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from pyspider.database.basedb import BaseDB
+
 from .mysqlbase import MySQLMixin
 
 

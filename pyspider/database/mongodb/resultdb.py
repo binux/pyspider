@@ -11,6 +11,7 @@ import time
 from pymongo import MongoClient
 
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
+
 from .mongodbbase import SplitTableMixin
 
 

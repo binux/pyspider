@@ -6,9 +6,9 @@
 # Created on 2014-11-22 20:30:44
 
 import os
-import time
 import sqlite3
 import threading
+import time
 
 
 class SQLiteMixin(object):

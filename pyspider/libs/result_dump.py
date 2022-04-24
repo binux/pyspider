@@ -5,11 +5,12 @@
 #         http://binux.me
 # Created on 2015-03-27 20:12:11
 
-import six
 import csv
-import json
 import itertools
-from io import StringIO, BytesIO
+import json
+from io import BytesIO, StringIO
+
+import six
 from six import iteritems
 
 

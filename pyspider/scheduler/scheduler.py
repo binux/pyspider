@@ -18,6 +18,7 @@ from six.moves import queue as Queue
 
 from pyspider.libs import counter, utils
 from pyspider.libs.base_handler import BaseHandler
+
 from .task_queue import TaskQueue
 
 logger = logging.getLogger('scheduler')
@@ -799,9 +800,9 @@ class Scheduler(object):
             }
         application.register_function(webui_update, 'webui_update')
 
-        import tornado.wsgi
-        import tornado.ioloop
         import tornado.httpserver
+        import tornado.ioloop
+        import tornado.wsgi
 
         container = tornado.wsgi.WSGIContainer(application)
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
@@ -1180,6 +1181,7 @@ class OneScheduler(Scheduler):
 
 import random
 import threading
+
 from pyspider.database.sqlite.sqlitebase import SQLiteMixin
 
 

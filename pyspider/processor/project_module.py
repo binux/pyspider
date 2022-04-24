@@ -5,18 +5,21 @@
 #         http://binux.me
 # Created on 2014-02-16 22:24:20
 
-import os
-import six
-import sys
 import imp
-import time
-import weakref
-import logging
 import inspect
-import traceback
 import linecache
+import logging
+import os
+import sys
+import time
+import traceback
+import weakref
+
+import six
+
 from pyspider.libs import utils
-from pyspider.libs.log import SaveLogHandler, LogFormatter
+from pyspider.libs.log import LogFormatter, SaveLogHandler
+
 logger = logging.getLogger("processor")
 
 

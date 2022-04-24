@@ -14,8 +14,10 @@ try:
     from UserDict import DictMixin
 except ImportError:
     from collections import Mapping as DictMixin
-from .token_bucket import Bucket
+
 from six.moves import queue as Queue
+
+from .token_bucket import Bucket
 
 logger = logging.getLogger('scheduler')
 

@@ -15,8 +15,9 @@
 #   Origin: https://code.google.com/p/wsgi-xmlrpc/
 
 
-from six.moves.xmlrpc_server import SimpleXMLRPCDispatcher
 import logging
+
+from six.moves.xmlrpc_server import SimpleXMLRPCDispatcher
 
 logger = logging.getLogger(__name__)
 

@@ -5,11 +5,12 @@
 #         http://binux.me
 # Created on 2012-11-14 17:09:50
 
-from __future__ import unicode_literals, division, absolute_import
+from __future__ import absolute_import, division, unicode_literals
 
-import time
 import logging
+import time
 from collections import deque
+
 try:
     from UserDict import DictMixin
 except ImportError:

@@ -5,15 +5,17 @@
 #         http://binux.me
 # Created on 2014-02-22 23:17:13
 
+import logging
 import os
 import sys
-import logging
+
 logger = logging.getLogger("webui")
 
+from flask import Flask
 from six import reraise
 from six.moves import builtins
 from six.moves.urllib.parse import urljoin
-from flask import Flask
+
 from pyspider.fetcher import tornado_fetcher
 
 if os.name == 'nt':
@@ -29,10 +31,10 @@ class QuitableFlask(Flask):
         return logger
 
     def run(self, host=None, port=None, debug=None, **options):
-        import tornado.wsgi
-        import tornado.ioloop
         import tornado.httpserver
+        import tornado.ioloop
         import tornado.web
+        import tornado.wsgi
 
         if host is None:
             host = '127.0.0.1'

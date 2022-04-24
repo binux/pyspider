@@ -6,12 +6,12 @@
 # Created on 2015-05-22 20:54:01
 
 import time
+
 import umsgpack
 from kombu import Connection, enable_insecure_serializers
-from kombu.serialization import register
 from kombu.exceptions import ChannelError
+from kombu.serialization import register
 from six.moves import queue as BaseQueue
-
 
 register('umsgpack', umsgpack.packb, umsgpack.unpackb, 'application/x-msgpack')
 enable_insecure_serializers(['umsgpack'])

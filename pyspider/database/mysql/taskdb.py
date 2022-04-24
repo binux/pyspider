@@ -6,15 +6,17 @@
 # Created on 2014-07-17 18:53:01
 
 
-import re
-import six
-import time
 import json
-import mysql.connector
+import re
+import time
 
-from pyspider.libs import utils
+import mysql.connector
+import six
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
+from pyspider.libs import utils
+
 from .mysqlbase import MySQLMixin, SplitTableMixin
 
 

@@ -5,8 +5,11 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
-import os, requests, json
-from six.moves.urllib.parse import urlparse, parse_qs
+import json
+import os
+
+import requests
+from six.moves.urllib.parse import parse_qs, urlparse
 
 
 def connect_database(url):
