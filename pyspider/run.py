@@ -501,10 +501,10 @@ def puppeteer(ctx, port, auto_restart, args):
         return puppeteer
 
     while True:
+        _puppeteer = subprocess.Popen(cmd)
         _puppeteer.wait()
         if _quit or not auto_restart:
             break
-        _puppeteer = subprocess.Popen(cmd)
 
 
 @cli.command()
@@ -553,18 +553,18 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
-        for i in range(result_worker_num):
+        for _ in range(result_worker_num):
             threads.append(run_in(ctx.invoke, result_worker, **result_worker_config))
 
         # processor
         processor_config = g.config.get('processor', {})
-        for i in range(processor_num):
+        for _ in range(processor_num):
             threads.append(run_in(ctx.invoke, processor, **processor_config))
 
         # fetcher
         fetcher_config = g.config.get('fetcher', {})
         fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-        for i in range(fetcher_num):
+        for _ in range(fetcher_num):
             threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
 
         # scheduler
@@ -660,14 +660,14 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
-        for i in range(result_worker_num):
+        for _ in range(result_worker_num):
             threads.append(run_in(ctx.invoke, result_worker,
                                   result_cls='pyspider.libs.bench.BenchResultWorker',
                                   **result_worker_config))
 
         # processor
         processor_config = g.config.get('processor', {})
-        for i in range(processor_num):
+        for _ in range(processor_num):
             threads.append(run_in(ctx.invoke, processor,
                                   processor_cls='pyspider.libs.bench.BenchProcessor',
                                   **processor_config))
@@ -675,7 +675,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         # fetcher
         fetcher_config = g.config.get('fetcher', {})
         fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-        for i in range(fetcher_num):
+        for _ in range(fetcher_num):
             threads.append(run_in(ctx.invoke, fetcher,
                                   fetcher_cls='pyspider.libs.bench.BenchFetcher',
                                   **fetcher_config))
