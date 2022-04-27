@@ -26,6 +26,8 @@ RUN pip install -r /opt/pyspider/requirements.txt
 
 # add all repo
 ADD ./ /opt/pyspider
+# install seadaka requ
+RUN pip install -r /opt/pyspider/requirements-seadaka.txt
 
 # run test
 WORKDIR /opt/pyspider
