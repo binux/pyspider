@@ -41,7 +41,7 @@ extras_require_all = [
     'redis==2.10.6',
     'redis-py-cluster==1.3.6',
     'psycopg2==2.8.2',
-    'elasticsearch==2.3.0',
+    'elasticsearch==7.10.0',
     'kombu==4.4.0',
     'amqp==2.4.0',
     'SQLAlchemy==1.3.10',
