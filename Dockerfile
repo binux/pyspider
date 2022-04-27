@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.7
 MAINTAINER binux <roy@binux.me>
 
 # install phantomjs
@@ -26,6 +26,8 @@ RUN pip install -r /opt/pyspider/requirements.txt
 
 # add all repo
 ADD ./ /opt/pyspider
+# install seadaka requ
+RUN pip install -r /opt/pyspider/requirements-seadaka.txt
 
 # run test
 WORKDIR /opt/pyspider
