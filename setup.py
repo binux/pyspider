@@ -27,7 +27,7 @@ install_requires = [
     'requests==2.27.1',
     'Flask-Login==0.2.11',
     'u-msgpack-python==1.6',
-    'click==3.3',
+    'click==7.1.2',
     'six==1.10.0',
     'tblib==1.4.0',
     'wsgidav==2.3.0',
