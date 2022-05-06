@@ -22,7 +22,7 @@ install_requires = [
     'Jinja2==2.7',
     'chardet==3.0.4',
     'cssselect==0.9',
-    "lxml==4.3.3",
+    "lxml==4.8.0",
     'pycurl==7.45.1',
     'requests==2.27.1',
     'Flask-Login==0.2.11',
