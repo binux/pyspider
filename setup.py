@@ -40,7 +40,7 @@ extras_require_all = [
     'pymongo==3.9.0',
     'redis==2.10.6',
     'redis-py-cluster==1.3.6',
-    'psycopg2==2.8.2',
+    'psycopg2==2.9.3',
     'elasticsearch==7.10.0',
     'kombu==4.4.0',
     'amqp==2.4.0',
