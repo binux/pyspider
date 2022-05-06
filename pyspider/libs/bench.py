@@ -75,7 +75,7 @@ def bench_test_taskdb(taskdb):
                     cost_time, n * 1.0 / cost_time, cost_time / n * 1000)
 
     def test_update(n, start=0):
-        logger.info("taskdb update %d" % n)
+        logger.info("taskdb update %d", n)
         start_time = time.time()
         for i in range(n):
             task['url'] = 'http://bench.pyspider.org/?l=%d' % (i + start)
