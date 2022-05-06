@@ -25,7 +25,7 @@ from six.moves import queue as BaseQueue
 
 def catch_error(func):
     """Catch errors of rabbitmq then reconnect"""
-    import amqp
+
     try:
         import pika.exceptions
         connect_exceptions = (
@@ -193,8 +193,7 @@ class AmqpQueue(PikaQueue):
     Full = BaseQueue.Full
     max_timeout = 0.3
 
-    def __init__(self, name, amqp_url='amqp://guest:guest@localhost:5672/%2F',
-                 maxsize=0, lazy_limit=True):
+    def __init__(self, name, amqp_url='amqp://guest:guest@localhost:5672/%2F', maxsize=0, lazy_limit=True):
         """
         Constructor for a AmqpQueue.
 
@@ -209,6 +208,7 @@ class AmqpQueue(PikaQueue):
                     `lazy_limit` is enabled, PikaQueue will check queue size every
                     max_size / 10 put operation for better performace.
         """
+        super().__init__(name, amqp_url, maxsize, lazy_limit)
         self.name = name
         self.amqp_url = amqp_url
         self.maxsize = maxsize

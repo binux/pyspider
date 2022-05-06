@@ -1236,7 +1236,7 @@ class ThreadBaseScheduler(Scheduler):
         self.local.resultdb = resultdb
 
     def _start_threads(self):
-        for i in range(self.threads):
+        for _ in range(self.threads):
             queue = Queue.Queue()
             thread = threading.Thread(target=self._thread_worker, args=(queue, ))
             thread.daemon = True

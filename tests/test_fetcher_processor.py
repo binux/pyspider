@@ -434,7 +434,7 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
         self.assertTrue(result)
 
     def test_zzz_unexpected_crawl_argument(self):
-        with self.assertRaisesRegexp(TypeError, "unexpected keyword argument"):
+        with self.assertRaisesRegex(TypeError, "unexpected keyword argument"):
             self.crawl(self.httpbin + '/cache', cookie={}, callback=self.json)
 
     def test_zzz_curl_get(self):
@@ -465,18 +465,18 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
         self.assertIn('fileUpload1', result['files'], result)
 
     def test_zzz_curl_no_url(self):
-        with self.assertRaisesRegexp(TypeError, 'no URL'):
+        with self.assertRaisesRegex(TypeError, 'no URL'):
             status, newtasks, result = self.crawl(
                 '''curl -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' --compressed''',
                 callback=self.json)
 
     def test_zzz_curl_bad_option(self):
-        with self.assertRaisesRegexp(TypeError, 'Unknow curl option'):
+        with self.assertRaisesRegex(TypeError, 'Unknow curl option'):
             status, newtasks, result = self.crawl(
                 '''curl '%s/put' -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' -v''' % self.httpbin,
                 callback=self.json)
 
-        with self.assertRaisesRegexp(TypeError, 'Unknow curl option'):
+        with self.assertRaisesRegex(TypeError, 'Unknow curl option'):
             status, newtasks, result = self.crawl(
                 '''curl '%s/put' -X PUT -v -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' ''' % self.httpbin,
                 callback=self.json)
