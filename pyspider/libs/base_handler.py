@@ -10,12 +10,12 @@ import functools
 import inspect
 import math
 import sys
+from pprint import pprint
 
 import six
 from six import add_metaclass, iteritems
 
 from pyspider.libs.ListIO import ListO
-from pyspider.libs.pprint import pprint
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.url import (
     _build_url,
