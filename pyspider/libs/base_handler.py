@@ -15,7 +15,7 @@ from pprint import pprint
 import six
 from six import add_metaclass, iteritems
 
-from pyspider.libs.ListIO import ListO
+from pyspider.libs.list_io import ListO
 from pyspider.libs.response import rebuild_response
 from pyspider.libs.url import (
     _build_url,
@@ -155,7 +155,7 @@ class BaseHandler(object):
         """
         Running callback function with requested number of arguments
         """
-        args, varargs, keywords, defaults, kwonlyargs, kwonlydefaults, annotations = inspect.getfullargspec(function)
+        args, _, _, _, _, _, _ = inspect.getfullargspec(function)
         task = arguments[-1]
         process_time_limit = task["process"].get(
             "process_time_limit", self.__env__.get("process_time_limit", 0)

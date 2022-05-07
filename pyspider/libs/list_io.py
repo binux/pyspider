@@ -24,7 +24,7 @@ class ListO(object):
     def flush(self):
         pass
 
-    def seek(self, n, mode=0):
+    def seek(self, offset, mode=0):
         pass
 
     def readline(self):
