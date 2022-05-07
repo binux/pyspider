@@ -66,6 +66,10 @@ TODO
 
 ### v0.4.0
 
+- [ ] 适配 python 3.9， 放弃 3.6 以下版本
+
+### v0.5.0
+
 - [ ] a visual scraping interface like [portia](https://github.com/scrapinghub/portia)
 
 
