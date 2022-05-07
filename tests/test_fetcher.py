@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -459,7 +458,7 @@ class TestSplashFetcher(unittest.TestCase):
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
         self.proxy = socket.gethostbyname(socket.gethostname()) + ':14830'
-        
+
     @classmethod
     def tearDownClass(self):
         self.rpc("close")()
