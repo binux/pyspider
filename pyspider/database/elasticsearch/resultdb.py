@@ -18,9 +18,9 @@ class ResultDB(BaseResultDB):
 
     def __init__(self, hosts, index='pyspider'):
         self.index = index
-        self.es = Elasticsearch(hosts=hosts)
+        self.es: Elasticsearch = Elasticsearch(hosts=hosts)
 
-        self.es.indices.create(index=self.index, ignore=400)
+        self.es.indices.create(index=self.index)
         if not self.es.indices.get_mapping(index=self.index, doc_type=self.__type__):
             self.es.indices.put_mapping(index=self.index, doc_type=self.__type__, body={
                 "_all": {"enabled": True},
@@ -36,7 +36,7 @@ class ResultDB(BaseResultDB):
         ret = self.es.search(index=self.index, doc_type=self.__type__,
                              body={"aggs": {"projects": {
                                  "terms": {"field": "project"}
-                             }}}, _source=False)
+                             }}})
         return [each['key'] for each in ret['aggregations']['projects'].get('buckets', [])]
 
     def save(self, project, taskid, url, result):
@@ -62,7 +62,7 @@ class ResultDB(BaseResultDB):
         else:
             for record in self.es.search(index=self.index, doc_type=self.__type__,
                                          body={'query': {'term': {'project': project}}},
-                                         _source_include=fields or [], from_=offset, size=limit,
+                                         from_=offset, size=limit,
                                          sort="updatetime:desc"
                                          ).get('hits', {}).get('hits', []):
                 yield record['_source']

@@ -7,6 +7,7 @@
 
 import json
 import time
+from typing import Dict
 
 import elasticsearch.helpers
 from elasticsearch import Elasticsearch
@@ -91,18 +92,20 @@ class TaskDB(BaseTaskDB):
             result[each['key']] = each['doc_count']
         return result
 
-    def insert(self, project, taskid, obj={}):
+    def insert(self, project, taskid, obj: Dict = None):
         self._changed = True
-        obj = dict(obj)
+        if obj is None:
+            obj = dict()
         obj['taskid'] = taskid
         obj['project'] = project
         obj['updatetime'] = time.time()
         return self.es.index(index=self.index, doc_type=self.__type__,
                              body=self._stringify(obj), id='%s:%s' % (project, taskid))
 
-    def update(self, project, taskid, obj={}, **kwargs):
+    def update(self, project, taskid, obj: Dict = None, **kwargs):
         self._changed = True
-        obj = dict(obj)
+        if obj is None:
+            obj = dict()
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         return self.es.update(index=self.index, doc_type=self.__type__, id='%s:%s' % (project, taskid),

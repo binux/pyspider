@@ -43,10 +43,8 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
     elif parsed.scheme == 'redis':
         from .redis_queue import Queue
         if ',' in parsed.netloc:
-            """
-            redis in cluster mode (there is no concept of 'db' in cluster mode)
-            ex. redis://host1:port1,host2:port2,...,hostn:portn
-            """
+            # redis in cluster mode (there is no concept of 'db' in cluster mode)
+            # ex. redis://host1:port1,host2:port2,...,hostn:portn
             cluster_nodes = []
             for netloc in parsed.netloc.split(','):
                 cluster_nodes.append({'host': netloc.split(':')[0], 'port': int(netloc.split(':')[1])})
@@ -57,16 +55,17 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
             db = parsed.path.lstrip('/').split('/')
             try:
                 db = int(db[0])
-            except:
+            except Exception:
                 logging.warning('redis DB must zero-based numeric index, using 0 instead')
                 db = 0
 
             password = parsed.password or None
 
-            return Queue(name=name, host=parsed.hostname, port=parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
+            return Queue(name=name, host=parsed.hostname, port=parsed.port, db=db, maxsize=maxsize, password=password,
+                         lazy_limit=lazy_limit)
     elif url.startswith('kombu+'):
         url = url[len('kombu+'):]
         from .kombu_queue import Queue
         return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
     else:
-        raise Exception('unknown connection url: %s', url)
+        raise Exception(f'unknown connection url: {url}')

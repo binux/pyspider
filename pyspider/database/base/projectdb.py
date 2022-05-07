@@ -8,6 +8,8 @@ import re
 
 # NOTE: When get/get_all/check_update from database with default fields,
 #       all following fields should be included in output dict.
+from typing import Dict
+
 {
     'project': {
         'name': str,
@@ -33,10 +35,10 @@ class ProjectDB(object):
         'RUNNING',
     ]
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj: Dict = None):
         raise NotImplementedError
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj: Dict = None, **kwargs):
         raise NotImplementedError
 
     def get_all(self, fields=None):
