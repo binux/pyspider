@@ -10,6 +10,7 @@ import unittest
 
 from pyspider.libs import utils
 
+
 class TestFetcher(unittest.TestCase):
     def test_readonlydict(self):
         data = dict(a='a', b=123)

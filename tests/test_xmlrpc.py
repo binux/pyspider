@@ -15,10 +15,13 @@
 #   Origin: https://code.google.com/p/wsgi-xmlrpc/
 
 import unittest
-import tornado.wsgi
-import tornado.ioloop
+
 import tornado.httpserver
+import tornado.ioloop
+import tornado.wsgi
+
 from pyspider.libs import utils
+
 
 class TestXMLRPCServer(unittest.TestCase):
     @classmethod

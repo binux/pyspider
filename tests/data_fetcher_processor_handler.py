@@ -6,6 +6,7 @@
 
 from pyspider.libs.base_handler import *
 
+
 class Handler(BaseHandler):
 
     @not_send_status

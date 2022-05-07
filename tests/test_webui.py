@@ -4,16 +4,16 @@
 #         http://binux.me
 # Created on 2014-11-18 21:03:22
 
+import json
 import os
 import re
-import time
-import json
 import shutil
+import time
 import unittest
 
 from pyspider import run
 from pyspider.libs import utils
-from pyspider.libs.utils import run_in_thread, ObjectDict
+from pyspider.libs.utils import ObjectDict, run_in_thread
 
 
 class TestWebUI(unittest.TestCase):
@@ -23,8 +23,9 @@ class TestWebUI(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
-        import tests.data_test_webpage
         import httpbin
+
+        import tests.data_test_webpage
         from pyspider.webui import bench_test  # flake8: noqa
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'

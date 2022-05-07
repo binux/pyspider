@@ -4,16 +4,18 @@
 #         http://binux.me
 # Created on 2014-12-10 01:34:09
 
+import inspect
 import os
+import shutil
 import sys
 import time
-import click
-import shutil
-import inspect
 import unittest
+
+import click
 
 from pyspider import run
 from pyspider.libs import utils
+
 
 class TestBench(unittest.TestCase):
 
@@ -28,6 +30,7 @@ class TestBench(unittest.TestCase):
 
     def test_10_bench(self):
         import subprocess
+
         #cmd = [sys.executable]
         cmd = ['coverage', 'run']
         p = subprocess.Popen(cmd+[

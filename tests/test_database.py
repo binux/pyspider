@@ -4,10 +4,9 @@
 #         http://binux.me
 # Created on 2014-02-08 22:37:13
 
-from __future__ import unicode_literals, division
+from __future__ import division, unicode_literals
 
 import os
-import six
 import time
 import unittest
 
@@ -15,7 +14,7 @@ from pyspider import database
 from pyspider.database.base.taskdb import TaskDB
 
 
-class TaskDBCase(object):
+class TaskDBCase(unittest.TestCase):
     sample_task = {
         'taskid': 'taskid',
         'project': 'project',
@@ -57,7 +56,7 @@ class TaskDBCase(object):
                 'time': 10,
                 'follows': 3,
                 'outputs': 5,
-                'exception': u"中文",
+                'exception': "中文",
             },
         },
         'lastcrawltime': time.time(),
@@ -154,7 +153,7 @@ class TaskDBCase(object):
         self.taskdb.UPDATE_PROJECTS_TIME = saved
 
 
-class ProjectDBCase(object):
+class ProjectDBCase(unittest.TestCase):
     sample_project = {
         'name': 'name',
         'script': 'import time\nprint(time.time(), "!@#$%^&*()\';:<>?/|")',
@@ -244,7 +243,7 @@ class ProjectDBCase(object):
         self.assertIsNone(self.projectdb.get('drop_project3'))
 
 
-class ResultDBCase(object):
+class ResultDBCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):

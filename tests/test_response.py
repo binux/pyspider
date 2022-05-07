@@ -5,19 +5,21 @@
 # Created on 2015-01-18 11:10:27
 
 
-import os
 import copy
-import time
-import httpbin
-import unittest
-
 import logging
 import logging.config
+import os
+import time
+import unittest
+
+import httpbin
+
 logging.config.fileConfig("pyspider/logging.conf")
 
+from pyspider.fetcher.tornado_fetcher import Fetcher
 from pyspider.libs import utils
 from pyspider.libs.response import rebuild_response
-from pyspider.fetcher.tornado_fetcher import Fetcher
+
 
 class TestResponse(unittest.TestCase):
     sample_task_http = {

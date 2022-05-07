@@ -4,18 +4,20 @@
 #         http://binux.me
 # Created on 2015-06-03 21:15
 
-import os
-import sys
-import six
-import time
-import shutil
 import inspect
+import os
+import shutil
+import sys
+import time
 import unittest
 
+import six
 from six import BytesIO
+
 from pyspider import run
 from pyspider.libs import utils
-from tests import data_sample_handler, data_handler
+from tests import data_handler, data_sample_handler
+
 
 @unittest.skipIf(sys.version_info >= (3, 6), "easywebdav doesn't support python 3.6")
 class TestWebDav(unittest.TestCase):

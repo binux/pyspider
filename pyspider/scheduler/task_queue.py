@@ -8,11 +8,7 @@ import heapq
 import logging
 import threading
 import time
-
-try:
-    from UserDict import DictMixin
-except ImportError:
-    from collections import Mapping as DictMixin
+from collections.abc import Mapping as DictMixin
 
 from six.moves import queue as Queue
 
@@ -20,10 +16,14 @@ from .token_bucket import Bucket
 
 logger = logging.getLogger('scheduler')
 
-try:
-    cmp
-except NameError:
-    cmp = lambda x, y: (x > y) - (x < y)
+
+#  cmp() 在 python3 中不存在
+def cmp(a, b):
+    """
+    Compare the two objects x and y and return an integer according to the outcome.
+    The return value is negative if x < y, zero if x == y and strictly positive if x > y.
+    """
+    return (a > b) - (a < b)
 
 
 class AtomInt(object):
@@ -191,16 +191,16 @@ class TaskQueue(object):
     def put(self, taskid, priority=0, exetime=0):
         """
         Put a task into task queue
-        
+
         when use heap sort, if we put tasks(with the same priority and exetime=0) into queue,
         the queue is not a strict FIFO queue, but more like a FILO stack.
-        It is very possible that when there are continuous big flow, the speed of select is 
+        It is very possible that when there are continuous big flow, the speed of select is
         slower than request, resulting in priority-queue accumulation in short time.
-        In this scenario, the tasks more earlier entering the priority-queue will not get 
-        processed until the request flow becomes small. 
-        
-        Thus, we store a global atom self increasing value into task.sequence which represent 
-        the task enqueue sequence. When the comparison of exetime and priority have no 
+        In this scenario, the tasks more earlier entering the priority-queue will not get
+        processed until the request flow becomes small.
+
+        Thus, we store a global atom self increasing value into task.sequence which represent
+        the task enqueue sequence. When the comparison of exetime and priority have no
         difference, we compare task.sequence to ensure that the entire queue is ordered.
         """
         now = time.time()

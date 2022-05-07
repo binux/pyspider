@@ -33,7 +33,7 @@ default_task = {
         'callback': 'on_start',
     },
 }
-default_script = inspect.getsource(sample_handler)
+DEFAULT_SCRIPT = inspect.getsource(sample_handler)
 
 
 @app.route('/debug/<project>', methods=['GET', 'POST'])
@@ -45,7 +45,7 @@ def debug(project):
     if info:
         script = info['script']
     else:
-        script = (default_script
+        script = (DEFAULT_SCRIPT
                   .replace('__DATE__', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                   .replace('__PROJECT_NAME__', project)
                   .replace('__START_URL__', request.values.get('start-urls') or '__START_URL__'))
@@ -82,7 +82,7 @@ def run(project):
             'time': time.time() - start_time,
         }
         return json.dumps(utils.unicode_obj(result)), \
-            200, {'Content-Type': 'application/json'}
+               200, {'Content-Type': 'application/json'}
 
     project_info = {
         'name': project,
@@ -103,7 +103,7 @@ def run(project):
                 'time': time.time() - start_time,
             }
             return json.dumps(utils.unicode_obj(result)), \
-                200, {'Content-Type': 'application/json'}
+                   200, {'Content-Type': 'application/json'}
         project_info['script'] = info['script']
 
     fetch_result = {}
@@ -182,7 +182,7 @@ def save(project):
         info = {
             'script': script,
         }
-        if project_info.get('status') in ('DEBUG', 'RUNNING', ):
+        if project_info.get('status') in ('DEBUG', 'RUNNING',):
             info['status'] = 'CHECKING'
         projectdb.update(project, info)
     else:
@@ -213,7 +213,7 @@ def get_script(project):
         return 'project name is not allowed!', 400
     info = projectdb.get(project, fields=['name', 'script'])
     return json.dumps(utils.unicode_obj(info)), \
-        200, {'Content-Type': 'application/json'}
+           200, {'Content-Type': 'application/json'}
 
 
 @app.route('/blank.html')

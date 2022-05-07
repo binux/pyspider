@@ -6,6 +6,7 @@
 
 from httpbin import app
 
+
 @app.route('/pyspider/test.html')
 def test_page():
     return '''

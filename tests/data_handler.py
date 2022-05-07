@@ -1,15 +1,20 @@
-
-#!/usr/bin/env python
+# !/usr/bin/env python
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-22 14:02:21
-
+import logging
 import time
-from pyspider.libs.base_handler import BaseHandler, catch_status_code_error, every
+
+from pyspider.libs.base_handler import (BaseHandler, catch_status_code_error,
+                                        every)
+
+logger = logging.getLogger(__name__)
+
 
 class IgnoreHandler(object):
     pass
+
 
 class TestHandler(BaseHandler):
     retry_delay = {
@@ -58,4 +63,3 @@ class TestHandler(BaseHandler):
 
     def sleep(self, response):
         time.sleep(response.save)
-

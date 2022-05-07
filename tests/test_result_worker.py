@@ -4,17 +4,19 @@
 #         http://binux.me
 # Created on 2014-11-11 20:52:53
 
+import logging.config
 import os
 import time
 import unittest
-import logging.config
+
 logging.config.fileConfig("pyspider/logging.conf")
 
 import shutil
+
 from pyspider.database.sqlite import resultdb
-from pyspider.result.result_worker import ResultWorker
 from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
+from pyspider.result.result_worker import ResultWorker
 
 
 class TestProcessor(unittest.TestCase):

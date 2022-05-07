@@ -6,20 +6,22 @@
 
 from __future__ import print_function
 
-import os
-import sys
-import six
-import time
-import json
-import signal
-import shutil
 import inspect
-import requests
+import json
+import os
+import shutil
+import signal
+import sys
+import time
 import unittest
+
+import requests
+import six
 
 from pyspider import run
 from pyspider.libs import utils
 from tests import data_sample_handler
+
 
 class TestRun(unittest.TestCase):
 
@@ -28,8 +30,9 @@ class TestRun(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
-        import tests.data_test_webpage
         import httpbin
+
+        import tests.data_test_webpage
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
 
@@ -224,6 +227,7 @@ class TestRun(unittest.TestCase):
 
     def test_a100_all(self):
         import subprocess
+
         #cmd = [sys.executable]
         cmd = ['coverage', 'run']
         p = subprocess.Popen(cmd+[
