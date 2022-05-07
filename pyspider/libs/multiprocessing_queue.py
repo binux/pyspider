@@ -2,7 +2,6 @@ import multiprocessing
 import platform
 from multiprocessing.queues import Queue as BaseQueue
 
-
 # The SharedCounter and Queue classes come from:
 # https://github.com/vterron/lemon/commit/9ca6b4b
 

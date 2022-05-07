@@ -9,7 +9,6 @@ from __future__ import absolute_import, division, unicode_literals
 import logging
 import time
 from collections import deque
-
 from collections.abc import Mapping
 
 import six

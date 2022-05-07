@@ -5,10 +5,10 @@
 # Created on 2014-02-09 11:28:52
 
 import re
+from typing import Dict
 
 # NOTE: When get/get_all/check_update from database with default fields,
 #       all following fields should be included in output dict.
-from typing import Dict
 
 {
     'project': {
