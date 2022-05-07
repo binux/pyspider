@@ -6,16 +6,12 @@
 
 import logging
 
-try:
-    import curses
-except ImportError:
-    curses = None
-
 from tornado.log import LogFormatter as _LogFormatter
 
 
 class LogFormatter(_LogFormatter, object):
     """Init tornado.log.LogFormatter from logging.config.fileConfig"""
+
     def __init__(self, fmt=None, datefmt=None, color=True, *args, **kwargs):
         if fmt is None:
             fmt = _LogFormatter.DEFAULT_FORMAT

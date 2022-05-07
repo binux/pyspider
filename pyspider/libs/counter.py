@@ -10,10 +10,7 @@ import logging
 import time
 from collections import deque
 
-try:
-    from UserDict import DictMixin
-except ImportError:
-    from collections import Mapping as DictMixin
+from collections.abc import Mapping
 
 import six
 from six import iteritems
@@ -246,10 +243,10 @@ class TimebaseAverageWindowCounter(BaseCounter):
 
     @property
     def avg(self):
-        sum = float(self.sum)
+        sum_value = float(self.sum)
         if not self.window_size:
             return 0
-        return sum / self.window_size / self.window_interval
+        return sum_value / self.window_size / self.window_interval
 
     @property
     def sum(self):
@@ -265,7 +262,7 @@ class TimebaseAverageWindowCounter(BaseCounter):
         pass
 
 
-class CounterValue(DictMixin):
+class CounterValue(Mapping):
     """
     A dict like value item for CounterManager.
     """
@@ -279,7 +276,7 @@ class CounterValue(DictMixin):
             key = self._keys
             return self.manager.counters[key]
         else:
-            key = self._keys + (key, )
+            key = self._keys + (key,)
 
         available_keys = []
         for _key in list(self.manager.counters.keys()):
@@ -326,7 +323,7 @@ class CounterValue(DictMixin):
         return result
 
 
-class CounterManager(DictMixin):
+class CounterManager(Mapping):
     """
     A dict like counter manager.
 
@@ -345,7 +342,7 @@ class CounterManager(DictMixin):
     def event(self, key, value=1):
         """Fire a event of a counter by counter key"""
         if isinstance(key, six.string_types):
-            key = (key, )
+            key = (key,)
         assert isinstance(key, tuple), "event key type error"
         if key not in self.counters:
             self.counters[key] = self.cls()
@@ -355,7 +352,7 @@ class CounterManager(DictMixin):
     def value(self, key, value=1):
         """Set value of a counter by counter key"""
         if isinstance(key, six.string_types):
-            key = (key, )
+            key = (key,)
         # assert all(isinstance(k, six.string_types) for k in key)
         assert isinstance(key, tuple), "event key type error"
         if key not in self.counters:
@@ -370,7 +367,7 @@ class CounterManager(DictMixin):
                 del self.counters[key]
 
     def __getitem__(self, key):
-        key = (key, )
+        key = (key,)
         available_keys = []
         for _key in list(self.counters.keys()):
             if _key[:len(key)] == key:
@@ -387,7 +384,7 @@ class CounterManager(DictMixin):
             return CounterValue(self, key)
 
     def __delitem__(self, key):
-        key = (key, )
+        key = (key,)
         available_keys = []
         for _key in list(self.counters.keys()):
             if _key[:len(key)] == key:
@@ -435,7 +432,7 @@ class CounterManager(DictMixin):
         try:
             with open(filename, 'rb') as fp:
                 self.counters = cPickle.load(fp)
-        except:
+        except Exception:
             logging.debug("can't load counter from file: %s", filename)
             return False
         return True

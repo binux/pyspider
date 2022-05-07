@@ -16,13 +16,9 @@ from six import add_metaclass, iteritems
 
 from pyspider.libs.list_io import ListO
 from pyspider.libs.response import rebuild_response
-from pyspider.libs.url import (
-    _build_url,
-    _encode_multipart_formdata,
-    _encode_params,
-    curl_to_arguments,
-    quote_chinese,
-)
+from pyspider.libs.url import (_build_url, _encode_multipart_formdata,
+                               _encode_params, curl_to_arguments,
+                               quote_chinese)
 from pyspider.libs.utils import md5string, timeout
 from pyspider.processor import ProcessorResult
 
@@ -179,7 +175,7 @@ class BaseHandler(object):
         function = getattr(self, callback)
         # do not run_func when 304
         if response.status_code == 304 and not getattr(
-            function, "_catch_status_code_error", False
+                function, "_catch_status_code_error", False
         ):
             return None
         if not getattr(function, "_catch_status_code_error", False):
@@ -453,8 +449,9 @@ class BaseHandler(object):
         self._messages.append((project, msg, url))
 
     def on_message(self, project, msg):
-        """Receive message from other project, override me."""
-        pass
+        """
+        Receive message from other project, override me.
+        """
 
     def on_result(self, result):
         """Receiving returns from other callback, override me."""
@@ -471,7 +468,6 @@ class BaseHandler(object):
         Triggered when all tasks in task queue finished.
         https://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
         """
-        pass
 
     @not_send_status
     def _on_message(self, response):
@@ -481,9 +477,9 @@ class BaseHandler(object):
     @not_send_status
     def _on_cronjob(self, response, task):
         if (
-            not response.save
-            or not isinstance(response.save, dict)
-            or "tick" not in response.save
+                not response.save
+                or not isinstance(response.save, dict)
+                or "tick" not in response.save
         ):
             return
 

@@ -37,9 +37,11 @@ class Response(object):
         self.save = save
         self.js_script_result = js_script_result
         self.time = time
+        self._json = None
+        self._doc = ""
 
     def __repr__(self):
-        return u'<Response [%d]>' % self.status_code
+        return f'<Response [{self.status_code}]>'
 
     def __bool__(self):
         """Returns true if `status_code` is 200 and no error"""
@@ -54,7 +56,7 @@ class Response(object):
         """Return true if `status_code` is 200 and no error."""
         try:
             self.raise_for_status()
-        except:
+        except Exception:
             return False
         return True
 
@@ -106,7 +108,7 @@ class Response(object):
         if hasattr(self, '_text') and self._text:
             return self._text
         if not self.content:
-            return u''
+            return ''
         if isinstance(self.content, six.text_type):
             return self.content
 
@@ -188,7 +190,7 @@ class Response(object):
         try:
             self.raise_for_status()
             return True
-        except:
+        except Exception:
             return False
 
 
