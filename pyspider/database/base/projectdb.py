@@ -53,9 +53,9 @@ class ProjectDB(object):
 
     def split_group(self, group, lower=True):
         if lower:
-            return re.split("\W+", (group or '').lower())
+            return re.split(r"\W+", (group or '').lower())
         else:
-            return re.split("\W+", group or '')
+            return re.split(r"\W+", group or '')
 
     def verify_project_name(self, name):
         if len(name) > 64:
