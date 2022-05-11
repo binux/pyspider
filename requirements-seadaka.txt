@@ -4,3 +4,4 @@ beautifulsoup4==4.9.3
 Pillow==8.2.0
 selenium==3.141.0
 python-redis-lock==3.7.0
+SpeechRecognition==3.8.1
