@@ -44,7 +44,8 @@ extras_require_all = [
     'kombu==4.4.0',
     'amqp==2.4.0',
     'SQLAlchemy==1.3.10',
-    'pika==1.1.0'
+    'vine==1.3.0',
+    'pika==1.1.0',
 ]
 
 setup(

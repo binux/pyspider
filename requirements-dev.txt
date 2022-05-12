@@ -2,3 +2,5 @@
 httpbin
 recommonmark
 easywebdav
+coverage
+pyproxy==0.1.6
