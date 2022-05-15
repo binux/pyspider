@@ -207,6 +207,8 @@ class BaseHandler(object):
             else:
                 self._run_func(self.on_result, result, response, task)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             logger.exception(e)
             exception = e
         finally:

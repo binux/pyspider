@@ -13,13 +13,13 @@ pymongo==3.9.0
 Flask-Login==0.2.11
 u-msgpack-python==1.6
 click==7.1.2
-SQLAlchemy==1.3.10
+SQLAlchemy==1.4.36
 six==1.10.0
 amqp==2.4.0
 redis==2.10.6
 redis-py-cluster==1.3.6
 kombu==4.4.0
-psycopg2==2.9.3
+psycopg2-binary==2.9.3
 elasticsearch==7.10.0
 tblib==1.4.0
 markupsafe==1.1.1
