@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-09 11:28:52
 
 import re
+from typing import Dict
 
 # NOTE: When get/get_all/check_update from database with default fields,
 #       all following fields should be included in output dict.
+
 {
     'project': {
         'name': str,
@@ -34,10 +35,10 @@ class ProjectDB(object):
         'RUNNING',
     ]
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj: Dict = None):
         raise NotImplementedError
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj: Dict = None, **kwargs):
         raise NotImplementedError
 
     def get_all(self, fields=None):
@@ -54,9 +55,9 @@ class ProjectDB(object):
 
     def split_group(self, group, lower=True):
         if lower:
-            return re.split("\W+", (group or '').lower())
+            return re.split(r"\W+", (group or '').lower())
         else:
-            return re.split("\W+", group or '')
+            return re.split(r"\W+", group or '')
 
     def verify_project_name(self, name):
         if len(name) > 64:

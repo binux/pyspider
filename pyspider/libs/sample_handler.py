@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+
 # Created on __DATE__
 # Project: __PROJECT_NAME__
 
-from pyspider.libs.base_handler import *
+from pyspider.libs.base_handler import BaseHandler, config, every
 
 
 class Handler(BaseHandler):

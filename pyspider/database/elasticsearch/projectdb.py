@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2016-01-17 18:32:33
 
 import time
+from typing import Dict
 
 import elasticsearch.helpers
 from elasticsearch import Elasticsearch
@@ -20,7 +20,7 @@ class ProjectDB(BaseProjectDB):
         self.index = index
         self.es = Elasticsearch(hosts=hosts)
 
-        self.es.indices.create(index=self.index, ignore=400)
+        self.es.indices.create(index=self.index)
         if not self.es.indices.get_mapping(index=self.index, doc_type=self.__type__):
             self.es.indices.put_mapping(index=self.index, doc_type=self.__type__, body={
                 "_all": {"enabled": False},
@@ -29,8 +29,9 @@ class ProjectDB(BaseProjectDB):
                 }
             })
 
-    def insert(self, name, obj={}):
-        obj = dict(obj)
+    def insert(self, name, obj:Dict=None):
+        if obj is None:
+            obj = dict()
         obj['name'] = name
         obj['updatetime'] = time.time()
 
@@ -41,15 +42,15 @@ class ProjectDB(BaseProjectDB):
         obj.setdefault('rate', 0)
         obj.setdefault('burst', 0)
 
-        return self.es.index(index=self.index, doc_type=self.__type__, body=obj, id=name,
-                             refresh=True)
+        return self.es.index(index=self.index, doc_type=self.__type__, body=obj, id=name)
 
-    def update(self, name, obj={}, **kwargs):
-        obj = dict(obj)
+    def update(self, name, obj: Dict = None, **kwargs):
+        if obj is None:
+            obj = dict()
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         return self.es.update(index=self.index, doc_type=self.__type__,
-                              body={'doc': obj}, id=name, refresh=True, ignore=404)
+                              body={'doc': obj}, id=name)
 
     def get_all(self, fields=None):
         for record in elasticsearch.helpers.scan(self.es, index=self.index, doc_type=self.__type__,
@@ -58,8 +59,7 @@ class ProjectDB(BaseProjectDB):
             yield record['_source']
 
     def get(self, name, fields=None):
-        ret = self.es.get(index=self.index, doc_type=self.__type__, id=name,
-                          _source_include=fields or [], ignore=404)
+        ret = self.es.get(index=self.index, doc_type=self.__type__, id=name)
         return ret.get('_source', None)
 
     def check_update(self, timestamp, fields=None):
@@ -70,4 +70,4 @@ class ProjectDB(BaseProjectDB):
             yield record['_source']
 
     def drop(self, name):
-        return self.es.delete(index=self.index, doc_type=self.__type__, id=name, refresh=True)
+        return self.es.delete(index=self.index, doc_type=self.__type__, id=name)

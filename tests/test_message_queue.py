@@ -1,20 +1,20 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-10-07 10:33:38
 
 import os
-import six
 import time
 import unittest
 
-from pyspider.libs import utils
+import six
 from six.moves import queue as Queue
 
+from pyspider.libs import utils
 
-class TestMessageQueue(object):
+
+class TestMessageQueue(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
@@ -165,8 +165,7 @@ class TestRedisQueue(TestMessageQueue, unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        from pyspider.message_queue import connect_message_queue
-        from pyspider.message_queue import redis_queue
+        from pyspider.message_queue import connect_message_queue, redis_queue
         with utils.timeout(3):
             self.q1 = redis_queue.RedisQueue('test_queue', maxsize=5, lazy_limit=False)
             self.q2 = redis_queue.RedisQueue('test_queue', maxsize=5, lazy_limit=False)

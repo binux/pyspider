@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2015-10-12 22:17:57
 
-from __future__ import unicode_literals, division
+from __future__ import division, unicode_literals
+
+import csv
+import json
+import time
+import unittest
 
 import six
-import csv
-import time
-import json
-import unittest
 from six import StringIO
 
 from pyspider.libs import result_dump

@@ -1,21 +1,21 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2015-01-18 14:09:41
 
 import os
-import time
-import httpbin
 import subprocess
+import time
 import unittest
+
+import httpbin
+from six.moves.queue import Queue
 
 from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
+from pyspider.libs import dataurl, utils
 from pyspider.processor import Processor
-from pyspider.libs import utils, dataurl
-from six.moves.queue import Queue
 from tests.data_fetcher_processor_handler import Handler
 
 

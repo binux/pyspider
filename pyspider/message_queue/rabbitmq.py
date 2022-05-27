@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<17175297.hk@gmail.com>
 #         http://binux.me
@@ -48,6 +47,7 @@ def catch_error(func):
             logging.error('RabbitMQ error: %r, reconnect.', e)
             self.reconnect()
             return func(self, *args, **kwargs)
+
     return wrap
 
 
@@ -102,7 +102,7 @@ class PikaQueue(object):
         except pika.exceptions.ChannelClosed:
             self.connection = pika.BlockingConnection(pika.URLParameters(self.amqp_url))
             self.channel = self.connection.channel()
-        #self.channel.queue_purge(self.name)
+        # self.channel.queue_purge(self.name)
 
     @catch_error
     def qsize(self):
@@ -125,7 +125,7 @@ class PikaQueue(object):
     @catch_error
     def put(self, obj, block=True, timeout=None):
         if not block:
-            return self.put_nowait()
+            return self.put_nowait(obj)
 
         start_time = time.time()
         while True:
@@ -237,7 +237,7 @@ class AmqpQueue(PikaQueue):
             self.channel.queue_declare(self.name)
         except amqp.exceptions.PreconditionFailed:
             pass
-        #self.channel.queue_purge(self.name)
+        # self.channel.queue_purge(self.name)
 
     @catch_error
     def qsize(self):
@@ -268,5 +268,6 @@ class AmqpQueue(PikaQueue):
             if ack:
                 self.channel.basic_ack(message.delivery_tag)
         return umsgpack.unpackb(message.body)
+
 
 Queue = PikaQueue

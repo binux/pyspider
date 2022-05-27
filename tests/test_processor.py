@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-22 14:00:05
 
-import os
-import six
 import copy
+import logging.config
+import os
 import time
 import unittest
-import logging.config
+
+import six
+
 logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.libs import utils
@@ -241,13 +242,14 @@ class TestProjectModule(unittest.TestCase):
         self.assertGreaterEqual(time.time() - start_time, 2)
 
 
-import shutil
 import inspect
+import shutil
+
 from pyspider.database.sqlite import projectdb
-from pyspider.processor.processor import Processor
+from pyspider.libs import sample_handler
 from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
-from pyspider.libs import sample_handler
+from pyspider.processor.processor import Processor
 
 
 class TestProcessor(unittest.TestCase):

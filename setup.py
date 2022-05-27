@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-11-24 22:27:45
 
 
-from setuptools import setup, find_packages
 from codecs import open
 from os import path
+
+from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -67,6 +67,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
 
         'License :: OSI Approved :: Apache Software License',
 
@@ -89,7 +91,7 @@ setup(
         'all': extras_require_all,
         'test': [
             'coverage',
-            'Werkzeug==0.16.1',
+            'Werkzeug==2.1.2',
             'httpbin==0.7.0',
             'pyproxy==0.1.6',
             'easywebdav==1.2.0',

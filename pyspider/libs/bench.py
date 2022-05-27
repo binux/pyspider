@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
@@ -98,8 +97,10 @@ def bench_test_taskdb(taskdb):
         'lastcrawltime'
     ]
 
-    def test_get(n, start=0, random=True, fields=request_task_fields):
-        logger.info("taskdb get %d %s" % (n, "randomly" if random else ""))
+    def test_get(n, start=0, random=True, fields=None):
+        logger.info("taskdb get %d %s", n, "randomly" if random else "")
+        if not fields:
+            fields = request_task_fields
         range_n = list(range(n))
         if random:
             from random import shuffle
@@ -228,9 +229,9 @@ class BenchFetcher(Fetcher, BenchMixin):
         super(BenchFetcher, self).__init__(*args, **kwargs)
         self._bench_init()
 
-    def on_result(self, type, task, result):
+    def on_result(self, _type, task, result):
         self._bench_report("Fetched", 0, 75)
-        return super(BenchFetcher, self).on_result(type, task, result)
+        return super(BenchFetcher, self).on_result(_type, task, result)
 
 
 class BenchProcessor(Processor, BenchMixin):
