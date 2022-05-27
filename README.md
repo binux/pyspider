@@ -67,6 +67,8 @@ TODO
 ### v0.4.0
 
 - [ ] 适配 python 3.9， 放弃 3.6 以下版本, try my best to fix bug
+- [ ] fix travis and Coverage 
+- [ ] review docker
 
 ### v0.5.0
 
