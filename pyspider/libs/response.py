@@ -37,8 +37,6 @@ class Response(object):
         self.save = save
         self.js_script_result = js_script_result
         self.time = time
-        self._json = None
-        self._doc = ""
 
     def __repr__(self):
         return f'<Response [{self.status_code}]>'
