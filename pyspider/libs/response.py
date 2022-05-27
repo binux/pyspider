@@ -21,7 +21,9 @@ from pyspider.libs import utils
 
 
 class Response(object):
-
+    """
+    custom response
+    """
     def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
                  content='', cookies=None, error=None, traceback=None, save=None, js_script_result=None, time=0):
         if cookies is None:
