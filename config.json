@@ -7,8 +7,5 @@
     "port": 5000,
     "max-burst": 5,
     "max-rate": 5
-  },
-  "all": {
-    "processor-num": "3"
   }
 }
