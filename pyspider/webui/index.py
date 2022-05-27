@@ -7,12 +7,9 @@
 import socket
 
 from flask import json, render_template, request
-from six import iteritems, itervalues
+from six import iteritems
 
-try:
-    import flask_login as login
-except ImportError:
-    from flask.ext import login
+import flask_login as login
 
 from .app import app
 

@@ -14,10 +14,7 @@ import traceback
 
 from flask import json, render_template, request
 
-try:
-    import flask_login as login
-except ImportError:
-    from flask.ext import login
+import flask_login as login
 
 from pyspider.libs import dataurl, sample_handler, utils
 from pyspider.libs.response import rebuild_response

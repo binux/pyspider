@@ -8,10 +8,7 @@ import base64
 
 from flask import Response
 
-try:
-    import flask_login as login
-except ImportError:
-    from flask.ext import login
+import flask_login as login
 
 from .app import app
 
