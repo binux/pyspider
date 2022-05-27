@@ -779,7 +779,9 @@ class Fetcher(object):
         logger.info("fetcher exiting...")
 
     def quit(self):
-        '''Quit fetcher'''
+        """
+        Quit fetcher
+        """
         self._running = False
         self._quit = True
         self.ioloop.add_callback(self.ioloop.stop)
@@ -795,11 +797,7 @@ class Fetcher(object):
         import umsgpack
 
         from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
-        try:
-            from xmlrpc.client import Binary
-        except ImportError:
-            from xmlrpclib import Binary
-
+        from xmlrpc.client import Binary
         application = WSGIXMLRPCApplication()
 
         application.register_function(self.quit, '_quit')
