@@ -3,7 +3,7 @@ chardet==3.0.4
 cssselect==0.9
 lxml==4.8.0
 pycurl==7.45.1
-pyquery==1.4.0
+pyquery==1.4.3
 requests==2.27.1
 tornado==4.5.3
 mysql-connector-python==8.0.16
