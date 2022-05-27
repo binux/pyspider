@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -63,16 +62,15 @@ def _connect_database(url):  # NOQA
         other_scheme = "+".join(scheme[1:-1])
 
     if dbtype not in ('taskdb', 'projectdb', 'resultdb'):
-        raise LookupError('unknown database type: %s, '
-                          'type should be one of ["taskdb", "projectdb", "resultdb"]', dbtype)
+        raise LookupError(f'unknown database type: {dbtype}, type should be one of ["taskdb", "projectdb", "resultdb"]')
 
     if engine == 'mysql':
-        return _connect_mysql(parsed,dbtype)
+        return _connect_mysql(parsed, dbtype)
 
     elif engine == 'sqlite':
-        return _connect_sqlite(parsed,dbtype)
+        return _connect_sqlite(parsed, dbtype)
     elif engine == 'mongodb':
-        return _connect_mongodb(parsed,dbtype,url)
+        return _connect_mongodb(parsed, dbtype, url)
 
     elif engine == 'sqlalchemy':
         return _connect_sqlalchemy(parsed, dbtype, url, other_scheme)
@@ -91,7 +89,7 @@ def _connect_database(url):  # NOQA
             from .local.projectdb import ProjectDB
             return ProjectDB(scripts)
         else:
-            raise LookupError('not supported dbtype: %s', dbtype)
+            raise LookupError(f'not supported dbtype: {dbtype}')
     elif engine == 'elasticsearch' or engine == 'es':
         return _connect_elasticsearch(parsed, dbtype)
 
@@ -99,36 +97,36 @@ def _connect_database(url):  # NOQA
         return _connect_couchdb(parsed, dbtype, url)
 
     else:
-        raise Exception('unknown engine: %s' % engine)
+        raise Exception(f'unknown engine: {engine}')
 
 
-def _connect_mysql(parsed,dbtype):
-    parames = {}
+def _connect_mysql(parsed, dbtype):
+    params = dict()
     if parsed.username:
-        parames['user'] = parsed.username
+        params['user'] = parsed.username
     if parsed.password:
-        parames['passwd'] = parsed.password
+        params['passwd'] = parsed.password
     if parsed.hostname:
-        parames['host'] = parsed.hostname
+        params['host'] = parsed.hostname
     if parsed.port:
-        parames['port'] = parsed.port
+        params['port'] = parsed.port
     if parsed.path.strip('/'):
-        parames['database'] = parsed.path.strip('/')
+        params['database'] = parsed.path.strip('/')
 
     if dbtype == 'taskdb':
         from .mysql.taskdb import TaskDB
-        return TaskDB(**parames)
+        return TaskDB(**params)
     elif dbtype == 'projectdb':
         from .mysql.projectdb import ProjectDB
-        return ProjectDB(**parames)
+        return ProjectDB(**params)
     elif dbtype == 'resultdb':
         from .mysql.resultdb import ResultDB
-        return ResultDB(**parames)
+        return ResultDB(**params)
     else:
         raise LookupError
 
 
-def _connect_sqlite(parsed,dbtype):
+def _connect_sqlite(parsed, dbtype):
     if parsed.path.startswith('//'):
         path = '/' + parsed.path.strip('/')
     elif parsed.path.startswith('/'):
@@ -151,7 +149,7 @@ def _connect_sqlite(parsed,dbtype):
         raise LookupError
 
 
-def _connect_mongodb(parsed,dbtype,url):
+def _connect_mongodb(parsed, dbtype, url):
     url = url.replace(parsed.scheme, 'mongodb')
     parames = {}
     if parsed.path.strip('/'):
@@ -170,7 +168,7 @@ def _connect_mongodb(parsed,dbtype,url):
         raise LookupError
 
 
-def _connect_sqlalchemy(parsed, dbtype,url, other_scheme):
+def _connect_sqlalchemy(parsed, dbtype, url, other_scheme):
     if not other_scheme:
         raise Exception('wrong scheme format: %s' % parsed.scheme)
     url = url.replace(parsed.scheme, other_scheme)

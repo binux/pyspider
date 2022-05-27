@@ -1,20 +1,20 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-08 22:37:13
 
-import os
-import time
-import shutil
-import unittest
 import logging
 import logging.config
+import os
+import shutil
+import time
+import unittest
+
 logging.config.fileConfig("pyspider/logging.conf")
 
-from pyspider.scheduler.task_queue import TaskQueue
 from pyspider.libs import utils
+from pyspider.scheduler.task_queue import TaskQueue
 
 
 class TestTaskQueue(unittest.TestCase):
@@ -96,10 +96,11 @@ try:
     from six.moves import xmlrpc_client
 except ImportError:
     import xmlrpclib as xmlrpc_client
-from pyspider.scheduler.scheduler import Scheduler
-from pyspider.database.sqlite import taskdb, projectdb, resultdb
+
+from pyspider.database.sqlite import projectdb, resultdb, taskdb
 from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.utils import run_in_thread
+from pyspider.scheduler.scheduler import Scheduler
 
 
 class TestScheduler(unittest.TestCase):
@@ -330,6 +331,7 @@ class TestScheduler(unittest.TestCase):
             }
         })  # task retry 0/3 test_project:taskid url
         from six.moves import queue as Queue
+
         # with self.assertRaises(Queue.Empty):
             # task = self.scheduler2fetcher.get(timeout=4)
         task = self.scheduler2fetcher.get(timeout=5)  # select test_project:taskid url
@@ -737,6 +739,7 @@ class TestScheduler(unittest.TestCase):
 
 
 from pyspider.scheduler.scheduler import Project
+
 
 class TestProject(unittest.TestCase):
     task_pack = {

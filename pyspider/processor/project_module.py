@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-16 22:24:20
 
-import imp
 import inspect
 import linecache
 import logging
@@ -13,6 +11,7 @@ import os
 import sys
 import time
 import traceback
+import types
 import weakref
 
 import six
@@ -168,10 +167,10 @@ class ProjectLoader(object):
 
     def load_module(self, fullname):
         if self.mod is None:
-            self.mod = mod = imp.new_module(fullname)
+            self.mod = mod = types.ModuleType(fullname)
         else:
             mod = self.mod
-        mod.__file__ = '<%s>' % self.name
+        mod.__file__ = f'<{self.name}>'
         mod.__loader__ = self
         mod.__project__ = self.project
         mod.__package__ = ''
@@ -219,7 +218,7 @@ if six.PY2:
                     return ProjectLoader(info)
 
         def load_module(self, fullname):
-            mod = imp.new_module(fullname)
+            mod = types.ModuleType(fullname)
             mod.__file__ = '<projects>'
             mod.__loader__ = self
             mod.__path__ = ['<projects>']
@@ -230,6 +229,7 @@ if six.PY2:
             return True
 else:
     import importlib.abc
+
 
     class ProjectFinder(importlib.abc.MetaPathFinder):
         '''ProjectFinder class for sys.meta_path'''
@@ -258,9 +258,10 @@ else:
                 if info:
                     return ProjectLoader(info)
 
+
     class ProjectsLoader(importlib.abc.InspectLoader):
         def load_module(self, fullname):
-            mod = imp.new_module(fullname)
+            mod = types.ModuleType(fullname)
             mod.__file__ = '<projects>'
             mod.__loader__ = self
             mod.__path__ = ['<projects>']
@@ -281,6 +282,7 @@ else:
         def get_code(self, fullname):
             return compile(self.get_source(fullname), '<projects>', 'exec')
 
+
     class ProjectLoader(ProjectLoader, importlib.abc.Loader):
         def create_module(self, spec):
             return self.load_module(spec.name)
@@ -289,4 +291,4 @@ else:
             return module
 
         def module_repr(self, module):
-            return '<Module projects.%s>' % self.name
+            return f'<Module projects.{self.name}>'

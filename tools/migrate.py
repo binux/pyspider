@@ -1,18 +1,19 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2015-09-30 23:22:46
 
-import click
 import logging
-from pyspider.database.base.projectdb import ProjectDB
-from pyspider.database.base.taskdb import TaskDB
-from pyspider.database.base.resultdb import ResultDB
-from pyspider.database import connect_database
-from pyspider.libs.utils import unicode_obj
 from multiprocessing.pool import ThreadPool as Pool
+
+import click
+
+from pyspider.database import connect_database
+from pyspider.database.base.projectdb import ProjectDB
+from pyspider.database.base.resultdb import ResultDB
+from pyspider.database.base.taskdb import TaskDB
+from pyspider.libs.utils import unicode_obj
 
 logging.getLogger().setLevel(logging.INFO)
 

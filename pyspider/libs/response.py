@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -22,7 +21,9 @@ from pyspider.libs import utils
 
 
 class Response(object):
-
+    """
+    custom response
+    """
     def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
                  content='', cookies=None, error=None, traceback=None, save=None, js_script_result=None, time=0):
         if cookies is None:
@@ -40,7 +41,7 @@ class Response(object):
         self.time = time
 
     def __repr__(self):
-        return u'<Response [%d]>' % self.status_code
+        return f'<Response [{self.status_code}]>'
 
     def __bool__(self):
         """Returns true if `status_code` is 200 and no error"""
@@ -55,7 +56,7 @@ class Response(object):
         """Return true if `status_code` is 200 and no error."""
         try:
             self.raise_for_status()
-        except:
+        except Exception:
             return False
         return True
 
@@ -107,7 +108,7 @@ class Response(object):
         if hasattr(self, '_text') and self._text:
             return self._text
         if not self.content:
-            return u''
+            return ''
         if isinstance(self.content, six.text_type):
             return self.content
 
@@ -174,11 +175,11 @@ class Response(object):
                 six.reraise(Exception, Exception(self.error), Traceback.from_string(self.traceback).as_traceback())
             http_error = HTTPError(self.error)
         elif (self.status_code >= 300) and (self.status_code < 400) and not allow_redirects:
-            http_error = HTTPError('%s Redirection' % (self.status_code))
+            http_error = HTTPError(f'{self.status_code} Redirection')
         elif (self.status_code >= 400) and (self.status_code < 500):
-            http_error = HTTPError('%s Client Error' % (self.status_code))
+            http_error = HTTPError(f'{self.status_code} Client Error')
         elif (self.status_code >= 500) and (self.status_code < 600):
-            http_error = HTTPError('%s Server Error' % (self.status_code))
+            http_error = HTTPError(f'{self.status_code} Server Error')
         else:
             return
 
@@ -189,23 +190,23 @@ class Response(object):
         try:
             self.raise_for_status()
             return True
-        except:
+        except Exception:
             return False
 
 
-def rebuild_response(r):
+def rebuild_response(resp: dict):
     response = Response(
-        status_code=r.get('status_code', 599),
-        url=r.get('url', ''),
-        headers=CaseInsensitiveDict(r.get('headers', {})),
-        content=r.get('content', ''),
-        cookies=r.get('cookies', {}),
-        error=r.get('error'),
-        traceback=r.get('traceback'),
-        time=r.get('time', 0),
-        orig_url=r.get('orig_url', r.get('url', '')),
-        js_script_result=r.get('js_script_result'),
-        save=r.get('save'),
+        status_code=resp.get('status_code', 599),
+        url=resp.get('url', ''),
+        headers=CaseInsensitiveDict(resp.get('headers', {})),
+        content=resp.get('content', ''),
+        cookies=resp.get('cookies', {}),
+        error=resp.get('error'),
+        traceback=resp.get('traceback'),
+        time=resp.get('time', 0),
+        orig_url=resp.get('orig_url', resp.get('url', '')),
+        js_script_result=resp.get('js_script_result'),
+        save=resp.get('save'),
     )
     return response
 

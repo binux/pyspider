@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -756,7 +755,7 @@ class Fetcher(object):
                     if self.http_client.free_size() <= 0:
                         break
                     task = self.inqueue.get_nowait()
-                    # FIXME: decode unicode_obj should used after data selete from
+                    # FIXME: decode unicode_obj should used after data select from
                     # database, it's used here for performance
                     task = utils.decode_unicode_obj(task)
                     self.fetch(task)
@@ -780,7 +779,9 @@ class Fetcher(object):
         logger.info("fetcher exiting...")
 
     def quit(self):
-        '''Quit fetcher'''
+        """
+        Quit fetcher
+        """
         self._running = False
         self._quit = True
         self.ioloop.add_callback(self.ioloop.stop)
@@ -796,11 +797,7 @@ class Fetcher(object):
         import umsgpack
 
         from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
-        try:
-            from xmlrpc.client import Binary
-        except ImportError:
-            from xmlrpclib import Binary
-
+        from xmlrpc.client import Binary
         application = WSGIXMLRPCApplication()
 
         application.register_function(self.quit, '_quit')

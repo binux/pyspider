@@ -1,31 +1,32 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-15 22:10:35
 
-import os
-import json
 import copy
-import time
-import socket
-import umsgpack
-import subprocess
-import unittest
-
+import json
 import logging
 import logging.config
+import os
+import socket
+import subprocess
+import time
+import unittest
+
+import umsgpack
+
 logging.config.fileConfig("pyspider/logging.conf")
 
 try:
     from six.moves import xmlrpc_client
 except ImportError:
     import xmlrpclib as xmlrpc_client
+
+from pyspider.fetcher.tornado_fetcher import Fetcher
 from pyspider.libs import utils
 from pyspider.libs.multiprocessing_queue import Queue
 from pyspider.libs.response import rebuild_response
-from pyspider.fetcher.tornado_fetcher import Fetcher
 
 
 class TestFetcher(unittest.TestCase):
@@ -53,8 +54,9 @@ class TestFetcher(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        import tests.data_test_webpage
         import httpbin
+
+        import tests.data_test_webpage
 
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
@@ -442,8 +444,9 @@ class TestSplashFetcher(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        import tests.data_test_webpage
         import httpbin
+
+        import tests.data_test_webpage
 
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, host='0.0.0.0', port=14887, passthrough_errors=False)
         self.httpbin = 'http://' + socket.gethostbyname(socket.gethostname()) + ':14887'
@@ -459,7 +462,7 @@ class TestSplashFetcher(unittest.TestCase):
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
         self.proxy = socket.gethostbyname(socket.gethostname()) + ':14830'
-        
+
     @classmethod
     def tearDownClass(self):
         self.rpc("close")()

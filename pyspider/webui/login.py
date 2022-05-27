@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
@@ -9,10 +8,7 @@ import base64
 
 from flask import Response
 
-try:
-    import flask_login as login
-except ImportError:
-    from flask.ext import login
+import flask_login as login
 
 from .app import app
 
