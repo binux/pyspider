@@ -91,7 +91,7 @@ setup(
         'all': extras_require_all,
         'test': [
             'coverage',
-            'Werkzeug==0.16.1',
+            'Werkzeug==2.1.2',
             'httpbin==0.7.0',
             'pyproxy==0.1.6',
             'easywebdav==1.2.0',
