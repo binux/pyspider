@@ -37,3 +37,4 @@ nosetests.xml
 .project
 .pydevproject
 config.json
+LICENSE

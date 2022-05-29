@@ -671,7 +671,9 @@ class Scheduler(object):
         self._try_dump_cnt()
 
     def run(self):
-        '''Start scheduler loop'''
+        """
+        Start scheduler loop
+        """
         logger.info("scheduler starting...")
 
         while not self._quit:

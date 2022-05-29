@@ -17,18 +17,18 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 import pyspider
 
 install_requires = [
-    'Flask==0.10',
-    'Jinja2==2.7',
+    'Flask==2.1.2',
+    'Flask-Login==0.6.1',
+    'Jinja2==3.1.2',
     'chardet==3.0.4',
     'cssselect==0.9',
     "lxml==4.8.0",
     'pycurl==7.45.1',
     'requests==2.27.1',
-    'Flask-Login==0.2.11',
     'u-msgpack-python==1.6',
-    'click==7.1.2',
-    'six==1.10.0',
-    'tblib==1.4.0',
+    'click==8.1.3',
+    'six==1.16.0',
+    'tblib==1.7.0',
     'wsgidav==2.3.0',
     'tornado>=3.2,<=4.5.3',
     'pyquery',
@@ -39,11 +39,11 @@ extras_require_all = [
     'pymongo==3.9.0',
     'redis==2.10.6',
     'redis-py-cluster==1.3.6',
-    'psycopg2==2.9.3',
+    'psycopg2-binary==2.9.3',
     'elasticsearch==7.10.0',
     'kombu==4.4.0',
     'amqp==2.4.0',
-    'SQLAlchemy==1.3.10',
+    'SQLAlchemy==1.4.36',
     'vine==1.3.0',
     'pika==1.1.0',
 ]
@@ -55,16 +55,15 @@ setup(
     description='A Powerful Spider System in Python',
     long_description=long_description,
 
-    url='https://github.com/binux/pyspider',
+    url='https://github.com/lusi1990/pyspider',
 
-    author='Roy Binux',
-    author_email='roy@binux.me',
+    author='Master Lu',
+    author_email='lusi2114@gmail.com',
 
     license='Apache License, Version 2.0',
 
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',

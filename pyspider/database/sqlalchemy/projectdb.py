@@ -37,17 +37,14 @@ class ProjectDB(BaseProjectDB):
 
         self.url = make_url(url)
         if self.url.database:
-            database = self.url.database
-            self.url.database = None
             try:
-                engine = create_engine(self.url, convert_unicode=True, pool_recycle=3600)
+                engine = create_engine(self.url, pool_recycle=3600)
                 conn = engine.connect()
                 conn.execute("commit")
-                conn.execute("CREATE DATABASE %s" % database)
+                conn.execute("CREATE DATABASE %s" % self.url.database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
-            self.url.database = database
-        self.engine = create_engine(url, convert_unicode=True, pool_recycle=3600)
+        self.engine = create_engine(url, pool_recycle=3600)
         self.table.create(self.engine, checkfirst=True)
 
     @staticmethod

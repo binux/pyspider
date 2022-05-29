@@ -4,7 +4,10 @@
 #         http://binux.me
 # Created on 2015-01-24 13:44:10
 
-from httpbin import app
+# from httpbin import app
+from flask import Flask
+
+app = Flask(__name__)
 
 
 @app.route('/pyspider/test.html')
@@ -26,6 +29,7 @@ def test_page():
 <a href="/stream/20">stream
 '''
 
+
 @app.route('/pyspider/ajax.html')
 def test_ajax():
     return '''
@@ -44,6 +48,7 @@ xhr.open("get", "/get", true);
 xhr.send();
 </script>
 '''
+
 
 @app.route('/pyspider/ajax_click.html')
 def test_ajax_click():

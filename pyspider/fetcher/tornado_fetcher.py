@@ -54,6 +54,7 @@ class MySimpleAsyncHTTPClient(SimpleAsyncHTTPClient):
     def size(self):
         return len(self.active)
 
+
 fetcher_output = {
     "status_code": int,
     "orig_url": str,
@@ -76,8 +77,9 @@ class Fetcher(object):
     }
     phantomjs_proxy = None
     splash_endpoint = None
-    splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
-    robot_txt_age = 60*60  # 1h
+    with  open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua"), encoding="utf-8") as f:
+        splash_lua_source = f.read()
+    robot_txt_age = 60 * 60  # 1h
 
     def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async_mode=True):
         self.inqueue = inqueue
@@ -136,10 +138,10 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
                 type = 'phantomjs'
                 result = yield self.phantomjs_fetch(url, task)
-            elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
+            elif task.get('fetch', {}).get('fetch_type') in ('splash',):
                 type = 'splash'
                 result = yield self.splash_fetch(url, task)
-            elif task.get('fetch', {}).get('fetch_type') in ('puppeteer', ):
+            elif task.get('fetch', {}).get('fetch_type') in ('puppeteer',):
                 type = 'puppeteer'
                 result = yield self.puppeteer_fetch(url, task)
             else:
@@ -807,10 +809,12 @@ class Fetcher(object):
             result = self.sync_fetch(task)
             result = Binary(umsgpack.packb(result))
             return result
+
         application.register_function(sync_fetch, 'fetch')
 
         def dump_counter(_time, _type):
             return self._cnt[_time].to_dict(_type)
+
         application.register_function(dump_counter, 'counter')
 
         import tornado.httpserver

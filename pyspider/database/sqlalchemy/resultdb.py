@@ -35,18 +35,14 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
         self.url = make_url(url)
         if self.url.database:
-            database = self.url.database
-            self.url.database = None
             try:
-                engine = create_engine(self.url, convert_unicode=True, pool_recycle=3600)
+                engine = create_engine(self.url, pool_recycle=3600)
                 conn = engine.connect()
                 conn.execute("commit")
-                conn.execute("CREATE DATABASE %s" % database)
+                conn.execute("CREATE DATABASE %s" % self.url.database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
-            self.url.database = database
-        self.engine = create_engine(url, convert_unicode=True,
-                                    pool_recycle=3600)
+        self.engine = create_engine(url, pool_recycle=3600)
 
         self._list_project()
 
@@ -89,7 +85,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             'result': result,
             'updatetime': time.time(),
         }
-        if self.get(project, taskid, ('taskid', )):
+        if self.get(project, taskid, ('taskid',)):
             del obj['taskid']
             return self.engine.execute(self.table.update()
                                        .where(self.table.c.taskid == taskid)
@@ -107,10 +103,10 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
-                                        .with_only_columns(columns=columns)
-                                        .order_by(self.table.c.updatetime.desc())
-                                        .offset(offset).limit(limit)
-                                        .execution_options(autocommit=True)):
+                                                .with_only_columns(columns=columns)
+                                                .order_by(self.table.c.updatetime.desc())
+                                                .offset(offset).limit(limit)
+                                                .execution_options(autocommit=True)):
             yield self._parse(result2dict(columns, task))
 
     def count(self, project):
@@ -132,7 +128,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
 
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
-                                        .with_only_columns(columns=columns)
-                                        .where(self.table.c.taskid == taskid)
-                                        .limit(1)):
+                                                .with_only_columns(columns=columns)
+                                                .where(self.table.c.taskid == taskid)
+                                                .limit(1)):
             return self._parse(result2dict(columns, task))
