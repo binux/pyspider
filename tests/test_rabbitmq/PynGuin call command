@@ -1,0 +1,5 @@
+pynguin \
+    --project-path /home/hukkenberg/Desktop/pyspider/pyspider/message_queue \
+    --output-path /home/hukkenberg/Desktop/test_rabbitmq \
+    --module-name rabbitmq \
+    -v
