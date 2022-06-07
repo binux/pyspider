@@ -16,7 +16,7 @@ register('umsgpack', umsgpack.packb, umsgpack.unpackb, 'application/x-msgpack')
 enable_insecure_serializers(['umsgpack'])
 
 
-class KombuQueue(object):
+class KombuQueue:
     """
     kombu is a high-level interface for multiple message queue backends.
 
@@ -54,16 +54,14 @@ class KombuQueue(object):
             return 0
 
     def empty(self):
-        if self.qsize() == 0:
+        if self.qsize():
             return True
-        else:
-            return False
+        return False
 
     def full(self):
         if self.maxsize and self.qsize() >= self.maxsize:
             return True
-        else:
-            return False
+        return False
 
     def put(self, obj, block=True, timeout=None):
         if not block:

@@ -41,11 +41,11 @@ extras_require_all = [
     'redis-py-cluster==1.3.6',
     'psycopg2-binary==2.9.3',
     'elasticsearch==7.10.0',
-    'kombu==4.4.0',
-    'amqp==2.4.0',
+    'kombu>=5.2.4,<6',
+    'amqp>=5.1.1,<6',
     'SQLAlchemy==1.4.36',
-    'vine==1.3.0',
-    'pika==1.1.0',
+    'vine==5.0.0',
+    'pika==1.2.1',
 ]
 
 setup(
