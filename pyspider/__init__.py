@@ -4,4 +4,4 @@
 #         http://binux.me
 # Created on 2014-11-17 19:17:12
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
