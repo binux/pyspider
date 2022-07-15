@@ -22,7 +22,7 @@ RUN npm install puppeteer express
 
 # install requirements
 COPY requirements.txt /opt/pyspider/requirements.txt
-RUN pip install -r /opt/pyspider/requirements.txt
+RUN pip install  --no-cache-dir  -r /opt/pyspider/requirements.txt
 
 # add all repo
 ADD ./ /opt/pyspider
