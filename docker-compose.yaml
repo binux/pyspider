@@ -1,0 +1,105 @@
+version: "3.7"
+
+# replace /path/to/dir/ to point to config.json
+
+# The RabbitMQ and CouchDB services can take some time to startup.
+# During this time most of the pyspider services will exit and restart.
+# Once RabbitMQ and CouchDB are fully up and running everything should run as normal.
+
+services:
+  rabbitmq:
+    image: rabbitmq:alpine
+    container_name: rabbitmq
+    networks:
+      - pyspider
+    command: rabbitmq-server
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    volumes:
+      - /tmp:/var/lib/mysql
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - pyspider
+  phantomjs:
+    image: pyspider:latest
+    container_name: phantomjs
+    networks:
+      - pyspider
+    volumes:
+      - ./config_example.json:/opt/pyspider/config.json
+    command: -c config.json phantomjs
+    depends_on:
+      - couchdb
+      - rabbitmq
+    restart: unless-stopped
+  result:
+    image: pyspider:latest
+    container_name: result
+    networks:
+      - pyspider
+    volumes:
+      - ./config_example.json:/opt/pyspider/config.json
+    command: -c config.json result_worker
+    depends_on:
+      - couchdb
+      - rabbitmq
+    restart: unless-stopped # Sometimes we'll get a connection refused error because couchdb has yet to fully start
+  processor:
+    container_name: processor
+    image: pyspider:latest
+    networks:
+      - pyspider
+    volumes:
+      - ./config_example.json:/opt/pyspider/config.json
+    command: -c config.json processor
+    depends_on:
+      - couchdb
+      - rabbitmq
+    restart: unless-stopped
+  fetcher:
+    image: pyspider:latest
+    container_name: fetcher
+    networks:
+      - pyspider
+    volumes:
+      - ./config_example.json:/opt/pyspider/config.json
+    command : -c config.json fetcher
+    depends_on:
+      - couchdb
+      - rabbitmq
+    restart: unless-stopped
+  scheduler:
+    image: pyspider:latest
+    container_name: scheduler
+    networks:
+      - pyspider
+    volumes:
+      - ./config_example.json:/opt/pyspider/config.json
+    command: -c config.json scheduler
+    depends_on:
+      - couchdb
+      - rabbitmq
+    restart: unless-stopped
+  webui:
+    image: pyspider:latest
+    container_name: webui
+    ports:
+      - "5050:5000"
+    networks:
+      - pyspider
+    volumes:
+      - ./config_example.json:/opt/pyspider/config.json
+    command: -c config.json webui
+    depends_on:
+      - couchdb
+      - rabbitmq
+    restart: unless-stopped
+
+networks:
+  pyspider:
+    external:
+      name: pyspider
+  default:
+    driver: bridge

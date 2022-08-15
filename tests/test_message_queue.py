@@ -8,7 +8,7 @@
 import os
 import six
 import time
-import unittest2 as unittest
+import unittest
 
 from pyspider.libs import utils
 from six.moves import queue as Queue
@@ -73,7 +73,7 @@ class BuiltinQueue(TestMessageQueue, unittest.TestCase):
             self.q3 = connect_message_queue('test_queue_for_threading_test')
 
 
-@unittest.skipIf(six.PY3, 'pika not suport python 3')
+#@unittest.skipIf(six.PY3, 'pika not suport python 3')
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
 
@@ -115,6 +115,7 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
             self.q1.put('TEST_DATA6', timeout=0.01)
 
 
+@unittest.skipIf(six.PY3, 'Python 3 now using Pika')
 @unittest.skipIf(os.environ.get('IGNORE_RABBITMQ') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
 class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
 
@@ -158,36 +159,6 @@ class TestAmqpRabbitMQ(TestMessageQueue, unittest.TestCase):
         with self.assertRaises(Queue.Full):
             self.q1.put_nowait('TEST_DATA6')
 
-#@unittest.skipIf(True, "beanstalk queue can't pass the test currently")
-@unittest.skipIf(six.PY3, 'beanstalkc not suport python 3')
-@unittest.skipIf(os.environ.get('IGNORE_BEANSTALK') or os.environ.get('IGNORE_ALL'), 'no beanstalk server for test.')
-class TestBeansTalkQueue(TestMessageQueue, unittest.TestCase):
-
-    @classmethod
-    def setUpClass(self):
-        from pyspider.message_queue import connect_message_queue
-        with utils.timeout(3):
-            self.q1 = connect_message_queue('test_queue', 'beanstalk://localhost:11300',
-                                            maxsize=5)
-            self.q2 = connect_message_queue('test_queue', 'beanstalk://localhost:11300',
-                                            maxsize=5)
-            self.q3 = connect_message_queue('test_queue_for_threading_test',
-                                            'beanstalk://localhost:11300')
-            while not self.q1.empty():
-                self.q1.get()
-            while not self.q2.empty():
-                self.q2.get()
-            while not self.q3.empty():
-                self.q3.get()
-
-    @classmethod
-    def tearDownClass(self):
-        while not self.q1.empty():
-            self.q1.get()
-        while not self.q2.empty():
-            self.q2.get()
-        while not self.q3.empty():
-            self.q3.get()
 
 @unittest.skipIf(os.environ.get('IGNORE_REDIS') or os.environ.get('IGNORE_ALL'), 'no redis server for test.')
 class TestRedisQueue(TestMessageQueue, unittest.TestCase):
@@ -256,11 +227,6 @@ class TestKombuAmpqQueue(TestKombuQueue):
 class TestKombuRedisQueue(TestKombuQueue):
     kombu_url = 'kombu+redis://'
 
-@unittest.skip('test cannot pass, get is buffered')
-@unittest.skipIf(os.environ.get('IGNORE_BEANSTALK') or os.environ.get('IGNORE_ALL'), 'no beanstalk server for test.')
-class TestKombuBeanstalkQueue(TestKombuQueue):
-    kombu_url = 'kombu+beanstalk://'
-
-@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no rabbitmq server for test.')
+@unittest.skipIf(os.environ.get('IGNORE_MONGODB') or os.environ.get('IGNORE_ALL'), 'no mongodb server for test.')
 class TestKombuMongoDBQueue(TestKombuQueue):
     kombu_url = 'kombu+mongodb://'

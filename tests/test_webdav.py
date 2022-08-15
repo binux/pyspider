@@ -11,7 +11,7 @@ import six
 import time
 import shutil
 import inspect
-import unittest2 as unittest
+import unittest
 
 from six import BytesIO
 from pyspider import run

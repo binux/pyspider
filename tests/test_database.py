@@ -10,7 +10,7 @@ from __future__ import unicode_literals, division
 import os
 import six
 import time
-import unittest2 as unittest
+import unittest
 
 from pyspider import database
 from pyspider.database.base.taskdb import TaskDB
@@ -84,6 +84,7 @@ class TaskDBCase(object):
 
     def test_25_get_task(self):
         task = self.taskdb.get_task('project', 'taskid2')
+        self.assertIsNotNone(task)
         self.assertEqual(task['taskid'], 'taskid2')
         self.assertEqual(task['project'], self.sample_task['project'])
         self.assertEqual(task['url'], self.sample_task['url'])
@@ -253,6 +254,7 @@ class ResultDBCase(object):
     def test_10_save(self):
         self.resultdb.save('test_project', 'test_taskid', 'test_url', 'result')
         result = self.resultdb.get('test_project', 'test_taskid')
+        self.assertIsNotNone(result)
         self.assertEqual(result['result'], 'result')
 
         self.resultdb.save('test_project', 'test_taskid', 'test_url_updated', 'result_updated')
@@ -268,6 +270,7 @@ class ResultDBCase(object):
         self.assertIsNone(result)
 
         result = self.resultdb.get('test_project', 'test_taskid', fields=('url', ))
+        self.assertIsNotNone(result)
         self.assertIn('url', result)
         self.assertNotIn('result', result)
 
@@ -332,6 +335,7 @@ class TestSqliteTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('sqlite+taskdb://')
+        self.assertIsNotNone(self, self.taskdb)
 
     @classmethod
     def tearDownClass(self):
@@ -343,6 +347,7 @@ class TestSqliteProjectDB(ProjectDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.projectdb = database.connect_database('sqlite+projectdb://')
+        self.assertIsNotNone(self, self.projectdb)
 
     @classmethod
     def tearDownClass(self):
@@ -354,6 +359,7 @@ class TestSqliteResultDB(ResultDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.resultdb = database.connect_database('sqlite+resultdb://')
+        self.assertIsNotNone(self, self.resultdb)
 
     @classmethod
     def tearDownClass(self):
@@ -366,6 +372,7 @@ class TestMysqlTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('mysql+taskdb://localhost/pyspider_test_taskdb')
+        self.assertIsNotNone(self, self.taskdb)
 
     @classmethod
     def tearDownClass(self):
@@ -380,6 +387,7 @@ class TestMysqlProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'mysql+projectdb://localhost/pyspider_test_projectdb'
         )
+        self.assertIsNotNone(self, self.projectdb)
 
     @classmethod
     def tearDownClass(self):
@@ -394,6 +402,7 @@ class TestMysqlResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'mysql+resultdb://localhost/pyspider_test_resultdb'
         )
+        self.assertIsNotNone(self, self.resultdb)
 
     @classmethod
     def tearDownClass(self):
@@ -408,6 +417,7 @@ class TestMongoDBTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'mongodb+taskdb://localhost:27017/pyspider_test_taskdb'
         )
+        self.assertIsNotNone(self, self.taskdb)
 
     @classmethod
     def tearDownClass(self):
@@ -427,6 +437,7 @@ class TestMongoDBProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'mongodb+projectdb://localhost/pyspider_test_projectdb'
         )
+        self.assertIsNotNone(self, self.projectdb)
 
     @classmethod
     def tearDownClass(self):
@@ -441,6 +452,7 @@ class TestMongoDBResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'mongodb+resultdb://localhost/pyspider_test_resultdb'
         )
+        self.assertIsNotNone(self, self.resultdb)
 
     @classmethod
     def tearDownClass(self):
@@ -460,6 +472,7 @@ class TestSQLAlchemyMySQLTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'sqlalchemy+mysql+mysqlconnector+taskdb://root@localhost/pyspider_test_taskdb'
         )
+        self.assertIsNotNone(self, self.taskdb)
 
     @classmethod
     def tearDownClass(self):
@@ -474,6 +487,7 @@ class TestSQLAlchemyMySQLProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'sqlalchemy+mysql+mysqlconnector+projectdb://root@localhost/pyspider_test_projectdb'
         )
+        self.assertIsNotNone(self, self.projectdb)
 
     @classmethod
     def tearDownClass(self):
@@ -488,6 +502,7 @@ class TestSQLAlchemyMySQLResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'sqlalchemy+mysql+mysqlconnector+resultdb://root@localhost/pyspider_test_resultdb'
         )
+        self.assertIsNotNone(self, self.resultdb)
 
     @classmethod
     def tearDownClass(self):
@@ -501,6 +516,7 @@ class TestSQLAlchemyTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'sqlalchemy+sqlite+taskdb://'
         )
+        self.assertIsNotNone(self, self.taskdb)
 
     @classmethod
     def tearDownClass(self):
@@ -514,6 +530,7 @@ class TestSQLAlchemyProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'sqlalchemy+sqlite+projectdb://'
         )
+        self.assertIsNotNone(self, self.projectdb)
 
     @classmethod
     def tearDownClass(self):
@@ -527,6 +544,7 @@ class TestSQLAlchemyResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'sqlalchemy+sqlite+resultdb://'
         )
+        self.assertIsNotNone(self, self.resultdb)
 
     @classmethod
     def tearDownClass(self):
@@ -541,6 +559,7 @@ class TestPGTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'sqlalchemy+postgresql+taskdb://postgres@127.0.0.1:5432/pyspider_test_taskdb'
         )
+        self.assertIsNotNone(self, self.taskdb)
         self.tearDownClass()
 
     @classmethod
@@ -557,6 +576,7 @@ class TestPGProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'sqlalchemy+postgresql+projectdb://postgres@127.0.0.1:5432/pyspider_test_projectdb'
         )
+        self.assertIsNotNone(self, self.projectdb)
         self.tearDownClass()
 
     @classmethod
@@ -573,6 +593,7 @@ class TestPGResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
                 'sqlalchemy+postgresql+resultdb://postgres@127.0.0.1/pyspider_test_resultdb'
         )
+        self.assertIsNotNone(self, self.resultdb)
         self.tearDownClass()
 
     @classmethod
@@ -587,6 +608,7 @@ class TestRedisTaskDB(TaskDBCase, unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.taskdb = database.connect_database('redis+taskdb://localhost:6379/15')
+        self.assertIsNotNone(self, self.taskdb)
         self.taskdb.__prefix__ = 'testtaskdb_'
 
     @classmethod
@@ -603,6 +625,7 @@ class TestESProjectDB(ProjectDBCase, unittest.TestCase):
         self.projectdb = database.connect_database(
             'elasticsearch+projectdb://127.0.0.1:9200/?index=test_pyspider_projectdb'
         )
+        self.assertIsNotNone(self, self.projectdb)
         assert self.projectdb.index == 'test_pyspider_projectdb'
 
     @classmethod
@@ -618,6 +641,7 @@ class TestESResultDB(ResultDBCase, unittest.TestCase):
         self.resultdb = database.connect_database(
             'elasticsearch+resultdb://127.0.0.1:9200/?index=test_pyspider_resultdb'
         )
+        self.assertIsNotNone(self, self.resultdb)
         assert self.resultdb.index == 'test_pyspider_resultdb'
 
     @classmethod
@@ -659,11 +683,77 @@ class TestESTaskDB(TaskDBCase, unittest.TestCase):
         self.taskdb = database.connect_database(
             'elasticsearch+taskdb://127.0.0.1:9200/?index=test_pyspider_taskdb'
         )
+        self.assertIsNotNone(self, self.taskdb)
         assert self.taskdb.index == 'test_pyspider_taskdb'
 
     @classmethod
     def tearDownClass(self):
         self.taskdb.es.indices.delete(index='test_pyspider_taskdb', ignore=[400, 404])
+
+
+@unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+class TestCouchDBProjectDB(ProjectDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        # create a test admin user
+        self.projectdb = database.connect_database(
+            'couchdb+projectdb://localhost:5984/'
+        )
+        self.assertIsNotNone(self, self.projectdb)
+
+    @classmethod
+    def tearDownClass(self):
+        # remove the test admin user
+        self.projectdb.drop_database()
+
+
+@unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+class TestCouchDBResultDB(ResultDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        # create a test admin user
+        self.resultdb = database.connect_database(
+            'couchdb+resultdb://localhost:5984/'
+        )
+        self.assertIsNotNone(self, self.resultdb)
+
+    @classmethod
+    def tearDownClass(self):
+        # remove the test admin user
+        self.resultdb.drop_database()
+
+    def test_create_project(self):
+        self.assertNotIn('test_create_project', self.resultdb.projects)
+        self.resultdb._create_project('test_create_project')
+        self.assertIn('test_create_project', self.resultdb.projects)
+
+
+@unittest.skipIf(os.environ.get('IGNORE_COUCHDB') or os.environ.get('IGNORE_ALL'), 'no couchdb server for test.')
+class TestCouchDBTaskDB(TaskDBCase, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(self):
+        # create a test admin user
+        import requests
+        self.taskdb = database.connect_database(
+            'couchdb+taskdb://localhost:5984/'
+        )
+        self.assertIsNotNone(self, self.taskdb)
+
+    @classmethod
+    def tearDownClass(self):
+        # remove the test admin user
+        import requests
+        from requests.auth import HTTPBasicAuth
+        self.taskdb.drop_database()
+
+    def test_create_project(self):
+        self.assertNotIn('test_create_project', self.taskdb.projects)
+        self.taskdb._create_project('test_create_project')
+        self.assertIn('test_create_project', self.taskdb.projects)
+
 
 if __name__ == '__main__':
     unittest.main()

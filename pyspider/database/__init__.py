@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
+import os, requests, json
 from six.moves.urllib.parse import urlparse, parse_qs
 
 
@@ -32,6 +33,8 @@ def connect_database(url):
         redis+taskdb://host:port/db
     elasticsearch:
         elasticsearch+type://host:port/?index=pyspider
+    couchdb:
+        couchdb+type://[username:password@]host[:port]
     local:
         local+projectdb://filepath,filepath
 
@@ -88,6 +91,9 @@ def _connect_database(url):  # NOQA
             raise LookupError('not supported dbtype: %s', dbtype)
     elif engine == 'elasticsearch' or engine == 'es':
         return _connect_elasticsearch(parsed, dbtype)
+
+    elif engine == 'couchdb':
+        return _connect_couchdb(parsed, dbtype, url)
 
     else:
         raise Exception('unknown engine: %s' % engine)
@@ -198,3 +204,27 @@ def _connect_elasticsearch(parsed, dbtype):
     elif dbtype == 'taskdb':
         from .elasticsearch.taskdb import TaskDB
         return TaskDB([parsed.netloc], index=index)
+
+
+def _connect_couchdb(parsed, dbtype, url):
+    if os.environ.get('COUCHDB_HTTPS'):
+        url = "https://" + parsed.netloc + "/"
+    else:
+        url = "http://" + parsed.netloc + "/"
+    params = {}
+
+    # default to env, then url, then hard coded
+    params['username'] = os.environ.get('COUCHDB_USER') or parsed.username
+    params['password'] = os.environ.get('COUCHDB_PASSWORD') or parsed.password
+
+    if dbtype == 'taskdb':
+        from .couchdb.taskdb import TaskDB
+        return TaskDB(url, **params)
+    elif dbtype == 'projectdb':
+        from .couchdb.projectdb import ProjectDB
+        return ProjectDB(url, **params)
+    elif dbtype == 'resultdb':
+        from .couchdb.resultdb import ResultDB
+        return ResultDB(url, **params)
+    else:
+        raise LookupError

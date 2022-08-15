@@ -229,7 +229,7 @@ class AmqpQueue(PikaQueue):
                                           userid=parsed.username or 'guest',
                                           password=parsed.password or 'guest',
                                           virtual_host=unquote(
-                                              parsed.path.lstrip('/') or '%2F'))
+                                              parsed.path.lstrip('/') or '%2F')).connect()
         self.channel = self.connection.channel()
         try:
             self.channel.queue_declare(self.name)
@@ -267,4 +267,4 @@ class AmqpQueue(PikaQueue):
                 self.channel.basic_ack(message.delivery_tag)
         return umsgpack.unpackb(message.body)
 
-Queue = AmqpQueue
+Queue = PikaQueue

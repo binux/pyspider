@@ -1,33 +1,30 @@
-sudo: required
 language: python
 cache: pip
 python:
-    - "2.6"
-    - "2.7"
-    - "3.3"
-    - "3.4"
-    - "3.5"
-    - "3.6"
+  - 3.5
+  - 3.6
+  - 3.7
+  #- 3.8
 services:
     - docker
     - mongodb
     - rabbitmq
-    - redis-server
-    #- elasticsearch
+    - redis
+    - mysql
+    # - elasticsearch
     - postgresql
 addons:
   postgresql: "9.4"
   apt:
     packages:
-    - mysql-server-5.6
-    - mysql-client-core-5.6
-    - mysql-client-5.6
+    - rabbitmq-server
+env:
+    - IGNORE_COUCHDB=1
+
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -y beanstalkd
-    - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
-    - sudo service beanstalkd start
     - curl -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.4.0/elasticsearch-2.4.0.deb && sudo dpkg -i --force-confnew elasticsearch-2.4.0.deb && sudo service elasticsearch restart
+    - npm install express puppeteer
     - sudo docker pull scrapinghub/splash
     - sudo docker run -d --net=host scrapinghub/splash
 before_script:
@@ -36,10 +33,9 @@ before_script:
     - psql -c "CREATE DATABASE pyspider_test_resultdb ENCODING 'UTF8' TEMPLATE=template0;" -U postgres
     - sleep 10
 install:
-    - pip install mysql-connector-python
     - pip install https://github.com/marcus67/easywebdav/archive/master.zip
-    - pip install --no-use-wheel lxml
-    - pip install --allow-all-external -e .[all,test]
+    - sudo apt-get install libgnutls28-dev
+    - pip install -e .[all,test]
     - pip install coveralls
 script:
     - coverage run setup.py test

@@ -1,0 +1,13 @@
+{
+  "taskdb": "couchdb+taskdb://user:password@couchdb:5984",
+  "projectdb": "couchdb+projectdb://user:password@couchdb:5984",
+  "resultdb": "couchdb+resultdb://user:password@couchdb:5984",
+  "message_queue": "amqp://rabbitmq:5672/%2F",
+  "webui": {
+    "username": "username",
+    "password": "password",
+    "need-auth": true,
+    "scheduler-rpc": "http://scheduler:23333",
+    "fetcher-rpc": "http://fetcher:24444"
+  }
+}

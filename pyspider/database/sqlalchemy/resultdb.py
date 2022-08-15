@@ -12,7 +12,7 @@ import json
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column,
-                        String, Float, LargeBinary)
+                        String, Float, Text)
 from sqlalchemy.engine.url import make_url
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.libs import utils
@@ -26,7 +26,7 @@ class ResultDB(SplitTableMixin, BaseResultDB):
         self.table = Table('__tablename__', MetaData(),
                            Column('taskid', String(64), primary_key=True, nullable=False),
                            Column('url', String(1024)),
-                           Column('result', LargeBinary),
+                           Column('result', Text()),
                            Column('updatetime', Float(32)),
                            mysql_engine='InnoDB',
                            mysql_charset='utf8'
@@ -62,15 +62,19 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             if isinstance(value, six.binary_type):
                 data[key] = utils.text(value)
         if 'result' in data:
-            if isinstance(data['result'], bytearray):
-                data['result'] = str(data['result'])
-            data['result'] = json.loads(data['result'])
+            if data['result']:
+                data['result'] = json.loads(data['result'])
+            else:
+                data['result'] = {}
         return data
 
     @staticmethod
     def _stringify(data):
         if 'result' in data:
-            data['result'] = utils.utf8(json.dumps(data['result']))
+            if data['result']:
+                data['result'] = json.dumps(data['result'])
+            else:
+                data['result'] = json.dumps({})
         return data
 
     def save(self, project, taskid, url, result):
