@@ -3,7 +3,7 @@ Jinja2==2.7
 chardet==3.0.4
 cssselect==0.9
 lxml==4.3.3
-pycurl==7.43.0.3
+pycurl==7.43.0.1
 pyquery==1.4.0
 requests==2.24.0
 tornado==4.5.3
