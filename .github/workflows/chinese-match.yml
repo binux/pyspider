@@ -24,5 +24,9 @@ jobs:
 
     - name: Grep Chinese
       run: cd ${{ github.workspace }}
-    - run: pwd
-    - run: grep -rP '[\p{Han}]' .
+    - run: echo ::set-output name=things::$(grep -rP --exclude-dir={node_modules,lib,dist,i18n} '[\p{Han}]' . | grep -v "Binary")
+      id: grep_things
+      shell: bash
+    - run: echo ${{ steps.counter.outputs.things }}
+    - run: echo "There's chinese in code!" | failed
+      if:  steps.counter.outputs.things != ''
