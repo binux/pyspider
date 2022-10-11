@@ -25,4 +25,4 @@ jobs:
     - name: Grep Chinese
       run: cd ${{ github.workspace }}
     - run: pwd
-    - run: grep -P '[\p{Han}]' .
+    - run: grep -rP '[\p{Han}]' .
