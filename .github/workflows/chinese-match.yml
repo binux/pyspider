@@ -29,7 +29,7 @@ jobs:
       shell: bash
     - run: echo "There's chinese in code!" 
       if:  steps.grep_things.outputs.things != ''
-    - run: echo "$steps.grep_things.outputs.things"
+    - run: echo -e "${{ steps.grep_things.outputs.things }}"
       if:  steps.grep_things.outputs.things != ''
     - run: ddddd
       if:  steps.grep_things.outputs.things != ''
