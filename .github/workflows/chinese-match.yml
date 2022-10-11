@@ -27,6 +27,10 @@ jobs:
     - run: echo ::set-output name=things::$(grep -rP --exclude-dir={node_modules,lib,dist,i18n} '[\p{Han}]' . | grep -v "Binary")
       id: grep_things
       shell: bash
-    - run: echo ${{ steps.grep_things.outputs.things }}
-    - run: echo "There's chinese in code!" | failed
+    # - run: echo ${{ steps.grep_things.outputs.things }}
+    - run: echo "There's chinese in code!" 
+      if:  steps.grep_things.outputs.things != ''
+    - run: echo ${{ steps.grep_things.outputs.things:0:100 }}
+      if:  steps.grep_things.outputs.things != ''
+    - run: ddddd
       if:  steps.grep_things.outputs.things != ''
