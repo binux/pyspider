@@ -1,0 +1,28 @@
+name: "chinese-match"
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '15 12 * * *'
+
+jobs:
+  chinese-match:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: true
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Grep Chinese
+      run: cd ${{ github.workspace }}
+    - run: pwd
+    - run: grep -P '[\p{Han}]' .
