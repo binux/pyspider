@@ -30,7 +30,7 @@ jobs:
     # - run: echo ${{ steps.grep_things.outputs.things }}
     - run: echo "There's chinese in code!" 
       if:  steps.grep_things.outputs.things != ''
-    - run: echo ${{ steps.grep_things.outputs.things:0:100 }}
+    - run: echo ${{ steps.grep_things.outputs.things }}
       if:  steps.grep_things.outputs.things != ''
     - run: ddddd
       if:  steps.grep_things.outputs.things != ''
