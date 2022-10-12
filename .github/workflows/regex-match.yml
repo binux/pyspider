@@ -1,4 +1,4 @@
-name: "chinese-match"
+name: "regex-match"
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     - cron: '15 12 * * *'
 
 jobs:
-  chinese-match:
-    name: Analyze
+  regex-match:
+    name: regex-match
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -22,14 +22,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Grep Chinese
+    - name: Grep regex
       run: cd ${{ github.workspace }}
     - run: echo ::set-output name=things::$(grep -rP --exclude-dir={node_modules,lib,dist,i18n} '[\p{Han}]' . | grep -v "Binary")
       id: grep_things
       shell: bash
-    - run: echo "There's chinese in code!" 
+    - run: echo "There's words in code match regex!" 
       if:  steps.grep_things.outputs.things != ''
     - run: echo -e "${{ steps.grep_things.outputs.things }}"
       if:  steps.grep_things.outputs.things != ''
-    - run: ddddd
+    - run: fail_and_warn
       if:  steps.grep_things.outputs.things != ''
