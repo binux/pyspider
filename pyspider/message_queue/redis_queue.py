@@ -11,7 +11,7 @@ import umsgpack
 from six.moves import queue as BaseQueue
 
 
-class RedisQueue(object):
+class RedisQueue():
     """
     A Queue like message built over redis
     """
@@ -31,7 +31,7 @@ class RedisQueue(object):
                     for better performance.
         """
         self.name = name
-        if(cluster_nodes is not None):
+        if cluster_nodes is not None:
             from rediscluster import StrictRedisCluster
             self.redis = StrictRedisCluster(startup_nodes=cluster_nodes)
         else:
@@ -47,14 +47,12 @@ class RedisQueue(object):
     def empty(self):
         if self.qsize() == 0:
             return True
-        else:
-            return False
+        return False
 
     def full(self):
         if self.maxsize and self.qsize() >= self.maxsize:
             return True
-        else:
-            return False
+        return False
 
     def put_nowait(self, obj):
         if self.lazy_limit and self.last_qsize < self.maxsize:

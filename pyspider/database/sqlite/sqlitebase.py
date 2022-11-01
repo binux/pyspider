@@ -11,7 +11,7 @@ import sqlite3
 import threading
 
 
-class SQLiteMixin(object):
+class SQLiteMixin():
 
     @property
     def dbcur(self):
@@ -22,14 +22,13 @@ class SQLiteMixin(object):
         return self.conn.cursor()
 
 
-class SplitTableMixin(object):
+class SplitTableMixin():
     UPDATE_PROJECTS_TIME = 10 * 60
 
     def _tablename(self, project):
         if self.__tablename__:
             return '%s_%s' % (self.__tablename__, project)
-        else:
-            return project
+        return project
 
     @property
     def projects(self):

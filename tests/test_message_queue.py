@@ -6,15 +6,15 @@
 # Created on 2014-10-07 10:33:38
 
 import os
-import six
 import time
 import unittest
+import six
 
-from pyspider.libs import utils
 from six.moves import queue as Queue
+from pyspider.libs import utils
 
 
-class TestMessageQueue(object):
+class TestMessageQueue():
 
     @classmethod
     def setUpClass(self):
@@ -41,9 +41,9 @@ class TestMessageQueue(object):
         self.assertEqual(self.q1.qsize(), 0)
         self.assertEqual(self.q2.qsize(), 0)
         for i in range(2):
-            self.q1.put_nowait('TEST_DATA%d' % i)
+            self.q1.put_nowait(f'TEST_DATA{i}')
         for i in range(3):
-            self.q2.put('TEST_DATA%d' % i)
+            self.q2.put(f'TEST_DATA{i}')
 
         with self.assertRaises(Queue.Full):
             self.q1.put('TEST_DATA6', timeout=0.01)
@@ -101,9 +101,9 @@ class TestPikaRabbitMQ(TestMessageQueue, unittest.TestCase):
         self.assertEqual(self.q1.qsize(), 0)
         self.assertEqual(self.q2.qsize(), 0)
         for i in range(2):
-            self.q1.put_nowait('TEST_DATA%d' % i)
+            self.q1.put_nowait(f'TEST_DATA{i}')
         for i in range(3):
-            self.q2.put('TEST_DATA%d' % i)
+            self.q2.put(f'TEST_DATA{i}')
 
         print(self.q1.__dict__)
         print(self.q1.qsize())

@@ -7,11 +7,9 @@
 
 import os
 import sys
-import six
 import time
 import shutil
 import inspect
-import unittest
 
 from six import BytesIO
 from pyspider import run

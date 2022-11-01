@@ -8,12 +8,12 @@
 
 import os
 import sys
-import six
 import copy
 import time
 import shutil
 import logging
 import logging.config
+import six
 
 import click
 import pyspider

@@ -56,7 +56,7 @@
 }
 
 
-class TaskDB(object):
+class TaskDB():
     ACTIVE = 1
     SUCCESS = 2
     FAILED = 3

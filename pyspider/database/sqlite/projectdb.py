@@ -7,9 +7,10 @@
 
 import time
 
-from .sqlitebase import SQLiteMixin
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from pyspider.database.basedb import BaseDB
+from .sqlitebase import SQLiteMixin
+
 
 
 class ProjectDB(SQLiteMixin, BaseProjectDB, BaseDB):

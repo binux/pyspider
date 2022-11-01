@@ -6,9 +6,9 @@
 # Created on 2014-12-04 18:48:15
 
 import re
-import six
 import time
 import json
+import six
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column,
@@ -93,9 +93,8 @@ class ResultDB(SplitTableMixin, BaseResultDB):
             return self.engine.execute(self.table.update()
                                        .where(self.table.c.taskid == taskid)
                                        .values(**self._stringify(obj)))
-        else:
-            return self.engine.execute(self.table.insert()
-                                       .values(**self._stringify(obj)))
+        return self.engine.execute(self.table.insert()
+                                   .values(**self._stringify(obj)))
 
     def select(self, project, fields=None, offset=0, limit=None):
         if project not in self.projects:

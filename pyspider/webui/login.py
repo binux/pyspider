@@ -6,11 +6,11 @@
 # Created on 2014-12-10 20:36:27
 
 import base64
-from flask import Response
 try:
     import flask_login as login
 except ImportError:
     from flask.ext import login
+from flask import Response
 from .app import app
 
 login_manager = login.LoginManager()

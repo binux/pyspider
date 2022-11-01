@@ -10,22 +10,25 @@ import json
 import copy
 import time
 import socket
-import umsgpack
 import subprocess
 import unittest
 
 import logging
 import logging.config
+import umsgpack
+
+from pyspider.libs import utils
+from pyspider.libs.multiprocessing_queue import Queue
+from pyspider.libs.response import rebuild_response
+from pyspider.fetcher.tornado_fetcher import Fetcher
+
 logging.config.fileConfig("pyspider/logging.conf")
 
 try:
     from six.moves import xmlrpc_client
 except ImportError:
     import xmlrpclib as xmlrpc_client
-from pyspider.libs import utils
-from pyspider.libs.multiprocessing_queue import Queue
-from pyspider.libs.response import rebuild_response
-from pyspider.fetcher.tornado_fetcher import Fetcher
+
 
 
 class TestFetcher(unittest.TestCase):
@@ -173,7 +176,7 @@ class TestFetcher(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200, response.error)
         self.assertIsNotNone(response.json, response.content)
-        self.assertIn(u'中文', response.json['form'], response.json)
+        self.assertIn('中文', response.json['form'], response.json)
 
     def test_55_base64_data(self):
         request = copy.deepcopy(self.sample_task_http)
@@ -459,7 +462,7 @@ class TestSplashFetcher(unittest.TestCase):
                                               '--password=123456', '--port=14830',
                                               '--debug'], close_fds=True)
         self.proxy = socket.gethostbyname(socket.gethostname()) + ':14830'
-        
+
     @classmethod
     def tearDownClass(self):
         self.rpc("close")()

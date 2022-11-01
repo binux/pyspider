@@ -7,9 +7,10 @@
 
 import os
 import re
-import six
 import glob
 import logging
+import six
+
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
@@ -44,7 +45,7 @@ class ProjectDB(BaseProjectDB):
 
     def _build_project(self, filename):
         try:
-            with open(filename) as fp:
+            with open(filename, encoding='utf-8') as fp:
                 script = fp.read()
             m = self.rate_re.search(script)
             if m:

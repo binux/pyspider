@@ -6,21 +6,22 @@
 # Created on 2014-02-16 22:24:20
 
 import os
-import six
 import sys
-import imp
+import importlib
 import time
 import weakref
 import logging
 import inspect
 import traceback
 import linecache
+import six
+
 from pyspider.libs import utils
 from pyspider.libs.log import SaveLogHandler, LogFormatter
 logger = logging.getLogger("processor")
 
 
-class ProjectManager(object):
+class ProjectManager():
     """
     load projects from projectdb, update project
     """
@@ -97,11 +98,11 @@ class ProjectManager(object):
         '''Check if project_name need update'''
         if project_name not in self.projects:
             return True
-        elif md5sum and md5sum != self.projects[project_name]['info'].get('md5sum'):
+        if md5sum and md5sum != self.projects[project_name]['info'].get('md5sum'):
             return True
-        elif updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
+        if updatetime and updatetime > self.projects[project_name]['info'].get('updatetime', 0):
             return True
-        elif time.time() - self.projects[project_name]['load_time'] > self.RELOAD_PROJECT_INTERVAL:
+        if time.time() - self.projects[project_name]['load_time'] > self.RELOAD_PROJECT_INTERVAL:
             return True
         return False
 
@@ -154,7 +155,7 @@ class ProjectManager(object):
         return self.projects.get(project_name, None)
 
 
-class ProjectLoader(object):
+class ProjectLoader():
     '''ProjectLoader class for sys.meta_path'''
 
     def __init__(self, project, mod=None):
@@ -165,7 +166,7 @@ class ProjectLoader(object):
 
     def load_module(self, fullname):
         if self.mod is None:
-            self.mod = mod = imp.new_module(fullname)
+            self.mod = mod = importlib.new_module(fullname)
         else:
             mod = self.mod
         mod.__file__ = '<%s>' % self.name
@@ -193,7 +194,7 @@ class ProjectLoader(object):
 
 
 if six.PY2:
-    class ProjectFinder(object):
+    class ProjectFinder():
         '''ProjectFinder class for sys.meta_path'''
 
         def __init__(self, projectdb):
@@ -216,7 +217,7 @@ if six.PY2:
                     return ProjectLoader(info)
 
         def load_module(self, fullname):
-            mod = imp.new_module(fullname)
+            mod = importlib.new_module(fullname)
             mod.__file__ = '<projects>'
             mod.__loader__ = self
             mod.__path__ = ['<projects>']
@@ -257,7 +258,7 @@ else:
 
     class ProjectsLoader(importlib.abc.InspectLoader):
         def load_module(self, fullname):
-            mod = imp.new_module(fullname)
+            mod = importlib.new_module(fullname)
             mod.__file__ = '<projects>'
             mod.__loader__ = self
             mod.__path__ = ['<projects>']

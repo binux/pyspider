@@ -12,14 +12,13 @@ def result2dict(columns, task):
     return dict(task)
 
 
-class SplitTableMixin(object):
+class SplitTableMixin():
     UPDATE_PROJECTS_TIME = 10 * 60
 
     def _tablename(self, project):
         if self.__tablename__:
             return '%s_%s' % (self.__tablename__, project)
-        else:
-            return project
+        return project
 
     @property
     def projects(self):

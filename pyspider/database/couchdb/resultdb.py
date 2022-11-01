@@ -1,4 +1,4 @@
-import time, json
+import time
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from .couchdbbase import SplitTableMixin
 

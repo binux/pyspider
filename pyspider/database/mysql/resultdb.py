@@ -6,9 +6,9 @@
 # Created on 2014-10-13 22:02:57
 
 import re
-import six
 import time
 import json
+import six
 import mysql.connector
 
 from pyspider.libs import utils

@@ -6,9 +6,6 @@
 # Created on 2014-12-10 01:34:09
 
 import os
-import sys
-import time
-import click
 import shutil
 import inspect
 import unittest

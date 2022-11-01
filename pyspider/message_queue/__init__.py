@@ -41,7 +41,7 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
     if parsed.scheme == 'amqp':
         from .rabbitmq import Queue
         return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
-    elif parsed.scheme == 'redis':
+    if parsed.scheme == 'redis':
         from .redis_queue import Queue
         if ',' in parsed.netloc:
             """
@@ -53,21 +53,18 @@ def connect_message_queue(name, url=None, maxsize=0, lazy_limit=True):
                 cluster_nodes.append({'host': netloc.split(':')[0], 'port': int(netloc.split(':')[1])})
 
             return Queue(name=name, maxsize=maxsize, lazy_limit=lazy_limit, cluster_nodes=cluster_nodes)
+        db = parsed.path.lstrip('/').split('/')
+        try:
+            db = int(db[0])
+        except Exception:
+            logging.warning('redis DB must zero-based numeric index, using 0 instead')
+            db = 0
 
-        else:
-            db = parsed.path.lstrip('/').split('/')
-            try:
-                db = int(db[0])
-            except:
-                logging.warning('redis DB must zero-based numeric index, using 0 instead')
-                db = 0
+        password = parsed.password or None
 
-            password = parsed.password or None
-
-            return Queue(name=name, host=parsed.hostname, port=parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
-    elif url.startswith('kombu+'):
+        return Queue(name=name, host=parsed.hostname, port=parsed.port, db=db, maxsize=maxsize, password=password, lazy_limit=lazy_limit)
+    if url.startswith('kombu+'):
         url = url[len('kombu+'):]
         from .kombu_queue import Queue
         return Queue(name, url, maxsize=maxsize, lazy_limit=lazy_limit)
-    else:
-        raise Exception('unknown connection url: %s', url)
+    raise Exception('unknown connection url: %s', url)

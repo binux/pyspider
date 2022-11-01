@@ -12,7 +12,7 @@ from six.moves import queue as Queue
 logger = logging.getLogger("result")
 
 
-class ResultWorker(object):
+class ResultWorker():
 
     """
     do with result
@@ -37,9 +37,8 @@ class ResultWorker(object):
                 url=task['url'],
                 result=result
             )
-        else:
-            logger.warning('result UNKNOW -> %.30r' % result)
-            return
+        logger.warning('result UNKNOW -> %.30r' % result)
+        return
 
     def quit(self):
         self._quit = True

@@ -13,9 +13,10 @@ import time
 try:
     from UserDict import DictMixin
 except ImportError:
-    from collections import Mapping as DictMixin
-from .token_bucket import Bucket
+    from collections.abc import Mapping as DictMixin
 from six.moves import queue as Queue
+from .token_bucket import Bucket
+
 
 logger = logging.getLogger('scheduler')
 
@@ -25,7 +26,7 @@ except NameError:
     cmp = lambda x, y: (x > y) - (x < y)
 
 
-class AtomInt(object):
+class AtomInt():
     __value__ = 0
     __mutex__ = threading.RLock()
 
@@ -75,7 +76,7 @@ class PriorityTaskQueue(Queue.Queue):
 
     def _init(self, maxsize):
         self.queue = []
-        self.queue_dict = dict()
+        self.queue_dict = {}
 
     def _qsize(self, len=len):
         return len(self.queue_dict)
@@ -128,7 +129,7 @@ class PriorityTaskQueue(Queue.Queue):
         self.queue_dict.pop(taskid).taskid = None
 
 
-class TaskQueue(object):
+class TaskQueue():
     '''
     task queue for scheduler, have a priority queue and a time queue for delayed tasks
     '''
@@ -190,16 +191,16 @@ class TaskQueue(object):
     def put(self, taskid, priority=0, exetime=0):
         """
         Put a task into task queue
-        
+
         when use heap sort, if we put tasks(with the same priority and exetime=0) into queue,
         the queue is not a strict FIFO queue, but more like a FILO stack.
-        It is very possible that when there are continuous big flow, the speed of select is 
+        It is very possible that when there are continuous big flow, the speed of select is
         slower than request, resulting in priority-queue accumulation in short time.
-        In this scenario, the tasks more earlier entering the priority-queue will not get 
-        processed until the request flow becomes small. 
-        
-        Thus, we store a global atom self increasing value into task.sequence which represent 
-        the task enqueue sequence. When the comparison of exetime and priority have no 
+        In this scenario, the tasks more earlier entering the priority-queue will not get
+        processed until the request flow becomes small.
+
+        Thus, we store a global atom self increasing value into task.sequence which represent
+        the task enqueue sequence. When the comparison of exetime and priority have no
         difference, we compare task.sequence to ensure that the entire queue is ordered.
         """
         now = time.time()

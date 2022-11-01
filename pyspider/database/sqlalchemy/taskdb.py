@@ -6,9 +6,10 @@
 # Created on 2014-12-04 22:33:43
 
 import re
-import six
 import time
 import json
+import six
+
 import sqlalchemy.exc
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
@@ -118,7 +119,7 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
             return self._parse(result2dict(columns, each))
 
     def status_count(self, project):
-        result = dict()
+        result = {}
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:

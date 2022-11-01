@@ -61,7 +61,7 @@ def config(_config=None, **kwargs):
     return wrapper
 
 
-class NOTSET(object):
+class NOTSET():
     pass
 
 
@@ -120,7 +120,7 @@ class BaseHandlerMeta(type):
 
 
 @add_metaclass(BaseHandlerMeta)
-class BaseHandler(object):
+class BaseHandler():
     """
     BaseHandler for all scripts.
 
@@ -391,7 +391,7 @@ class BaseHandler(object):
 
         if isinstance(url, six.string_types):
             return self._crawl(url, **kwargs)
-        elif hasattr(url, "__iter__"):
+        if hasattr(url, "__iter__"):
             result = []
             for each in url:
                 result.append(self._crawl(each, **kwargs))

@@ -7,9 +7,10 @@
 
 
 import re
-import six
 import time
 import json
+import six
+
 import mysql.connector
 
 from pyspider.libs import utils
@@ -97,7 +98,7 @@ class TaskDB(MySQLMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         return None
 
     def status_count(self, project):
-        result = dict()
+        result = {}
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:

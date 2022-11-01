@@ -24,16 +24,16 @@ class TestXMLRPCServer(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         from pyspider.libs import wsgi_xmlrpc
-        
+
         def test_1():
             return 'test_1'
-            
-        class Test2(object):
+
+        class Test2():
             def test_3(self, obj):
                 return obj
-                
+
         test = Test2()
-        
+
         application = wsgi_xmlrpc.WSGIXMLRPCApplication()
         application.register_instance(Test2())
         application.register_function(test_1)
@@ -48,11 +48,11 @@ class TestXMLRPCServer(unittest.TestCase):
     def tearDownClass(self):
         self.io_loop.add_callback(self.io_loop.stop)
         self.thread.join()
-    
+
     def test_xmlrpc_server(self, uri='http://127.0.0.1:3423'):
         from six.moves.xmlrpc_client import ServerProxy
-        
+
         client = ServerProxy(uri)
-        
+
         assert client.test_1() == 'test_1'
         assert client.test_3({'asdf':4}) == {'asdf':4}

@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2015-04-05 00:05:58
 
-import sys
 import time
 import unittest
 
@@ -44,7 +43,7 @@ class TestCounter(unittest.TestCase):
         c.event(('a', 'b'), 1)
         c.event(('a', 'c'), 1)
         c.event(('b', 'c'), 1)
-        
+
         self.assertIsNotNone(c['a'])
         self.assertIsNotNone(c['b'])
 

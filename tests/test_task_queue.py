@@ -18,8 +18,8 @@ class TestTaskQueue(unittest.TestCase):
     def test_task_queue_in_time_order(self):
         tq = TaskQueue(rate=300, burst=1000)
 
-        queues = dict()
-        tasks = dict()
+        queues = {}
+        tasks = {}
 
         for i in range(0, 100):
             it = InQueueTask(str(i), priority=int(i // 10), exetime=0)
@@ -81,8 +81,8 @@ class TestTimeQueue(unittest.TestCase):
         self.assertEqual(tq.processing.qsize(), 0)
         self.assertEqual(tq.time_queue.qsize(), 0)
 
-        queues = dict()
-        tasks = dict()
+        queues = {}
+        tasks = {}
         for i in range(0, 20):
             priority = int(i // 10)
             it = InQueueTask(str(i), priority=priority, exetime=time.time() + (i + 1) * interval)

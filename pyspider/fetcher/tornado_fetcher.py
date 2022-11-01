@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 
 import os
 import sys
-import six
 import copy
 import time
 import json
@@ -17,18 +16,21 @@ import logging
 import traceback
 import functools
 import threading
+import six
 import tornado.ioloop
 import tornado.httputil
 import tornado.httpclient
-import pyspider
 
 from six.moves import queue, http_cookies
 from six.moves.urllib.robotparser import RobotFileParser
-from requests import cookies
 from six.moves.urllib.parse import urljoin, urlsplit
+from requests import cookies
+
 from tornado import gen
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
+
+import pyspider
 
 from pyspider.libs import utils, dataurl, counter
 from pyspider.libs.url import quote_chinese
@@ -63,7 +65,7 @@ fetcher_output = {
 }
 
 
-class Fetcher(object):
+class Fetcher():
     user_agent = "pyspider/%s (+http://pyspider.org/)" % pyspider.__version__
     default_options = {
         'method': 'GET',
@@ -75,7 +77,7 @@ class Fetcher(object):
     }
     phantomjs_proxy = None
     splash_endpoint = None
-    splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
+    splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua"), encoding='utf-8').read()
     robot_txt_age = 60*60  # 1h
 
     def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async_mode=True):
@@ -116,8 +118,7 @@ class Fetcher(object):
     def fetch(self, task, callback=None):
         if self.async_mode:
             return self.async_fetch(task, callback)
-        else:
-            return self.async_fetch(task, callback).result()
+        return self.async_fetch(task, callback).result()
 
     @gen.coroutine
     def async_fetch(self, task, callback=None):

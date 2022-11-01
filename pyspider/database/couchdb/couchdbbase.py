@@ -1,7 +1,9 @@
-import time, requests, json
+import time
+
+import requests
 from requests.auth import HTTPBasicAuth
 
-class SplitTableMixin(object):
+class SplitTableMixin():
     UPDATE_PROJECTS_TIME = 10 * 60
 
     def __init__(self):
@@ -13,8 +15,7 @@ class SplitTableMixin(object):
     def _collection_name(self, project):
         if self.collection_prefix:
             return "%s_%s" % (self.collection_prefix, project)
-        else:
-            return project
+        return project
 
 
     @property
@@ -92,4 +93,3 @@ class SplitTableMixin(object):
 
     def delete(self, url):
         return self.session.delete(url).json()
-

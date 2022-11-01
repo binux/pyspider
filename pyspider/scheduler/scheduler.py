@@ -23,7 +23,7 @@ from .task_queue import TaskQueue
 logger = logging.getLogger('scheduler')
 
 
-class Project(object):
+class Project():
     '''
     project for scheduler
     '''
@@ -66,8 +66,7 @@ class Project(object):
                     logger.error('process not in task, %r', task)
                 if task['track']['process']['ok']:
                     break
-                else:
-                    fail_cnt += 1
+                fail_cnt += 1
                 if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
                     break
             if fail_cnt >= self.scheduler.FAIL_PAUSE_NUM:
@@ -90,8 +89,7 @@ class Project(object):
                     # break with enough check cnt
                     cnt = max(cnt, self.scheduler.UNPAUSE_CHECK_NUM)
                     break
-                else:
-                    fail_cnt += 1
+                fail_cnt += 1
             if cnt >= self.scheduler.UNPAUSE_CHECK_NUM:
                 if fail_cnt == cnt:
                     self._paused = True
@@ -137,7 +135,7 @@ class Project(object):
         return self.db_status in ('RUNNING', 'DEBUG')
 
 
-class Scheduler(object):
+class Scheduler():
     UPDATE_PROJECT_INTERVAL = 5 * 60
     default_schedule = {
         'priority': 0,
@@ -180,7 +178,7 @@ class Scheduler(object):
         self._send_buffer = deque()
         self._quit = False
         self._exceptions = 0
-        self.projects = dict()
+        self.projects = {}
         self._force_update_project = False
         self._last_update_project = 0
         self._last_tick = int(time.time())
@@ -361,7 +359,7 @@ class Scheduler(object):
                         '%s on_get_info %r', task['project'], task['track'].get('save', {})
                     )
                     continue
-                elif not self.task_verify(task):
+                if not self.task_verify(task):
                     continue
                 self.on_task_status(task)
                 cnt += 1
@@ -476,11 +474,11 @@ class Scheduler(object):
 
         taskids = []
         cnt = 0
-        cnt_dict = dict()
+        cnt_dict = {}
         limit = self.LOOP_LIMIT
 
         # dynamic assign select limit for each project, use qsize as weight
-        project_weights, total_weight = dict(), 0
+        project_weights, total_weight = {}, 0
         for project in itervalues(self.projects):  # type:Project
             if not project.active:
                 continue
@@ -714,7 +712,7 @@ class Scheduler(object):
         def dump_counter(_time, _type):
             try:
                 return self._cnt[_time].to_dict(_type)
-            except:
+            except Exception:
                 logger.exception('')
         application.register_function(dump_counter, 'counter')
 
@@ -819,8 +817,7 @@ class Scheduler(object):
                                        fields=self.merge_task_fields)
         if oldtask:
             return self.on_old_request(task, oldtask)
-        else:
-            return self.on_new_request(task)
+        return self.on_new_request(task)
 
     def on_new_request(self, task):
         '''Called when a new request is arrived'''
@@ -971,21 +968,20 @@ class Scheduler(object):
             self._cnt['all'].event((project, 'failed'), +1).event((project, 'pending'), -1)
             logger.info('task failed %(project)s:%(taskid)s %(url)s' % task)
             return task
-        else:
-            task['schedule']['retried'] = retried + 1
-            task['schedule']['exetime'] = time.time() + next_exetime
-            task['lastcrawltime'] = time.time()
-            self.update_task(task)
-            self.put_task(task)
+        task['schedule']['retried'] = retried + 1
+        task['schedule']['exetime'] = time.time() + next_exetime
+        task['lastcrawltime'] = time.time()
+        self.update_task(task)
+        self.put_task(task)
 
-            project = task['project']
-            self._cnt['5m'].event((project, 'retry'), +1)
-            self._cnt['1h'].event((project, 'retry'), +1)
-            self._cnt['1d'].event((project, 'retry'), +1)
-            # self._cnt['all'].event((project, 'retry'), +1)
-            logger.info('task retry %d/%d %%(project)s:%%(taskid)s %%(url)s' % (
-                retried, retries), task)
-            return task
+        project = task['project']
+        self._cnt['5m'].event((project, 'retry'), +1)
+        self._cnt['1h'].event((project, 'retry'), +1)
+        self._cnt['1d'].event((project, 'retry'), +1)
+        # self._cnt['all'].event((project, 'retry'), +1)
+        logger.info('task retry %d/%d %%(project)s:%%(taskid)s %%(url)s' % (
+            retried, retries), task)
+        return task
 
     def on_select_task(self, task):
         '''Called when a task is selected to fetch & process'''
@@ -1024,7 +1020,7 @@ class OneScheduler(Scheduler):
         interactive mode of select tasks
         """
         if not self.interactive:
-            return super(OneScheduler, self)._check_select()
+            return super()._check_select()
 
         # waiting for running tasks
         if self.running_task > 0:
@@ -1112,7 +1108,7 @@ class OneScheduler(Scheduler):
     def on_task_status(self, task):
         """Ignore not processing error in interactive mode"""
         if not self.interactive:
-            super(OneScheduler, self).on_task_status(task)
+            super().on_task_status(task)
 
         try:
             procesok = task['track']['process']['ok']
@@ -1187,7 +1183,7 @@ class ThreadBaseScheduler(Scheduler):
     def __init__(self, threads=4, *args, **kwargs):
         self.local = threading.local()
 
-        super(ThreadBaseScheduler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if isinstance(self.taskdb, SQLiteMixin):
             self.threads = 1
@@ -1263,8 +1259,7 @@ class ThreadBaseScheduler(Scheduler):
                     if block:
                         time.sleep(0.1)
                         continue
-                    else:
-                        queue = self.thread_queues[random.randint(0, len(self.thread_queues)-1)]
+                    queue = self.thread_queues[random.randint(0, len(self.thread_queues)-1)]
                 break
         else:
             queue = self.thread_queues[i % len(self.thread_queues)]
@@ -1296,5 +1291,5 @@ class ThreadBaseScheduler(Scheduler):
         self._run_in_thread(Scheduler._load_put_task, self, project, taskid, _i=i)
 
     def run_once(self):
-        super(ThreadBaseScheduler, self).run_once()
+        super().run_once()
         self._wait_thread()

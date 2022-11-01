@@ -15,13 +15,14 @@
 #   Origin: https://code.google.com/p/wsgi-xmlrpc/
 
 
-from six.moves.xmlrpc_server import SimpleXMLRPCDispatcher
 import logging
+from six.moves.xmlrpc_server import SimpleXMLRPCDispatcher
+
 
 logger = logging.getLogger(__name__)
 
 
-class WSGIXMLRPCApplication(object):
+class WSGIXMLRPCApplication():
     """Application to handle requests to the XMLRPC service"""
 
     def __init__(self, instance=None, methods=None):
@@ -50,9 +51,8 @@ class WSGIXMLRPCApplication(object):
 
         if environ['REQUEST_METHOD'] == 'POST':
             return self.handle_POST(environ, start_response)
-        else:
-            start_response("400 Bad request", [('Content-Type', 'text/plain')])
-            return ['']
+        start_response("400 Bad request", [('Content-Type', 'text/plain')])
+        return ['']
 
     def handle_POST(self, environ, start_response):
         """Handles the HTTP POST request.

@@ -74,7 +74,7 @@ def run(project):
     except Exception:
         result = {
             'fetch_result': "",
-            'logs': u'task json error',
+            'logs': 'task json error',
             'follows': [],
             'messages': [],
             'result': None,
@@ -95,7 +95,7 @@ def run(project):
         if not info:
             result = {
                 'fetch_result': "",
-                'logs': u' in wevdav mode, cannot load script',
+                'logs': ' in wevdav mode, cannot load script',
                 'follows': [],
                 'messages': [],
                 'result': None,
@@ -143,7 +143,7 @@ def run(project):
             'time': time.time() - start_time,
         }
         result['fetch_result']['content'] = response.text
-        if (response.headers.get('content-type', '').startswith('image')):
+        if response.headers.get('content-type', '').startswith('image'):
             result['fetch_result']['dataurl'] = dataurl.encode(
                 response.content, response.headers['content-type'])
 

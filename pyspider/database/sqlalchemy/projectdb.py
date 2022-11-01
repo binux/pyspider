@@ -5,13 +5,11 @@
 #         http://binux.me
 # Created on 2014-12-04 23:25:10
 
-import six
 import time
 import sqlalchemy.exc
 
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Text
 from sqlalchemy.engine.url import make_url
-from pyspider.libs import utils
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from .sqlalchemybase import result2dict
 

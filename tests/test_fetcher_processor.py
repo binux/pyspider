@@ -7,15 +7,16 @@
 
 import os
 import time
-import httpbin
 import subprocess
 import unittest
+import httpbin
+
+from six.moves.queue import Queue
 
 from pyspider.database.local.projectdb import ProjectDB
 from pyspider.fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.libs import utils, dataurl
-from six.moves.queue import Queue
 from tests.data_fetcher_processor_handler import Handler
 
 
@@ -154,22 +155,22 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
     def test_50_params(self):
         status, newtasks, result = self.crawl(self.httpbin + '/get', params={
             'roy': 'binux',
-            u'中文': '.',
+            '中文': '.',
         }, callback=self.json)
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
-        self.assertEqual(result['args'], {'roy': 'binux', u'中文': '.'})
+        self.assertEqual(result['args'], {'roy': 'binux', '中文': '.'})
 
     def test_60_data(self):
         status, newtasks, result = self.crawl(self.httpbin + '/post', data={
             'roy': 'binux',
-            u'中文': '.',
+            '中文': '.',
         }, callback=self.json)
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
-        self.assertEqual(result['form'], {'roy': 'binux', u'中文': '.'})
+        self.assertEqual(result['form'], {'roy': 'binux', '中文': '.'})
 
     def test_70_redirect(self):
         status, newtasks, result = self.crawl(self.httpbin + '/redirect-to?url=/get', callback=self.json)
@@ -189,7 +190,7 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
 
     def test_90_files(self):
         status, newtasks, result = self.crawl(self.httpbin + '/put', method='PUT',
-                                              files={os.path.basename(__file__): open(__file__).read()},
+                                              files={os.path.basename(__file__): open(__file__, encoding='utf-8').read()},
                                               callback=self.json)
 
         self.assertStatusOk(status)
@@ -198,7 +199,7 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
 
     def test_a100_files_with_data(self):
         status, newtasks, result = self.crawl(self.httpbin + '/put', method='PUT',
-                                              files={os.path.basename(__file__): open(__file__).read()},
+                                              files={os.path.basename(__file__): open(__file__, encoding='utf-8').read()},
                                               data={
                                                   'roy': 'binux',
                                                   # '中文': '.', # FIXME: not work
@@ -293,11 +294,11 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
 
     def test_a180_save(self):
         status, newtasks, result = self.crawl(callback=self.get_save,
-                                              save={'roy': 'binux', u'中文': 'value'})
+                                              save={'roy': 'binux', '中文': 'value'})
 
         self.assertStatusOk(status)
         self.assertFalse(newtasks)
-        self.assertEqual(result, {'roy': 'binux', u'中文': 'value'})
+        self.assertEqual(result, {'roy': 'binux', '中文': 'value'})
 
     def test_a190_taskid(self):
         status, newtasks, result = self.crawl(callback=self.get_save,
@@ -434,7 +435,7 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
         self.assertTrue(result)
 
     def test_zzz_unexpected_crawl_argument(self):
-        with self.assertRaisesRegexp(TypeError, "unexpected keyword argument"):
+        with self.assertRaisesRegex(TypeError, "unexpected keyword argument"):
             self.crawl(self.httpbin + '/cache', cookie={}, callback=self.json)
 
     def test_zzz_curl_get(self):
@@ -465,18 +466,18 @@ class TestFetcherProcessor(Handler, unittest.TestCase):
         self.assertIn('fileUpload1', result['files'], result)
 
     def test_zzz_curl_no_url(self):
-        with self.assertRaisesRegexp(TypeError, 'no URL'):
+        with self.assertRaisesRegex(TypeError, 'no URL'):
             status, newtasks, result = self.crawl(
                 '''curl -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' --compressed''',
                 callback=self.json)
 
     def test_zzz_curl_bad_option(self):
-        with self.assertRaisesRegexp(TypeError, 'Unknow curl option'):
+        with self.assertRaisesRegex(TypeError, 'Unknow curl option'):
             status, newtasks, result = self.crawl(
                 '''curl '%s/put' -X PUT -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' -v''' % self.httpbin,
                 callback=self.json)
 
-        with self.assertRaisesRegexp(TypeError, 'Unknow curl option'):
+        with self.assertRaisesRegex(TypeError, 'Unknow curl option'):
             status, newtasks, result = self.crawl(
                 '''curl '%s/put' -X PUT -v -H 'Origin: chrome-extension://hgmloofddffdnphfgcellkdfbfbjeloo' ''' % self.httpbin,
                 callback=self.json)

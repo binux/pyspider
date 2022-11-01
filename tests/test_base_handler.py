@@ -43,7 +43,7 @@ class TestBaseHandler(unittest.TestCase):
                 'c': 'd',           # should add header c
             }
         }
-        
+
         ret = BaseHandler.task_join_crawl_config(task, crawl_config)
         self.assertDictEqual(ret, {
             'taskid': 'taskid',
@@ -67,4 +67,4 @@ class TestBaseHandler(unittest.TestCase):
                 'callback': 'callback',
                 'save': [1, 2, 3],
             },
-        });
+        })

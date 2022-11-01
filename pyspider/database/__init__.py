@@ -5,7 +5,9 @@
 #         http://binux.me
 # Created on 2014-10-08 15:04:08
 
-import os, requests, json
+import os
+import json
+import requests
 from six.moves.urllib.parse import urlparse, parse_qs
 
 
@@ -55,9 +57,8 @@ def _connect_database(url):  # NOQA
     scheme = parsed.scheme.split('+')
     if len(scheme) == 1:
         raise Exception('wrong scheme format: %s' % parsed.scheme)
-    else:
-        engine, dbtype = scheme[0], scheme[-1]
-        other_scheme = "+".join(scheme[1:-1])
+    engine, dbtype = scheme[0], scheme[-1]
+    other_scheme = "+".join(scheme[1:-1])
 
     if dbtype not in ('taskdb', 'projectdb', 'resultdb'):
         raise LookupError('unknown database type: %s, '
@@ -65,38 +66,29 @@ def _connect_database(url):  # NOQA
 
     if engine == 'mysql':
         return _connect_mysql(parsed,dbtype)
-
-    elif engine == 'sqlite':
+    if engine == 'sqlite':
         return _connect_sqlite(parsed,dbtype)
-    elif engine == 'mongodb':
+    if engine == 'mongodb':
         return _connect_mongodb(parsed,dbtype,url)
-
-    elif engine == 'sqlalchemy':
+    if engine == 'sqlalchemy':
         return _connect_sqlalchemy(parsed, dbtype, url, other_scheme)
-
-
-    elif engine == 'redis':
+    if engine == 'redis':
         if dbtype == 'taskdb':
             from .redis.taskdb import TaskDB
             return TaskDB(parsed.hostname, parsed.port,
                           int(parsed.path.strip('/') or 0))
-        else:
-            raise LookupError('not supported dbtype: %s', dbtype)
-    elif engine == 'local':
+        raise LookupError('not supported dbtype: %s', dbtype)
+    if engine == 'local':
         scripts = url.split('//', 1)[1].split(',')
         if dbtype == 'projectdb':
             from .local.projectdb import ProjectDB
             return ProjectDB(scripts)
-        else:
-            raise LookupError('not supported dbtype: %s', dbtype)
-    elif engine == 'elasticsearch' or engine == 'es':
+        raise LookupError('not supported dbtype: %s', dbtype)
+    if engine == 'elasticsearch' or engine == 'es':
         return _connect_elasticsearch(parsed, dbtype)
-
-    elif engine == 'couchdb':
+    if engine == 'couchdb':
         return _connect_couchdb(parsed, dbtype, url)
-
-    else:
-        raise Exception('unknown engine: %s' % engine)
+    raise Exception('unknown engine: %s' % engine)
 
 
 def _connect_mysql(parsed,dbtype):
@@ -115,14 +107,13 @@ def _connect_mysql(parsed,dbtype):
     if dbtype == 'taskdb':
         from .mysql.taskdb import TaskDB
         return TaskDB(**parames)
-    elif dbtype == 'projectdb':
+    if dbtype == 'projectdb':
         from .mysql.projectdb import ProjectDB
         return ProjectDB(**parames)
-    elif dbtype == 'resultdb':
+    if dbtype == 'resultdb':
         from .mysql.resultdb import ResultDB
         return ResultDB(**parames)
-    else:
-        raise LookupError
+    raise LookupError
 
 
 def _connect_sqlite(parsed,dbtype):
@@ -138,14 +129,13 @@ def _connect_sqlite(parsed,dbtype):
     if dbtype == 'taskdb':
         from .sqlite.taskdb import TaskDB
         return TaskDB(path)
-    elif dbtype == 'projectdb':
+    if dbtype == 'projectdb':
         from .sqlite.projectdb import ProjectDB
         return ProjectDB(path)
-    elif dbtype == 'resultdb':
+    if dbtype == 'resultdb':
         from .sqlite.resultdb import ResultDB
         return ResultDB(path)
-    else:
-        raise LookupError
+    raise LookupError
 
 
 def _connect_mongodb(parsed,dbtype,url):
@@ -157,14 +147,13 @@ def _connect_mongodb(parsed,dbtype,url):
     if dbtype == 'taskdb':
         from .mongodb.taskdb import TaskDB
         return TaskDB(url, **parames)
-    elif dbtype == 'projectdb':
+    if dbtype == 'projectdb':
         from .mongodb.projectdb import ProjectDB
         return ProjectDB(url, **parames)
-    elif dbtype == 'resultdb':
+    if dbtype == 'resultdb':
         from .mongodb.resultdb import ResultDB
         return ResultDB(url, **parames)
-    else:
-        raise LookupError
+    raise LookupError
 
 
 def _connect_sqlalchemy(parsed, dbtype,url, other_scheme):
@@ -174,14 +163,13 @@ def _connect_sqlalchemy(parsed, dbtype,url, other_scheme):
     if dbtype == 'taskdb':
         from .sqlalchemy.taskdb import TaskDB
         return TaskDB(url)
-    elif dbtype == 'projectdb':
+    if dbtype == 'projectdb':
         from .sqlalchemy.projectdb import ProjectDB
         return ProjectDB(url)
-    elif dbtype == 'resultdb':
+    if dbtype == 'resultdb':
         from .sqlalchemy.resultdb import ResultDB
         return ResultDB(url)
-    else:
-        raise LookupError
+    raise LookupError
 
 
 def _connect_elasticsearch(parsed, dbtype):
@@ -198,10 +186,10 @@ def _connect_elasticsearch(parsed, dbtype):
     if dbtype == 'projectdb':
         from .elasticsearch.projectdb import ProjectDB
         return ProjectDB([parsed.netloc], index=index)
-    elif dbtype == 'resultdb':
+    if dbtype == 'resultdb':
         from .elasticsearch.resultdb import ResultDB
         return ResultDB([parsed.netloc], index=index)
-    elif dbtype == 'taskdb':
+    if dbtype == 'taskdb':
         from .elasticsearch.taskdb import TaskDB
         return TaskDB([parsed.netloc], index=index)
 
@@ -220,11 +208,10 @@ def _connect_couchdb(parsed, dbtype, url):
     if dbtype == 'taskdb':
         from .couchdb.taskdb import TaskDB
         return TaskDB(url, **params)
-    elif dbtype == 'projectdb':
+    if dbtype == 'projectdb':
         from .couchdb.projectdb import ProjectDB
         return ProjectDB(url, **params)
-    elif dbtype == 'resultdb':
+    if dbtype == 'resultdb':
         from .couchdb.resultdb import ResultDB
         return ResultDB(url, **params)
-    else:
-        raise LookupError
+    raise LookupError

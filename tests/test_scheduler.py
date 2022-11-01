@@ -11,10 +11,12 @@ import shutil
 import unittest
 import logging
 import logging.config
-logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.scheduler.task_queue import TaskQueue
 from pyspider.libs import utils
+
+logging.config.fileConfig("pyspider/logging.conf")
+
 
 
 class TestTaskQueue(unittest.TestCase):
@@ -129,7 +131,7 @@ class TestScheduler(unittest.TestCase):
         self.newtask_queue = Queue(10)
         self.status_queue = Queue(10)
         self.scheduler2fetcher = Queue(10)
-        self.rpc = xmlrpc_client.ServerProxy('http://localhost:%d' % self.scheduler_xmlrpc_port)
+        self.rpc = xmlrpc_client.ServerProxy(f'http://localhost:{self.scheduler_xmlrpc_port}')
 
         def run_scheduler():
             scheduler = Scheduler(taskdb=get_taskdb(), projectdb=get_projectdb(),
@@ -329,7 +331,7 @@ class TestScheduler(unittest.TestCase):
                 },
             }
         })  # task retry 0/3 test_project:taskid url
-        from six.moves import queue as Queue
+        #from six.moves import queue as Queue
         # with self.assertRaises(Queue.Empty):
             # task = self.scheduler2fetcher.get(timeout=4)
         task = self.scheduler2fetcher.get(timeout=5)  # select test_project:taskid url
@@ -702,7 +704,7 @@ class TestScheduler(unittest.TestCase):
         pre_size = self.rpc.size()
         for i in range(20):
             self.newtask_queue.put({
-                'taskid': 'taskid%d' % i,
+                'taskid': f'taskid{i}',
                 'project': 'test_inqueue_project',
                 'url': 'url',
                 'schedule': {

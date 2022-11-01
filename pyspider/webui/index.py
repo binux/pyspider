@@ -7,14 +7,12 @@
 
 import socket
 
-from six import iteritems, itervalues
-from flask import render_template, request, json
-
+from six import iteritems
 try:
     import flask_login as login
 except ImportError:
     from flask.ext import login
-
+from flask import render_template, request, json
 from .app import app
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', 'updatetime']
@@ -86,9 +84,8 @@ def project_update():
                 app.logger.warning('connect to scheduler rpc error: %r', e)
                 return 'rpc error', 200
         return 'ok', 200
-    else:
-        app.logger.warning("[webui index] projectdb.update() error - res: {}".format(ret))
-        return 'update error', 500
+    app.logger.warning("[webui index] projectdb.update() error - res: {}".format(ret))
+    return 'update error', 500
 
 
 @app.route('/counter')

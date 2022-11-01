@@ -6,21 +6,21 @@
 # Created on 2014-02-16 22:59:56
 
 import sys
-import six
 import time
 import logging
 import traceback
-logger = logging.getLogger("processor")
-
 from six.moves import queue as Queue
+import six
 from pyspider.libs import utils
 from pyspider.libs.log import LogFormatter
 from pyspider.libs.utils import pretty_unicode, hide_me
 from pyspider.libs.response import rebuild_response
 from .project_module import ProjectManager, ProjectFinder
 
+logger = logging.getLogger("processor")
 
-class ProcessorResult(object):
+
+class ProcessorResult():
     """The result and logs producted by a callback"""
 
     def __init__(self, result=None, follows=(), messages=(),
@@ -55,11 +55,11 @@ class ProcessorResult(object):
                     tb = hide_me(tb, globals())
                     record.exc_info = a, b, tb
                 result.append(pretty_unicode(formater.format(record)))
-                result.append(u'\n')
-        return u''.join(result)
+                result.append('\n')
+        return ''.join(result)
 
 
-class Processor(object):
+class Processor():
     PROCESS_TIME_LIMIT = 30
     EXCEPTION_LIMIT = 3
 
