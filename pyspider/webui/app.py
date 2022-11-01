@@ -8,13 +8,14 @@
 import os
 import sys
 import logging
-logger = logging.getLogger("webui")
 
 from six import reraise
 from six.moves import builtins
 from six.moves.urllib.parse import urljoin
 from flask import Flask
 from pyspider.fetcher import tornado_fetcher
+
+logger = logging.getLogger("webui")
 
 if os.name == 'nt':
     import mimetypes
@@ -96,7 +97,7 @@ app.config.update({
     'taskdb': None,
     'projectdb': None,
     'scheduler_rpc': None,
-    'queues': dict(),
+    'queues': {},
     'process_time_limit': 30,
 })
 
@@ -108,10 +109,9 @@ def cdn_url_handler(error, endpoint, kwargs):
         # cdn = app.config.get('cdn', '//cdnjs.cloudflare.com/ajax/libs/')
         cdn = app.config.get('cdn', '//cdnjscn.b0.upaiyun.com/libs/')
         return urljoin(cdn, path)
+    exc_type, exc_value, tb = sys.exc_info()
+    if exc_value is error:
+        reraise(exc_type, exc_value, tb)
     else:
-        exc_type, exc_value, tb = sys.exc_info()
-        if exc_value is error:
-            reraise(exc_type, exc_value, tb)
-        else:
-            raise error
+        raise error
 app.handle_url_build_error = cdn_url_handler

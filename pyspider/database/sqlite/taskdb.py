@@ -9,9 +9,10 @@ import re
 import time
 import json
 
-from .sqlitebase import SQLiteMixin, SplitTableMixin
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
+from .sqlitebase import SQLiteMixin, SplitTableMixin
+
 
 
 class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
@@ -86,7 +87,7 @@ class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):
         '''
         return a dict
         '''
-        result = dict()
+        result = {}
         if project not in self.projects:
             self._list_project()
         if project not in self.projects:

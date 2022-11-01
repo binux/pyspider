@@ -36,10 +36,11 @@ saferepr()
 
 from __future__ import print_function
 
-import six
+
 import sys as _sys
 
 from io import BytesIO, StringIO
+import six
 
 __all__ = ["pprint", "pformat", "isreadable", "isrecursive", "saferepr",
            "PrettyPrinter"]
@@ -268,7 +269,7 @@ def _safe_repr(object, context, maxlevels, level):
         try:
             string.decode('utf8').encode('gbk', 'replace')
             return ("%s%s%s" % (closure, string, closure)), True, False
-        except:
+        except Exception:
             pass
         qget = quotes.get
         sio = StringIO()

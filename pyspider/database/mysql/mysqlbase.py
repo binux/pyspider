@@ -9,7 +9,7 @@ import time
 import mysql.connector
 
 
-class MySQLMixin(object):
+class MySQLMixin():
     maxlimit = 18446744073709551615
 
     @property
@@ -26,14 +26,13 @@ class MySQLMixin(object):
             return self.conn.cursor()
 
 
-class SplitTableMixin(object):
+class SplitTableMixin():
     UPDATE_PROJECTS_TIME = 10 * 60
 
     def _tablename(self, project):
         if self.__tablename__:
             return '%s_%s' % (self.__tablename__, project)
-        else:
-            return project
+        return project
 
     @property
     def projects(self):

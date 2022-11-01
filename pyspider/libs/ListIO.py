@@ -6,7 +6,7 @@
 # Created on 2014-02-26 23:41:51
 
 
-class ListO(object):
+class ListO():
 
     """A StringO write to list."""
 

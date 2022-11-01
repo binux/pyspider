@@ -17,7 +17,7 @@
 }
 
 
-class ResultDB(object):
+class ResultDB():
     """
     database for result
     """

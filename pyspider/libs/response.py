@@ -7,8 +7,9 @@
 
 import cgi
 import re
-import six
 import json
+import six
+
 import chardet
 import lxml.html
 import lxml.etree
@@ -19,7 +20,7 @@ from requests import HTTPError
 from pyspider.libs import utils
 
 
-class Response(object):
+class Response():
 
     def __init__(self, status_code=None, url=None, orig_url=None, headers=CaseInsensitiveDict(),
                  content='', cookies=None, error=None, traceback=None, save=None, js_script_result=None, time=0):
@@ -38,7 +39,7 @@ class Response(object):
         self.time = time
 
     def __repr__(self):
-        return u'<Response [%d]>' % self.status_code
+        return '<Response [%d]>' % self.status_code
 
     def __bool__(self):
         """Returns true if `status_code` is 200 and no error"""
@@ -53,7 +54,7 @@ class Response(object):
         """Return true if `status_code` is 200 and no error."""
         try:
             self.raise_for_status()
-        except:
+        except Exception:
             return False
         return True
 
@@ -105,7 +106,7 @@ class Response(object):
         if hasattr(self, '_text') and self._text:
             return self._text
         if not self.content:
-            return u''
+            return ''
         if isinstance(self.content, six.text_type):
             return self.content
 
@@ -167,7 +168,7 @@ class Response(object):
 
         if self.status_code == 304:
             return
-        elif self.error:
+        if self.error:
             if self.traceback:
                 six.reraise(Exception, Exception(self.error), Traceback.from_string(self.traceback).as_traceback())
             http_error = HTTPError(self.error)
@@ -187,7 +188,7 @@ class Response(object):
         try:
             self.raise_for_status()
             return True
-        except:
+        except Exception:
             return False
 
 

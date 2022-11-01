@@ -31,7 +31,7 @@ def getitem(obj, key=0, default=None):
     """Get first element of list or return default"""
     try:
         return obj[key]
-    except:
+    except Exception:
         return default
 
 
@@ -111,8 +111,7 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
         format = fff_format
         if ret_:
             return format
-        else:
-            format = format
+        format = format
 
     if format is None:
         format = "%(month_name)s %(day)s, %(year)s" if shorter else \
@@ -218,10 +217,9 @@ def utf8(string):
     """
     if isinstance(string, six.text_type):
         return string.encode('utf8')
-    elif isinstance(string, six.binary_type):
+    if isinstance(string, six.binary_type):
         return string
-    else:
-        return six.text_type(string).encode('utf8')
+    return six.text_type(string).encode('utf8')
 
 
 def text(string, encoding='utf8'):
@@ -232,10 +230,9 @@ def text(string, encoding='utf8'):
     """
     if isinstance(string, six.text_type):
         return string
-    elif isinstance(string, six.binary_type):
+    if isinstance(string, six.binary_type):
         return string.decode(encoding)
-    else:
-        return six.text_type(string)
+    return six.text_type(string)
 
 
 def pretty_unicode(string):
@@ -289,19 +286,18 @@ def unicode_obj(obj):
     """
     if isinstance(obj, dict):
         return unicode_dict(obj)
-    elif isinstance(obj, (list, tuple)):
+    if isinstance(obj, (list, tuple)):
         return unicode_list(obj)
-    elif isinstance(obj, six.string_types):
+    if isinstance(obj, six.string_types):
         return unicode_string(obj)
-    elif isinstance(obj, (int, float)):
+    if isinstance(obj, (int, float)):
         return obj
-    elif obj is None:
+    if obj is None:
         return obj
-    else:
-        try:
-            return text(obj)
-        except:
-            return text(repr(obj))
+    try:
+        return text(obj)
+    except Exception:
+        return text(repr(obj))
 
 
 def decode_unicode_string(string):
@@ -322,15 +318,14 @@ def decode_unicode_obj(obj):
         for k, v in iteritems(obj):
             r[decode_unicode_string(k)] = decode_unicode_obj(v)
         return r
-    elif isinstance(obj, six.string_types):
+    if isinstance(obj, six.string_types):
         return decode_unicode_string(obj)
-    elif isinstance(obj, (list, tuple)):
+    if isinstance(obj, (list, tuple)):
         return [decode_unicode_obj(x) for x in obj]
-    else:
-        return obj
+    return obj
 
 
-class Get(object):
+class Get():
     """
     Lazy value calculate for object
     """
@@ -434,7 +429,4 @@ def python_console(namespace=None):
 def check_port_open(port, addr='127.0.0.1'):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         result = sock.connect_ex((addr, port))
-        if result == 0:
-            return True
-        else:
-            return False
+        return result == 0

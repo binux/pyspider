@@ -9,15 +9,16 @@ import time
 import socket
 import select
 import logging
-import umsgpack
 import threading
+import umsgpack
 
 import amqp
-from six.moves.urllib.parse import unquote
+
 try:
     from urllib import parse as urlparse
 except ImportError:
     import urlparse
+from six.moves.urllib.parse import unquote
 from six.moves import queue as BaseQueue
 
 
@@ -49,7 +50,7 @@ def catch_error(func):
     return wrap
 
 
-class PikaQueue(object):
+class PikaQueue():
     """
     A Queue like rabbitmq connector
     """
@@ -111,14 +112,12 @@ class PikaQueue(object):
     def empty(self):
         if self.qsize() == 0:
             return True
-        else:
-            return False
+        return False
 
     def full(self):
         if self.maxsize and self.qsize() >= self.maxsize:
             return True
-        else:
-            return False
+        return False
 
     @catch_error
     def put(self, obj, block=True, timeout=None):

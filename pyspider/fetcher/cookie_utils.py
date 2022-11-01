@@ -8,7 +8,7 @@
 from requests.cookies import MockRequest
 
 
-class MockResponse(object):
+class MockResponse():
 
     def __init__(self, headers):
         self._headers = headers

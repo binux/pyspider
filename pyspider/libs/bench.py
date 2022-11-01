@@ -9,7 +9,6 @@
 
 import time
 import logging
-logger = logging.getLogger('bench')
 
 from six.moves import queue as Queue
 from pyspider.scheduler import ThreadBaseScheduler as Scheduler
@@ -17,6 +16,8 @@ from pyspider.fetcher.tornado_fetcher import Fetcher
 from pyspider.processor import Processor
 from pyspider.result import ResultWorker
 from pyspider.libs.utils import md5string
+
+logger = logging.getLogger('bench')
 
 
 def bench_test_taskdb(taskdb):
@@ -187,7 +188,7 @@ def bench_test_message_queue(queue):
             pass
 
 
-class BenchMixin(object):
+class BenchMixin():
     """Report to logger for bench test"""
     def _bench_init(self):
         self.done_cnt = 0
@@ -212,42 +213,42 @@ class BenchMixin(object):
 
 class BenchScheduler(Scheduler, BenchMixin):
     def __init__(self, *args, **kwargs):
-        super(BenchScheduler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._bench_init()
 
     def on_task_status(self, task):
         self._bench_report('Crawled')
-        return super(BenchScheduler, self).on_task_status(task)
+        return super().on_task_status(task)
 
 
 class BenchFetcher(Fetcher, BenchMixin):
     def __init__(self, *args, **kwargs):
-        super(BenchFetcher, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._bench_init()
 
     def on_result(self, type, task, result):
         self._bench_report("Fetched", 0, 75)
-        return super(BenchFetcher, self).on_result(type, task, result)
+        return super().on_result(type, task, result)
 
 
 class BenchProcessor(Processor, BenchMixin):
     def __init__(self, *args, **kwargs):
-        super(BenchProcessor, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._bench_init()
 
     def on_task(self, task, response):
         self._bench_report("Processed", 75)
-        return super(BenchProcessor, self).on_task(task, response)
+        return super().on_task(task, response)
 
 
 class BenchResultWorker(ResultWorker, BenchMixin):
     def __init__(self, *args, **kwargs):
-        super(BenchResultWorker, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._bench_init()
 
     def on_result(self, task, result):
         self._bench_report("Saved", 0, 150)
-        super(BenchResultWorker, self).on_result(task, result)
+        super().on_result(task, result)
 
 
 from pyspider.libs.base_handler import BaseHandler

@@ -32,8 +32,7 @@ def check_user(environ):
     if username == app.config['webui_username'] \
             and password == app.config['webui_password']:
         return True
-    else:
-        return False
+    return False
 
 
 class ContentIO(BytesIO):
@@ -44,7 +43,7 @@ class ContentIO(BytesIO):
 
 class ScriptResource(DAVNonCollection):
     def __init__(self, path, environ, app, project=None):
-        super(ScriptResource, self).__init__(path, environ)
+        super().__init__(path, environ)
 
         self.app = app
         self.new_project = False
@@ -102,14 +101,14 @@ class ScriptResource(DAVNonCollection):
     def beginWrite(self, contentType=None):
         if self.readonly:
             self.app.logger.error('webdav.beginWrite readonly')
-            return super(ScriptResource, self).beginWrite(contentType)
+            return super().beginWrite(contentType)
         self.writebuffer = ContentIO()
         return self.writebuffer
 
     def endWrite(self, withErrors):
         if withErrors:
             self.app.logger.error('webdav.endWrite error: %r', withErrors)
-            return super(ScriptResource, self).endWrite(withErrors)
+            return super().endWrite(withErrors)
         if not self.writebuffer:
             return
         projectdb = self.app.config['projectdb']
@@ -126,13 +125,12 @@ class ScriptResource(DAVNonCollection):
             self.project.update(info)
             self.new_project = False
             return projectdb.insert(self.project_name, self.project)
-        else:
-            return projectdb.update(self.project_name, info)
+        return projectdb.update(self.project_name, info)
 
 
 class RootCollection(DAVCollection):
     def __init__(self, path, environ, app):
-        super(RootCollection, self).__init__(path, environ)
+        super().__init__(path, environ)
         self.app = app
         self.projectdb = self.app.config['projectdb']
 
@@ -164,7 +162,7 @@ class RootCollection(DAVCollection):
 
 class ScriptProvider(DAVProvider):
     def __init__(self, app):
-        super(ScriptProvider, self).__init__()
+        super().__init__()
         self.app = app
 
     def __repr__(self):
@@ -175,11 +173,10 @@ class ScriptProvider(DAVProvider):
         if path in ('/', '.', ''):
             path = '/'
             return RootCollection(path, environ, self.app)
-        else:
-            return ScriptResource(path, environ, self.app)
+        return ScriptResource(path, environ, self.app)
 
 
-class NeedAuthController(object):
+class NeedAuthController():
     def __init__(self, app):
         self.app = app
 

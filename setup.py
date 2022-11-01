@@ -6,16 +6,17 @@
 # Created on 2014-11-24 22:27:45
 
 
-import sys
-from setuptools import setup, find_packages
 from codecs import open
 from os import path
+from setuptools import setup, find_packages
+
+import pyspider
 
 here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-import pyspider
+
 
 install_requires = [
     'Flask==0.10',

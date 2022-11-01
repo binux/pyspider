@@ -12,7 +12,7 @@ except ImportError:
     import dummy_threading as _threading
 
 
-class Bucket(object):
+class Bucket():
 
     '''
     traffic flow control with token bucket

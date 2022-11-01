@@ -7,7 +7,6 @@
 
 from __future__ import unicode_literals, division
 
-import six
 import csv
 import time
 import json
@@ -25,7 +24,7 @@ results1 = [
 
 results2 = results1 + [
     {'taskid': 'taskid1', 'url': 'http://example.org/url1', 'pdatetime': time.time(),
-     'result': [1, 2, '中文', u'中文'] },
+     'result': [1, 2, '中文', '中文'] },
 ]
 
 results_error = results2 + [

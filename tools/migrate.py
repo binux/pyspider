@@ -5,14 +5,16 @@
 #         http://binux.me
 # Created on 2015-09-30 23:22:46
 
-import click
 import logging
+from multiprocessing.pool import ThreadPool as Pool
+import click
+
 from pyspider.database.base.projectdb import ProjectDB
 from pyspider.database.base.taskdb import TaskDB
 from pyspider.database.base.resultdb import ResultDB
 from pyspider.database import connect_database
 from pyspider.libs.utils import unicode_obj
-from multiprocessing.pool import ThreadPool as Pool
+
 
 logging.getLogger().setLevel(logging.INFO)
 

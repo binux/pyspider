@@ -8,7 +8,6 @@
 from __future__ import unicode_literals, division
 
 import os
-import six
 import time
 import unittest
 
@@ -16,7 +15,7 @@ from pyspider import database
 from pyspider.database.base.taskdb import TaskDB
 
 
-class TaskDBCase(object):
+class TaskDBCase():
     sample_task = {
         'taskid': 'taskid',
         'project': 'project',
@@ -58,7 +57,7 @@ class TaskDBCase(object):
                 'time': 10,
                 'follows': 3,
                 'outputs': 5,
-                'exception': u"中文",
+                'exception': "中文",
             },
         },
         'lastcrawltime': time.time(),
@@ -66,7 +65,7 @@ class TaskDBCase(object):
     }
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         raise NotImplementedError
 
     # this test not works for mongodb
@@ -155,7 +154,7 @@ class TaskDBCase(object):
         self.taskdb.UPDATE_PROJECTS_TIME = saved
 
 
-class ProjectDBCase(object):
+class ProjectDBCase():
     sample_project = {
         'name': 'name',
         'script': 'import time\nprint(time.time(), "!@#$%^&*()\';:<>?/|")',
@@ -170,7 +169,7 @@ class ProjectDBCase(object):
 
     def test_10_insert(self):
         self.projectdb.insert('abc', self.sample_project)
-        self.projectdb.insert(u'name中文', self.sample_project)
+        self.projectdb.insert('name中文', self.sample_project)
         project = self.projectdb.get('abc')
         self.assertIsNotNone(project)
 
@@ -183,7 +182,7 @@ class ProjectDBCase(object):
         for key in ('name', 'group', 'status', 'script', 'comments', 'rate', 'burst', 'updatetime'):
             self.assertIn(key, project)
 
-        self.assertEqual(project['name'], u'abc')
+        self.assertEqual(project['name'], 'abc')
         self.assertEqual(project['status'], self.sample_project['status'])
         self.assertEqual(project['script'], self.sample_project['script'])
         self.assertEqual(project['rate'], self.sample_project['rate'])
@@ -232,20 +231,20 @@ class ProjectDBCase(object):
         self.assertEqual(project['name'], 'abc')
         self.assertEqual(project['status'], 'RUNNING')
 
-        project = self.projectdb.get(u'name中文', ['group', 'status', 'name'])
-        self.assertEqual(project['name'], u'name中文')
+        project = self.projectdb.get('name中文', ['group', 'status', 'name'])
+        self.assertEqual(project['name'], 'name中文')
         self.assertIn('status', project)
         self.assertNotIn('gourp', project)
 
     def test_z10_drop(self):
-        self.projectdb.insert(u'drop_project2', self.sample_project)
-        self.projectdb.insert(u'drop_project3', self.sample_project)
+        self.projectdb.insert('drop_project2', self.sample_project)
+        self.projectdb.insert('drop_project3', self.sample_project)
         self.projectdb.drop('drop_project3')
         self.assertIsNotNone(self.projectdb.get('drop_project2'))
         self.assertIsNone(self.projectdb.get('drop_project3'))
 
 
-class ResultDBCase(object):
+class ResultDBCase():
 
     @classmethod
     def setUpClass(self):

@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2015-01-18 16:53:49
 
-import sys
 import time
 import unittest
 

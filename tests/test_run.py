@@ -8,15 +8,14 @@
 from __future__ import print_function
 
 import os
-import sys
-import six
 import time
 import json
 import signal
 import shutil
 import inspect
-import requests
 import unittest
+import requests
+
 
 from pyspider import run
 from pyspider.libs import utils
@@ -29,7 +28,6 @@ class TestRun(unittest.TestCase):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
-        import tests.data_test_webpage
         import httpbin
         self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
         self.httpbin = 'http://127.0.0.1:14887'
@@ -59,7 +57,7 @@ class TestRun(unittest.TestCase):
         self.assertEqual(len(ctx.obj.instances), 0)
 
     def test_20_cli_config(self):
-        with open('./data/tests/config.json', 'w') as fp:
+        with open('./data/tests/config.json', 'w', encoding='utf-8') as fp:
             json.dump({
                 'debug': True,
                 'taskdb': 'mysql+taskdb://localhost:23456/taskdb',
@@ -263,7 +261,7 @@ class TestRun(unittest.TestCase):
             rv = requests.get('http://localhost:5000/results?project=data_sample_handler')
             self.assertIn('<th>url</th>', rv.text)
             self.assertIn('class=url', rv.text)
-        except:
+        except Exception:
             raise
         finally:
             time.sleep(1)
@@ -312,18 +310,18 @@ class TestRun(unittest.TestCase):
             text = wait_text()
             self.assertIn('task done data_sample_handler:on_start', text)
 
-            os.write(fd, utils.utf8('crawl("%s/pyspider/test.html")\n' % self.httpbin))
+            os.write(fd, utils.utf8(f'crawl("{self.httpbin}/pyspider/test.html")\n'))
             text = wait_text()
             self.assertIn('/robots.txt', text)
 
-            os.write(fd, utils.utf8('crawl("%s/links/10/0")\n' % self.httpbin))
+            os.write(fd, utils.utf8(f'crawl("{self.httpbin}/links/10/0")\n'))
             text = wait_text()
             if '"title": "Links"' not in text:
-                os.write(fd, utils.utf8('crawl("%s/links/10/1")\n' % self.httpbin))
+                os.write(fd, utils.utf8(f'crawl("{self.httpbin}/links/10/1")\n'))
                 text = wait_text()
                 self.assertIn('"title": "Links"', text)
 
-            os.write(fd, utils.utf8('crawl("%s/404")\n' % self.httpbin))
+            os.write(fd, utils.utf8(f'crawl("{self.httpbin}/404")\n'))
             text = wait_text()
             self.assertIn('task retry', text)
 
@@ -379,4 +377,3 @@ class TestSendMessage(unittest.TestCase):
             if task['url'] == 'data:,on_message':
                 break
         self.assertEqual(task['process']['callback'], '_on_message')
-

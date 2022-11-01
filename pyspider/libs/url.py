@@ -7,8 +7,8 @@
 
 import mimetypes
 
-import six
 import shlex
+import six
 from six.moves.urllib.parse import urlparse, urlunparse
 from requests.models import RequestEncodingMixin
 
@@ -94,7 +94,7 @@ def curl_to_arguments(curl):
             # option
             if current_opt is None:
                 raise TypeError('Unknow curl argument: %s' % part)
-            elif current_opt in ('-H', '--header'):
+            if current_opt in ('-H', '--header'):
                 key_value = part.split(':', 1)
                 if len(key_value) == 2:
                     key, value = key_value

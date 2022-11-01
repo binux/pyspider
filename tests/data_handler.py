@@ -9,7 +9,7 @@
 import time
 from pyspider.libs.base_handler import BaseHandler, catch_status_code_error, every
 
-class IgnoreHandler(object):
+class IgnoreHandler():
     pass
 
 class TestHandler(BaseHandler):
@@ -42,7 +42,7 @@ class TestHandler(BaseHandler):
         raise Exception('exception')
 
     def add_task(self, response):
-        self.crawl('http://www.google.com', callback='echo', params={'wd': u'中文'})
+        self.crawl('http://www.google.com', callback='echo', params={'wd': '中文'})
         self.send_message('some_project', {'some': 'message'})
 
     @every
@@ -59,4 +59,3 @@ class TestHandler(BaseHandler):
 
     def sleep(self, response):
         time.sleep(response.save)
-

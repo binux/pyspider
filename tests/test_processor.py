@@ -6,15 +6,14 @@
 # Created on 2014-02-22 14:00:05
 
 import os
-import six
-import copy
 import time
 import unittest
 import logging.config
-logging.config.fileConfig("pyspider/logging.conf")
 
 from pyspider.libs import utils
 from pyspider.processor.project_module import ProjectManager
+
+logging.config.fileConfig("pyspider/logging.conf")
 
 
 class TestProjectModule(unittest.TestCase):
@@ -65,7 +64,7 @@ class TestProjectModule(unittest.TestCase):
 
     def setUp(self):
         self.project = "test.project"
-        self.script = open(os.path.join(os.path.dirname(__file__), 'data_handler.py')).read()
+        self.script = open(os.path.join(os.path.dirname(__file__), 'data_handler.py'), encoding='utf-8').read()
         self.env = {
             'test': True,
         }

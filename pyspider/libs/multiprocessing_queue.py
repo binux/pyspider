@@ -1,4 +1,3 @@
-import six
 import platform
 import multiprocessing
 from multiprocessing.queues import Queue as BaseQueue
@@ -7,7 +6,7 @@ from multiprocessing.queues import Queue as BaseQueue
 # The SharedCounter and Queue classes come from:
 # https://github.com/vterron/lemon/commit/9ca6b4b
 
-class SharedCounter(object):
+class SharedCounter():
     """ A synchronized shared counter.
     The locking done by multiprocessing.Value ensures that only a single
     process or thread may read or write the in-memory ctypes object. However,
@@ -45,15 +44,15 @@ class MultiProcessingQueue(BaseQueue):
     qsize() and empty().
     """
     def __init__(self, *args, **kwargs):
-        super(MultiProcessingQueue, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.size = SharedCounter(0)
 
     def put(self, *args, **kwargs):
         self.size.increment(1)
-        super(MultiProcessingQueue, self).put(*args, **kwargs)
+        super().put(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        v = super(MultiProcessingQueue, self).get(*args, **kwargs)
+        v = super().get(*args, **kwargs)
         self.size.increment(-1)
         return v
 

@@ -5,11 +5,11 @@
 #         http://binux.me
 # Created on 2015-03-27 20:12:11
 
-import six
 import csv
 import json
 import itertools
 from io import StringIO, BytesIO
+import six
 from six import iteritems
 
 
@@ -74,18 +74,14 @@ def dump_as_csv(results):
         if isinstance(obj, six.binary_type):
             if six.PY2:
                 return obj
-            else:
-                return obj.decode('utf8')
-        elif isinstance(obj, six.text_type):
+            return obj.decode('utf8')
+        if isinstance(obj, six.text_type):
             if six.PY2:
                 return obj.encode('utf8')
-            else:
-                return obj
-        else:
-            if six.PY2:
-                return json.dumps(obj, ensure_ascii=False).encode('utf8')
-            else:
-                return json.dumps(obj, ensure_ascii=False)
+            return obj
+        if six.PY2:
+            return json.dumps(obj, ensure_ascii=False).encode('utf8')
+        return json.dumps(obj, ensure_ascii=False)
 
     # python2 needs byes when python3 needs unicode
     if six.PY2:

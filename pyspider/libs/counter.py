@@ -13,14 +13,14 @@ from collections import deque
 try:
     from UserDict import DictMixin
 except ImportError:
-    from collections import Mapping as DictMixin
+    from collections.abc import Mapping as DictMixin
 
 import six
 from six import iteritems
 from six.moves import cPickle
 
 
-class BaseCounter(object):
+class BaseCounter():
 
     def __init__(self):
         pass
@@ -52,7 +52,7 @@ class TotalCounter(BaseCounter):
     """Total counter"""
 
     def __init__(self):
-        super(TotalCounter, self).__init__()
+        super().__init__()
         self.cnt = 0
 
     def event(self, value=1):
@@ -79,7 +79,7 @@ class AverageWindowCounter(BaseCounter):
     """
 
     def __init__(self, window_size=300):
-        super(AverageWindowCounter, self).__init__()
+        super().__init__()
         self.window_size = window_size
         self.values = deque(maxlen=window_size)
 
@@ -109,7 +109,7 @@ class TimebaseAverageEventCounter(BaseCounter):
     """
 
     def __init__(self, window_size=30, window_interval=10):
-        super(TimebaseAverageEventCounter, self).__init__()
+        super().__init__()
         self.max_window_size = window_size
         self.window_size = 0
         self.window_interval = window_interval
@@ -195,7 +195,7 @@ class TimebaseAverageWindowCounter(BaseCounter):
     """
 
     def __init__(self, window_size=30, window_interval=10):
-        super(TimebaseAverageWindowCounter, self).__init__()
+        super().__init__()
         self.max_window_size = window_size
         self.window_size = 0
         self.window_interval = window_interval
@@ -278,8 +278,7 @@ class CounterValue(DictMixin):
         if key == '__value__':
             key = self._keys
             return self.manager.counters[key]
-        else:
-            key = self._keys + (key, )
+        key = self._keys + (key, )
 
         available_keys = []
         for _key in list(self.manager.counters.keys()):
@@ -288,13 +287,11 @@ class CounterValue(DictMixin):
 
         if len(available_keys) == 0:
             raise KeyError
-        elif len(available_keys) == 1:
+        if len(available_keys) == 1:
             if available_keys[0] == key:
                 return self.manager.counters.get(key)
-            else:
-                return CounterValue(self.manager, key)
-        else:
             return CounterValue(self.manager, key)
+        return CounterValue(self.manager, key)
 
     def __len__(self):
         return len(self.keys())
@@ -378,13 +375,11 @@ class CounterManager(DictMixin):
 
         if len(available_keys) == 0:
             raise KeyError
-        elif len(available_keys) == 1:
+        if len(available_keys) == 1:
             if available_keys[0] == key:
                 return self.counters.get(key)
-            else:
-                return CounterValue(self, key)
-        else:
             return CounterValue(self, key)
+        return CounterValue(self, key)
 
     def __delitem__(self, key):
         key = (key, )
@@ -435,7 +430,7 @@ class CounterManager(DictMixin):
         try:
             with open(filename, 'rb') as fp:
                 self.counters = cPickle.load(fp)
-        except:
+        except Exception:
             logging.debug("can't load counter from file: %s", filename)
             return False
         return True

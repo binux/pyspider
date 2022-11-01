@@ -9,8 +9,9 @@ from __future__ import unicode_literals
 
 from flask import render_template, request, json
 from flask import Response
-from .app import app
 from pyspider.libs import result_dump
+
+from .app import app
 
 
 @app.route('/results')
@@ -46,9 +47,9 @@ def dump_result(project, _format):
         valid = request.args.get('style', 'rows') == 'full'
         return Response(result_dump.dump_as_json(results, valid),
                         mimetype='application/json')
-    elif _format == 'txt':
+    if _format == 'txt':
         return Response(result_dump.dump_as_txt(results),
                         mimetype='text/plain')
-    elif _format == 'csv':
+    if _format == 'csv':
         return Response(result_dump.dump_as_csv(results),
                         mimetype='text/csv')

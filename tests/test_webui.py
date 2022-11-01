@@ -329,7 +329,7 @@ class TestWebUI(unittest.TestCase):
                 self.assertIn('ok', task['track']['process'])
                 self.assertIn('time', task['track']['process'])
         self.assertTrue(track)
-                    
+
 
     def test_a24_task(self):
         rv = self.app.get(self.task_url)
