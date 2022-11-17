@@ -1,23 +1,27 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: Binux<i@binux.me>
-#         http://binux.me
-# Created on 2014-02-22 23:17:13
+"""
+vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
+Author: Binux<i@binux.me>
+        http://binux.me
+Created on 2014-02-22 23:17:13
+"""
 
+import logging
 import os
 import sys
-import logging
-logger = logging.getLogger("webui")
 
+from flask import Flask
 from six import reraise
 from six.moves import builtins
 from six.moves.urllib.parse import urljoin
-from flask import Flask
+
 from pyspider.fetcher import tornado_fetcher
+
+logger = logging.getLogger("webui")
 
 if os.name == 'nt':
     import mimetypes
+
     mimetypes.add_type("text/css", ".css", True)
 
 
@@ -29,10 +33,10 @@ class QuitableFlask(Flask):
         return logger
 
     def run(self, host=None, port=None, debug=None, **options):
-        import tornado.wsgi
-        import tornado.ioloop
         import tornado.httpserver
+        import tornado.ioloop
         import tornado.web
+        import tornado.wsgi
 
         if host is None:
             host = '127.0.0.1'
@@ -46,7 +50,6 @@ class QuitableFlask(Flask):
             self.debug = bool(debug)
 
         hostname = host
-        port = port
         application = self
         use_reloader = self.debug
         use_debugger = self.debug
@@ -61,7 +64,7 @@ class QuitableFlask(Flask):
             logger.warning('WebDav interface not enabled: %r', e)
             dav_app = None
         if dav_app:
-            from werkzeug.wsgi import DispatcherMiddleware
+            from werkzeug.middleware.dispatcher import DispatcherMiddleware
             application = DispatcherMiddleware(application, {
                 '/dav': dav_app
             })
@@ -114,4 +117,6 @@ def cdn_url_handler(error, endpoint, kwargs):
             reraise(exc_type, exc_value, tb)
         else:
             raise error
+
+
 app.handle_url_build_error = cdn_url_handler

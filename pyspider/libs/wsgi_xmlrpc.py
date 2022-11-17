@@ -15,8 +15,9 @@
 #   Origin: https://code.google.com/p/wsgi-xmlrpc/
 
 
-from six.moves.xmlrpc_server import SimpleXMLRPCDispatcher
 import logging
+
+from six.moves.xmlrpc_server import SimpleXMLRPCDispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -81,9 +82,9 @@ class WSGIXMLRPCApplication(object):
                 data, getattr(self.dispatcher, '_dispatch', None)
             )
             response += b'\n'
-        except Exception as e:  # This should only happen if the module is buggy
+        except Exception as err:  # This should only happen if the module is buggy
             # internal error, report as HTTP server error
-            logger.exception(e)
+            logger.exception(err)
             start_response("500 Server error", [('Content-Type', 'text/plain')])
             return []
         else:

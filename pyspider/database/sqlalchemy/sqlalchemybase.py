@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-12-04 18:48:47
 
 import time
+
+from sqlalchemy import inspect
 
 
 def result2dict(columns, task):
@@ -39,8 +40,8 @@ class SplitTableMixin(object):
             prefix = '%s_' % self.__tablename__
         else:
             prefix = ''
-
-        for project in self.engine.table_names():
+        inspector = inspect(self.engine)
+        for project in inspector.get_table_names():
             if project.startswith(prefix):
                 project = project[len(prefix):]
                 self.projects.add(project)

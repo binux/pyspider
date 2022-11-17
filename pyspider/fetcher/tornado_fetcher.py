@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -7,32 +6,34 @@
 
 from __future__ import unicode_literals
 
-import os
-import sys
-import six
 import copy
-import time
+import functools
 import json
 import logging
-import traceback
-import functools
+import os
+import sys
 import threading
-import tornado.ioloop
-import tornado.httputil
-import tornado.httpclient
-import pyspider
+import time
+import traceback
 
-from six.moves import queue, http_cookies
-from six.moves.urllib.robotparser import RobotFileParser
+import six
+import tornado.httpclient
+import tornado.httputil
+import tornado.ioloop
 from requests import cookies
+from six.moves import http_cookies, queue
 from six.moves.urllib.parse import urljoin, urlsplit
+from six.moves.urllib.robotparser import RobotFileParser
 from tornado import gen
 from tornado.curl_httpclient import CurlAsyncHTTPClient
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
-from pyspider.libs import utils, dataurl, counter
+import pyspider
+from pyspider.libs import counter, dataurl, utils
 from pyspider.libs.url import quote_chinese
+
 from .cookie_utils import extract_cookies_to_jar
+
 logger = logging.getLogger('fetcher')
 
 
@@ -52,6 +53,7 @@ class MySimpleAsyncHTTPClient(SimpleAsyncHTTPClient):
 
     def size(self):
         return len(self.active)
+
 
 fetcher_output = {
     "status_code": int,
@@ -75,8 +77,9 @@ class Fetcher(object):
     }
     phantomjs_proxy = None
     splash_endpoint = None
-    splash_lua_source = open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua")).read()
-    robot_txt_age = 60*60  # 1h
+    with  open(os.path.join(os.path.dirname(__file__), "splash_fetcher.lua"), encoding="utf-8") as f:
+        splash_lua_source = f.read()
+    robot_txt_age = 60 * 60  # 1h
 
     def __init__(self, inqueue, outqueue, poolsize=100, proxy=None, async_mode=True):
         self.inqueue = inqueue
@@ -135,10 +138,10 @@ class Fetcher(object):
             elif task.get('fetch', {}).get('fetch_type') in ('js', 'phantomjs'):
                 type = 'phantomjs'
                 result = yield self.phantomjs_fetch(url, task)
-            elif task.get('fetch', {}).get('fetch_type') in ('splash', ):
+            elif task.get('fetch', {}).get('fetch_type') in ('splash',):
                 type = 'splash'
                 result = yield self.splash_fetch(url, task)
-            elif task.get('fetch', {}).get('fetch_type') in ('puppeteer', ):
+            elif task.get('fetch', {}).get('fetch_type') in ('puppeteer',):
                 type = 'puppeteer'
                 result = yield self.puppeteer_fetch(url, task)
             else:
@@ -754,7 +757,7 @@ class Fetcher(object):
                     if self.http_client.free_size() <= 0:
                         break
                     task = self.inqueue.get_nowait()
-                    # FIXME: decode unicode_obj should used after data selete from
+                    # FIXME: decode unicode_obj should used after data select from
                     # database, it's used here for performance
                     task = utils.decode_unicode_obj(task)
                     self.fetch(task)
@@ -778,7 +781,9 @@ class Fetcher(object):
         logger.info("fetcher exiting...")
 
     def quit(self):
-        '''Quit fetcher'''
+        """
+        Quit fetcher
+        """
         self._running = False
         self._quit = True
         self.ioloop.add_callback(self.ioloop.stop)
@@ -792,12 +797,9 @@ class Fetcher(object):
     def xmlrpc_run(self, port=24444, bind='127.0.0.1', logRequests=False):
         '''Run xmlrpc server'''
         import umsgpack
-        from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
-        try:
-            from xmlrpc.client import Binary
-        except ImportError:
-            from xmlrpclib import Binary
 
+        from pyspider.libs.wsgi_xmlrpc import WSGIXMLRPCApplication
+        from xmlrpc.client import Binary
         application = WSGIXMLRPCApplication()
 
         application.register_function(self.quit, '_quit')
@@ -807,15 +809,17 @@ class Fetcher(object):
             result = self.sync_fetch(task)
             result = Binary(umsgpack.packb(result))
             return result
+
         application.register_function(sync_fetch, 'fetch')
 
         def dump_counter(_time, _type):
             return self._cnt[_time].to_dict(_type)
+
         application.register_function(dump_counter, 'counter')
 
-        import tornado.wsgi
-        import tornado.ioloop
         import tornado.httpserver
+        import tornado.ioloop
+        import tornado.wsgi
 
         container = tornado.wsgi.WSGIContainer(application)
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()

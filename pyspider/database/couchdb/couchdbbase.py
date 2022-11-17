@@ -1,5 +1,8 @@
-import time, requests, json
+import time
+
+import requests
 from requests.auth import HTTPBasicAuth
+
 
 class SplitTableMixin(object):
     UPDATE_PROJECTS_TIME = 10 * 60
@@ -16,18 +19,15 @@ class SplitTableMixin(object):
         else:
             return project
 
-
     @property
     def projects(self):
         if time.time() - getattr(self, '_last_update_projects', 0) > self.UPDATE_PROJECTS_TIME:
             self._list_project()
         return self._projects
 
-
     @projects.setter
     def projects(self, value):
         self._projects = value
-
 
     def _list_project(self):
         self._last_update_projects = time.time()
@@ -43,16 +43,17 @@ class SplitTableMixin(object):
             if each.startswith('_'):
                 continue
             if each.startswith(self.database):
-                self.projects.add(each[len(self.database)+1+len(prefix):])
-
+                self.projects.add(each[len(self.database) + 1 + len(prefix):])
 
     def create_database(self, name):
         url = self.base_url + name
         res = self.session.put(url).json()
         if 'error' in res and res['error'] == 'unauthorized':
-            raise Exception("Supplied credentials are incorrect. Reason: {} for User: {} Password: {}".format(res['reason'], self.username, self.password))
+            raise Exception(
+                "Supplied credentials are incorrect. Reason: {} for User: {} Password: {}".format(res['reason'],
+                                                                                                  self.username,
+                                                                                                  self.password))
         return res
-
 
     def get_doc(self, db_name, doc_id):
         url = self.base_url + db_name + "/" + doc_id
@@ -60,7 +61,6 @@ class SplitTableMixin(object):
         if "error" in res and res["error"] == "not_found":
             return None
         return res
-
 
     def get_docs(self, db_name, selector):
         url = self.base_url + db_name + "/_find"
@@ -70,15 +70,12 @@ class SplitTableMixin(object):
             return []
         return res['docs']
 
-
     def get_all_docs(self, db_name):
         return self.get_docs(db_name, {"selector": {}})
-
 
     def insert_doc(self, db_name, doc_id, doc):
         url = self.base_url + db_name + "/" + doc_id
         return self.session.put(url, json=doc).json()
-
 
     def update_doc(self, db_name, doc_id, new_doc):
         doc = self.get_doc(db_name, doc_id)
@@ -89,7 +86,5 @@ class SplitTableMixin(object):
         url = self.base_url + db_name + "/" + doc_id
         return self.session.put(url, json=doc).json()
 
-
     def delete(self, url):
         return self.session.delete(url).json()
-

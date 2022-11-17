@@ -1,20 +1,22 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2015-6-3 11:29
 
 
+import base64
 import os
 import time
-import base64
+
 import six
 from six import BytesIO
+from wsgidav.dav_error import HTTP_FORBIDDEN, DAVError
+from wsgidav.dav_provider import DAVCollection, DAVNonCollection, DAVProvider
 from wsgidav.wsgidav_app import DEFAULT_CONFIG, WsgiDAVApp
-from wsgidav.dav_provider import DAVProvider, DAVCollection, DAVNonCollection
-from wsgidav.dav_error import DAVError, HTTP_FORBIDDEN
-from pyspider.libs.utils import utf8, text
+
+from pyspider.libs.utils import text, utf8
+
 from .app import app
 
 

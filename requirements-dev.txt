@@ -1,0 +1,7 @@
+# for test or doc
+httpbin
+recommonmark
+easywebdav
+coverage
+pyproxy==0.1.6
+pylint

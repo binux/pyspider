@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-07-16 15:30:57
 
 import socket
-from flask import abort, render_template, request, json
+
+from flask import abort, json, render_template, request
 
 from pyspider.libs import utils
+
 from .app import app
 
 

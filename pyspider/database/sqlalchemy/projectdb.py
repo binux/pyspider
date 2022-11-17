@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-12-04 23:25:10
 
-import six
 import time
-import sqlalchemy.exc
 
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Text
+import six
+import sqlalchemy.exc
+from sqlalchemy import (Column, Float, MetaData, String, Table, Text,
+                        create_engine)
 from sqlalchemy.engine.url import make_url
-from pyspider.libs import utils
+
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
+from pyspider.libs import utils
+
 from .sqlalchemybase import result2dict
 
 
@@ -35,17 +37,14 @@ class ProjectDB(BaseProjectDB):
 
         self.url = make_url(url)
         if self.url.database:
-            database = self.url.database
-            self.url.database = None
             try:
-                engine = create_engine(self.url, convert_unicode=True, pool_recycle=3600)
+                engine = create_engine(self.url, pool_recycle=3600)
                 conn = engine.connect()
                 conn.execute("commit")
-                conn.execute("CREATE DATABASE %s" % database)
+                conn.execute("CREATE DATABASE %s" % self.url.database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
-            self.url.database = database
-        self.engine = create_engine(url, convert_unicode=True, pool_recycle=3600)
+        self.engine = create_engine(url, pool_recycle=3600)
         self.table.create(self.engine, checkfirst=True)
 
     @staticmethod
@@ -56,14 +55,16 @@ class ProjectDB(BaseProjectDB):
     def _stringify(data):
         return data
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj: dict = None):
+        if obj is None:
+            obj = dict()
         obj = dict(obj)
         obj['name'] = name
         obj['updatetime'] = time.time()
         return self.engine.execute(self.table.insert()
                                    .values(**self._stringify(obj)))
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj: dict = None, **kwargs):
         obj = dict(obj)
         obj.update(kwargs)
         obj['updatetime'] = time.time()
@@ -74,15 +75,15 @@ class ProjectDB(BaseProjectDB):
     def get_all(self, fields=None):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
-                                        .with_only_columns(columns)):
+                                                .with_only_columns(columns)):
             yield self._parse(result2dict(columns, task))
 
     def get(self, name, fields=None):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
-                                        .where(self.table.c.name == name)
-                                        .limit(1)
-                                        .with_only_columns(columns)):
+                                                .where(self.table.c.name == name)
+                                                .limit(1)
+                                                .with_only_columns(columns)):
             return self._parse(result2dict(columns, task))
 
     def drop(self, name):
@@ -92,6 +93,6 @@ class ProjectDB(BaseProjectDB):
     def check_update(self, timestamp, fields=None):
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for task in self.engine.execute(self.table.select()
-                                        .with_only_columns(columns)
-                                        .where(self.table.c.updatetime >= timestamp)):
+                                                .with_only_columns(columns)
+                                                .where(self.table.c.updatetime >= timestamp)):
             yield self._parse(result2dict(columns, task))

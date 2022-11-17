@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -18,6 +17,7 @@ from six.moves import queue as Queue
 
 from pyspider.libs import counter, utils
 from pyspider.libs.base_handler import BaseHandler
+
 from .task_queue import TaskQueue
 
 logger = logging.getLogger('scheduler')
@@ -671,7 +671,9 @@ class Scheduler(object):
         self._try_dump_cnt()
 
     def run(self):
-        '''Start scheduler loop'''
+        """
+        Start scheduler loop
+        """
         logger.info("scheduler starting...")
 
         while not self._quit:
@@ -799,9 +801,9 @@ class Scheduler(object):
             }
         application.register_function(webui_update, 'webui_update')
 
-        import tornado.wsgi
-        import tornado.ioloop
         import tornado.httpserver
+        import tornado.ioloop
+        import tornado.wsgi
 
         container = tornado.wsgi.WSGIContainer(application)
         self.xmlrpc_ioloop = tornado.ioloop.IOLoop()
@@ -1180,6 +1182,7 @@ class OneScheduler(Scheduler):
 
 import random
 import threading
+
 from pyspider.database.sqlite.sqlitebase import SQLiteMixin
 
 
@@ -1234,7 +1237,7 @@ class ThreadBaseScheduler(Scheduler):
         self.local.resultdb = resultdb
 
     def _start_threads(self):
-        for i in range(self.threads):
+        for _ in range(self.threads):
             queue = Queue.Queue()
             thread = threading.Thread(target=self._thread_worker, args=(queue, ))
             thread.daemon = True

@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-08 10:25:34
 
+import json
 import re
 import time
-import json
 
-from .sqlitebase import SQLiteMixin, SplitTableMixin
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 from pyspider.database.basedb import BaseDB
+
+from .sqlitebase import SplitTableMixin, SQLiteMixin
 
 
 class TaskDB(SQLiteMixin, SplitTableMixin, BaseTaskDB, BaseDB):

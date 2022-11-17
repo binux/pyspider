@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -76,10 +75,14 @@ class TaskDB(object):
         '''
         raise NotImplementedError
 
-    def insert(self, project, taskid, obj={}):
+    def insert(self, project, taskid, obj: dict = None):
+        if obj is None:
+            obj = dict()
         raise NotImplementedError
 
-    def update(self, project, taskid, obj={}, **kwargs):
+    def update(self, project, taskid, obj: dict = None, **kwargs):
+        if obj is None:
+            obj = dict()
         raise NotImplementedError
 
     def drop(self, project):

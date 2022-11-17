@@ -1,85 +1,85 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-11-18 21:03:22
 
+import json
 import os
 import re
-import time
-import json
 import shutil
+import time
 import unittest
 
 from pyspider import run
 from pyspider.libs import utils
-from pyspider.libs.utils import run_in_thread, ObjectDict
+from pyspider.libs.utils import ObjectDict, run_in_thread
 
 
 class TestWebUI(unittest.TestCase):
+    threads = list()
+    ctx = None
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         shutil.rmtree('./data/tests', ignore_errors=True)
         os.makedirs('./data/tests')
 
-        import tests.data_test_webpage
-        import httpbin
+        # import httpbin
+
+        from tests import data_test_webpage
         from pyspider.webui import bench_test  # flake8: noqa
-        self.httpbin_thread = utils.run_in_subprocess(httpbin.app.run, port=14887, passthrough_errors=False)
-        self.httpbin = 'http://127.0.0.1:14887'
+        cls.httpbin_thread = utils.run_in_subprocess(data_test_webpage.app.run, port=14887, passthrough_errors=False)
+        # self.httpbin = 'http://httpbin.org'
 
         ctx = run.cli.make_context('test', [
-            '--taskdb', 'sqlalchemy+sqlite+taskdb:///data/tests/task.db',
-            '--projectdb', 'sqlalchemy+sqlite+projectdb:///data/tests/projectdb.db',
-            '--resultdb', 'sqlalchemy+sqlite+resultdb:///data/tests/resultdb.db',
+            '--taskdb', 'sqlalchemy+sqlite+taskdb:///data/tests/task.db?check_same_thread=False',
+            '--projectdb', 'sqlalchemy+sqlite+projectdb:///data/tests/projectdb.db?check_same_thread=False',
+            '--resultdb', 'sqlalchemy+sqlite+resultdb:///data/tests/resultdb.db?check_same_thread=False',
         ], None, obj=ObjectDict(testing_mode=True))
-        self.ctx = run.cli.invoke(ctx)
+        cls.ctx = run.cli.invoke(ctx)
 
-        self.threads = []
-
-        ctx = run.scheduler.make_context('scheduler', [], self.ctx)
-        self.scheduler = scheduler = run.scheduler.invoke(ctx)
-        self.threads.append(run_in_thread(scheduler.xmlrpc_run))
-        self.threads.append(run_in_thread(scheduler.run))
+        ctx = run.scheduler.make_context('scheduler', [], cls.ctx)
+        cls.scheduler = scheduler = run.scheduler.invoke(ctx)
+        cls.threads.append(run_in_thread(scheduler.xmlrpc_run))
+        cls.threads.append(run_in_thread(scheduler.run))
 
         ctx = run.fetcher.make_context('fetcher', [
             '--xmlrpc-port', '24444',
-        ], self.ctx)
+        ], cls.ctx)
         fetcher = run.fetcher.invoke(ctx)
-        self.threads.append(run_in_thread(fetcher.xmlrpc_run))
-        self.threads.append(run_in_thread(fetcher.run))
+        cls.threads.append(run_in_thread(fetcher.xmlrpc_run))
+        cls.threads.append(run_in_thread(fetcher.run))
 
-        ctx = run.processor.make_context('processor', [], self.ctx)
+        ctx = run.processor.make_context('processor', [], cls.ctx)
         processor = run.processor.invoke(ctx)
-        self.threads.append(run_in_thread(processor.run))
+        cls.threads.append(run_in_thread(processor.run))
 
-        ctx = run.result_worker.make_context('result_worker', [], self.ctx)
+        ctx = run.result_worker.make_context('result_worker', [], cls.ctx)
         result_worker = run.result_worker.invoke(ctx)
-        self.threads.append(run_in_thread(result_worker.run))
+        cls.threads.append(run_in_thread(result_worker.run))
 
         ctx = run.webui.make_context('webui', [
             '--scheduler-rpc', 'http://localhost:23333/'
-        ], self.ctx)
+        ], cls.ctx)
         app = run.webui.invoke(ctx)
         app.debug = True
-        self.app = app.test_client()
-        self.rpc = app.config['scheduler_rpc']
+        cls.app = app.test_client()
+        cls.rpc = app.config['scheduler_rpc']
 
         time.sleep(1)
 
     @classmethod
-    def tearDownClass(self):
-        for each in self.ctx.obj.instances:
+    def tearDownClass(cls):
+        for each in cls.ctx.obj.instances:
             each.quit()
         time.sleep(1)
 
-        for thread in self.threads:
+        for thread in cls.threads:
             thread.join()
 
-        self.httpbin_thread.terminate()
-        self.httpbin_thread.join()
+        cls.httpbin_thread.terminate()
+        cls.httpbin_thread.join()
 
         assert not utils.check_port_open(5000)
         assert not utils.check_port_open(23333)
@@ -144,7 +144,7 @@ class TestWebUI(unittest.TestCase):
     def test_32_run_bad_task(self):
         rv = self.app.post('/debug/test_project/run', data={
             'script': self.script_content,
-            'task': self.task_content+'asdfasdf312!@#'
+            'task': self.task_content + 'asdfasdf312!@#'
         })
         self.assertEqual(rv.status_code, 200)
         data = json.loads(utils.text(rv.data))
@@ -153,7 +153,7 @@ class TestWebUI(unittest.TestCase):
 
     def test_33_run_bad_script(self):
         rv = self.app.post('/debug/test_project/run', data={
-            'script': self.script_content+'adfasfasdf',
+            'script': self.script_content + 'adfasfasdf',
             'task': self.task_content
         })
         self.assertEqual(rv.status_code, 200)
@@ -269,7 +269,7 @@ class TestWebUI(unittest.TestCase):
     def test_a10_counter(self):
         for i in range(30):
             time.sleep(1)
-            if self.rpc.counter('5m', 'sum')\
+            if self.rpc.counter('5m', 'sum') \
                     .get('test_project', {}).get('success', 0) > 5:
                 break
 
@@ -329,7 +329,6 @@ class TestWebUI(unittest.TestCase):
                 self.assertIn('ok', task['track']['process'])
                 self.assertIn('time', task['track']['process'])
         self.assertTrue(track)
-                    
 
     def test_a24_task(self):
         rv = self.app.get(self.task_url)

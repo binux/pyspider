@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2015-01-17 12:32:17
 
-import os
-import re
-import six
 import glob
 import logging
+import os
+import re
+
+import six
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
@@ -68,13 +68,13 @@ class ProjectDB(BaseProjectDB):
                 'burst': burst,
                 'updatetime': os.path.getmtime(filename),
             }
-        except OSError as e:
-            logging.error('loading project script error: %s', e)
+        except OSError as err:
+            logging.error('loading project script error: %s', err)
             return None
 
     def get_all(self, fields=None):
-        for projectname in self.projects:
-            yield self.get(projectname, fields)
+        for project_name in self.projects:
+            yield self.get(project_name, fields)
 
     def get(self, name, fields=None):
         if name not in self.projects:

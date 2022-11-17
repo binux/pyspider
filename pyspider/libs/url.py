@@ -1,16 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2012-11-09 14:39:57
 
 import mimetypes
+import shlex
 
 import six
-import shlex
-from six.moves.urllib.parse import urlparse, urlunparse
 from requests.models import RequestEncodingMixin
+from six.moves.urllib.parse import urlparse, urlunparse
 
 
 def get_content_type(filename):

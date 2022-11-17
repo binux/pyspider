@@ -1,5 +1,9 @@
-import time, requests, json
+import time
+from typing import Dict
+
+import requests
 from requests.auth import HTTPBasicAuth
+
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 
 
@@ -46,19 +50,22 @@ class ProjectDB(BaseProjectDB):
         each.setdefault('updatetime', 0)
         return each
 
-    def insert(self, name, obj={}):
+    def insert(self, name, obj: Dict = None):
         url = self.url + name
-        obj = dict(obj)
+        if obj is None:
+            obj = dict()
         obj['name'] = name
         obj['updatetime'] = time.time()
         res = self.session.put(url, json=obj).json()
         return res
 
-    def update(self, name, obj={}, **kwargs):
+    def update(self, name, obj: Dict = None, **kwargs):
         # object contains the fields to update and their new values
-        update = self.get(name) # update will contain _rev
+        update = self.get(name)  # update will contain _rev
         if update is None:
             return None
+        if obj is None:
+            obj = dict()
         obj = dict(obj)
         obj['updatetime'] = time.time()
         obj.update(kwargs)

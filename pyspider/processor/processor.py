@@ -1,25 +1,25 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-16 22:59:56
 
-import sys
-import six
-import time
 import logging
+import sys
+import time
 import traceback
-logger = logging.getLogger("processor")
 
+import six
 from six.moves import queue as Queue
+
 from pyspider.libs import utils
 from pyspider.libs.log import LogFormatter
-from pyspider.libs.utils import pretty_unicode, hide_me
 from pyspider.libs.response import rebuild_response
-from .project_module import ProjectManager, ProjectFinder
+from pyspider.libs.utils import hide_me, pretty_unicode
 
+from .project_module import ProjectFinder, ProjectManager
 
+logger = logging.getLogger("processor")
 class ProcessorResult(object):
     """The result and logs producted by a callback"""
 

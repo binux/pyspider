@@ -1,8 +1,6 @@
-import six
-import platform
 import multiprocessing
+import platform
 from multiprocessing.queues import Queue as BaseQueue
-
 
 # The SharedCounter and Queue classes come from:
 # https://github.com/vterron/lemon/commit/9ca6b4b
@@ -44,6 +42,7 @@ class MultiProcessingQueue(BaseQueue):
     being raised, but also allows us to implement a reliable version of both
     qsize() and empty().
     """
+
     def __init__(self, *args, **kwargs):
         super(MultiProcessingQueue, self).__init__(*args, **kwargs)
         self.size = SharedCounter(0)

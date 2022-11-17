@@ -1,19 +1,20 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-10-13 22:02:57
 
-import re
-import six
-import time
 import json
-import mysql.connector
+import re
+import time
 
-from pyspider.libs import utils
+import mysql.connector
+import six
+
 from pyspider.database.base.resultdb import ResultDB as BaseResultDB
 from pyspider.database.basedb import BaseDB
+from pyspider.libs import utils
+
 from .mysqlbase import MySQLMixin, SplitTableMixin
 
 

@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2012-11-16 10:33:20
 
+from base64 import b64decode, b64encode
+
 import six
-from base64 import b64encode, b64decode
-from . import utils
 from six.moves.urllib.parse import quote, unquote
+
+from . import utils
 
 
 def encode(data, mime_type='', charset='utf-8', base64=True):

@@ -1,18 +1,17 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2012-11-06 11:50:13
 
-import math
-import logging
-import hashlib
-import datetime
-import socket
 import base64
-import warnings
+import datetime
+import hashlib
+import logging
+import math
+import socket
 import threading
+import warnings
 
 import six
 from six import iteritems
@@ -31,7 +30,7 @@ def getitem(obj, key=0, default=None):
     """Get first element of list or return default"""
     try:
         return obj[key]
-    except:
+    except Exception:
         return default
 
 
@@ -43,8 +42,8 @@ def hide_me(tb, g=globals()):
             tb = tb.tb_next
         while tb and tb.tb_frame.f_globals is g:
             tb = tb.tb_next
-    except Exception as e:
-        logging.exception(e)
+    except Exception as err:
+        logging.exception(err)
         tb = base_tb
     if not tb:
         tb = base_tb
@@ -105,22 +104,20 @@ def format_date(date, gmt_offset=0, relative=True, shorter=False, full_format=Fa
     seconds = difference.seconds
     days = difference.days
 
-    format = None
+    format_str = None
     if not full_format:
         ret_, fff_format = fix_full_format(days, seconds, relative, shorter, local_date, local_yesterday)
-        format = fff_format
+        format_str = fff_format
         if ret_:
-            return format
-        else:
-            format = format
+            return format_str
 
-    if format is None:
-        format = "%(month_name)s %(day)s, %(year)s" if shorter else \
+    if format_str is None:
+        format_str = "%(month_name)s %(day)s, %(year)s" if shorter else \
             "%(month_name)s %(day)s, %(year)s at %(time)s"
 
     str_time = "%d:%02d" % (local_date.hour, local_date.minute)
 
-    return format % {
+    return format_str % {
         "month_name": local_date.strftime('%b'),
         "weekday": local_date.strftime('%A'),
         "day": str(local_date.day),
@@ -134,36 +131,36 @@ def fix_full_format(days, seconds, relative, shorter, local_date, local_yesterda
     if relative and days == 0:
         if seconds < 50:
             return True, (("1 second ago" if seconds <= 1 else
-                    "%(seconds)d seconds ago") % {"seconds": seconds})
+                           "%(seconds)d seconds ago") % {"seconds": seconds})
 
         if seconds < 50 * 60:
             minutes = round(seconds / 60.0)
             return True, (("1 minute ago" if minutes <= 1 else
-                    "%(minutes)d minutes ago") % {"minutes": minutes})
+                           "%(minutes)d minutes ago") % {"minutes": minutes})
 
         hours = round(seconds / (60.0 * 60))
         return True, (("1 hour ago" if hours <= 1 else
-                "%(hours)d hours ago") % {"hours": hours})
-    format = None
+                       "%(hours)d hours ago") % {"hours": hours})
+    format_str = None
     if days == 0:
-        format = "%(time)s"
+        format_str = "%(time)s"
     elif days == 1 and local_date.day == local_yesterday.day and \
             relative:
-        format = "yesterday" if shorter else "yesterday at %(time)s"
+        format_str = "yesterday" if shorter else "yesterday at %(time)s"
     elif days < 5:
-        format = "%(weekday)s" if shorter else "%(weekday)s at %(time)s"
+        format_str = "%(weekday)s" if shorter else "%(weekday)s at %(time)s"
     elif days < 334:  # 11mo, since confusing for same month last year
-        format = "%(month)s-%(day)s" if shorter else \
+        format_str = "%(month)s-%(day)s" if shorter else \
             "%(month)s-%(day)s at %(time)s"
-    return False, format
+    return False, format_str
 
-class TimeoutError(Exception):
-    pass
 
 try:
     import signal
+
     if not hasattr(signal, 'SIGALRM'):
         raise ImportError('signal')
+
 
     class timeout:
         """
@@ -194,6 +191,7 @@ try:
 
 except ImportError as e:
     warnings.warn("timeout is not supported on your platform.", FutureWarning)
+
 
     class timeout:
         """
@@ -300,7 +298,7 @@ def unicode_obj(obj):
     else:
         try:
             return text(obj)
-        except:
+        except Exception:
             return text(repr(obj))
 
 
@@ -400,7 +398,7 @@ def get_python_console(namespace=None):
         shell = code.InteractiveConsole(namespace)
         shell._quit = False
 
-        def exit():
+        def ask_exit():
             shell._quit = True
 
         def readfunc(prompt=""):
@@ -409,7 +407,7 @@ def get_python_console(namespace=None):
             return six.moves.input(prompt)
 
         # inject exit method
-        shell.ask_exit = exit
+        shell.ask_exit = ask_exit
         shell.raw_input = readfunc
 
     return shell

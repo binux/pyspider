@@ -1,21 +1,22 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.com>
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-from __future__ import unicode_literals, division, absolute_import
+from __future__ import absolute_import, division, unicode_literals
 
 import logging
-logger = logging.getLogger('database.basedb')
+from typing import List
 
 from six import itervalues
+
 from pyspider.libs import utils
+
+logger = logging.getLogger('database.basedb')
 
 
 class BaseDB:
-
     '''
     BaseDB
 
@@ -33,12 +34,14 @@ class BaseDB:
     def dbcur(self):
         raise NotImplementedError
 
-    def _execute(self, sql_query, values=[]):
+    def _execute(self, sql_query, values: List = None):
         dbcur = self.dbcur
+        if values is None:
+            values = list()
         dbcur.execute(sql_query, values)
         return dbcur
 
-    def _select(self, tablename=None, what="*", where="", where_values=[], offset=0, limit=None):
+    def _select(self, tablename=None, what="*", where="", where_values: List = None, offset: int = 0, limit=None):
         tablename = self.escape(tablename or self.__tablename__)
         if isinstance(what, list) or isinstance(what, tuple) or what is None:
             what = ','.join(self.escape(f) for f in what) if what else '*'
@@ -51,14 +54,15 @@ class BaseDB:
         elif offset:
             sql_query += " LIMIT %d, %d" % (offset, self.maxlimit)
         logger.debug("<sql: %s>", sql_query)
-
+        if where_values is None:
+            where_values = list()
         for row in self._execute(sql_query, where_values):
             yield row
 
-    def _select2dic(self, tablename=None, what="*", where="", where_values=[],
+    def _select2dic(self, tablename=None, what="*", where="", where_values: List = None,
                     order=None, offset=0, limit=None):
         tablename = self.escape(tablename or self.__tablename__)
-        if isinstance(what, list) or isinstance(what, tuple) or what is None:
+        if isinstance(what, (list, tuple)) or what is None:
             what = ','.join(self.escape(f) for f in what) if what else '*'
 
         sql_query = "SELECT %s FROM %s" % (what, tablename)
@@ -71,7 +75,8 @@ class BaseDB:
         elif offset:
             sql_query += " LIMIT %d, %d" % (offset, self.maxlimit)
         logger.debug("<sql: %s>", sql_query)
-
+        if where_values is None:
+            where_values = list()
         dbcur = self._execute(sql_query, where_values)
 
         # f[0] may return bytes type
@@ -113,27 +118,31 @@ class BaseDB:
             dbcur = self._execute(sql_query)
         return dbcur.lastrowid
 
-    def _update(self, tablename=None, where="1=0", where_values=[], **values):
+    def _update(self, tablename=None, where="1=0", where_values: List = None, **values):
         tablename = self.escape(tablename or self.__tablename__)
         _key_values = ", ".join([
             "%s = %s" % (self.escape(k), self.placeholder) for k in values
         ])
         sql_query = "UPDATE %s SET %s WHERE %s" % (tablename, _key_values, where)
         logger.debug("<sql: %s>", sql_query)
-
+        if where_values is None:
+            where_values = list()
         return self._execute(sql_query, list(itervalues(values)) + list(where_values))
 
-    def _delete(self, tablename=None, where="1=0", where_values=[]):
+    def _delete(self, tablename=None, where="1=0", where_values: List = None):
         tablename = self.escape(tablename or self.__tablename__)
         sql_query = "DELETE FROM %s" % tablename
         if where:
             sql_query += " WHERE %s" % where
         logger.debug("<sql: %s>", sql_query)
-
+        if where_values is None:
+            where_values = list()
         return self._execute(sql_query, where_values)
+
 
 if __name__ == "__main__":
     import sqlite3
+
 
     class DB(BaseDB):
         __tablename__ = "test"
@@ -151,6 +160,7 @@ if __name__ == "__main__":
         def dbcur(self):
             return self.conn.cursor()
 
+
     db = DB()
     assert db._insert(db.__tablename__, name="binux", age=23) == 1
     assert db._select(db.__tablename__, "name, age").next() == ("binux", 23)
@@ -161,4 +171,4 @@ if __name__ == "__main__":
     db._update(db.__tablename__, "id = 1", age=16)
     assert db._select(db.__tablename__, "name, age").next() == (None, 16)
     db._delete(db.__tablename__, "id = 1")
-    assert [row for row in db._select(db.__tablename__)] == []
+    assert [row for row in db._select(db.__tablename__)]

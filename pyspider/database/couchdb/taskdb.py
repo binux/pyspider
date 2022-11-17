@@ -1,5 +1,8 @@
-import json, time
+import json
+import time
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
+
 from .couchdbbase import SplitTableMixin
 
 

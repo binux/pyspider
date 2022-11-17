@@ -1,25 +1,25 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-03-05 00:11:49
 
 
-import os
-import sys
-import six
 import copy
-import time
-import shutil
 import logging
 import logging.config
+import os
+import shutil
+import sys
+import time
 
 import click
+import six
+
 import pyspider
-from pyspider.message_queue import connect_message_queue
 from pyspider.database import connect_database
 from pyspider.libs import utils
+from pyspider.message_queue import connect_message_queue
 
 
 def read_config(ctx, param, value):
@@ -39,7 +39,7 @@ def read_config(ctx, param, value):
 
 def connect_db(ctx, param, value):
     if not value:
-        return
+        return None
     return utils.Get(lambda: connect_database(value))
 
 
@@ -51,7 +51,7 @@ def load_cls(ctx, param, value):
 
 def connect_rpc(ctx, param, value):
     if not value:
-        return
+        return None
     try:
         from six.moves import xmlrpc_client
     except ImportError:
@@ -75,12 +75,12 @@ def connect_rpc(ctx, param, value):
               help='database url for resultdb, default: sqlite')
 @click.option('--message-queue', envvar='AMQP_URL',
               help='connection url to message queue, '
-              'default: builtin multiprocessing.Queue')
+                   'default: builtin multiprocessing.Queue')
 @click.option('--amqp-url', help='[deprecated] amqp url for rabbitmq. '
-              'please use --message-queue instead.')
+                                 'please use --message-queue instead.')
 @click.option('--beanstalk', envvar='BEANSTALK_HOST',
               help='[deprecated] beanstalk config for beanstalk queue. '
-              'please use --message-queue instead.')
+                   'please use --message-queue instead.')
 @click.option('--phantomjs-proxy', envvar='PHANTOMJS_PROXY', help="phantomjs proxy ip:port")
 @click.option('--puppeteer-proxy', envvar='PUPPETEER_PROXY', help="puppeteer proxy ip:port")
 @click.option('--data-path', default='./data', help='data dir path')
@@ -125,7 +125,7 @@ def cli(ctx, **kwargs):
                 os.mkdir(kwargs['data_path'])
             if db in ('taskdb', 'resultdb'):
                 kwargs[db] = utils.Get(lambda db=db: connect_database('sqlite+%s://' % (db)))
-            elif db in ('projectdb', ):
+            elif db in ('projectdb',):
                 kwargs[db] = utils.Get(lambda db=db: connect_database('local+%s://%s' % (
                     db, os.path.join(os.path.dirname(__file__), 'libs/bench.py'))))
         else:
@@ -185,12 +185,13 @@ def cli(ctx, **kwargs):
 @click.option('--xmlrpc-port', envvar='SCHEDULER_XMLRPC_PORT', default=23333)
 @click.option('--inqueue-limit', default=0,
               help='size limit of task queue for each project, '
-              'tasks will been ignored when overflow')
+                   'tasks will been ignored when overflow')
 @click.option('--delete-time', default=24 * 60 * 60,
               help='delete time before marked as delete')
 @click.option('--active-tasks', default=100, help='active log size')
 @click.option('--loop-limit', default=1000, help='maximum number of tasks due with in a loop')
-@click.option('--fail-pause-num', default=10, help='auto pause the project when last FAIL_PAUSE_NUM task failed, set 0 to disable')
+@click.option('--fail-pause-num', default=10,
+              help='auto pause the project when last FAIL_PAUSE_NUM task failed, set 0 to disable')
 @click.option('--scheduler-cls', default='pyspider.scheduler.ThreadBaseScheduler', callback=load_cls,
               help='scheduler class to be used.')
 @click.option('--threads', default=None, help='thread number for ThreadBaseScheduler, default: 4')
@@ -238,7 +239,8 @@ def scheduler(ctx, xmlrpc, no_xmlrpc, xmlrpc_host, xmlrpc_port,
 @click.option('--timeout', help='default fetch timeout')
 @click.option('--phantomjs-endpoint', help="endpoint of phantomjs, start via pyspider phantomjs")
 @click.option('--puppeteer-endpoint', help="endpoint of puppeteer, start via pyspider puppeteer")
-@click.option('--splash-endpoint', help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
+@click.option('--splash-endpoint',
+              help="execute endpoint of splash: http://splash.readthedocs.io/en/stable/api.html#execute")
 @click.option('--fetcher-cls', default='pyspider.fetcher.Fetcher', callback=load_cls,
               help='Fetcher class to be used.')
 @click.pass_context
@@ -314,13 +316,13 @@ def result_worker(ctx, result_cls, get_object=False):
     g = ctx.obj
     ResultWorker = load_cls(None, None, result_cls)
 
-    result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
+    _result_worker = ResultWorker(resultdb=g.resultdb, inqueue=g.processor2result)
 
-    g.instances.append(result_worker)
+    g.instances.append(_result_worker)
     if g.get('testing_mode') or get_object:
-        return result_worker
+        return _result_worker
 
-    result_worker.run()
+    _result_worker.run()
 
 
 @cli.command()
@@ -389,13 +391,13 @@ def webui(ctx, host, port, cdn, scheduler_rpc, fetcher_rpc, max_rate, max_burst,
         scheduler_rpc = connect_rpc(ctx, None, scheduler_rpc)
     if scheduler_rpc is None and os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'):
         app.config['scheduler_rpc'] = connect_rpc(ctx, None,
-                                                  'http://{}:{}/'.format(os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'),
-                                                                         os.environ.get('SCHEDULER_PORT_23333_TCP_PORT') or 23333))
+                                                  'http://{}:{}/'.format(
+                                                      os.environ.get('SCHEDULER_PORT_23333_TCP_ADDR'),
+                                                      os.environ.get('SCHEDULER_PORT_23333_TCP_PORT') or 23333))
     elif scheduler_rpc is None:
         app.config['scheduler_rpc'] = connect_rpc(ctx, None, 'http://127.0.0.1:23333/')
     else:
         app.config['scheduler_rpc'] = scheduler_rpc
-
 
     app.debug = g.debug
     g.instances.append(app)
@@ -422,9 +424,11 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
     _quit = []
     phantomjs_fetcher = os.path.join(
         os.path.dirname(pyspider.__file__), 'fetcher/phantomjs_fetcher.js')
+    if not phantomjs_fetcher:
+        return None
     cmd = [phantomjs_path,
            # this may cause memory leak: https://github.com/ariya/phantomjs/issues/12903
-           #'--load-images=false',
+           # '--load-images=false',
            '--ssl-protocol=any',
            '--disk-cache=true'] + list(args or []) + [phantomjs_fetcher, str(port)]
 
@@ -454,6 +458,7 @@ def phantomjs(ctx, phantomjs_path, port, auto_restart, args):
             break
         _phantomjs = subprocess.Popen(cmd)
 
+
 @cli.command()
 @click.option('--port', default=22222, help='puppeteer port')
 @click.option('--auto-restart', default=False, help='auto restart puppeteer if crashed')
@@ -472,7 +477,10 @@ def puppeteer(ctx, port, auto_restart, args):
 
     cmd = ['node', puppeteer_fetcher, str(port)]
     try:
-        _puppeteer = subprocess.Popen(cmd)
+        _stdout, _stderr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        if _stderr:
+            logging.warning(_stderr)
+            return None
     except OSError:
         logging.warning('puppeteer not found, continue running without it.')
         return None
@@ -492,10 +500,10 @@ def puppeteer(ctx, port, auto_restart, args):
         return puppeteer
 
     while True:
+        _puppeteer = subprocess.Popen(cmd)
         _puppeteer.wait()
         if _quit or not auto_restart:
             break
-        _puppeteer = subprocess.Popen(cmd)
 
 
 @cli.command()
@@ -505,7 +513,7 @@ def puppeteer(ctx, port, auto_restart, args):
               help='instance num of result worker')
 @click.option('--run-in', default='subprocess', type=click.Choice(['subprocess', 'thread']),
               help='run each components in thread or subprocess. '
-              'always using thread for windows.')
+                   'always using thread for windows.')
 @click.pass_context
 def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
     """
@@ -544,18 +552,18 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
-        for i in range(result_worker_num):
+        for _ in range(result_worker_num):
             threads.append(run_in(ctx.invoke, result_worker, **result_worker_config))
 
         # processor
         processor_config = g.config.get('processor', {})
-        for i in range(processor_num):
+        for _ in range(processor_num):
             threads.append(run_in(ctx.invoke, processor, **processor_config))
 
         # fetcher
         fetcher_config = g.config.get('fetcher', {})
         fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-        for i in range(fetcher_num):
+        for _ in range(fetcher_num):
             threads.append(run_in(ctx.invoke, fetcher, **fetcher_config))
 
         # scheduler
@@ -588,7 +596,7 @@ def all(ctx, fetcher_num, processor_num, result_worker_num, run_in):
 @click.option('--result-worker-num', default=1, help='instance num of result worker')
 @click.option('--run-in', default='subprocess', type=click.Choice(['subprocess', 'thread']),
               help='run each components in thread or subprocess. '
-              'always using thread for windows.')
+                   'always using thread for windows.')
 @click.option('--total', default=10000, help="total url in test page")
 @click.option('--show', default=20, help="show how many urls in a page")
 @click.option('--taskdb-bench', default=False, is_flag=True,
@@ -651,14 +659,14 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
 
         # result worker
         result_worker_config = g.config.get('result_worker', {})
-        for i in range(result_worker_num):
+        for _ in range(result_worker_num):
             threads.append(run_in(ctx.invoke, result_worker,
                                   result_cls='pyspider.libs.bench.BenchResultWorker',
                                   **result_worker_config))
 
         # processor
         processor_config = g.config.get('processor', {})
-        for i in range(processor_num):
+        for _ in range(processor_num):
             threads.append(run_in(ctx.invoke, processor,
                                   processor_cls='pyspider.libs.bench.BenchProcessor',
                                   **processor_config))
@@ -666,7 +674,7 @@ def bench(ctx, fetcher_num, processor_num, result_worker_num, run_in, total, sho
         # fetcher
         fetcher_config = g.config.get('fetcher', {})
         fetcher_config.setdefault('xmlrpc_host', '127.0.0.1')
-        for i in range(fetcher_num):
+        for _ in range(fetcher_num):
             threads.append(run_in(ctx.invoke, fetcher,
                                   fetcher_cls='pyspider.libs.bench.BenchFetcher',
                                   **fetcher_config))
@@ -837,6 +845,7 @@ def send_message(ctx, scheduler_rpc, project, message):
 
 def main():
     cli()
+
 
 if __name__ == '__main__':
     main()

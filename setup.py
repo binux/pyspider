@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-11-24 22:27:45
 
 
-import sys
-from setuptools import setup, find_packages
 from codecs import open
 from os import path
+
+from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -18,18 +17,18 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 import pyspider
 
 install_requires = [
-    'Flask==0.10',
-    'Jinja2==2.7',
+    'Flask==2.1.2',
+    'Flask-Login==0.6.1',
+    'Jinja2==3.1.2',
     'chardet==3.0.4',
     'cssselect==0.9',
-    "lxml==4.3.3",
-    'pycurl==7.43.0.3',
-    'requests==2.24.0',
-    'Flask-Login==0.2.11',
+    "lxml==4.8.0",
+    'pycurl==7.45.1',
+    'requests==2.27.1',
     'u-msgpack-python==1.6',
-    'click==3.3',
-    'six==1.10.0',
-    'tblib==1.4.0',
+    'click==8.1.3',
+    'six==1.16.0',
+    'tblib==1.7.0',
     'wsgidav==2.3.0',
     'tornado>=3.2,<=4.5.3',
     'pyquery',
@@ -38,14 +37,15 @@ install_requires = [
 extras_require_all = [
     'mysql-connector-python==8.0.16',
     'pymongo==3.9.0',
-    'redis==2.10.6',
-    'redis-py-cluster==1.3.6',
-    'psycopg2==2.8.2',
-    'elasticsearch==2.3.0',
-    'kombu==4.4.0',
-    'amqp==2.4.0',
-    'SQLAlchemy==1.3.10',
-    'pika==1.1.0'
+    'redis==3.5.3',
+    'redis-py-cluster==2.1.3',
+    'psycopg2-binary==2.9.3',
+    'elasticsearch==7.10.0',
+    'kombu>=5.2.4,<6',
+    'amqp>=5.1.1,<6',
+    'SQLAlchemy==1.4.36',
+    'vine==5.0.0',
+    'pika==1.2.1',
 ]
 
 setup(
@@ -55,18 +55,19 @@ setup(
     description='A Powerful Spider System in Python',
     long_description=long_description,
 
-    url='https://github.com/binux/pyspider',
+    url='https://github.com/lusi1990/pyspider',
 
-    author='Roy Binux',
-    author_email='roy@binux.me',
+    author='Master Lu',
+    author_email='lusi2114@gmail.com',
 
     license='Apache License, Version 2.0',
 
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
 
         'License :: OSI Approved :: Apache Software License',
 
@@ -89,7 +90,7 @@ setup(
         'all': extras_require_all,
         'test': [
             'coverage',
-            'Werkzeug==0.16.1',
+            'Werkzeug==2.1.2',
             'httpbin==0.7.0',
             'pyproxy==0.1.6',
             'easywebdav==1.2.0',

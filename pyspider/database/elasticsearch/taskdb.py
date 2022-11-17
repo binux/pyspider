@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2016-01-20 20:20:55
 
 
-import time
 import json
+import time
+from typing import Dict
 
 import elasticsearch.helpers
 from elasticsearch import Elasticsearch
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
 
 
@@ -91,18 +92,20 @@ class TaskDB(BaseTaskDB):
             result[each['key']] = each['doc_count']
         return result
 
-    def insert(self, project, taskid, obj={}):
+    def insert(self, project, taskid, obj: Dict = None):
         self._changed = True
-        obj = dict(obj)
+        if obj is None:
+            obj = dict()
         obj['taskid'] = taskid
         obj['project'] = project
         obj['updatetime'] = time.time()
         return self.es.index(index=self.index, doc_type=self.__type__,
                              body=self._stringify(obj), id='%s:%s' % (project, taskid))
 
-    def update(self, project, taskid, obj={}, **kwargs):
+    def update(self, project, taskid, obj: Dict = None, **kwargs):
         self._changed = True
-        obj = dict(obj)
+        if obj is None:
+            obj = dict()
         obj.update(kwargs)
         obj['updatetime'] = time.time()
         return self.es.update(index=self.index, doc_type=self.__type__, id='%s:%s' % (project, taskid),

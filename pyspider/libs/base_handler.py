@@ -1,25 +1,25 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-02-16 23:12:48
 
-import sys
-import inspect
+
 import functools
-import fractions
+import inspect
+import math
+import sys
+from pprint import pprint
 
 import six
 from six import add_metaclass, iteritems
 
-from pyspider.libs.url import (
-    quote_chinese, _build_url, _encode_params,
-    _encode_multipart_formdata, curl_to_arguments)
-from pyspider.libs.utils import md5string, timeout
-from pyspider.libs.ListIO import ListO
+from pyspider.libs.list_io import ListO
 from pyspider.libs.response import rebuild_response
-from pyspider.libs.pprint import pprint
+from pyspider.libs.url import (_build_url, _encode_multipart_formdata,
+                               _encode_params, curl_to_arguments,
+                               quote_chinese)
+from pyspider.libs.utils import md5string, timeout
 from pyspider.processor import ProcessorResult
 
 
@@ -38,11 +38,13 @@ def not_send_status(func):
 
     It's used by callbacks like on_message, on_result etc...
     """
+
     @functools.wraps(func)
     def wrapper(self, response, task):
-        self._extinfo['not_send_status'] = True
+        self._extinfo["not_send_status"] = True
         function = func.__get__(self, self.__class__)
         return self._run_func(function, response, task)
+
     return wrapper
 
 
@@ -58,6 +60,7 @@ def config(_config=None, **kwargs):
     def wrapper(func):
         func._config = _config
         return func
+
     return wrapper
 
 
@@ -69,6 +72,7 @@ def every(minutes=NOTSET, seconds=NOTSET):
     """
     method will been called every minutes or seconds
     """
+
     def wrapper(func):
         # mark the function with variable 'is_cronjob=True', the function would be
         # collected into the list Handler._cron_jobs by meta class
@@ -98,7 +102,6 @@ def every(minutes=NOTSET, seconds=NOTSET):
 
 
 class BaseHandlerMeta(type):
-
     def __new__(cls, name, bases, attrs):
         # A list of all functions which is marked as 'is_cronjob=True'
         cron_jobs = []
@@ -110,9 +113,9 @@ class BaseHandlerMeta(type):
         min_tick = 0
 
         for each in attrs.values():
-            if inspect.isfunction(each) and getattr(each, 'is_cronjob', False):
+            if inspect.isfunction(each) and getattr(each, "is_cronjob", False):
                 cron_jobs.append(each)
-                min_tick = fractions.gcd(min_tick, each.tick)
+                min_tick = math.gcd(min_tick, int(each.tick))
         newcls = type.__new__(cls, name, bases, attrs)
         newcls._cron_jobs = cron_jobs
         newcls._min_tick = min_tick
@@ -126,11 +129,12 @@ class BaseHandler(object):
 
     `BaseHandler.run` is the main method to handler the task.
     """
+
     crawl_config = {}
     project_name = None
     _cron_jobs = []
     _min_tick = 0
-    __env__ = {'not_inited': True}
+    __env__ = {"not_inited": True}
     retry_delay = {}
 
     def _reset(self):
@@ -146,15 +150,16 @@ class BaseHandler(object):
         """
         Running callback function with requested number of arguments
         """
-        args, varargs, keywords, defaults = inspect.getargspec(function)
+        args, _, _, _, _, _, _ = inspect.getfullargspec(function)
         task = arguments[-1]
-        process_time_limit = task['process'].get('process_time_limit',
-                                                 self.__env__.get('process_time_limit', 0))
+        process_time_limit = task["process"].get(
+            "process_time_limit", self.__env__.get("process_time_limit", 0)
+        )
         if process_time_limit > 0:
-            with timeout(process_time_limit, 'process timeout'):
-                ret = function(*arguments[:len(args) - 1])
+            with timeout(process_time_limit, "process timeout"):
+                ret = function(*arguments[: len(args) - 1])
         else:
-            ret = function(*arguments[:len(args) - 1])
+            ret = function(*arguments[: len(args) - 1])
         return ret
 
     def _run_task(self, task, response):
@@ -162,16 +167,18 @@ class BaseHandler(object):
         Finding callback specified by `task['callback']`
         raising status error for it if needed.
         """
-        process = task.get('process', {})
-        callback = process.get('callback', '__call__')
+        process = task.get("process", {})
+        callback = process.get("callback", "__call__")
         if not hasattr(self, callback):
             raise NotImplementedError("self.%s() not implemented!" % callback)
 
         function = getattr(self, callback)
         # do not run_func when 304
-        if response.status_code == 304 and not getattr(function, '_catch_status_code_error', False):
+        if response.status_code == 304 and not getattr(
+                function, "_catch_status_code_error", False
+        ):
             return None
-        if not getattr(function, '_catch_status_code_error', False):
+        if not getattr(function, "_catch_status_code_error", False):
             response.raise_for_status()
         return self._run_func(function, response, task)
 
@@ -187,10 +194,10 @@ class BaseHandler(object):
         if isinstance(response, dict):
             response = rebuild_response(response)
         self.response = response
-        self.save = (task.get('track') or {}).get('save', {})
+        self.save = (task.get("track") or {}).get("save", {})
 
         try:
-            if self.__env__.get('enable_stdout_capture', True):
+            if self.__env__.get("enable_stdout_capture", True):
                 sys.stdout = ListO(module.log_buffer)
             self._reset()
             result = self._run_task(task, response)
@@ -200,6 +207,8 @@ class BaseHandler(object):
             else:
                 self._run_func(self.on_result, result, response, task)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             logger.exception(e)
             exception = e
         finally:
@@ -215,18 +224,50 @@ class BaseHandler(object):
             self.save = None
 
         module.log_buffer[:] = []
-        return ProcessorResult(result, follows, messages, logs, exception, extinfo, save)
+        return ProcessorResult(
+            result, follows, messages, logs, exception, extinfo, save
+        )
 
-    schedule_fields = ('priority', 'retries', 'exetime', 'age', 'itag', 'force_update', 'auto_recrawl', 'cancel')
-    fetch_fields = ('method', 'headers', 'user_agent', 'data', 'connect_timeout', 'timeout', 'allow_redirects', 'cookies',
-                    'proxy', 'etag', 'last_modifed', 'last_modified', 'save', 'js_run_at', 'js_script',
-                    'js_viewport_width', 'js_viewport_height', 'load_images', 'fetch_type', 'use_gzip', 'validate_cert',
-                    'max_redirects', 'robots_txt')
-    process_fields = ('callback', 'process_time_limit')
+    schedule_fields = (
+        "priority",
+        "retries",
+        "exetime",
+        "age",
+        "itag",
+        "force_update",
+        "auto_recrawl",
+        "cancel",
+    )
+    fetch_fields = (
+        "method",
+        "headers",
+        "user_agent",
+        "data",
+        "connect_timeout",
+        "timeout",
+        "allow_redirects",
+        "cookies",
+        "proxy",
+        "etag",
+        "last_modifed",
+        "last_modified",
+        "save",
+        "js_run_at",
+        "js_script",
+        "js_viewport_width",
+        "js_viewport_height",
+        "load_images",
+        "fetch_type",
+        "use_gzip",
+        "validate_cert",
+        "max_redirects",
+        "robots_txt",
+    )
+    process_fields = ("callback", "process_time_limit")
 
     @staticmethod
     def task_join_crawl_config(task, crawl_config):
-        task_fetch = task.get('fetch', {})
+        task_fetch = task.get("fetch", {})
         for k in BaseHandler.fetch_fields:
             if k in crawl_config:
                 v = crawl_config[k]
@@ -237,9 +278,9 @@ class BaseHandler(object):
                 else:
                     task_fetch.setdefault(k, v)
         if task_fetch:
-            task['fetch'] = task_fetch
+            task["fetch"] = task_fetch
 
-        task_process = task.get('process', {})
+        task_process = task.get("process", {})
         for k in BaseHandler.process_fields:
             if k in crawl_config:
                 v = crawl_config[k]
@@ -248,7 +289,7 @@ class BaseHandler(object):
                 else:
                     task_process.setdefault(k, v)
         if task_process:
-            task['process'] = task_process
+            task["process"] = task_process
 
         return task
 
@@ -262,42 +303,44 @@ class BaseHandler(object):
 
         assert len(url) < 1024, "Maximum (1024) URL length error."
 
-        if kwargs.get('callback'):
-            callback = kwargs['callback']
+        if kwargs.get("callback"):
+            callback = kwargs["callback"]
             if isinstance(callback, six.string_types) and hasattr(self, callback):
                 func = getattr(self, callback)
             elif six.callable(callback) and six.get_method_self(callback) is self:
                 func = callback
-                kwargs['callback'] = func.__name__
+                kwargs["callback"] = func.__name__
             elif six.callable(callback) and hasattr(self, callback.__name__):
                 func = getattr(self, callback.__name__)
-                kwargs['callback'] = func.__name__
+                kwargs["callback"] = func.__name__
             else:
                 raise NotImplementedError("self.%s() not implemented!" % callback)
-            if hasattr(func, '_config'):
+            if hasattr(func, "_config"):
                 for k, v in iteritems(func._config):
                     if isinstance(v, dict) and isinstance(kwargs.get(k), dict):
                         kwargs[k].update(v)
                     else:
                         kwargs.setdefault(k, v)
 
-        url = quote_chinese(_build_url(url.strip(), kwargs.pop('params', None)))
-        if kwargs.get('files'):
+        url = quote_chinese(_build_url(url.strip(), kwargs.pop("params", None)))
+        if kwargs.get("files"):
             assert isinstance(
-                kwargs.get('data', {}), dict), "data must be a dict when using with files!"
-            content_type, data = _encode_multipart_formdata(kwargs.pop('data', {}),
-                                                            kwargs.pop('files', {}))
-            kwargs.setdefault('headers', {})
-            kwargs['headers']['Content-Type'] = content_type
-            kwargs['data'] = data
-        if kwargs.get('data'):
-            kwargs['data'] = _encode_params(kwargs['data'])
-        if kwargs.get('data'):
-            kwargs.setdefault('method', 'POST')
+                kwargs.get("data", {}), dict
+            ), "data must be a dict when using with files!"
+            content_type, data = _encode_multipart_formdata(
+                kwargs.pop("data", {}), kwargs.pop("files", {})
+            )
+            kwargs.setdefault("headers", {})
+            kwargs["headers"]["Content-Type"] = content_type
+            kwargs["data"] = data
+        if kwargs.get("data"):
+            kwargs["data"] = _encode_params(kwargs["data"])
+        if kwargs.get("data"):
+            kwargs.setdefault("method", "POST")
 
-        if kwargs.get('user_agent'):
-            kwargs.setdefault('headers', {})
-            kwargs['headers']['User-Agent'] = kwargs.get('user_agent')
+        if kwargs.get("user_agent"):
+            kwargs.setdefault("headers", {})
+            kwargs["headers"]["User-Agent"] = kwargs.get("user_agent")
 
         schedule = {}
         for key in self.schedule_fields:
@@ -306,29 +349,31 @@ class BaseHandler(object):
             elif key in self.crawl_config:
                 schedule[key] = self.crawl_config[key]
 
-        task['schedule'] = schedule
+        task["schedule"] = schedule
 
         fetch = {}
         for key in self.fetch_fields:
             if key in kwargs:
                 fetch[key] = kwargs.pop(key)
-        task['fetch'] = fetch
+        task["fetch"] = fetch
 
         process = {}
         for key in self.process_fields:
             if key in kwargs:
                 process[key] = kwargs.pop(key)
-        task['process'] = process
+        task["process"] = process
 
-        task['project'] = self.project_name
-        task['url'] = url
-        if 'taskid' in kwargs:
-            task['taskid'] = kwargs.pop('taskid')
+        task["project"] = self.project_name
+        task["url"] = url
+        if "taskid" in kwargs:
+            task["taskid"] = kwargs.pop("taskid")
         else:
-            task['taskid'] = self.get_taskid(task)
+            task["taskid"] = self.get_taskid(task)
 
         if kwargs:
-            raise TypeError('crawl() got unexpected keyword argument: %s' % kwargs.keys())
+            raise TypeError(
+                "crawl() got unexpected keyword argument: %s" % kwargs.keys()
+            )
 
         if self.is_debugger():
             task = self.task_join_crawl_config(task, self.crawl_config)
@@ -340,12 +385,12 @@ class BaseHandler(object):
         return task
 
     def get_taskid(self, task):
-        '''Generate taskid by information of task md5(url) by default, override me'''
-        return md5string(task['url'])
+        """Generate taskid by information of task md5(url) by default, override me"""
+        return md5string(task["url"])
 
     # apis
     def crawl(self, url, **kwargs):
-        '''
+        """
         available params:
           url
           callback
@@ -380,12 +425,12 @@ class BaseHandler(object):
           save
           taskid
 
-          full documents: http://pyspider.readthedocs.org/en/latest/apis/self.crawl/
-        '''
+          full documents: https://pyspider.readthedocs.io/en/latest/apis/self.crawl/
+        """
 
-        if isinstance(url, six.string_types) and url.startswith('curl '):
+        if isinstance(url, six.string_types) and url.startswith("curl "):
             curl_kwargs = curl_to_arguments(url)
-            url = curl_kwargs.pop('urls')
+            url = curl_kwargs.pop("urls")
             for k, v in iteritems(curl_kwargs):
                 kwargs.setdefault(k, v)
 
@@ -399,15 +444,16 @@ class BaseHandler(object):
 
     def is_debugger(self):
         """Return true if running in debugger"""
-        return self.__env__.get('debugger')
+        return self.__env__.get("debugger")
 
-    def send_message(self, project, msg, url='data:,on_message'):
+    def send_message(self, project, msg, url="data:,on_message"):
         """Send messages to other project."""
         self._messages.append((project, msg, url))
 
     def on_message(self, project, msg):
-        """Receive message from other project, override me."""
-        pass
+        """
+        Receive message from other project, override me.
+        """
 
     def on_result(self, result):
         """Receiving returns from other callback, override me."""
@@ -416,15 +462,14 @@ class BaseHandler(object):
         assert self.task, "on_result can't outside a callback."
         if self.is_debugger():
             pprint(result)
-        if self.__env__.get('result_queue'):
-            self.__env__['result_queue'].put((self.task, result))
+        if self.__env__.get("result_queue"):
+            self.__env__["result_queue"].put((self.task, result))
 
     def on_finished(self, response, task):
         """
         Triggered when all tasks in task queue finished.
-        http://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
+        https://docs.pyspider.org/en/latest/About-Projects/#on_finished-callback
         """
-        pass
 
     @not_send_status
     def _on_message(self, response):
@@ -433,9 +478,11 @@ class BaseHandler(object):
 
     @not_send_status
     def _on_cronjob(self, response, task):
-        if (not response.save
+        if (
+                not response.save
                 or not isinstance(response.save, dict)
-                or 'tick' not in response.save):
+                or "tick" not in response.save
+        ):
             return
 
         # When triggered, a '_on_cronjob' task is sent from scheudler with 'tick' in
@@ -443,7 +490,7 @@ class BaseHandler(object):
         # inverval of the cronjobs. The method should check the tick for each cronjob
         # function to confirm the execute interval.
         for cronjob in self._cron_jobs:
-            if response.save['tick'] % cronjob.tick != 0:
+            if response.save["tick"] % cronjob.tick != 0:
                 continue
             function = cronjob.__get__(self, self.__class__)
             self._run_func(function, response, task)
@@ -451,11 +498,11 @@ class BaseHandler(object):
     def _on_get_info(self, response, task):
         """Sending runtime infomation about this script."""
         for each in response.save or []:
-            if each == 'min_tick':
+            if each == "min_tick":
                 self.save[each] = self._min_tick
-            elif each == 'retry_delay':
+            elif each == "retry_delay":
                 if not isinstance(self.retry_delay, dict):
-                    self.retry_delay = {'': self.retry_delay}
+                    self.retry_delay = {"": self.retry_delay}
                 self.save[each] = self.retry_delay
-            elif each == 'crawl_config':
+            elif each == "crawl_config":
                 self.save[each] = self.crawl_config

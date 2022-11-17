@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
@@ -10,6 +9,7 @@ import time
 import unittest
 
 from pyspider.libs import utils
+
 
 class TestFetcher(unittest.TestCase):
     def test_readonlydict(self):

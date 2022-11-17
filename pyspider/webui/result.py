@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -7,10 +6,11 @@
 
 from __future__ import unicode_literals
 
-from flask import render_template, request, json
-from flask import Response
-from .app import app
+from flask import Response, json, render_template, request
+
 from pyspider.libs import result_dump
+
+from .app import app
 
 
 @app.route('/results')

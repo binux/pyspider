@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2015-03-27 20:12:11
 
-import six
 import csv
-import json
 import itertools
-from io import StringIO, BytesIO
+import json
+from io import BytesIO, StringIO
+
+import six
 from six import iteritems
 
 

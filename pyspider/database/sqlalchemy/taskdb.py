@@ -1,21 +1,22 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<roy@binux.me>
 #         http://binux.me
 # Created on 2014-12-04 22:33:43
 
-import re
-import six
-import time
 import json
-import sqlalchemy.exc
+import re
+import time
 
-from sqlalchemy import (create_engine, MetaData, Table, Column, Index,
-                        Integer, String, Float, Text, func)
+import six
+import sqlalchemy.exc
+from sqlalchemy import (Column, Float, Index, Integer, MetaData, String, Table,
+                        Text, create_engine, func)
 from sqlalchemy.engine.url import make_url
-from pyspider.libs import utils
+
 from pyspider.database.base.taskdb import TaskDB as BaseTaskDB
+from pyspider.libs import utils
+
 from .sqlalchemybase import SplitTableMixin, result2dict
 
 
@@ -39,18 +40,16 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
                            )
 
         self.url = make_url(url)
+
         if self.url.database:
-            database = self.url.database
-            self.url.database = None
             try:
-                engine = create_engine(self.url, convert_unicode=True, pool_recycle=3600)
+                engine = create_engine(self.url, pool_recycle=3600)
                 conn = engine.connect()
                 conn.execute("commit")
-                conn.execute("CREATE DATABASE %s" % database)
+                conn.execute("CREATE DATABASE %s" % self.url.database)
             except sqlalchemy.exc.SQLAlchemyError:
                 pass
-            self.url.database = database
-        self.engine = create_engine(url, convert_unicode=True, pool_recycle=3600)
+        self.engine = create_engine(url, pool_recycle=3600)
 
         self._list_project()
 
@@ -99,8 +98,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         for project in projects:
             self.table.name = self._tablename(project)
             for task in self.engine.execute(self.table.select()
-                                            .with_only_columns(columns)
-                                            .where(self.table.c.status == status)):
+                                                    .with_only_columns(columns)
+                                                    .where(self.table.c.status == status)):
                 yield self._parse(result2dict(columns, task))
 
     def get_task(self, project, taskid, fields=None):
@@ -112,9 +111,9 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.table.name = self._tablename(project)
         columns = [getattr(self.table.c, f, f) for f in fields] if fields else self.table.c
         for each in self.engine.execute(self.table.select()
-                                        .with_only_columns(columns)
-                                        .limit(1)
-                                        .where(self.table.c.taskid == taskid)):
+                                                .with_only_columns(columns)
+                                                .limit(1)
+                                                .where(self.table.c.taskid == taskid)):
             return self._parse(result2dict(columns, each))
 
     def status_count(self, project):
@@ -127,8 +126,8 @@ class TaskDB(SplitTableMixin, BaseTaskDB):
         self.table.name = self._tablename(project)
         for status, count in self.engine.execute(
                 self.table.select()
-                .with_only_columns((self.table.c.status, func.count(1)))
-                .group_by(self.table.c.status)):
+                        .with_only_columns((self.table.c.status, func.count(1)))
+                        .group_by(self.table.c.status)):
             result[status] = count
         return result
 

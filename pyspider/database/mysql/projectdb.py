@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-07-17 21:06:43
 
 import time
+
 import mysql.connector
 
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from pyspider.database.basedb import BaseDB
+
 from .mysqlbase import MySQLMixin
 
 

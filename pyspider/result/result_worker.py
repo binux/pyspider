@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-10-19 15:37:46
 
-import time
 import json
 import logging
+import time
+
 from six.moves import queue as Queue
+
 logger = logging.getLogger("result")
 
 

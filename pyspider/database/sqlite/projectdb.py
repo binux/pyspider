@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
 #         http://binux.me
@@ -7,9 +6,10 @@
 
 import time
 
-from .sqlitebase import SQLiteMixin
 from pyspider.database.base.projectdb import ProjectDB as BaseProjectDB
 from pyspider.database.basedb import BaseDB
+
+from .sqlitebase import SQLiteMixin
 
 
 class ProjectDB(SQLiteMixin, BaseProjectDB, BaseDB):
