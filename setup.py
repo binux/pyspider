@@ -37,10 +37,10 @@ install_requires = [
 extras_require_all = [
     'mysql-connector-python==8.0.16',
     'pymongo==3.9.0',
-    'redis==2.10.6',
-    'redis-py-cluster==1.3.6',
+    'redis==3.5.3',
+    'redis-py-cluster==2.1.3',
     'psycopg2-binary==2.9.3',
-    'elasticsearch==7.17.4',
+    'elasticsearch==7.10.0',
     'kombu>=5.2.4,<6',
     'amqp>=5.1.1,<6',
     'SQLAlchemy==1.4.36',
